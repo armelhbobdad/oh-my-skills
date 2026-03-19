@@ -1,0 +1,154 @@
+---
+name: 'step-05-detect-integrations'
+description: 'Detect co-import patterns and integration points between confirmed libraries'
+
+nextStepFile: './step-06-compile-stack.md'
+integrationPatterns: '../data/integration-patterns.md'
+---
+
+# Step 5: Detect Integrations
+
+## STEP GOAL:
+
+Analyze co-import patterns between confirmed libraries to identify integration points — where and how libraries connect in this specific codebase.
+
+## MANDATORY EXECUTION RULES (READ FIRST):
+
+### Universal Rules:
+
+- 📖 CRITICAL: Read the complete step file before taking any action
+- ⚙️ TOOL/SUBPROCESS FALLBACK: If any instruction references a subprocess, subagent, or tool you do not have access to, you MUST still achieve the outcome in your main context thread
+- ✅ YOU MUST ALWAYS SPEAK OUTPUT in your Agent communication style with the config `{communication_language}`
+
+### Role Reinforcement:
+
+- ✅ You are an integration architect operating in Ferris Architect mode
+- ✅ Zero hallucination — only document integrations evidenced in actual code
+- ✅ Every integration pattern must cite co-import files with file:line references
+
+### Step-Specific Rules:
+
+- 🎯 Focus on detecting cross-library patterns using Pattern 1 (grep) subprocess
+- 🚫 FORBIDDEN to compile SKILL.md — that is step 06
+- 💬 Integration detection is the core differentiator of stack skills vs individual skills
+- ⚙️ If subprocess unavailable, perform grep operations in main thread
+
+## EXECUTION PROTOCOLS:
+
+- 🎯 Load integration-patterns.md for detection rules
+- 💾 Store integration_graph as workflow state
+- 📖 Auto-proceed to step 06 after detection complete
+- 🚫 Graceful handling if no integrations detected
+
+## CONTEXT BOUNDARIES:
+
+- From step 03: confirmed_dependencies[] with file lists per library
+- From step 04: per_library_extractions[] with exports and patterns
+- This step produces: integration_graph {pairs[], types[], files[]}
+- This is the VALUE-ADD step — what makes stack skills different from individual skills
+
+## MANDATORY SEQUENCE
+
+**CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise.
+
+### 1. Generate Library Pairs
+
+From `confirmed_dependencies`, generate all unique pairs:
+- N libraries → N*(N-1)/2 pairs
+- Skip pairs where either library had extraction failure in step 04
+
+Report: "**Analyzing {pair_count} library pairs for integration patterns...**"
+
+### 2. Detect Co-Import Files
+
+For each library pair (A, B):
+
+**Launch a subprocess** that greps across all source files to find files importing BOTH library A and library B. Return only file paths and import line numbers.
+
+**Subprocess returns:** `{pair: [A, B], co_import_files: [{path, line_A, line_B}], count: N}`
+
+**If subprocess unavailable:** Intersect the file lists from step 03 import counts for each pair.
+
+**Threshold:** A pair must have 2+ co-import files to qualify as an integration pattern (single file co-imports may be incidental).
+
+### 3. Classify Integration Types
+
+Load `{integrationPatterns}` for classification rules.
+
+For each qualifying pair (2+ co-import files), analyze the co-import files to classify the integration type:
+
+- **Type 1: Middleware Chain** — Sequential function calls piping output between libraries
+- **Type 2: Shared Types** — Type definitions exchanged between libraries
+- **Type 3: Configuration Bridge** — One library configuring or initializing another
+- **Type 4: Event Handler** — Event patterns crossing library boundaries
+- **Type 5: Adapter/Wrapper** — Thin wrapper connecting library interfaces
+- **Type 6: State Sharing** — Shared state stores or context providers
+
+For each detected integration:
+- Identify the top 3 files demonstrating the pattern
+- Extract a brief description of how the libraries connect
+- Assign confidence: T1 if AST-verified, T1-low if source reading
+
+### 4. Build Integration Graph
+
+Assemble the integration graph:
+- **Nodes:** Confirmed libraries (with extraction data from step 04)
+- **Edges:** Detected integration pairs with type, file count, and description
+- Identify **hub libraries** (connected to 3+ other libraries)
+- Identify **cross-cutting patterns** (patterns spanning 3+ libraries)
+
+### 5. Display Integration Summary
+
+**If integrations detected:**
+
+"**Integration detection complete.**
+
+**Integration graph:** {lib_count} libraries, {pair_count} integration pairs
+
+**Hub libraries** (connected to 3+ others):
+{For each hub:} - **{library}** — integrates with {partner_list}
+
+**Detected integrations:**
+| Library A | Library B | Type | Co-import Files | Confidence |
+|-----------|-----------|------|-----------------|------------|
+| {name} | {name} | {type} | {count} | {tier} |
+
+{If cross-cutting patterns:}
+**Cross-cutting patterns:**
+- {description spanning 3+ libraries}
+
+**Proceeding to stack compilation...**"
+
+**If no integrations detected:**
+
+"**No co-import integration patterns detected** between confirmed libraries.
+
+The libraries in this project appear to operate independently. The stack skill will contain library summaries without an integration layer.
+
+**Proceeding to stack compilation...**"
+
+### 6. Auto-Proceed to Next Step
+
+Load, read the full file and then execute `{nextStepFile}`.
+
+---
+
+## 🚨 SYSTEM SUCCESS/FAILURE METRICS
+
+### ✅ SUCCESS:
+
+- All library pairs analyzed for co-imports
+- Integration types classified using pattern rules
+- Hub libraries and cross-cutting patterns identified
+- Integration graph built with confidence labels
+- Graceful handling of zero integrations (not a failure)
+- Auto-proceeded to step 06
+
+### ❌ SYSTEM FAILURE:
+
+- Fabricating integrations not evidenced in code
+- Not applying the 2+ file threshold for pairs
+- Starting to compile SKILL.md (step 06's job)
+- Treating zero integrations as a workflow failure (it's valid)
+
+**Master Rule:** Only document integrations that exist in actual code. Zero integrations is a valid result.

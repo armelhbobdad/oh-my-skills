@@ -1,0 +1,150 @@
+# Skill Lifecycle
+
+## Principle
+
+The 10 SKF workflows form an end-to-end pipeline from source discovery through verified export. Each workflow produces artifacts consumed by downstream workflows. Understanding the lifecycle enables Ferris to recommend the right workflow for a user's situation and to maintain artifact continuity across the pipeline.
+
+## Rationale
+
+Skills are not created in a single step — they move through discovery, design, compilation, verification, and distribution phases. Each phase has dedicated workflows with specific inputs and outputs. The lifecycle model prevents users from skipping critical steps and ensures artifacts flow cleanly between workflows.
+
+Without lifecycle awareness:
+- Users jump to create-skill without proper analysis or briefing
+- Generated skills lack provenance because upstream artifacts were skipped
+- Export packages reference stale or untested skills
+
+With lifecycle awareness:
+- Ferris recommends the appropriate entry point based on the user's context
+- Artifact dependencies are explicit — each workflow declares its inputs
+- The full pipeline produces verified, export-ready skills with complete provenance
+
+## Pipeline Phases
+
+| Phase | Workflows | Purpose | Artifacts Produced |
+| --- | --- | --- | --- |
+| Setup | SF (Setup Forge) | Detect environment and set capability tier | `forge-tier.yaml` |
+| Discovery | AN (Analyze Source) | Scan project, identify skillable units | Analysis report, skill briefs |
+| Design | BS (Brief Skill) | Interactive scope definition for one skill | `skill-brief.yaml` |
+| Compilation | CS, QS, SS (Create/Quick/Stack) | Extract source and compile skill | `SKILL.md`, metadata, provenance |
+| Maintenance | US, AS (Update/Audit) | Detect drift and refresh skills | Updated `SKILL.md`, drift report |
+| Verification | TS (Test Skill) | Quality gate — completeness scoring | Test report, pass/fail decision |
+| Distribution | EX (Export Skill) | Package and inject into agent context | agentskills.io bundle, snippets |
+
+## Typical Flows
+
+### First-Time Setup (Brownfield Project)
+
+```
+SF → AN → CS (--batch) → TS → EX
+```
+
+1. **SF** detects tools, writes forge tier
+2. **AN** scans the project, identifies skillable units, generates skill briefs
+3. **CS** compiles skills from briefs (batch mode processes all briefs)
+4. **TS** runs completeness verification on each skill
+5. **EX** packages passing skills for distribution
+
+### Single Skill (Full Quality)
+
+```
+SF → BS → CS → TS → EX
+```
+
+1. **SF** ensures environment is configured
+2. **BS** guides the user through scope definition, produces a validated brief
+3. **CS** compiles the skill with full provenance
+4. **TS** verifies completeness
+5. **EX** packages for distribution
+
+### Single Skill (Fast)
+
+```
+SF → QS → EX
+```
+
+1. **SF** ensures environment is configured
+2. **QS** resolves a package name or URL to source and compiles directly — no brief needed
+3. **EX** packages for distribution (optional TS between QS and EX for quality assurance)
+
+### Maintenance
+
+```
+AS → US → TS → EX
+```
+
+1. **AS** detects drift between skill and current source
+2. **US** re-extracts changed exports and merges, preserving \[MANUAL\] sections
+3. **TS** re-verifies the updated skill
+4. **EX** re-exports the updated package
+
+## Pattern Examples
+
+### Example 1: Workflow Selection Decision
+
+**Context:** A user asks Ferris to create a skill for a specific library.
+
+**Implementation:** Ferris evaluates the situation:
+
+| Condition | Recommended Flow |
+| --- | --- |
+| User knows exactly what to skill, has a brief | CS directly |
+| User knows the library but needs scope guidance | BS → CS |
+| User has a package name, wants fast results | QS |
+| User wants to skill their entire project | AN → CS (batch) |
+| User has an existing skill that may be outdated | AS → US |
+
+**Key Points:**
+- SF is always prerequisite (but only needs to run once per project)
+- Quick skill (QS) skips briefing — appropriate for well-known packages
+- Analyze source (AN) is the brownfield entry point for large projects
+
+### Example 2: Artifact Flow Between Workflows
+
+**Context:** Tracking how artifacts flow through the pipeline.
+
+**Implementation:**
+```
+SF → forge-tier.yaml
+       ↓ (read by all subsequent workflows)
+AN → analysis-report.md + skill-brief.yaml[]
+       ↓ (briefs consumed by CS)
+CS → SKILL.md + metadata.json + provenance-map.json + evidence-report.md
+       ↓ (skill consumed by TS)
+TS → test-report.md (pass/fail gate)
+       ↓ (passing skill consumed by EX)
+EX → agentskills.io bundle + context snippets
+```
+
+**Key Points:**
+- `forge-tier.yaml` is the universal dependency — all workflows read it
+- Skill briefs are the handoff between discovery/design and compilation
+- TS acts as a gate — failing skills do not proceed to EX
+
+### Example 3: Stack Skill vs. Individual Skills
+
+**Context:** A user wants to document how multiple libraries work together in their project.
+
+**Implementation:** Two approaches serve different needs:
+- **Individual skills** (via CS or QS): One skill per library, each with its own provenance and lifecycle. Best for reusable skills that apply across projects.
+- **Stack skill** (via SS): A single consolidated skill documenting how libraries connect. Detects co-import patterns and integration surfaces. Best for project-specific context.
+
+**Key Points:**
+- Stack skills and individual skills are complementary, not competing
+- SS detects integration patterns (e.g., "express + passport always used together for auth routes")
+- Individual skills track per-library provenance; stack skills track inter-library relationships
+
+## Integration Points
+
+- **Setup Forge** must run before any other workflow — it establishes the tier
+- **Analyze Source** and **Brief Skill** are alternative entry points to compilation
+- **Test Skill** is optional but recommended — the quality gate before export
+- **Audit Skill** and **Update Skill** form the maintenance loop
+- **Export Skill** is the terminal workflow — it produces the distributable artifact
+
+## Related Fragments
+
+- [progressive-capability.md](progressive-capability.md) — how the forge tier affects each pipeline phase
+- [agentskills-spec.md](agentskills-spec.md) — the output format that export-skill packages
+- [provenance-tracking.md](provenance-tracking.md) — how provenance flows through the pipeline
+
+_Source: synthesized from all 10 workflow.md files and module-help.csv_
