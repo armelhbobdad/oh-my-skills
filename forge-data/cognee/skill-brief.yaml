@@ -1,0 +1,36 @@
+---
+name: "cognee"
+version: "0.5.5"
+source_type: "source"
+source_repo: "https://github.com/topoteretes/cognee"
+language: "Python"
+description: "Comprehensive skill covering the full cognee library — the AI memory engine for knowledge graphs. Enables agents to guide maintainers through internals and architecture, and developers through public API usage, integration patterns, and best practices."
+forge_tier: "deep"
+created: "2026-03-19"
+created_by: "armel"
+scope:
+  type: "full-library"
+  include:
+    - "cognee/**"
+    - "examples/**"
+    - "cognee-mcp/**"
+  exclude:
+    - "cognee/tests/**"
+    - "**/test_*.py"
+    - "**/dist/**"
+    - "**/build/**"
+    - "**/__pycache__/**"
+    - "cognee-frontend/**"
+    - "cognee-starter-kit/**"
+    - "deployment/**"
+    - "distributed/**"
+    - "notebooks/**"
+    - "tools/**"
+    - "working_dir_error_replication/**"
+    - "poetry.lock"
+    - "uv.lock"
+  notes: "Dual audience — library maintainers (internals, architecture) and developers (public API, best practices, integration patterns)."
+doc_urls:
+  - url: "https://docs.cognee.ai/"
+    label: "Official Documentation"
+---
