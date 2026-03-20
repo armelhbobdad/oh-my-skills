@@ -9,6 +9,45 @@ This section provides practical examples for using SKF: Skill Forge.
 
 ---
 
+## What the Output Looks Like
+
+When SKF generates a skill, you get a `SKILL.md` file with machine-readable frontmatter and provenance-backed instructions. Here's a trimmed example from a real skill generated for [cognee](https://github.com/topoteretes/cognee) (browse the full output at [oh-my-skills](https://github.com/armelhbobdad/oh-my-skills)):
+
+**Frontmatter (tells AI agents when to load this skill):**
+
+```yaml
+name: cognee
+description: Use when cognee is a Python AI memory engine that transforms
+  documents into knowledge graphs with vector and graph storage for semantic
+  search and reasoning. Use this skill when writing code that calls cognee's
+  Python API (add, cognify, search, memify, config, datasets, prune, session).
+```
+
+**Body (what your AI agent reads):**
+
+```
+## Key API Summary
+
+| Function | Purpose | Key Params | Source |
+|----------|---------|------------|--------|
+| add() | Ingest text, files, binary data | data, dataset_name | [AST:cognee/api/v1/add/add.py:L22] |
+| cognify() | Build knowledge graph | datasets, graph_model | [AST:cognee/api/v1/cognify/cognify.py:L47] |
+| search() | Query knowledge graph | query_text, query_type | [AST:cognee/api/v1/search/search.py:L26] |
+| memify() | Enrich graph with custom tasks | extraction_tasks, data | [AST:cognee/modules/memify/memify.py:L27] |
+| session.* | Session history and feedback | get_session(), add_feedback() | [SRC:cognee/api/v1/session/__init__.py:L8] |
+| DataPoint | Base class for custom graph nodes | inherit and add fields | [EXT:docs.cognee.ai/guides/custom-data-models] |
+```
+
+Provenance tags trace each instruction to its source:
+- `[AST:file:line]` — extracted from code via AST parsing (highest confidence)
+- `[SRC:file:line]` — read from source code without AST verification
+- `[EXT:url]` — sourced from external documentation
+- `[QMD:collection:doc]` — surfaced from indexed developer discourse (issues, PRs, changelogs)
+
+See [How It Works](../architecture.md) for the full output structure.
+
+---
+
 ## Example Workflows
 
 ### Quick Skill — 47 Seconds

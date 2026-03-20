@@ -5,7 +5,7 @@ description: All 10 SKF workflows with commands, steps, and connection diagram
 
 # Workflows Reference
 
-SKF includes 10 workflows organized by purpose:
+SKF has 10 workflows. You trigger them by typing commands to [Ferris](../agents.md), the AI agent that runs everything. Each workflow handles a specific part of the skill lifecycle — from analyzing source code to packaging for distribution. If any terms are unfamiliar, see the [Concepts](../concepts.md) page for plain-English definitions.
 
 ---
 

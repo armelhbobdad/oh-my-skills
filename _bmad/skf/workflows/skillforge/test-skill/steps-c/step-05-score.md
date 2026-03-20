@@ -5,6 +5,7 @@ description: 'Calculate completeness score from coverage and coherence findings'
 nextStepFile: './step-06-report.md'
 outputFile: '{forge_data_folder}/{skill_name}/test-report-{skill_name}.md'
 scoringRulesFile: '../data/scoring-rules.md'
+sourceAccessProtocol: '../data/{sourceAccessProtocol}'
 ---
 
 # Step 5: Score
@@ -136,14 +137,14 @@ Append the **Completeness Score** section to `{outputFile}`:
 **Analysis Confidence:** {full | provenance-map | metadata-only | remote-only | docs-only}
 ```
 
-If `analysis_confidence` is not `full`, append a degradation notice:
+If `analysis_confidence` is not `full`, append a degradation notice. **The notice must be confidence-aware** — see the degradation notice rules in `{sourceAccessProtocol}`:
 
 ```markdown
 ### Access Degradation Notice
 
-**Resolved via:** {analysis_confidence}
-**Impact:** {describe limitation — e.g., "Signature checks limited to name-matching. Source file:line citations from provenance-map, not live AST."}
-**Recommendation:** Re-run with local clone for full AST-backed verification.
+**Resolved via:** {analysis_confidence} {confidence breakdown if provenance-map, e.g., "(T1 AST-verified at compilation time)" or "(12 T1, 3 T1-low)"}
+**Impact:** {describe limitation — e.g., "Signature checks limited to name-matching. Source file:line citations from provenance-map, not live AST." — or "Provenance data is at highest confidence; no limitation." for all-T1 provenance-map}
+**Recommendation:** {confidence-dependent — see {sourceAccessProtocol} degradation notice rules. Do NOT recommend local clone when provenance-map entries are already T1.}
 ```
 
 ### 7. Update Output Frontmatter
