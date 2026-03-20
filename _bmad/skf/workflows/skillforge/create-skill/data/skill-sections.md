@@ -125,7 +125,7 @@ Indexed pipe-delimited format for CLAUDE.md managed section (~80-120 tokens per 
   "tool_versions": {
     "ast_grep": "{version-or-null}",
     "qmd": "{version-or-null}",
-    "skf": "1.0.0"
+    "skf": "{skf_version}"
   },
   "stats": {
     "exports_documented": 0,
@@ -204,7 +204,7 @@ Each reference file includes:
 ## Tool Versions
 - ast-grep: {version}
 - QMD: {version}
-- SKF: 1.0.0
+- SKF: {skf_version}
 
 ## Extraction Summary
 - Files scanned: {count}

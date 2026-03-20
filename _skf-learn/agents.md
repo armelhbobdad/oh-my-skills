@@ -5,7 +5,7 @@ description: Ferris agent reference — modes, capabilities, menu, and communica
 
 # Agents Reference
 
-SKF includes 1 specialized agent:
+Ferris is the AI agent that runs all SKF workflows. You always interact with Ferris — he switches modes based on which workflow you invoke.
 
 ---
 

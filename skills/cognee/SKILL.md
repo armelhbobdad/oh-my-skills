@@ -50,7 +50,28 @@ asyncio.run(main())
 All core functions are **async** — must use `await` inside an async context. `[EXT:docs.cognee.ai/getting-started/quickstart]`
 
 <!-- [MANUAL:additional-notes] -->
-<!-- Add custom notes here. This section is preserved during skill updates. -->
+
+### Setup Requirements
+
+**Python:** >=3.10, <3.14. Recommended installer: `uv`.
+
+```bash
+uv pip install -e "."                    # minimal (SQLite + LanceDB + Kuzu)
+uv pip install -e ".[postgres,neo4j]"    # with PostgreSQL + Neo4j
+```
+
+**Key installation extras:** `postgres` / `postgres-binary`, `neo4j`, `neptune`, `chromadb`, `qdrant`, `redis`, `ollama`, `anthropic`, `gemini`, `mistral`, `groq`, `huggingface`, `llama-cpp`, `aws` (S3), `langchain`, `llama-index`, `graphiti`, `baml`, `dlt`, `docling`, `codegraph`, `scraping`, `docs`, `monitoring` (Sentry+Langfuse), `distributed` (Modal), `dev`, `debug`.
+
+**Minimal .env:**
+```bash
+LLM_API_KEY="your_openai_api_key"
+LLM_MODEL="openai/gpt-4o-mini"
+```
+
+Defaults (no extra setup): SQLite (relational), LanceDB (vector), Kuzu (graph). All stored in `.venv` by default — override with `DATA_ROOT_DIRECTORY` and `SYSTEM_ROOT_DIRECTORY`.
+
+**Important:** If you configure only LLM or only embeddings, the other defaults to OpenAI. Always configure both, or ensure a valid OpenAI API key.
+
 <!-- [/MANUAL:additional-notes] -->
 
 ## Common Workflows
@@ -88,9 +109,138 @@ All core functions are **async** — must use `await` inside an async context. `
 | `visualize_graph()` | Render knowledge graph to HTML | `destination_file_path` | `[AST:cognee/api/v1/visualize/visualize.py:L18]` |
 | `enable_tracing()` | Enable OpenTelemetry tracing | `console_output` | `[AST:cognee/modules/observability/trace_context.py:L14]` |
 | `run_migrations()` | Run Alembic database migrations | — | `[AST:cognee/run_migrations.py:L18]` |
+| `start_ui()` | Launch local Cognee UI (frontend + backend + MCP servers) | `pid_callback`, `port`, `start_backend`, `start_mcp` | `[SRC:cognee/api/v1/ui/ui.py]` |
+| `cognee_network_visualization()` | Render knowledge graph to interactive HTML | `graph_data`, `destination_file_path` | `[SRC:cognee/modules/visualization/cognee_network_visualization.py:L17]` |
+| `pipelines` | Module re-export: Task, run_tasks, run_tasks_parallel, run_pipeline | — | `[SRC:cognee/modules/pipelines/__init__.py:L1]` |
 
 <!-- [MANUAL:additional-notes] -->
-<!-- Add custom notes here. This section is preserved during skill updates. -->
+
+### LLM Provider Configuration
+
+Configure via `.env` — provider-specific examples:
+
+```bash
+# Azure OpenAI
+LLM_PROVIDER="azure"
+LLM_MODEL="azure/gpt-4o-mini"
+LLM_ENDPOINT="https://YOUR-RESOURCE.openai.azure.com/openai/deployments/gpt-4o-mini"
+LLM_API_KEY="your_key"
+LLM_API_VERSION="2024-12-01-preview"
+
+# Anthropic (requires: pip install cognee[anthropic])
+LLM_PROVIDER="anthropic"
+LLM_MODEL="claude-3-5-sonnet-20241022"
+LLM_API_KEY="your_key"
+
+# Ollama (requires: pip install cognee[ollama])
+LLM_PROVIDER="ollama"
+LLM_MODEL="llama3.1:8b"
+LLM_ENDPOINT="http://localhost:11434/v1"
+LLM_API_KEY="ollama"
+EMBEDDING_PROVIDER="ollama"
+EMBEDDING_MODEL="nomic-embed-text:latest"
+EMBEDDING_ENDPOINT="http://localhost:11434/api/embed"
+HUGGINGFACE_TOKENIZER="nomic-ai/nomic-embed-text-v1.5"
+
+# AWS Bedrock (requires: pip install cognee[aws])
+LLM_PROVIDER="bedrock"
+LLM_MODEL="anthropic.claude-3-sonnet-20240229-v1:0"
+AWS_REGION="us-east-1"
+
+# Custom / OpenRouter / vLLM
+LLM_PROVIDER="custom"
+LLM_MODEL="openrouter/google/gemini-2.0-flash-lite-preview-02-05:free"
+LLM_ENDPOINT="https://openrouter.ai/api/v1"
+```
+
+**Rate limiting:** `LLM_RATE_LIMIT_ENABLED=true`, `LLM_RATE_LIMIT_REQUESTS=60`, `LLM_RATE_LIMIT_INTERVAL=60`
+
+**Structured output:** `STRUCTURED_OUTPUT_FRAMEWORK="instructor"` (default) or `"baml"` (requires `cognee[baml]`). Override instructor mode: `LLM_INSTRUCTOR_MODE="json_schema_mode"`.
+
+### Database Switching
+
+```bash
+# PostgreSQL (requires: pip install cognee[postgres])
+DB_PROVIDER=postgres
+DB_HOST=localhost  DB_PORT=5432  DB_USERNAME=cognee  DB_PASSWORD=cognee  DB_NAME=cognee_db
+
+# PGVector (requires: pip install cognee[postgres])
+VECTOR_DB_PROVIDER=pgvector
+VECTOR_DB_URL=postgresql://cognee:cognee@localhost:5432/cognee_db
+
+# Neo4j (requires: pip install cognee[neo4j])
+GRAPH_DATABASE_PROVIDER=neo4j
+GRAPH_DATABASE_URL=bolt://localhost:7687
+GRAPH_DATABASE_USERNAME=neo4j  GRAPH_DATABASE_PASSWORD=yourpassword
+
+# S3 storage (requires: pip install cognee[aws])
+STORAGE_BACKEND="s3"
+STORAGE_BUCKET_NAME="your-bucket"
+DATA_ROOT_DIRECTORY="s3://your-bucket/cognee/data"
+```
+
+### Security Environment Variables
+
+```bash
+ACCEPT_LOCAL_FILE_PATH=True     # Allow local file paths in add()
+ALLOW_HTTP_REQUESTS=True        # Allow HTTP fetches
+ALLOW_CYPHER_QUERY=True         # Allow raw Cypher in SearchType.CYPHER
+REQUIRE_AUTHENTICATION=False    # Enable API auth
+ENABLE_BACKEND_ACCESS_CONTROL=True  # Multi-tenant dataset isolation
+```
+
+### Extension Patterns
+
+**Custom pipeline task:**
+```python
+from cognee.modules.pipelines.tasks.Task import Task
+
+async def my_task(data):
+    return process(data)
+
+task = Task(my_task)
+```
+
+**Direct database access:**
+```python
+from cognee.infrastructure.databases.graph import get_graph_engine
+from cognee.infrastructure.databases.vector import get_vector_engine
+
+graph_engine = await get_graph_engine()
+vector_engine = await get_vector_engine()
+```
+
+**LLM Gateway (structured output):**
+```python
+from cognee.infrastructure.llm.get_llm_client import get_llm_client
+
+llm_client = get_llm_client()
+response = await llm_client.acreate_structured_output(
+    text_input="prompt", system_prompt="instructions", response_model=YourPydanticModel
+)
+```
+
+### MCP Server Transport Modes
+
+```bash
+python src/server.py                    # stdio (default)
+python src/server.py --transport sse    # SSE
+python src/server.py --transport http --host 127.0.0.1 --port 8000 --path /mcp
+# API mode (connect to running Cognee API):
+python src/server.py --transport sse --api-url http://localhost:8000 --api-token TOKEN
+```
+
+Docker: `docker run -e TRANSPORT_MODE=sse --env-file .env -p 8000:8000 cognee/cognee-mcp:main`
+
+### Common Troubleshooting
+
+- **Ollama + OpenAI embeddings NoDataError** — configure both LLM and embedding to same provider, or set `HUGGINGFACE_TOKENIZER`
+- **LM Studio structured output** — set `LLM_INSTRUCTOR_MODE="json_schema_mode"`
+- **Default provider fallback** — configuring only LLM or only embeddings defaults the other to OpenAI
+- **Permission denied on search** — returns empty list (not error) to prevent info leakage; check dataset permissions
+- **Docker DB connections** — use `DB_HOST=host.docker.internal` for local databases
+- **Debug logging** — `LITELLM_LOG="DEBUG"`, `ENV="development"`, `TELEMETRY_DISABLED=1`
+
 <!-- [/MANUAL:additional-notes] -->
 
 ## Migration & Deprecation Warnings
@@ -99,6 +249,7 @@ All core functions are **async** — must use `await` inside an async context. `
 - **`memify()` default pipeline changed** — coding rules replaced with triplet embedding (Mar 2026) `[QMD:cognee-temporal:prs.md]`
 - **`update()` bug** — PATCH updates timestamps but GET raw may return old data `[QMD:cognee-temporal:issues.md]`
 - **`visualize_graph()` frontend** — open bug #2442: missing component in UI mode `[QMD:cognee-temporal:issues.md]`
+- **`start_ui()` v0.5.5 bug** — pip-installed frontend fails with 500 errors due to missing npm deps (react-markdown, ngraph.graph) `[QMD:cognee-temporal:issues.md]`
 
 See Full API Reference for migration details.
 
@@ -136,154 +287,7 @@ cognee --ui                  # Launch local UI
 
 ## Full API Reference
 
-### add()
-
-```python
-async def add(
-    data: Union[BinaryIO, list[BinaryIO], str, list[str], DataItem, list[DataItem], Any],
-    dataset_name: str = "main_dataset",
-    user: User = None,
-    node_set: Optional[List[str]] = None,
-    vector_db_config: dict = None,
-    graph_db_config: dict = None,
-    dataset_id: Optional[UUID] = None,
-    preferred_loaders: Optional[List[Union[str, dict[str, dict[str, Any]]]]] = None,
-    incremental_loading: bool = True,
-    data_per_batch: Optional[int] = 20,
-    **kwargs,
-)
-```
-
-`[AST:cognee/api/v1/add/add.py:L22]`
-
-**Parameters:**
-| Param | Type | Default | Description |
-|-------|------|---------|-------------|
-| `data` | Union[str, list, BinaryIO, DataItem, Any] | required | Text, file paths, binary streams, DltResource |
-| `dataset_name` | str | `"main_dataset"` | Target dataset name |
-| `user` | Optional[User] | None | Auth context (auto-creates default user) |
-| `node_set` | Optional[List[str]] | None | Tag data with node set labels |
-| `incremental_loading` | bool | True | Skip already-processed data |
-| `data_per_batch` | Optional[int] | 20 | Parallel processing batch size |
-| `preferred_loaders` | Optional[List] | None | Custom file format loaders |
-
-**Supported inputs:** text strings, absolute paths (`/path/to/file.pdf`), file URLs (`file:///path`), S3 paths (`s3://bucket/file`), binary file objects, lists of mixed types.
-
-**T2 annotation:** v0.5.5 release focused on faster memory ingestion. `[QMD:cognee-temporal:releases.md]`
-
-### cognify()
-
-```python
-async def cognify(
-    datasets: Union[str, list[str], list[UUID]] = None,
-    user: User = None,
-    graph_model: BaseModel = KnowledgeGraph,
-    chunker=TextChunker,
-    chunk_size: int = None,
-    chunks_per_batch: int = None,
-    config: Config = None,
-    vector_db_config: dict = None,
-    graph_db_config: dict = None,
-    run_in_background: bool = False,
-    incremental_loading: bool = True,
-    custom_prompt: Optional[str] = None,
-    temporal_cognify: bool = False,
-    data_per_batch: int = 20,
-    **kwargs,
-)
-```
-
-`[AST:cognee/api/v1/cognify/cognify.py:L47]`
-
-**6-step pipeline:** classify documents → check permissions → extract chunks → extract graph → summarize text → add data points. `[EXT:docs.cognee.ai/core-concepts/main-operations/cognify]`
-
-**Key params:** `graph_model` (custom Pydantic model for extraction), `config` (ontology configuration), `temporal_cognify` (enable temporal event extraction), `custom_prompt` (shape LLM extraction).
-
-**T2 annotation:** Re-cognify after delete may not re-ingest due to pipeline state caching. `[QMD:cognee-temporal:issues.md]`
-
-### search()
-
-```python
-async def search(
-    query_text: str,
-    query_type: SearchType = SearchType.GRAPH_COMPLETION,
-    user: Optional[User] = None,
-    datasets: Optional[Union[list[str], str]] = None,
-    dataset_ids: Optional[Union[list[UUID], UUID]] = None,
-    system_prompt_path: str = "answer_simple_question.txt",
-    system_prompt: Optional[str] = None,
-    top_k: int = 10,
-    node_type: Optional[Type] = NodeSet,
-    node_name: Optional[List[str]] = None,
-    only_context: bool = False,
-    session_id: Optional[str] = None,
-    wide_search_top_k: Optional[int] = 100,
-    triplet_distance_penalty: Optional[float] = 3.5,
-    verbose: bool = False,
-    retriever_specific_config: Optional[dict] = None,
-) -> List[SearchResult]
-```
-
-`[AST:cognee/api/v1/search/search.py:L26]`
-
-**Sessions:** `session_id` enables conversational memory (only GRAPH_COMPLETION, RAG_COMPLETION, TRIPLET_COMPLETION). `[EXT:docs.cognee.ai/guides/sessions]`
-
-**Access control:** When `ENABLE_BACKEND_ACCESS_CONTROL=true`, results are per-dataset objects with `dataset_name`, `dataset_id`, `search_result`. `[EXT:docs.cognee.ai/guides/search-basics]`
-
-**T2 annotation:** Feedback-weight-aware graph retrieval added; ChromaDB adapter has unimplemented query params. `[QMD:cognee-temporal:prs.md]`
-
-### memify()
-
-```python
-async def memify(
-    extraction_tasks: Union[List[Task], List[str]] = None,
-    enrichment_tasks: Union[List[Task], List[str]] = None,
-    data: Optional[Any] = None,
-    dataset: Union[str, UUID] = "main_dataset",
-    user: User = None,
-    node_type: Optional[Type] = NodeSet,
-    node_name: Optional[List[str]] = None,
-    vector_db_config: Optional[dict] = None,
-    graph_db_config: Optional[dict] = None,
-    run_in_background: bool = False,
-)
-```
-
-`[AST:cognee/modules/memify/memify.py:L27]`
-
-Enrichment pipeline for existing graphs. If no data provided, uses existing graph (optionally filtered by node_type/node_name).
-
-**T2-future:** Default pipeline changed from coding rules to triplet embedding (Mar 2026). `[QMD:cognee-temporal:prs.md]`
-
-### config
-
-Static configuration namespace. `[AST:cognee/api/v1/config/config.py:L18]`
-
-Key methods: `set_llm_api_key(key)`, `set_llm_model(model)`, `set_llm_provider(provider)`, `system_root_directory(path)`, `data_root_directory(path)`, `set_vector_db_provider(provider)`, `set_graph_db_provider(provider)`, `set_embedding_provider(provider)`.
-
-**T2 annotation:** Custom LLM provider endpoint fix for GenericAPIAdapter. `[QMD:cognee-temporal:prs.md]`
-
-### datasets
-
-Static dataset management namespace. `[AST:cognee/api/v1/datasets/datasets.py:L26]`
-
-Methods: `list_datasets(user)`, `discover_datasets(dir_path)`, `list_data(dataset_id, user)`, `get_status(datasets, user)`, `delete_data(dataset_id, data_id, mode, user)`, `delete_dataset(dataset_id, user)`, `empty_dataset(dataset_id, user)`.
-
-### session
-
-`SimpleNamespace(get_session, add_feedback, delete_feedback)` `[SRC:cognee/api/v1/session/__init__.py:L8]`
-
-- `get_session(session_id, last_n, user)` → `List[SessionQAEntry]`
-- `add_feedback(session_id, qa_id, feedback_text, score, user)` → records feedback
-- `delete_feedback(session_id, qa_id, user)` → removes feedback
-
-### Tracing API
-
-- `enable_tracing(console_output=False)` `[AST:cognee/modules/observability/trace_context.py:L14]`
-- `disable_tracing()` `[AST:cognee/modules/observability/trace_context.py:L23]`
-- `get_last_trace() -> Optional[CogneeTrace]` `[AST:cognee/modules/observability/trace_context.py:L55]`
-- `get_all_traces() -> list[CogneeTrace]` `[AST:cognee/modules/observability/trace_context.py:L63]`
-- `clear_traces()` `[AST:cognee/modules/observability/trace_context.py]`
+See [references/full-api-reference.md](references/full-api-reference.md) for complete signatures with parameters, return types, and T2 annotations for all 22 exports.
 
 ## Full Type Definitions
 

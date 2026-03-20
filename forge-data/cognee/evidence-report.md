@@ -60,3 +60,39 @@
 - security_scan unavailable (SNYK_TOKEN not configured)
 - delete() is deprecated since v0.3.9 — included with deprecation notice
 - session namespace uses SimpleNamespace (not a class) — cited as T1-low
+
+## Update Operation — 2026-03-20
+
+**Trigger:** gap-driven (from test-report-cognee.md, score 95.1%)
+**Forge Tier:** Deep
+**Mode:** gap-driven (source drift detection skipped)
+
+### Changes Detected
+- Files modified: 0
+- Files added: 0
+- Files deleted: 0
+- Exports affected: 3 (2 undocumented + 1 incomplete)
+
+### Gaps Resolved
+- GAP-001 (Critical): `start_ui` — added Key API Summary row + Full API Reference section with full signature
+- GAP-002 (Critical): `cognee_network_visualization` — added Key API Summary row + Full API Reference section with signature
+- GAP-003 (Low): `pipelines` — added Key API Summary row with re-export list
+
+### Merge Results
+- Exports updated: 0
+- Exports added: 2 (start_ui, cognee_network_visualization)
+- Exports metadata updated: 1 (pipelines)
+- Exports removed: 0
+- [MANUAL] sections preserved: 2
+- Conflicts resolved: 0
+
+### Extraction Method
+- Source access: MCP (zread) — fetched 3 files from topoteretes/cognee @ master
+- Confidence: T1-low (MCP-fetched, no local AST)
+- QMD enrichment: 2 T2 annotations (start_ui, cognee_network_visualization via cognee-temporal)
+
+### Validation Summary
+- Spec compliance: DEFERRED (post-write)
+- [MANUAL] integrity: PASS (2/2 sections intact)
+- Confidence tiers: PASS (3 T1-low, 2 T2-enriched)
+- Provenance: PASS (1 advisory: start_ui source_line null)

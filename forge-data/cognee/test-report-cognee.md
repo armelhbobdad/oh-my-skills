@@ -5,9 +5,9 @@ skillDir: 'skills/cognee'
 testMode: 'naive'
 forgeTier: 'Deep'
 testResult: 'pass'
-score: '95.1%'
+score: '99.3%'
 analysisConfidence: 'provenance-map'
-testDate: '2026-03-19'
+testDate: '2026-03-20'
 stepsCompleted: ['step-01-init', 'step-02-detect-mode', 'step-03-coverage-check', 'step-04-coherence-check', 'step-04b-external-validators', 'step-05-score', 'step-06-report']
 nextWorkflow: 'export-skill'
 ---
@@ -50,22 +50,21 @@ nextWorkflow: 'export-skill'
 | `prune` | class | Yes | Methods | `cognee/api/v1/prune/prune.py:L4` | PASS |
 | `session` | namespace | Yes | Methods | `cognee/api/v1/session/__init__.py:L8` | PASS |
 | `visualize_graph` | function | Yes | Signature | `cognee/api/v1/visualize/visualize.py:L18` | PASS |
+| `start_ui` | function | Yes | Full | `cognee/api/v1/ui/ui.py` | PASS |
+| `cognee_network_visualization` | function | Yes | Signature | `cognee/modules/visualization/cognee_network_visualization.py:L17` | PASS |
+| `pipelines` | module | Yes | Re-exports | `cognee/modules/pipelines/__init__.py:L1` | PASS |
+| `run_migrations` | function | Yes | Signature | `cognee/run_migrations.py:L18` | PASS |
 | `enable_tracing` | function | Yes | Signature | `cognee/modules/observability/trace_context.py:L14` | PASS |
 | `disable_tracing` | function | Yes | Inline | `cognee/modules/observability/trace_context.py:L23` | PASS |
 | `get_last_trace` | function | Yes | Inline | `cognee/modules/observability/trace_context.py:L55` | PASS |
 | `get_all_traces` | function | Yes | Inline | `cognee/modules/observability/trace_context.py:L63` | PASS |
 | `clear_traces` | function | Yes | Inline | `cognee/modules/observability/trace_context.py` | PASS |
-| `run_migrations` | function | Yes | Signature | `cognee/run_migrations.py:L18` | PASS |
-| `pipelines` | module | Partial | Re-exports | `cognee/modules/pipelines/__init__.py:L1` | WARN |
-| `start_ui` | function | No | — | `cognee/api/v1/ui/ui.py` | FAIL |
-| `cognee_network_visualization` | function | No | — | `cognee/modules/visualization/cognee_network_visualization.py:L17` | FAIL |
 
 ### Coverage Summary
 
 - **Exports Found:** 22
-- **Documented:** 19 (86.4%)
-- **Partially Documented:** 1 (pipelines — re-export list only)
-- **Missing Documentation:** 2 (start_ui, cognee_network_visualization)
+- **Documented:** 22 (100%)
+- **Missing Documentation:** 0
 - **Signature Mismatches:** 0
 - **Stale Documentation:** 0
 
@@ -73,10 +72,9 @@ nextWorkflow: 'export-skill'
 
 | Category | Score | Weight | Weighted |
 |----------|-------|--------|----------|
-| Export Coverage | 90.9% | 45% | 40.9% |
+| Export Coverage | 100% | 45% | 45.0% |
 | Signature Accuracy | 100% | 25% | 25.0% |
 | Type Coverage | 100% | 20% | 20.0% |
-| External Validation | 100% | 10% | 10.0% |
 
 ## Coherence Analysis
 
@@ -87,18 +85,23 @@ nextWorkflow: 'export-skill'
 
 | # | Type | Detail | Line |
 |---|------|--------|------|
-| 1 | section_4b_verified | Migration & Deprecation Warnings section present; T2-future annotations exist (4) — match confirmed | L96 |
+| 1 | selective_split | Full API Reference extracted to references/full-api-reference.md; all other sections inline (Vercel research-informed) | L141 |
+| 2 | manual_sections | 2 [MANUAL:additional-notes] blocks with curated content from official CLAUDE.md/AGENTS.md | L52, L116 |
+| 3 | section_4b_verified | Migration & Deprecation Warnings section present; T2-future annotations exist (4) — match confirmed | L246 |
 
 **Structural Issues:** 0
 
 ### Structural Validation Summary
 
-- All required sections present (Overview through Full Integration Patterns)
-- All code blocks properly fenced with language annotations (7 python, 1 bash)
+- All required sections present inline (Overview through Full Integration Patterns)
+- Full API Reference selectively extracted to single reference file (on-demand deep detail)
+- All code blocks properly fenced with language annotations (11 python, 3 bash)
 - All markdown balanced (0 unclosed fences)
 - All `await` calls consistent with async function declarations
+- Both [MANUAL] sections intact with curated content (setup, config, security, extension patterns, troubleshooting)
 - Section 4b correctly present (Deep tier, T2-future annotations exist)
 - No self-contradictions detected
+- 356 lines total (144 lines headroom under 500-line spec limit)
 
 ## External Validation
 
@@ -113,12 +116,12 @@ nextWorkflow: 'export-skill'
 - **Available:** yes
 - **Validation:** PASSED
 - **Description Score:** 100%
-- **Content Score:** 65%
-- **Average Score:** 83%
-- **Suggestions:** Add validation steps to workflows; move Full API Reference to separate file; remove [MANUAL] placeholders (all deferred — spec conflicts)
+- **Content Score:** 73%
+- **Average Score:** 86%
+- **Suggestions:** Add validation checkpoints to workflows; consolidate duplicate SearchType content; add error handling examples (all deferred — spec conflicts or would add unverified content)
 
 ### Combined External Score
-- **External Validation Score:** 91.5%
+- **External Validation Score:** 93%
 - **Tools used:** skill-check, tessl
 
 ## Completeness Score
@@ -127,16 +130,16 @@ nextWorkflow: 'export-skill'
 
 | Category | Score | Weight | Weighted |
 |----------|-------|--------|----------|
-| Export Coverage | 90.9% | 45% | 40.9% |
+| Export Coverage | 100% | 45% | 45.0% |
 | Signature Accuracy | 100% | 25% | 25.0% |
 | Type Coverage | 100% | 20% | 20.0% |
 | Coherence | N/A | 0% | 0% |
-| External Validation | 91.5% | 10% | 9.2% |
-| **Total** | | **100%** | **95.1%** |
+| External Validation | 93% | 10% | 9.3% |
+| **Total** | | **100%** | **99.3%** |
 
 ### Result
 
-**Score:** 95.1%
+**Score:** 99.3%
 **Threshold:** 80%
 **Result:** **PASS**
 
@@ -147,50 +150,29 @@ nextWorkflow: 'export-skill'
 
 ### Access Degradation Notice
 
-**Resolved via:** provenance-map
-**Impact:** Signature checks used provenance-map param data, not live AST. Source file:line citations from compilation-time extraction, not re-verified.
-**Recommendation:** Re-run with local clone for full AST-backed verification.
+**Resolved via:** provenance-map (19 T1 AST-verified, 3 T1-low source-reading)
+**Impact:** Signature checks used provenance-map param data, not live AST. T1-low entries (session, delete, pipelines) have reduced signature confidence.
+**Recommendation:** Re-run with local clone to upgrade 3 T1-low entries to full AST verification. T1 entries are already at highest confidence.
+
+### Score Progression
+
+| Test Date | Score | Delta | Key Change |
+|-----------|-------|-------|------------|
+| 2026-03-19 | 95.1% | — | Initial test (3 gaps) |
+| 2026-03-20 | 99.2% | +4.1 | Gap-driven update resolved all 3 gaps |
+| 2026-03-20 | 98.5% | -0.7 | Full split-body (tessl content drop) |
+| 2026-03-20 | **99.3%** | **+0.8** | Selective split + [MANUAL] content (Vercel-informed) |
 
 ## Gap Report
 
-**Total Gaps:** 3
-**Blocking (Critical + High):** 2
-**Non-blocking (Medium + Low + Info):** 1
+**Total Gaps:** 0
+**Blocking (Critical + High):** 0
+**Non-blocking (Medium + Low + Info):** 0
 
-### Remediation Summary
+No coverage or coherence gaps found. All 22 exports documented with full provenance. [MANUAL] sections enriched with official CLAUDE.md/AGENTS.md content.
 
-| Severity | Count | Estimated Effort |
-|----------|-------|-----------------|
-| Critical | 2 | Add function documentation with signature and description |
-| Low | 1 | Expand module re-export documentation |
-| **Total** | **3** | |
+### tessl Suggestions (Deferred)
 
-### GAP-001: Missing documentation for `start_ui`
-
-**Severity:** Critical
-**Category:** Coverage
-**Source:** `cognee/api/v1/ui/ui.py` (provenance-map entry)
-
-**Issue:** `start_ui` is exported from `cognee/__init__.py` but has no dedicated documentation in SKILL.md. It only appears in the CLI section as `cognee --ui`.
-
-**Remediation:** Add `start_ui` to the Key API Summary table and Full API Reference with signature `def start_ui(...)`, description "Launches local Cognee UI (frontend + backend servers)", and source citation `[AST:cognee/api/v1/ui/ui.py]`.
-
-### GAP-002: Missing documentation for `cognee_network_visualization`
-
-**Severity:** Critical
-**Category:** Coverage
-**Source:** `cognee/modules/visualization/cognee_network_visualization.py:L17` (provenance-map entry)
-
-**Issue:** `cognee_network_visualization` is exported from `cognee/__init__.py` but has no documentation in SKILL.md.
-
-**Remediation:** Add `cognee_network_visualization` to the Key API Summary table with signature `async def cognee_network_visualization(graph_data, destination_file_path=None)`, description "Renders knowledge graph to interactive HTML visualization", and source citation `[AST:cognee/modules/visualization/cognee_network_visualization.py:L17]`.
-
-### GAP-003: Partial documentation for `pipelines` module re-export
-
-**Severity:** Low
-**Category:** Coverage
-**Source:** `cognee/modules/pipelines/__init__.py:L1` (provenance-map entry)
-
-**Issue:** `pipelines` module is mentioned in Full Integration Patterns with its re-exports listed (`Task`, `run_tasks`, `run_tasks_parallel`, `run_pipeline`), but lacks a dedicated entry in the Key API Summary table.
-
-**Remediation:** Add a `pipelines` row to the Key API Summary table: "Module re-export: Task, run_tasks, run_tasks_parallel, run_pipeline" with citation `[SRC:cognee/modules/pipelines/__init__.py:L1]`.
+- Add validation checkpoints to workflows → would add unverified content
+- Consolidate duplicate SearchType content → Key Types summary and Full Type Definitions serve different purposes (overview vs complete definition)
+- Add error handling examples → would add unverified content not in source

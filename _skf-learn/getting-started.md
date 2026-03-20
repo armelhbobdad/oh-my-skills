@@ -11,7 +11,7 @@ Welcome to Skill Forge! This guide will help you get up and running.
 
 ## What This Module Does
 
-Skill Forge is an automated skill compiler for the AI agent ecosystem. It transforms code repositories, documentation websites, and developer discourse into agentskills.io-compliant, version-pinned, provenance-backed agent skills. Every instruction traces to actual code — zero hallucination tolerance.
+Skill Forge analyzes code repositories, documentation websites, and developer discourse to build verified instruction files ("skills") for AI agents. Instead of your agent guessing API calls from training data, it follows instructions where every function, type, and pattern traces back to its source — a file and line for code, a URL for documentation, an issue or PR for discourse. Skills comply with the [agentskills.io](https://agentskills.io) open standard and work across Claude, Cursor, Copilot, and other AI tools. See the [Concepts](../concepts.md) page for definitions of key terms.
 
 ---
 
@@ -65,6 +65,20 @@ The installer detects the existing `_bmad/` directory and installs SKF alongside
 | `SNYK_TOKEN` (Snyk API token — **Enterprise plan required**)           | Optional security scan     | <https://docs.snyk.io/snyk-api/authentication-for-api> |
 
 Don't worry if you don't have all tools — SKF detects what's available and sets your tier automatically. Security scanning via Snyk is optional and requires an Enterprise plan; it does not affect your tier level.
+
+---
+
+## Configuration
+
+SKF has two install-time variables (defined in `src/module.yaml`) and one runtime preference:
+
+| Variable               | Purpose                                                                                              | Default                     |
+|------------------------|------------------------------------------------------------------------------------------------------|-----------------------------|
+| `skills_output_folder` | Where generated skills are saved                                                                     | `{project-root}/skills`     |
+| `forge_data_folder`    | Where workspace artifacts are stored                                                                 | `{project-root}/forge-data` |
+| `tier_override`        | Force a specific tier for comparison or testing (in `_bmad/_memory/forger-sidecar/preferences.yaml`) | `~` (auto-detect)           |
+
+Runtime configuration (tool detection, tier, parallel settings) is managed by the `setup-forge` workflow in `forge-tier.yaml`.
 
 ---
 

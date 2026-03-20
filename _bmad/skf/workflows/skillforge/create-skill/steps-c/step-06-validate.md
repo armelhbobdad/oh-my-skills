@@ -40,6 +40,7 @@ To validate the compiled SKILL.md content against the agentskills.io specificati
 - 💾 Validation results are added to evidence-report content in context
 - 📖 Auto-fix pattern: validate → fix → re-validate (once)
 - 🚫 Maximum one auto-fix attempt per validation failure
+- ⏸️ **Conditional interaction:** If tessl returns suggestions (section 6b), halt for user input. Otherwise auto-proceed. This is a conditional gate step, not a pure auto-proceed step.
 
 ## CONTEXT BOUNDARIES:
 
@@ -72,6 +73,8 @@ npx skill-check check <staging-skill-dir> --fix --format json --no-security-scan
 This performs frontmatter validation, description quality checks, body limit enforcement, local link resolution, file formatting, auto-fix of deterministic issues, and quality scoring (0-100) across five weighted categories.
 
 **Parse the JSON output** for: `qualityScore` (0-100), `diagnostics[]` (remaining issues), `fixed[]` (auto-corrected issues).
+
+**Context sync after --fix:** If `fixed[]` is non-empty (i.e., `--fix` modified files on disk), re-read the modified SKILL.md to update the in-context copy. Verify the re-read content matches expectations before proceeding. This prevents silent divergence between the in-context SKILL.md and the on-disk version that step-07 will use for artifact generation.
 
 **Note:** `skill-check` may return non-zero exit code even when `errorCount` is 0. Always rely on parsed JSON, not the shell exit code.
 
@@ -143,7 +146,7 @@ Parse output for: `description_score`, `content_score`, `average_score`, `valida
 - **Content score < 70%:** Record warning: "Content quality warning: tessl scored content at {score}%."
 - **Unavailable:** Skip with note: "Content quality review skipped — tessl tool unavailable"
 
-**Expected scoring for two-tier design:** The Skill Forge two-tier design (Tier 1 Key API Summary + Tier 2 Full API Reference) intentionally includes progressive disclosure. tessl's `conciseness` scorer may flag this as redundancy (typically scoring 2/3), which is expected behavior — not a defect. Content scores >= 60% are acceptable when both tiers are correctly applied with proper differentiation (see step-05 Tier 2 assembly rules). Do NOT consolidate Tier 1 and Tier 2 content to improve the score — the two-tier structure is a deliberate design choice for standalone usability.
+> **EXPECTED BEHAVIOR — Two-Tier Scoring:** The Skill Forge two-tier design (Tier 1 Key API Summary + Tier 2 Full API Reference) intentionally includes progressive disclosure. tessl's `conciseness` scorer will flag this as redundancy (typically scoring 2/3), which is **expected behavior — not a defect**. tessl may also suggest removing `[MANUAL]` markers, moving Full API Reference to a separate file, or consolidating duplicate parameter documentation — **all three suggestions conflict with SKF design principles and must be dismissed.** Acceptable threshold: content scores >= 60% are normal for two-tier skills. Do NOT consolidate Tier 1 and Tier 2 content to improve the score — the two-tier structure is a deliberate design choice for standalone usability.
 
 tessl installs automatically via `npx`. A missing tool is not an error — graceful skip.
 

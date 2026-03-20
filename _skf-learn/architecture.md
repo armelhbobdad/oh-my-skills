@@ -1,11 +1,73 @@
 ---
-title: Architecture
-description: How Skill Forge works — output format, confidence model, progressive tiers, tool ecosystem, and key design decisions
+title: How It Works
+description: How Skill Forge works — the BMad framework, architecture, output format, confidence model, progressive tiers, and tool ecosystem
 ---
 
-# Architecture
+# How It Works
 
-This page explains how SKF works under the hood — the output format, confidence model, progressive capability tiers, tool ecosystem, and the design decisions that make every instruction traceable.
+This page is for people who want to understand how SKF works under the hood. It covers the BMad framework, workflow architecture, capability tiers, output format, tool ecosystem, and key design decisions. For plain-English definitions of key terms, see [Concepts](../concepts.md).
+
+---
+
+## How BMad Works
+
+BMad works because it turns big, fuzzy work into **repeatable workflows**. Each workflow is broken into small steps with clear instructions, so the AI follows the same path every time. It also uses a **shared knowledge base** (standards and patterns) so outputs are consistent, not random. In short: **structured steps + shared standards = reliable results**.
+
+## How SKF Fits In
+
+SKF plugs into BMad the same way a specialist plugs into a team. It uses the same step-by-step workflow engine and shared standards, but focuses exclusively on skill compilation and quality assurance. That means you get **evidence-based agent skills**, **AST-verified instructions**, and **drift detection** that align with the rest of the BMad process.
+
+---
+
+## Architecture & Flow
+
+BMad is a small **agent + workflow engine**. There is no external orchestrator — everything runs inside the LLM context window through structured instructions.
+
+### Building Blocks
+
+Each workflow directory contains these files, and each has a specific job:
+
+| File                      | What it does                                                                                                        | When it loads                                     |
+|---------------------------|---------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|
+| `forger.agent.yaml`       | Expert persona — identity, principles, critical actions, menu of triggers                                           | First — always in context                         |
+| `workflow.md`             | Human-readable entry point — goals, mode menu (Create/Edit/Validate), routes to first step                          | Second — presents mode choice                     |
+| `steps-c/*.md`            | **Create** steps — primary execution, 4-9 sequential files                                                          | One at a time (just-in-time)                      |
+| `data/*.md`               | Workflow-specific reference data — schemas, heuristics, rules, patterns                                             | Read by steps on demand                           |
+| `templates/*.md`          | Output skeletons with placeholder vars — steps fill these in to produce the final artifact                          | Read by steps when generating output              |
+| `skf-knowledge-index.csv` | Knowledge fragment index — id, name, tags, tier, file path                                                          | Read by steps to decide which fragments to load   |
+| `knowledge/*.md`          | 10 reusable fragments — cross-cutting principles and patterns (e.g., `zero-hallucination.md`, `confidence-tiers.md`) | Selectively read into context when a step directs |
+
+```mermaid
+flowchart LR
+  U[User] --> A[Agent Persona]
+  A --> W[Workflow Entry: workflow.md]
+  W --> S[Step Files: steps-c/]
+  S --> K[Knowledge Fragments<br/>skf-knowledge-index.csv → knowledge/*.md]
+  S --> D[Data & Templates<br/>data/*.md, templates/*.md]
+  S --> O[Outputs: skills/reports<br/>when a step writes output]
+```
+
+### How It Works at Runtime
+
+1. **Trigger** — User types `@Ferris CS` (or fuzzy match like `create-skill`). The agent menu in `forger.agent.yaml` maps the trigger to the workflow path.
+2. **Agent loads** — `forger.agent.yaml` injects the persona (identity, principles, critical actions) into the context window. Sidecar files (`forge-tier.yaml`, `preferences.yaml`) are loaded for persistent state.
+3. **Workflow loads** — `workflow.md` presents the mode choice and routes to the first step file.
+4. **Step-by-step execution** — Only the current step file is in context (just-in-time loading). Each step explicitly names the next one. The LLM reads, executes, saves output, then loads the next step. No future steps are ever preloaded.
+5. **Knowledge injection** — Steps consult `skf-knowledge-index.csv` and selectively load fragments from `knowledge/` by tags and relevance. Cross-cutting principles (zero hallucination, confidence tiers, provenance) are loaded only when a step directs — not preloaded.
+6. **Data injection** — Steps read `data/*.md` files as needed (schemas, heuristics, extraction patterns). This is deliberate context engineering: only the data relevant to the current step enters the context window.
+7. **Templates** — When a step produces output (e.g., a skill brief or test report), it reads the template file and fills in placeholders with computed results. The template provides consistent structure; the step provides the content.
+8. **Progress tracking** — Each step appends to an output file with state tracking. Resume mode reads this state and routes to the next incomplete step.
+
+### Ferris Operating Modes
+
+Ferris operates in four workflow-driven modes (mode is determined by which workflow is running, not conversation state):
+
+| Mode          | Workflows          | Behavior                                                    |
+|---------------|--------------------|-------------------------------------------------------------|
+| **Architect** | SF, AN, BS, CS, QS, SS | Exploratory, assembling — discovers structure and scope     |
+| **Surgeon**   | US                 | Precise, preserving — extracts and compiles with provenance |
+| **Audit**     | AS, TS             | Judgmental, scoring — evaluates quality and detects drift   |
+| **Delivery**  | EX                 | Packaging, ecosystem-ready — bundles for distribution       |
 
 ---
 
@@ -22,7 +84,7 @@ AI agents hallucinate APIs. Not sometimes — constantly. The table below shows 
 | Copilot/Cursor built-in | Convenient | Generic. Doesn't know YOUR integration patterns. |
 | **Skill Forge** | **Structural truth + automation** | **Rigid. (Feature, not bug.)** |
 
-SKF solves this by mechanically extracting function signatures, type definitions, and usage patterns from source code — then compiling them into verifiable, version-pinned skills that comply with the [agentskills.io specification](https://agentskills.io/specification).
+SKF solves this by mechanically extracting function signatures, type definitions, and usage patterns from code repositories — and enriching them with documentation and developer discourse — then compiling everything into verifiable, version-pinned skills that comply with the [agentskills.io specification](https://agentskills.io/specification).
 
 ---
 
@@ -308,6 +370,45 @@ Provenance maps enable verification: an `official` skill's provenance must trace
 | **Stack skill = compositional** | SKILL.md is the integration layer. references/ contains per-library + integration pairs. Partial regeneration on dependency updates. |
 | **Snippet updates only at export** | Create/update are draft operations. Export publishes to skills/ and CLAUDE.md. No half-baked snippets. |
 | **Bundle spec with opt-in update** | Offline-capable. 90-day staleness warning. `setup-forge --update-spec` fetches latest. |
+
+---
+
+## Knowledge Base
+
+SKF relies on a curated skill compilation knowledge base:
+
+- Index: `src/knowledge/skf-knowledge-index.csv`
+- Fragments: `src/knowledge/`
+
+Workflows load only the fragments required for the current task to stay focused and compliant.
+
+## Module Structure
+
+```
+src/
+├── module.yaml
+├── module-help.csv
+├── agents/
+│   └── forger.agent.yaml
+├── forger/
+│   ├── forge-tier.yaml
+│   ├── preferences.yaml
+│   └── README.md
+├── knowledge/
+│   ├── skf-knowledge-index.csv
+│   └── *.md (10 fragments)
+└── workflows/
+    ├── setup-forge/
+    ├── analyze-source/
+    ├── brief-skill/
+    ├── create-skill/
+    ├── quick-skill/
+    ├── create-stack-skill/
+    ├── update-skill/
+    ├── audit-skill/
+    ├── test-skill/
+    └── export-skill/
+```
 
 ---
 
