@@ -17,7 +17,7 @@ Each skill in this repository is:
 
 | Skill | Version | Language | Tier | Coverage |
 |-------|---------|----------|------|----------|
-| [cognee](skills/cognee/) | 0.5.5 | Python | Deep | 95.1% |
+| [cognee](skills/cognee/) | 0.5.5 | Python | Deep | 99.3% |
 
 ## Usage
 
