@@ -8,7 +8,7 @@
   "source_commit": null,
   "confidence_tier": "Deep",
   "spec_version": "1.3",
-  "generation_date": "2026-03-19T18:30:00+04:00",
+  "generation_date": "2026-03-20T16:55:00+04:00",
   "exports": [
     "add", "cognify", "search", "SearchType", "config", "datasets",
     "memify", "run_custom_pipeline", "update", "delete", "prune",
@@ -20,7 +20,7 @@
   "tool_versions": {
     "ast_grep": "0.38.5",
     "qmd": "0.1.0",
-    "skf": "1.0.0"
+    "skf": "0.4.0"
   },
   "stats": {
     "exports_documented": 22,

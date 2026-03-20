@@ -88,6 +88,9 @@ All core functions are **async** — must use `await` inside an async context. `
 | `visualize_graph()` | Render knowledge graph to HTML | `destination_file_path` | `[AST:cognee/api/v1/visualize/visualize.py:L18]` |
 | `enable_tracing()` | Enable OpenTelemetry tracing | `console_output` | `[AST:cognee/modules/observability/trace_context.py:L14]` |
 | `run_migrations()` | Run Alembic database migrations | — | `[AST:cognee/run_migrations.py:L18]` |
+| `start_ui()` | Launch local Cognee UI (frontend + backend + MCP servers) | `pid_callback`, `port`, `start_backend`, `start_mcp` | `[SRC:cognee/api/v1/ui/ui.py]` |
+| `cognee_network_visualization()` | Render knowledge graph to interactive HTML | `graph_data`, `destination_file_path` | `[SRC:cognee/modules/visualization/cognee_network_visualization.py:L17]` |
+| `pipelines` | Module re-export: Task, run_tasks, run_tasks_parallel, run_pipeline | — | `[SRC:cognee/modules/pipelines/__init__.py:L1]` |
 
 <!-- [MANUAL:additional-notes] -->
 <!-- Add custom notes here. This section is preserved during skill updates. -->
@@ -99,6 +102,7 @@ All core functions are **async** — must use `await` inside an async context. `
 - **`memify()` default pipeline changed** — coding rules replaced with triplet embedding (Mar 2026) `[QMD:cognee-temporal:prs.md]`
 - **`update()` bug** — PATCH updates timestamps but GET raw may return old data `[QMD:cognee-temporal:issues.md]`
 - **`visualize_graph()` frontend** — open bug #2442: missing component in UI mode `[QMD:cognee-temporal:issues.md]`
+- **`start_ui()` v0.5.5 bug** — pip-installed frontend fails with 500 errors due to missing npm deps (react-markdown, ngraph.graph) `[QMD:cognee-temporal:issues.md]`
 
 See Full API Reference for migration details.
 
@@ -284,6 +288,60 @@ Methods: `list_datasets(user)`, `discover_datasets(dir_path)`, `list_data(datase
 - `get_last_trace() -> Optional[CogneeTrace]` `[AST:cognee/modules/observability/trace_context.py:L55]`
 - `get_all_traces() -> list[CogneeTrace]` `[AST:cognee/modules/observability/trace_context.py:L63]`
 - `clear_traces()` `[AST:cognee/modules/observability/trace_context.py]`
+
+### start_ui()
+
+```python
+def start_ui(
+    pid_callback: Callable[[int], None],
+    port: int = 3000,
+    open_browser: bool = True,
+    auto_download: bool = False,
+    start_backend: bool = False,
+    backend_port: int = 8000,
+    start_mcp: bool = False,
+    mcp_port: int = 8001,
+) -> Optional[subprocess.Popen]
+```
+
+`[SRC:cognee/api/v1/ui/ui.py]`
+
+Starts the cognee frontend UI server, optionally with the backend API server and MCP server. Downloads and caches frontend assets from GitHub releases if not found locally. Requires Node.js and npm.
+
+**Parameters:**
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `pid_callback` | Callable[[int], None] | required | Callback notified with PID of each spawned process |
+| `port` | int | 3000 | Frontend server port |
+| `open_browser` | bool | True | Auto-open browser on start |
+| `auto_download` | bool | False | Download frontend without prompting |
+| `start_backend` | bool | False | Also start the cognee API backend server |
+| `backend_port` | int | 8000 | Backend server port |
+| `start_mcp` | bool | False | Also start the cognee MCP server via Docker |
+| `mcp_port` | int | 8001 | MCP server port |
+
+**T2 annotation:** v0.5.5 pip install has known 500 error due to missing npm dependencies in cognee-frontend. `[QMD:cognee-temporal:issues.md]`
+
+### cognee_network_visualization()
+
+```python
+async def cognee_network_visualization(
+    graph_data,
+    destination_file_path: str = None,
+)
+```
+
+`[SRC:cognee/modules/visualization/cognee_network_visualization.py:L17]`
+
+Renders knowledge graph to interactive HTML visualization with color-coded node types. Takes graph data tuple `(nodes_data, edges_data)` from graph traversal.
+
+**Parameters:**
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `graph_data` | tuple | required | Tuple of `(nodes_data, edges_data)` from graph database |
+| `destination_file_path` | str | None | Output file path for the HTML visualization |
+
+**T2 annotation:** Open bug #2442 — frontend visualization component missing when used through UI mode. `[QMD:cognee-temporal:targeted-issues.md]`
 
 ## Full Type Definitions
 
