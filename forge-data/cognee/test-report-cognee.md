@@ -5,7 +5,7 @@ skillDir: 'skills/cognee'
 testMode: 'naive'
 forgeTier: 'Deep'
 testResult: 'pass'
-score: '99.2%'
+score: '99.3%'
 analysisConfidence: 'provenance-map'
 testDate: '2026-03-20'
 stepsCompleted: ['step-01-init', 'step-02-detect-mode', 'step-03-coverage-check', 'step-04-coherence-check', 'step-04b-external-validators', 'step-05-score', 'step-06-report']
@@ -85,18 +85,23 @@ nextWorkflow: 'export-skill'
 
 | # | Type | Detail | Line |
 |---|------|--------|------|
-| 1 | section_4b_verified | Migration & Deprecation Warnings section present; T2-future annotations exist (4) — match confirmed | L99 |
+| 1 | selective_split | Full API Reference extracted to references/full-api-reference.md; all other sections inline (Vercel research-informed) | L141 |
+| 2 | manual_sections | 2 [MANUAL:additional-notes] blocks with curated content from official CLAUDE.md/AGENTS.md | L52, L116 |
+| 3 | section_4b_verified | Migration & Deprecation Warnings section present; T2-future annotations exist (4) — match confirmed | L246 |
 
 **Structural Issues:** 0
 
 ### Structural Validation Summary
 
-- All required sections present (Overview through Full Integration Patterns)
-- All code blocks properly fenced with language annotations (9 python, 1 bash)
+- All required sections present inline (Overview through Full Integration Patterns)
+- Full API Reference selectively extracted to single reference file (on-demand deep detail)
+- All code blocks properly fenced with language annotations (11 python, 3 bash)
 - All markdown balanced (0 unclosed fences)
 - All `await` calls consistent with async function declarations
+- Both [MANUAL] sections intact with curated content (setup, config, security, extension patterns, troubleshooting)
 - Section 4b correctly present (Deep tier, T2-future annotations exist)
 - No self-contradictions detected
+- 356 lines total (144 lines headroom under 500-line spec limit)
 
 ## External Validation
 
@@ -111,12 +116,12 @@ nextWorkflow: 'export-skill'
 - **Available:** yes
 - **Validation:** PASSED
 - **Description Score:** 100%
-- **Content Score:** 65%
-- **Average Score:** 83%
-- **Suggestions:** Extract Full API Reference to separate file; add validation steps to prune workflows; remove duplicate [MANUAL] placeholders; condense parameter tables (all deferred — spec conflicts)
+- **Content Score:** 73%
+- **Average Score:** 86%
+- **Suggestions:** Add validation checkpoints to workflows; consolidate duplicate SearchType content; add error handling examples (all deferred — spec conflicts or would add unverified content)
 
 ### Combined External Score
-- **External Validation Score:** 91.5%
+- **External Validation Score:** 93%
 - **Tools used:** skill-check, tessl
 
 ## Completeness Score
@@ -129,12 +134,12 @@ nextWorkflow: 'export-skill'
 | Signature Accuracy | 100% | 25% | 25.0% |
 | Type Coverage | 100% | 20% | 20.0% |
 | Coherence | N/A | 0% | 0% |
-| External Validation | 91.5% | 10% | 9.2% |
-| **Total** | | **100%** | **99.2%** |
+| External Validation | 93% | 10% | 9.3% |
+| **Total** | | **100%** | **99.3%** |
 
 ### Result
 
-**Score:** 99.2%
+**Score:** 99.3%
 **Threshold:** 80%
 **Result:** **PASS**
 
@@ -146,8 +151,17 @@ nextWorkflow: 'export-skill'
 ### Access Degradation Notice
 
 **Resolved via:** provenance-map (19 T1 AST-verified, 3 T1-low source-reading)
-**Impact:** Signature checks used provenance-map param data, not live AST. T1-low entries (session, delete, pipelines) have reduced signature confidence. Source file:line citations from compilation-time extraction, not re-verified.
+**Impact:** Signature checks used provenance-map param data, not live AST. T1-low entries (session, delete, pipelines) have reduced signature confidence.
 **Recommendation:** Re-run with local clone to upgrade 3 T1-low entries to full AST verification. T1 entries are already at highest confidence.
+
+### Score Progression
+
+| Test Date | Score | Delta | Key Change |
+|-----------|-------|-------|------------|
+| 2026-03-19 | 95.1% | — | Initial test (3 gaps) |
+| 2026-03-20 | 99.2% | +4.1 | Gap-driven update resolved all 3 gaps |
+| 2026-03-20 | 98.5% | -0.7 | Full split-body (tessl content drop) |
+| 2026-03-20 | **99.3%** | **+0.8** | Selective split + [MANUAL] content (Vercel-informed) |
 
 ## Gap Report
 
@@ -155,15 +169,10 @@ nextWorkflow: 'export-skill'
 **Blocking (Critical + High):** 0
 **Non-blocking (Medium + Low + Info):** 0
 
-All 3 gaps from previous test (95.1%) have been resolved:
-- GAP-001 (Critical): `start_ui` — now fully documented with signature, params, T2 annotation
-- GAP-002 (Critical): `cognee_network_visualization` — now documented with signature, T2 annotation
-- GAP-003 (Low): `pipelines` — now in Key API Summary with re-export list
+No coverage or coherence gaps found. All 22 exports documented with full provenance. [MANUAL] sections enriched with official CLAUDE.md/AGENTS.md content.
 
 ### tessl Suggestions (Deferred)
 
-The following tessl suggestions were acknowledged but deferred due to SKF spec conflicts:
-- Extract Full API Reference to separate file → split-body handles reference splitting at export time
-- Add validation steps to prune workflows → would add unverified content
-- Remove duplicate [MANUAL] placeholders → required by update-skill for section preservation
-- Condense parameter tables → full params needed for agent consumption accuracy
+- Add validation checkpoints to workflows → would add unverified content
+- Consolidate duplicate SearchType content → Key Types summary and Full Type Definitions serve different purposes (overview vs complete definition)
+- Add error handling examples → would add unverified content not in source
