@@ -5,10 +5,10 @@ skillDir: 'skills/storybook-react-vite'
 testMode: 'naive'
 forgeTier: 'Deep'
 testResult: 'pass'
-score: '94.9%'
+score: '98.7%'
 threshold: '80%'
 analysisConfidence: 'provenance-map'
-testDate: '2026-03-29'
+testDate: '2026-03-30'
 stepsCompleted: ['step-01-init', 'step-02-detect-mode', 'step-03-coverage-check', 'step-04-coherence-check', 'step-04b-external-validators', 'step-05-score', 'step-06-report']
 nextWorkflow: 'export-skill'
 ---
@@ -30,12 +30,12 @@ nextWorkflow: 'export-skill'
 ## Coverage Analysis
 
 **Tier:** Deep
-**Source Access:** provenance-map (73 entries, all T1-low — source-reading extraction at compilation time)
+**Source Access:** provenance-map (73 entries: 4 T1, 69 T1-low — source-reading extraction at compilation time, 4 upgraded via gh-api-source-verified during update-skill)
 **Source Path:** code/ (storybookjs/storybook @ v10.3.0)
 **Files Analyzed:** provenance-map entries from 13 source files
-**Denominator:** Union of provenance-map (73) + metadata.json exports (63) = 85 unique exports
+**Denominator:** Union of provenance-map (73) + metadata.json exports (67) = 85 unique exports
 
-> Provenance-map contains 73 entries but metadata.json lists 63 exports (12 in metadata not in pmap, 22 in pmap not in metadata). Coverage denominator uses the union (85).
+> Provenance-map contains 73 entries but metadata.json lists 67 exports (12 in metadata not in pmap, 18 in pmap not in metadata). Coverage denominator uses the union (85).
 
 ### Export Coverage
 
@@ -51,8 +51,8 @@ nextWorkflow: 'export-skill'
 | FrameworkOptions | type | yes | code/frameworks/react-vite/src/types.ts:3 | PASS |
 | HIGHLIGHT | const | yes | code/core/src/highlight/index.ts:1 | PASS |
 | INITIAL_VIEWPORTS | const | yes | code/core/src/viewport/index.ts:1 | PASS |
-| Meta | type | yes | code/renderers/react/src/public-types.ts:10 | PASS |
 | MINIMAL_VIEWPORTS | const | yes | code/core/src/viewport/index.ts:2 | PASS |
+| Meta | type | yes | code/renderers/react/src/public-types.ts:10 | PASS |
 | Primary | component | yes | @storybook/addon-docs/blocks | PASS |
 | REMOVE_HIGHLIGHT | const | yes | code/core/src/highlight/index.ts:2 | PASS |
 | RESET_HIGHLIGHT | const | yes | code/core/src/highlight/index.ts:3 | PASS |
@@ -82,8 +82,8 @@ nextWorkflow: 'export-skill'
 | configureActions | function | yes | code/core/src/actions/index.ts:3 | PASS |
 | convert | function | yes | code/core/src/theming/convert.ts:5 | PASS |
 | create | function | yes | code/core/src/theming/create.ts:18 | PASS |
-| createGlobal | function | **no** | code/core/src/theming/global.ts:1 | **FAIL** |
-| createReset | function | **no** | code/core/src/theming/global.ts:2 | **FAIL** |
+| createGlobal | function | yes | code/core/src/theming/global.ts:94 | PASS |
+| createReset | function | yes | code/core/src/theming/global.ts:24 | PASS |
 | css | function | yes | code/core/src/theming/index.ts:4 | PASS |
 | darken | function | yes | code/core/src/theming/utils.ts:4 | PASS |
 | decorateStory | function | yes | code/core/src/preview-api/index.ts:9 | PASS |
@@ -98,11 +98,11 @@ nextWorkflow: 'export-skill'
 | isStory | function | yes | code/core/src/csf/index.ts:22 | PASS |
 | lighten | function | yes | code/core/src/theming/utils.ts:3 | PASS |
 | mocked | function | yes | code/core/src/test/index.ts:18 | PASS |
-| onMockCall | function | **no** | code/core/src/test/index.ts:22 | **FAIL** |
+| onMockCall | function | yes | code/core/src/test/spy.ts:35 | PASS |
 | resetAllMocks | function | yes | code/core/src/test/index.ts:20 | PASS |
 | restoreAllMocks | function | yes | code/core/src/test/index.ts:21 | PASS |
 | sanitize | function | yes | code/core/src/csf/index.ts:26 | PASS |
-| sb | const | **no** | code/core/src/test/index.ts:23 | **FAIL** |
+| sb | const | yes | code/core/src/test/index.ts:55 | PASS |
 | screen | const | yes | code/core/src/test/index.ts:15 | PASS |
 | setProjectAnnotations | function | yes | code/core/src/preview-api/index.ts:8 | PASS |
 | spyOn | function | yes | code/core/src/test/index.ts:13 | PASS |
@@ -134,8 +134,8 @@ nextWorkflow: 'export-skill'
 ### Coverage Summary
 
 - **Exports Found:** 85 (union denominator)
-- **Documented:** 81 (95.3%)
-- **Missing Documentation:** 4
+- **Documented:** 85 (100%)
+- **Missing Documentation:** 0
 - **Signature Mismatches:** N/A (State 2 — string comparison only, not semantic AST)
 - **Stale Documentation:** 0
 
@@ -143,11 +143,11 @@ nextWorkflow: 'export-skill'
 
 | Category | Score | Note |
 |----------|-------|------|
-| Export Coverage | 95.3% | 81/85 documented |
+| Export Coverage | 100% | 85/85 documented |
 | Signature Accuracy | N/A | State 2 — no local source for AST re-verification |
 | Type Coverage | N/A | State 2 — no local source for AST re-verification |
 
-Resolved via: provenance-map (0 T1, 73 T1-low). Re-run with local clone to upgrade T1-low entries to full AST verification.
+Resolved via: provenance-map (4 T1 gh-api-source-verified, 69 T1-low source-reading). Re-run with local clone to upgrade T1-low entries to full AST verification.
 
 Note: Weight application is deferred to step-05 where all category weights are calculated after external validation availability is known.
 
@@ -181,7 +181,7 @@ No T2-future annotations in evidence report. No Migration & Deprecation section 
 
 ## External Validation
 
-*Reused from create-skill evidence report (same workflow session, SKILL.md untracked/unmodified since generation).*
+*Reused from create-skill evidence report (same workflow session, SKILL.md unmodified since generation).*
 
 ### skill-check
 - **Available:** yes (reused)
@@ -208,16 +208,16 @@ No T2-future annotations in evidence report. No Migration & Deprecation section 
 
 | Category | Score | Weight | Weighted |
 |----------|-------|--------|----------|
-| Export Coverage | 95.3% | 81.82% | 77.97% |
+| Export Coverage | 100% | 81.82% | 81.82% |
 | Signature Accuracy | N/A | 0% | — |
 | Type Coverage | N/A | 0% | — |
 | Coherence | N/A | 0% | — |
 | External Validation | 93.0% | 18.18% | 16.91% |
-| **Total** | | **100%** | **94.9%** |
+| **Total** | | **100%** | **98.7%** |
 
 ### Result
 
-**Score:** 94.9%
+**Score:** 98.7%
 **Threshold:** 80%
 **Result:** **PASS**
 
@@ -228,68 +228,28 @@ No T2-future annotations in evidence report. No Migration & Deprecation section 
 
 ### Access Degradation Notice
 
-**Resolved via:** provenance-map (0 T1, 73 T1-low — source-reading extraction at compilation time)
-**Impact:** Signature checks limited to name-matching. Source file:line citations from provenance-map, not live AST. Export Coverage and name-matching data is high confidence (T1-low extraction from verified v10.3.0 tag).
+**Resolved via:** provenance-map (4 T1 gh-api-source-verified, 69 T1-low source-reading extraction at compilation time)
+**Impact:** Signature checks limited to name-matching. Source file:line citations from provenance-map, not live AST. Export Coverage and name-matching data is high confidence (T1-low extraction from verified v10.3.0 tag, 4 entries upgraded to T1 via gh API during update-skill).
 **Recommendation:** Re-run with local clone to upgrade T1-low entries to full AST verification.
 
 ## Gap Report
 
-**Total Gaps:** 5
-**Blocking (Critical + High):** 3
-**Non-blocking (Medium + Low + Info):** 2
+**Total Gaps:** 1
+**Blocking (Critical + High):** 0
+**Non-blocking (Medium + Low + Info):** 1
 
 ### Remediation Summary
 
 | Severity | Count | Estimated Effort |
 |----------|-------|-----------------|
-| Critical | 3 | Add function documentation for 3 undocumented exports (~15 min) |
+| Critical | 0 | — |
 | High | 0 | — |
 | Medium | 0 | — |
-| Low | 1 | Add const documentation for 1 internal API export (~5 min) |
+| Low | 0 | — |
 | Info | 1 | Discovery testing recommendation (advisory) |
-| **Total** | **5** | |
+| **Total** | **1** | |
 
-### GAP-001: Missing `createGlobal` function documentation
-
-**Severity:** Critical
-**Category:** Coverage
-**Source:** code/core/src/theming/global.ts:1
-
-**Issue:** `createGlobal()` is exported from `storybook/theming` (provenance-map entry) but not documented in SKILL.md or references/full-api-reference.md. Returns `Global.GlobalStyles`.
-
-**Remediation:** Add `createGlobal` to the storybook/theming section of `references/full-api-reference.md` with signature `createGlobal() => Global.GlobalStyles` and purpose "Generate global Storybook CSS reset styles". Verify signature against source at `code/core/src/theming/global.ts:1`.
-
-### GAP-002: Missing `createReset` function documentation
-
-**Severity:** Critical
-**Category:** Coverage
-**Source:** code/core/src/theming/global.ts:2
-
-**Issue:** `createReset()` is exported from `storybook/theming` (provenance-map entry) but not documented in SKILL.md or references/full-api-reference.md. Returns `Global.GlobalStyles`.
-
-**Remediation:** Add `createReset` to the storybook/theming section of `references/full-api-reference.md` with signature `createReset() => Global.GlobalStyles` and purpose "Generate CSS reset styles for Storybook preview". Verify signature against source at `code/core/src/theming/global.ts:2`.
-
-### GAP-003: Missing `onMockCall` function documentation
-
-**Severity:** Critical
-**Category:** Coverage
-**Source:** code/core/src/test/index.ts:22
-
-**Issue:** `onMockCall(mock, callback)` is exported from `storybook/test` (provenance-map entry) but not documented in SKILL.md or references/full-api-reference.md. Signature: `(mock: Mock, callback: (...args: any[]) => void) => void`.
-
-**Remediation:** Add `onMockCall` to the storybook/test Value Exports table in `references/full-api-reference.md` with signature `onMockCall(mock: Mock, callback: (...args: any[]) => void) => void` and purpose "Register callback for mock function invocations". Add `[SRC:code/core/src/test/index.ts:L22]` citation.
-
-### GAP-004: Missing `sb` const documentation
-
-**Severity:** Low
-**Category:** Coverage
-**Source:** code/core/src/test/index.ts:23
-
-**Issue:** `sb` is exported from `storybook/test` (provenance-map entry) as `StorybookInternalAPI` type but not documented. Name and type suggest internal API — may be intentionally undocumented.
-
-**Remediation:** If `sb` is part of the public API surface, add to the storybook/test Value Exports table in `references/full-api-reference.md` with signature `sb: StorybookInternalAPI` and purpose. If internal-only, no action required — note as intentional exclusion in provenance-map.
-
-### GAP-005: Discovery testing not performed
+### GAP-001: Discovery testing not performed
 
 **Severity:** Info
 **Category:** Structural

@@ -23,6 +23,8 @@ Instrumented testing utilities wrapping `@vitest/spy` and `@testing-library/user
 | `clearAllMocks` | `clearAllMocks() => void` | Clear all mock state `[SRC:code/core/src/test/index.ts:L37]` |
 | `resetAllMocks` | `resetAllMocks() => void` | Reset all mocks to initial state `[SRC:code/core/src/test/index.ts:L38]` |
 | `restoreAllMocks` | `restoreAllMocks() => void` | Restore all mocked implementations `[SRC:code/core/src/test/index.ts:L39]` |
+| `onMockCall` | `onMockCall(callback: (mock: MockInstance, args: unknown[]) => void) => () => void` | Register listener for mock function invocations; returns unsubscribe function `[SRC:code/core/src/test/spy.ts:L35]` |
+| `sb` | `sb: { mock: (path: string \| Promise<unknown>, factory?: { spy?: boolean }) => void }` | Module mocker stub — `sb.mock()` registers module mock for Vitest integration (noop until Vitest plugin injects runtime) `[SRC:code/core/src/test/index.ts:L55]` |
 | `getByRole` | `getByRole(role: string, options?) => HTMLElement` | Query by ARIA role `[SRC:code/core/src/test/index.ts:L41]` |
 | `getByText` | `getByText(text: string | RegExp, options?) => HTMLElement` | Query by text content `[SRC:code/core/src/test/index.ts:L42]` |
 | `getByTestId` | `getByTestId(testId: string) => HTMLElement` | Query by data-testid `[SRC:code/core/src/test/index.ts:L43]` |
@@ -119,6 +121,8 @@ Theme creation, styled-components utilities, and design tokens for Storybook UI 
 | `withTheme` | `withTheme(component: Component) => Component` | HOC to inject theme prop `[SRC:code/core/src/theming/index.ts:L11]` |
 | `lighten` | `lighten(color: string, amount: number) => string` | Lighten a color value `[SRC:code/core/src/theming/utils.ts:L5]` |
 | `darken` | `darken(color: string, amount: number) => string` | Darken a color value `[SRC:code/core/src/theming/utils.ts:L8]` |
+| `createReset` | `createReset({ typography }: { typography: Typography }) => { [key: string]: { [key: string]: string \| number } }` | Generate CSS reset styles for Storybook preview (body font, box-sizing, heading/input normalization, code/pre formatting) `[SRC:code/core/src/theming/global.ts:L24]` |
+| `createGlobal` | `createGlobal({ color, background, typography }: { color: Color; background: Background; typography: Typography }) => { [key: string]: { [key: string]: string \| number } }` | Create global Storybook CSS styles (body positioning, screen reader utilities, landmark focus, scroll smoothing) `[SRC:code/core/src/theming/global.ts:L94]` |
 | `color` | `color: { ...colorTokens }` | Color design tokens `[SRC:code/core/src/theming/tokens/color.ts:L1]` |
 | `background` | `background: { ...bgTokens }` | Background design tokens `[SRC:code/core/src/theming/tokens/background.ts:L1]` |
 | `typography` | `typography: { ...typographyTokens }` | Typography design tokens `[SRC:code/core/src/theming/tokens/typography.ts:L1]` |

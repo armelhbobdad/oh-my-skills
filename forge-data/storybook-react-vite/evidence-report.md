@@ -65,3 +65,36 @@
 - storybook/test exports ~75 re-exports from @testing-library/dom (instrumented wrappers) — signatures are pass-through
 - storybook/internal/types has 200+ type re-exports from 21 sub-modules — documented at summary level
 - composeStories known bug #20026 with required props components
+
+## Update Operation — 2026-03-30
+
+**Trigger:** gap-driven (from test-report-storybook-react-vite.md, score 94.9%)
+**Forge Tier:** Deep
+**Mode:** gap-driven (test report remediation)
+
+### Changes Detected
+- Files modified: 0
+- Files added: 0
+- Files deleted: 0
+- Exports affected: 4 (3 critical undocumented, 1 low-severity)
+
+### Exports Remediated
+| Export | Package | Confidence | Source |
+|--------|---------|-----------|--------|
+| `createGlobal` | storybook/theming | T1 | code/core/src/theming/global.ts:94 |
+| `createReset` | storybook/theming | T1 | code/core/src/theming/global.ts:24 |
+| `onMockCall` | storybook/test | T1 | code/core/src/test/spy.ts:35 |
+| `sb` | storybook/test | T1 | code/core/src/test/index.ts:55 |
+
+### Merge Results
+- Exports updated: 0
+- Exports added: 4 (documentation added to references/full-api-reference.md)
+- Exports removed: 0
+- [MANUAL] sections preserved: 3
+- Conflicts resolved: 0
+
+### Validation Summary
+- Spec compliance: DEFERRED (post-write)
+- [MANUAL] integrity: PASS (3/3 intact)
+- Confidence tiers: PASS (4/4 T1 consistent)
+- Provenance: PASS (4 entries updated T1-low → T1)
