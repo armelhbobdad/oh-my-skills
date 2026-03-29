@@ -18,6 +18,7 @@ Each skill in this repository is:
 | Skill | Version | Language | Tier | Coverage |
 |-------|---------|----------|------|----------|
 | [cognee](skills/cognee/) | 0.5.5 | Python | Deep | 99.3% |
+| [storybook-react-vite](skills/storybook-react-vite/) | 10.3.0 | TypeScript | Deep | 98.7% |
 | [uitripled](skills/uitripled/) | 1.1.0 | TypeScript | Deep | 98.7% |
 
 ## Usage
