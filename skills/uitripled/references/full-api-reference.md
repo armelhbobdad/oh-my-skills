@@ -117,6 +117,28 @@ Deduplicates and organizes imports when combining multiple component files.
 
 `[SRC:packages/utils/src/merge-imports.ts:L5]`
 
+#### generateUniqueSlug(baseName: string, existingSlugs: string[]): string
+
+Generates a URL-friendly slug from `baseName` using `sanitizeSlug`, then appends a numeric suffix (`-2`, `-3`, ...) if the slug already exists in `existingSlugs`.
+
+```tsx
+import { generateUniqueSlug } from "@uitripled/utils";
+const slug = generateUniqueSlug("My Page", ["my-page"]); // "my-page-2"
+```
+
+`[SRC:lib/builder-utils.ts]`
+
+#### sanitizeSlug(value: string): string
+
+Converts a string to a lowercase URL slug: strips non-alphanumeric characters, replaces with hyphens, removes leading/trailing hyphens, and truncates to 48 characters.
+
+```tsx
+import { sanitizeSlug } from "@uitripled/utils";
+const slug = sanitizeSlug("Hello World!"); // "hello-world"
+```
+
+`[SRC:lib/builder-utils.ts]`
+
 ### Shared Types
 
 ```typescript

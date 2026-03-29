@@ -207,6 +207,34 @@
       "extraction_method": "source-reading",
       "ast_node_type": null,
       "signature_source": "T1-low"
+    },
+    {
+      "export_name": "generateUniqueSlug",
+      "export_type": "function",
+      "params": ["baseName: string", "existingSlugs: string[]"],
+      "return_type": "string",
+      "source_file": "lib/builder-utils.ts",
+      "source_line": null,
+      "confidence": "T1-low",
+      "extraction_method": "mcp-source-reading",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "sanitizeSlug",
+      "export_type": "function",
+      "params": ["value: string"],
+      "return_type": "string",
+      "source_file": "lib/builder-utils.ts",
+      "source_line": null,
+      "confidence": "T1-low",
+      "extraction_method": "mcp-source-reading",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     }
-  ]
+  ],
+  "last_update": "2026-03-29T20:55:00+04:00",
+  "update_type": "gap-driven",
+  "exports_affected": 4,
+  "manual_sections_preserved": 2
 }

@@ -49,6 +49,36 @@
 - Applied (structural): trim overview metadata, consolidate Props tables to reference
 - Skipped (semantic): add validation steps to workflows — would introduce unverified content
 
+## Update Operation — 2026-03-29
+
+**Trigger:** gap-driven (from test-report-uitripled.md)
+**Forge Tier:** Deep
+**Mode:** gap-driven
+
+### Changes Detected
+- Files modified: 0 (source unchanged)
+- Exports new (undocumented): 3 (generateUniqueSlug, sanitizeSlug, GridPreviewProps)
+- Exports modified (signature gap): 1 (NativeNotchProps onClick)
+- Metadata updates: 1 (count claim)
+
+### Extraction Findings
+- `generateUniqueSlug` and `sanitizeSlug` located in `lib/builder-utils.ts` via DeepWiki MCP (T1-low)
+- `GridPreviewProps` confirmed **phantom export** — not found in source repository (removed from metadata)
+- NativeNotchProps `onClick` already in provenance-map (T1) — SKILL.md body was incomplete
+
+### Merge Results
+- Exports updated: 1 (NativeNotchProps — added onClick prop)
+- Exports added: 2 (generateUniqueSlug, sanitizeSlug → references/full-api-reference.md)
+- Exports removed: 1 (GridPreviewProps — phantom, removed from metadata.json)
+- [MANUAL] sections preserved: 2 (after-quick-start, after-catalog)
+- Conflicts resolved: 0
+
+### Validation Summary
+- Spec compliance: PASS (structural pre-check)
+- [MANUAL] integrity: PASS (2/2 intact)
+- Confidence tiers: PASS (2 exports at T1-low — remote MCP fallback)
+- Provenance: PASS (2 new entries added)
+
 ## Warnings
 - QMD version could not be detected (pip show qmd-plugin and pip show qmd both failed)
 - No T2 enrichment annotations — uitripled temporal context returned empty QMD results

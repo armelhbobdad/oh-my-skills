@@ -113,11 +113,12 @@ Import component → pass typed Props (size, variant, callbacks) → Framer Moti
 | defaultExpanded | `boolean` | `false` | no |
 | expanded | `boolean` | — | no |
 | onExpandedChange | `(expanded: boolean) => void` | — | no |
+| onClick | `(e: React.MouseEvent) => void` | — | no |
 | className | `string` | — | no |
 
 `[AST:packages/components/react-shadcn/src/components/native/native-notch-shadcnui.tsx:L39]`
 
-All 18 Props interfaces with full field details: see [references/native-components.md](references/native-components.md).
+All 17 Props interfaces with full field details: see [references/native-components.md](references/native-components.md).
 
 ## Architecture at a Glance
 
