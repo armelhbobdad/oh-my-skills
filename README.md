@@ -18,6 +18,7 @@ Each skill in this repository is:
 | Skill | Version | Language | Tier | Coverage |
 |-------|---------|----------|------|----------|
 | [cognee](skills/cognee/) | 0.5.5 | Python | Deep | 99.3% |
+| [storybook-react-vite](skills/storybook-react-vite/) | 10.3.0 | TypeScript | Deep | 98.7% |
 | [uitripled](skills/uitripled/) | 1.1.0 | TypeScript | Deep | 98.7% |
 
 ## Usage
@@ -25,10 +26,10 @@ Each skill in this repository is:
 ### Install a skill from this repository
 
 ```bash
-npx skills add https://github.com/armelhbobdad/oh-my-skills/tree/main/skills/cognee
+npx skills add https://github.com/armelhbobdad/oh-my-skills/tree/main/skills/<skill-name>
 ```
 
-This installs the skill into your project's directory. Then you should manually add the context snippet from `skills/cognee/context-snippet.md` to your `CLAUDE.md` (or `.cursorrules` / `AGENTS.md`).
+This installs the skill into your project's directory. Then you should manually add the context snippet from `skills/<skill-name>/context-snippet.md` to your `CLAUDE.md` (or `.cursorrules` / `AGENTS.md`).
 
 ### With Claude Code
 
