@@ -13,15 +13,15 @@ nextWorkflow: ''
 previousWorkflow: 'create-skill'
 ---
 
-# Drift Report: {{skill_name}}
+# Drift Report: {skill_name}
 
 ## Audit Summary
 
-**Skill:** {{skill_name}}
-**Source:** {{source_path}}
-**Tier:** {{forge_tier}}
-**Date:** {{date}}
-**Overall Drift Score:** {{drift_score}}
+**Skill:** {skill_name}
+**Source:** {source_path}
+**Tier:** {forge_tier}
+**Date:** {date}
+**Overall Drift Score:** {drift_score}
 
 | Category | Count |
 |----------|-------|

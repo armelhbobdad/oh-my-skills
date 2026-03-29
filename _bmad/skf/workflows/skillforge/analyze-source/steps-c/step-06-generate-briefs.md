@@ -2,7 +2,7 @@
 name: 'step-06-generate-briefs'
 description: 'Generate skill-brief.yaml per confirmed unit, write analysis summary, recommend next workflow'
 
-outputFile: '{output_folder}/analyze-source-report-{project_name}.md'
+outputFile: '{forge_data_folder}/analyze-source-report-{project_name}.md'
 schemaFile: '../data/skill-brief-schema.md'
 ---
 
@@ -97,7 +97,7 @@ For each generated brief, check against {schemaFile} validation rules:
 1. **Name uniqueness** — no duplicate names within the batch or existing skills
 2. **Source accessible** — project_path exists
 3. **Language recognized** — valid programming language identifier
-4. **Scope type valid** — matches `full-library`, `specific-modules`, or `public-api`
+4. **Scope type valid** — matches `full-library`, `specific-modules`, `public-api`, or `component-library`
 5. **Include patterns** — at least one glob pattern present
 6. **Forge tier match** — matches forge_tier from config
 
@@ -152,6 +152,7 @@ For each generated brief, recommend the appropriate next workflow:
 | Condition | Recommendation |
 |-----------|---------------|
 | Brief has `scope.type: full-library` and unit is well-bounded | create-skill — brief is sufficient for direct skill creation |
+| Brief has `scope.type: component-library` and registry defines boundaries | create-skill — component boundaries defined by registry |
 | Brief has `scope.type: specific-modules` or scope needs refinement | brief-skill — refine scope before creating skill |
 | Brief has `scope.type: public-api` or complex interface | brief-skill — detailed scoping needed |
 | Unit flagged as stack skill candidate | create-stack-skill — after individual skills exist |
@@ -179,7 +180,7 @@ Replace `[Appended by step-06-generate-briefs]` with:
 
 Update {outputFile} frontmatter:
 ```yaml
-stepsCompleted: ['step-01-init', 'step-02-scan-project', 'step-03-identify-units', 'step-04-map-and-detect', 'step-05-recommend', 'step-06-generate-briefs']
+stepsCompleted: [append 'step-06-generate-briefs' to existing array]
 lastStep: 'step-06-generate-briefs'
 nextWorkflow: '{primary recommendation}'
 ```
@@ -218,7 +219,7 @@ nextWorkflow: '{primary recommendation}'
 ### ✅ SUCCESS:
 
 - Every confirmed unit has a skill-brief.yaml generated and validated
-- All 9 required schema fields present and valid in each brief
+- All required schema fields present and all 8 validation rules passed in each brief
 - Files written to correct paths in forge_data_folder
 - User confirmed before files were written
 - Next workflow recommended per unit

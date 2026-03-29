@@ -71,9 +71,7 @@ Search for an existing official skill matching `{repo_name}` in the agentskills.
 
 **If no match found:**
 - Set `ecosystem_status: no-match`
-- Auto-proceed to step 3:
-
-"**No existing official skill found for {repo_name}. Proceeding to extraction...**"
+- Auto-proceed silently to step 3. Do not display any message — absence of a match is the expected case.
 
 **If match found:**
 - Set `ecosystem_status: match`

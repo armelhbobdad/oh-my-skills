@@ -3,7 +3,7 @@ name: 'step-04-map-and-detect'
 description: 'Map exports per unit and detect cross-unit integration points, flag stack skill candidates'
 
 nextStepFile: './step-05-recommend.md'
-outputFile: '{output_folder}/analyze-source-report-{project_name}.md'
+outputFile: '{forge_data_folder}/analyze-source-report-{project_name}.md'
 heuristicsFile: '../data/unit-detection-heuristics.md'
 ---
 
@@ -33,7 +33,7 @@ To analyze each qualifying unit's export surface and import graph, detect cross-
 
 ### Step-Specific Rules:
 
-- 🎯 Use subprocess optimization (Pattern 2) — per-unit analysis for export mapping
+- 🎯 Use subprocess optimization (Pattern 2 — per-unit deep analysis): In Claude Code, use Agent tool for each unit sequentially. In CLI, use a per-unit script. See [knowledge/tool-resolution.md](../../../knowledge/tool-resolution.md)
 - 💬 DO NOT BE LAZY — For EACH qualifying unit, perform thorough export surface analysis
 - 🚫 FORBIDDEN to make recommendations in this step (that's step 05)
 - 📋 Tier-aware depth: Quick (file-level exports), Forge (AST export analysis), Deep (AST + semantic relationships)
@@ -81,6 +81,10 @@ DO NOT BE LAZY — For EACH qualifying unit, launch a subprocess (or analyze in 
 2. Counts and categorizes exports based on forge tier:
    - **Quick tier:** Count files by type, identify index/barrel files, list directory structure
    - **Forge tier:** Parse export statements, identify public API surface, count exported functions/classes/types
+   - **Forge+ tier:** All Forge analysis plus:
+     - If `tools.ccc` is true: run `ccc_bridge.search("{unit_name} exports public API", top_k=15)` — **Tool resolution:** `/ccc` skill search (Claude Code), ccc MCP server (Cursor), or `ccc search` CLI; see [knowledge/tool-resolution.md](../../../knowledge/tool-resolution.md) — to discover semantically relevant files beyond directory scan
+     - Merge CCC-discovered files with scoped file list — files from CCC that are within the unit's directory are added to the analysis queue
+     - Record CCC signals in per-unit findings: top 3 CCC-ranked file names (or "—" if no ccc results)
    - **Deep tier:** All Forge analysis plus:
      - ast-grep structural export extraction: `ast-grep -p 'export $$$' --lang typescript` or equivalent per language to build a verified export inventory
      - ast-grep type/interface mapping: `ast-grep -p 'interface $NAME' --lang typescript` or `ast-grep -p 'class $NAME($$$)' --lang python`
@@ -91,13 +95,14 @@ DO NOT BE LAZY — For EACH qualifying unit, launch a subprocess (or analyze in 
    - Primary export patterns (barrel exports, direct exports, re-exports)
    - Public API surface size estimate
    - Key entry points
+   - Script/asset presence: check for `scripts/`, `bin/`, `assets/`, `templates/` directories and files matching detection signals in `{heuristicsFile}`. Record counts in per-unit findings.
    - Analysis strategy used and coverage confidence
 
 **Per-unit export summary:**
 
-| Unit | Files | Exports | Export Pattern | API Surface |
-|------|-------|---------|----------------|-------------|
-| {name} | {count} | {count} | {pattern} | {small/medium/large} |
+| Unit | Files | Exports | Export Pattern | API Surface | Scripts/Assets | CCC Signals |
+|------|-------|---------|----------------|-------------|----------------|-------------|
+| {name} | {count} | {count} | {pattern} | {small/medium/large} | {N scripts, M assets or --} | {CCC signals or --} |
 
 ### 3. Map Import Graph
 
@@ -187,7 +192,7 @@ Replace `[Appended by step-04-map-and-detect]` under Integration Points with:
 
 Update {outputFile} frontmatter:
 ```yaml
-stepsCompleted: ['step-01-init', 'step-02-scan-project', 'step-03-identify-units', 'step-04-map-and-detect']
+stepsCompleted: [append 'step-04-map-and-detect' to existing array]
 lastStep: 'step-04-map-and-detect'
 stack_skill_candidates: [{list flagged candidate groupings}]
 ```

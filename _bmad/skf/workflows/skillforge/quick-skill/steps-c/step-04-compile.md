@@ -79,8 +79,8 @@ description: >
 ```
 
 **Frontmatter rules:**
-- `name`: lowercase alphanumeric + hyphens only, must match the skill output directory name
-- `description`: non-empty, max 1024 chars, optimized for agent discovery
+- `name`: lowercase alphanumeric + hyphens only, must match the skill output directory name. Prefer gerund form (`processing-pdfs`) for clarity.
+- `description`: non-empty, max 1024 chars, optimized for agent discovery. MUST use third-person voice ("Processes..." not "I can..." or "You can...").
 - No other frontmatter fields — only `name` and `description` for community skills
 
 **Required sections (after frontmatter):**
@@ -93,6 +93,7 @@ description: >
 - **Configuration:** If configuration options were found in source
 - **Dependencies:** Key dependencies from manifest
 - **Notes:** Caveats, limitations, extraction confidence level
+- **Scripts & Assets Note** (if source contains `scripts/`, `bin/`, `assets/`, `templates/`, or `schemas/` directories): "This package may include scripts and assets. Run create-skill for full extraction with provenance tracking."
 
 **If confidence is low:**
 - Include a note: "This skill was generated with limited source data. Consider running create-skill for a more thorough compilation."
@@ -106,7 +107,8 @@ Create context-snippet.md in Vercel-aligned indexed format (~80-120 tokens):
 |IMPORTANT: {skill_name} v{version} — read SKILL.md before writing {skill_name} code. Do NOT rely on training data.
 |quick-start:{SKILL.md#quick-start}
 |api: {top-5 exports with () for functions}
-|gotchas: {1-2 most critical pitfalls if known}
+|key-types:{SKILL.md#key-types} — {inline summary of most important type values}
+|gotchas: {2-3 most critical pitfalls or breaking changes, inline}
 ```
 
 **If fewer than 5 exports:** Use all available exports.
@@ -115,29 +117,48 @@ Create context-snippet.md in Vercel-aligned indexed format (~80-120 tokens):
 
 ### 4. Generate Metadata JSON
 
-Create metadata.json:
+Generate metadata.json following the exact structure defined in {skillTemplateData} metadata.json section. Populate fields from extraction_inventory:
 
 ```json
 {
-  "name": "{repo_name}",
-  "version": "{extraction_inventory.version or 0.1.0}",
+  "name": "{skill_name}",
+  "version": "{extraction_inventory.version or 1.0.0}",
+  "description": "{brief description of the skill}",
   "skill_type": "single",
   "source_authority": "community",
   "source_repo": "{resolved_url}",
+  "source_root": "{resolved_source_path}",
+  "source_commit": "{commit_sha_if_available}",
   "source_package": "{package_name from manifest}",
   "language": "{language}",
   "generated_by": "quick-skill",
   "generation_date": "{current ISO date}",
   "confidence_tier": "Quick",
+  "spec_version": "1.3",
   "exports": ["{export_1}", "{export_2}"],
+  "confidence_distribution": {
+    "t1": 0,
+    "t1_low": "{number of exports found — must be integer, not string}",
+    "t2": 0,
+    "t3": 0
+  },
+  "tool_versions": {
+    "ast_grep": null,
+    "qmd": null,
+    "skf": "{skf_version}"   // Resolution chain: _bmad/skf/package.json → npm require → _bmad/skf/VERSION → "unknown"
+  },
   "stats": {
     "exports_documented": "{number of exports found}",
     "exports_public_api": "{number of exports found}",
     "exports_internal": 0,
     "exports_total": "{number of exports found}",
     "public_api_coverage": 1.0,
-    "total_coverage": 1.0
-  }
+    "total_coverage": 1.0,
+    "scripts_count": 0,
+    "assets_count": 0
+  },
+  "dependencies": [],
+  "compatibility": "{semver-range or null}"
 }
 ```
 

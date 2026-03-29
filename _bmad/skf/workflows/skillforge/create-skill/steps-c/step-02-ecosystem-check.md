@@ -1,7 +1,7 @@
 ---
 name: 'step-02-ecosystem-check'
 description: 'Check agentskills.io ecosystem for existing official skill before compilation'
-nextStepFile: './step-03-extract.md'
+nextStepFile: './step-02b-ccc-discover.md'
 ---
 
 # Step 2: Ecosystem Check
@@ -131,7 +131,7 @@ If no match is found, this step auto-proceeds with no user interaction.
 - Match presented factually with clear options if found
 - No-match case auto-proceeds silently
 - User decision respected (Proceed/Install/Abort)
-- Auto-proceeded to step-03 (when no match or user chose Proceed)
+- Auto-proceeded to step-02b (when no match or user chose Proceed)
 
 ### ❌ SYSTEM FAILURE:
 

@@ -3,10 +3,10 @@ name: 'step-05-recommend'
 description: 'Present unit recommendations with rationale for user confirmation or rejection'
 
 nextStepFile: './step-06-generate-briefs.md'
-outputFile: '{output_folder}/analyze-source-report-{project_name}.md'
+outputFile: '{forge_data_folder}/analyze-source-report-{project_name}.md'
 schemaFile: '../data/skill-brief-schema.md'
-advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
-partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
+advancedElicitationSkill: '/bmad-advanced-elicitation'
+partyModeSkill: '/bmad-party-mode'
 ---
 
 # Step 5: Recommend
@@ -90,7 +90,7 @@ For EACH qualifying unit, prepare a recommendation card:
 
 **Proposed Brief Fields:**
 - name: {suggested kebab-case name}
-- scope.type: {full-library / specific-modules / public-api}
+- scope.type: {full-library / specific-modules / public-api / component-library}
 - scope.include: {suggested glob patterns}
 - description: {suggested 1-3 sentence description}
 ```
@@ -181,7 +181,7 @@ Replace `[Appended by step-05-recommend]` with:
 
 Update {outputFile} frontmatter:
 ```yaml
-stepsCompleted: ['step-01-init', 'step-02-scan-project', 'step-03-identify-units', 'step-04-map-and-detect', 'step-05-recommend']
+stepsCompleted: [append 'step-05-recommend' to existing array]
 lastStep: 'step-05-recommend'
 confirmed_units: [{list of confirmed unit names}]
 stack_skill_candidates: [{updated list with user decisions}]
@@ -193,8 +193,8 @@ Display: "**Select an Option:** [A] Advanced Elicitation [P] Party Mode [D] Disc
 
 #### Menu Handling Logic:
 
-- IF A: Execute {advancedElicitationTask}, and when finished redisplay the menu
-- IF P: Execute {partyModeWorkflow}, and when finished redisplay the menu
+- IF A: Invoke {advancedElicitationSkill}, and when finished redisplay the menu
+- IF P: Invoke {partyModeSkill}, and when finished redisplay the menu
 - IF D: Accept a new repo path/URL from the user. Run a lightweight scan + classify (subset of steps 02-03) for the new source only. Merge new units into the existing report and update `project_paths[]` in frontmatter. Run export mapping for the new units (same logic as step 04 section 2). Generate recommendation cards for the new units and present them for confirmation. Then redisplay this menu.
 - IF C: Save recommendations to {outputFile}, update frontmatter, then load, read entire file, then execute {nextStepFile}
 - IF Any other comments or queries: help user respond then [Redisplay Menu Options](#8-present-menu-options)

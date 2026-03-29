@@ -3,7 +3,7 @@ name: 'step-01-gather-intent'
 description: 'Initialize brief-skill workflow, discover forge tier, and gather user intent for skill creation'
 
 nextStepFile: './step-02-analyze-target.md'
-forgeTierFile: '{project-root}/_bmad/_memory/forger-sidecar/forge-tier.yaml'
+forgeTierFile: '{sidecar_path}/forge-tier.yaml'
 ---
 
 # Step 1: Gather Intent
@@ -61,14 +61,14 @@ To initialize the brief-skill workflow by discovering the forge tier configurati
 Attempt to load `{forgeTierFile}`:
 
 **If found:**
-- Read the tier level (quick, forge, or deep)
+- Read the tier level (quick, forge, forge+, or deep)
 - Note available tools for scoping guidance later
 
-**Apply tier override:** Read `{sidecar_path}/preferences.yaml`. If `tier_override` is set and is a valid tier value (Quick, Forge, or Deep), use it instead of the detected tier.
+**Apply tier override:** Read `{sidecar_path}/preferences.yaml`. If `tier_override` is set and is a valid tier value (Quick, Forge, Forge+, or Deep), use it instead of the detected tier.
 
 **If not found:**
 - Display: "**Note:** No forge tier configuration found. Defaulting to Quick tier. Run **setup-forge** first for full capabilities."
-- Default to: `forge_tier: quick`
+- Default to: `forge_tier: Quick`
 
 ### 2. Welcome and Explain
 
@@ -82,6 +82,9 @@ We'll work through this together:
 3. **Then:** Define scope boundaries
 4. **Finally:** Confirm and write the brief
 
+{If tier override was applied:}
+**Your forge tier:** {override tier} (overridden from {original tier}) — this determines what compilation capabilities are available.
+{Else:}
 **Your forge tier:** {detected tier} — this determines what compilation capabilities are available.
 
 Let's get started."
@@ -109,6 +112,14 @@ Wait for user response.
 - Set `source_type: "source"` (default)
 - Optionally ask: "Are there any documentation URLs you'd like to include for supplemental context? (These will be fetched as T3 external references.)"
 - If yes: collect doc URLs into `doc_urls`
+
+**Source authority (for all source-type skills):**
+"**Are you the maintainer of this library, or creating a community skill?**"
+- If maintainer: set `source_authority: "official"`
+- If community user: set `source_authority: "community"` (default)
+- If internal/proprietary: set `source_authority: "internal"`
+
+Default to `"community"` if user does not specify or skips. For `docs-only` skills, `source_authority` is always forced to `"community"`.
 
 Confirm the target.
 
@@ -154,6 +165,10 @@ Wait for confirmation or alternative.
 - **Intent:** {user's intent summary}
 - **Scope hints:** {any hints, or "None — we'll define scope after analysis"}
 - **Skill name:** {confirmed name}
+- **Source type:** {source or docs-only}
+- **Source authority:** {official/community/internal}
+{If doc_urls collected:}
+- **Doc URLs:** {count} supplemental documentation URLs
 - **Forge tier:** {tier}
 
 Ready to analyze the target repository?"
@@ -187,6 +202,7 @@ ONLY WHEN C is selected and target repository is confirmed will you load and rea
 - User intent captured with enough context for scoping
 - Skill name derived and confirmed
 - Scope hints noted (if provided)
+- Source type and source authority captured
 - User ready to proceed to analysis
 
 ### ❌ SYSTEM FAILURE:

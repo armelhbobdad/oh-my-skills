@@ -82,10 +82,10 @@ Load `{sidecar_path}/forge-tier.yaml` to detect available tools.
 - HALT workflow
 
 **If found:**
-- Extract tier level: Quick / Forge / Deep
-- Extract available tools: gh_bridge, ast_bridge, qmd_bridge
+- Extract tier level: Quick / Forge / Forge+ / Deep
+- Extract available tools: gh_bridge, ast_bridge, qmd_bridge — see [knowledge/tool-resolution.md](../../../knowledge/tool-resolution.md) for concrete tool resolution per IDE
 
-**Apply tier override:** Read `{sidecar_path}/preferences.yaml`. If `tier_override` is set and is a valid tier value (Quick, Forge, or Deep), use it instead of the detected tier.
+**Apply tier override:** Read `{sidecar_path}/preferences.yaml`. If `tier_override` is set and is a valid tier value (Quick, Forge, Forge+, or Deep), use it instead of the detected tier.
 
 ### 3. Load Skill Artifacts
 
@@ -98,6 +98,8 @@ Load the following from the skill directory:
 **Extract from metadata.json:**
 - `name`, `version`, `generation_date`, `confidence_tier` used during creation
 - `source_root` — Resolved source code path used during extraction
+
+**Detect split-body state:** If a `references/` directory exists and SKILL.md's `## Full` headings are absent or stubs, this is a split-body skill. Flag `split_body: true` in the baseline so downstream steps (especially semantic diff in step-04) know to also read `references/*.md` for complete content comparison.
 
 ### 4. Load Provenance Map
 
@@ -150,6 +152,7 @@ Create `{outputFile}` from `{templateFile}`:
 **Analysis plan based on tier:**
 - {Quick: text-diff comparison (T1-low confidence)}
 - {Forge: AST structural comparison (T1 confidence)}
+- {Forge+: AST structural comparison + CCC-assisted rename detection (T1 confidence)}
 - {Deep: AST structural + QMD semantic comparison (T1 + T2 confidence)}
 
 **Ready to begin drift analysis?**"

@@ -2,7 +2,7 @@
 name: audit-skill
 description: "Drift detection. Forge tier: structural. Deep tier: full."
 web_bundle: true
-installed_path: '{project-root}/_bmad/skf/workflows/audit-skill'
+installed_path: '{project-root}/_bmad/skf/workflows/skillforge/audit-skill'
 ---
 
 # Audit Skill
@@ -24,7 +24,7 @@ This uses **step-file architecture** for disciplined execution:
 - **Sequential Enforcement**: Sequence within the step files must be completed in order, no skipping or optimization allowed
 - **State Tracking**: Document progress in output file frontmatter using `stepsCompleted` array
 - **Append-Only Building**: Build the drift report by appending sections as directed to the output file
-- **Tier-Aware Execution**: Adapt analysis depth based on detected forge tier (Quick/Forge/Deep) with graceful degradation
+- **Tier-Aware Execution**: Adapt analysis depth based on detected forge tier (Quick/Forge/Forge+/Deep) with graceful degradation
 
 ### Step Processing Rules
 
@@ -57,6 +57,7 @@ Load and read full config from {project-root}/_bmad/skf/config.yaml and resolve:
 
 - `project_name`, `output_folder`, `user_name`, `communication_language`, `document_output_language`
 - `skills_output_folder`, `forge_data_folder`, `sidecar_path`
+- Generate and store `timestamp` as the current date-time in `YYYYMMDD-HHmmss` format. This value is fixed for the entire workflow run and must not be regenerated in subsequent steps.
 
 ### 2. First Step Execution
 

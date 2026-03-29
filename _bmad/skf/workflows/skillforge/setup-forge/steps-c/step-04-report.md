@@ -43,7 +43,8 @@ Display the forge status report with positive capability framing, report tier ch
 
 - Available: {detected_tools}, {calculated_tier}, {previous_tier}, {tier_override} from step-01
 - Available: tool version strings from step-01
-- Available: {hygiene_result}, {hygiene_healthy}, {hygiene_orphaned_removed}, {hygiene_orphaned_kept}, {hygiene_stale_cleaned} from step-03
+- Available: {hygiene_result}, {hygiene_healthy}, {hygiene_orphaned_removed}, {hygiene_orphaned_kept}, {hygiene_stale_cleaned}, {ccc_registry_stale_cleaned} from step-03
+- Available: {ccc_index_result} from step-01b (values: "fresh", "created", "failed", "none")
 - Focus: report display only — no file modifications
 - Dependencies: steps 01-03 must have completed
 
@@ -75,11 +76,22 @@ Load and read {tierRulesData} for the tier capability descriptions and re-run me
   {hygiene_healthy} collection(s) healthy
   {if hygiene_orphaned_removed > 0: {hygiene_orphaned_removed} orphaned collection(s) removed}
   {if hygiene_orphaned_kept > 0: {hygiene_orphaned_kept} orphaned collection(s) kept}
-  {if hygiene_stale_cleaned > 0: {hygiene_stale_cleaned} stale registry entry/entries cleaned}
+  {if hygiene_stale_cleaned > 0: {hygiene_stale_cleaned} stale QMD registry entry/entries cleaned}
+  {end if}
+
+  {if ccc_registry_stale_cleaned > 0:}
+  CCC Registry: {ccc_registry_stale_cleaned} stale entry/entries cleaned
   {end if}
 
   {if hygiene_result is "completed" and hygiene_healthy is 0:}
   QMD Registry: empty — collections are created automatically when you run [CS] Create Skill.
+  {end if}
+
+  {if tools.ccc is true:}
+  CCC Index:
+  {if ccc_index_result is "fresh": up to date — semantic discovery ready}
+  {if ccc_index_result is "created": indexed this run — semantic discovery ready}
+  {if ccc_index_result is "failed": indexing failed — semantic discovery unavailable this session}
   {end if}
 
 {if tier_override is active:}
@@ -103,10 +115,10 @@ Load and read {tierRulesData} for the tier capability descriptions and re-run me
 
 ### 3. Handle --update-spec Flag (Optional)
 
-**If `--update-spec` was passed:**
+**If the user included `--update-spec` in their workflow invocation (e.g., `@Ferris SF --update-spec`):**
 - Attempt to fetch the latest agentskills.io specification schema
 - Use `gh` or `curl` to retrieve the spec
-- Store in `{project-root}/forge-data/agentskills-spec.json` (or appropriate format)
+- Store in `{forge_data_folder}/agentskills-spec.json` (or appropriate format)
 - If fetch succeeds: display "agentskills.io spec updated."
 - If fetch fails: display "Could not fetch agentskills.io spec. Existing spec (if any) unchanged."
 - Do NOT fail the workflow over this — it is purely optional

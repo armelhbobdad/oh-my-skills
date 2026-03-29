@@ -38,6 +38,14 @@ by the forge during updates or regeneration.
 - Nested \[MANUAL\] blocks are forbidden — trigger an ERROR if detected
 - Markers apply to any output file: `SKILL.md`, `references/*.md`, integration files
 
+### [MANUAL] Subdirectories
+
+User-authored scripts and assets are placed in `scripts/[MANUAL]/` and `assets/[MANUAL]/` subdirectories within the skill package. These follow the same preservation principle as markdown `<!-- [MANUAL] -->` markers:
+
+- Files in `[MANUAL]/` subdirectories are preserved unconditionally during `update-skill`
+- Source-derived scripts/assets (outside `[MANUAL]/`) are refreshed from source during updates
+- Conflicts (user file has same name as source file outside `[MANUAL]/`) are flagged as HIGH severity
+
 ## Pattern Examples
 
 ### Example 1: Adding Manual Context to a Generated Skill
@@ -98,12 +106,12 @@ Runs pending database migrations in sequence.
 | Severity | Condition | Resolution |
 | --- | --- | --- |
 | HIGH | Regenerated content overlaps \[MANUAL\] position | Present both versions, user chooses |
-| WARNING | Parent section deleted, \[MANUAL\] block orphaned | Flag orphaned block, user decides to keep or remove |
+| HIGH | Parent section deleted, \[MANUAL\] block orphaned | Flag orphaned block, user decides to keep or remove |
 | MEDIUM | \[MANUAL\] references a deleted export | Flag stale reference for user review |
 | LOW | New export generated adjacent to \[MANUAL\] block | Auto-resolve: place new content before the block |
 
 **Key Points:**
-- HIGH and WARNING conflicts always require user input — never auto-resolved
+- HIGH conflicts always require user input — never auto-resolved
 - MEDIUM conflicts are flagged but do not block the update
 - LOW conflicts are auto-resolved with a deterministic rule (new content before block)
 

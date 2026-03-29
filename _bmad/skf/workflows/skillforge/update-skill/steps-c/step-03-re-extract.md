@@ -4,8 +4,9 @@ description: 'Tier-aware AST extraction on changed files only, producing fresh e
 
 nextStepFile: './step-04-merge.md'
 extractionPatternsData: '../../create-skill/data/extraction-patterns.md'
-tierDegradationRulesData: '../data/tier-degradation-rules.md'
+extractionPatternsTracingData: '../../create-skill/data/extraction-patterns-tracing.md'
 remoteSourceResolutionData: '../data/remote-source-resolution.md'
+tierDegradationRulesData: '../../create-skill/data/tier-degradation-rules.md'
 ---
 
 # Step 3: Re-Extract Changed Exports
@@ -92,18 +93,22 @@ Perform tier-aware extraction on only the changed files identified in step 02, p
 - Extract: parameter types, return types, JSDoc/docstring comments
 - Confidence: T1 (AST-verified structural truth)
 
+**Tier degradation handling (Forge/Forge+/Deep):** If ast-grep is unavailable or fails on individual files, follow `{tierDegradationRulesData}` for fallback strategy and user notification requirements. Silent degradation is forbidden — the user must always know when AST extraction was skipped.
+
 **Deep tier (AST + QMD semantic enrichment):**
 - Perform all Forge tier extractions (T1)
 - Additionally: launch a subprocess that queries qmd_bridge for temporal context on changed exports, returning T2 evidence per export
 - QMD provides: usage patterns, historical context, related documentation
 - Confidence: T1 for structural, T2 for semantic enrichment
 
+**Tool resolution:** `ast_bridge` → ast-grep MCP tools (`find_code`, `find_code_by_rule`) or `ast-grep` CLI. `qmd_bridge` → QMD MCP tools (`mcp__plugin_qmd-plugin_qmd__search`, `vector_search`) or `qmd` CLI. See [knowledge/tool-resolution.md](../../../knowledge/tool-resolution.md).
+
 ### 2. Extract Changed Files
 
 DO NOT BE LAZY — For EACH file in the change manifest with status MODIFIED, ADDED, or RENAMED, launch a subprocess that:
 
 1. Loads the source file
-2. Performs tier-appropriate extraction (Quick/Forge/Deep)
+2. Performs tier-appropriate extraction (Quick/Forge/Forge+/Deep)
 3. For each export found:
    - Record: export name, type (function/class/type/constant), signature
    - Record: file path, start line, end line
@@ -117,7 +122,26 @@ DO NOT BE LAZY — For EACH file in the change manifest with status MODIFIED, AD
 
 **For MOVED files:** Re-extract at new location to update file:line references.
 
-**Re-export tracing (Forge/Deep only):** After extracting changed files, check if any public exports from the package entry point (`__init__.py`, `index.ts`, `lib.rs`) are unresolved — particularly when a changed file is part of a module re-export chain. Follow the **Re-Export Tracing** protocol in `{extractionPatternsData}` to trace unresolved symbols to their actual definition files.
+**Re-export tracing (Forge/Deep only):** After extracting changed files, check if any public exports from the package entry point (`__init__.py`, `index.ts`, `lib.rs`) are unresolved — particularly when a changed file is part of a module re-export chain. Follow the **Re-Export Tracing** protocol in `{extractionPatternsTracingData}` to trace unresolved symbols to their actual definition files.
+
+### 2b. CCC Semantic Ranking (Forge+ and Deep with ccc)
+
+**IF `tools.ccc` is true in forge-tier.yaml:**
+
+Before aggregating extraction results, use CCC to assess semantic significance of changes:
+
+1. Run `ccc_bridge.search("{skill_name}", source_root, top_k=15)` — **Tool resolution:** `/ccc` skill search (Claude Code), ccc MCP (Cursor), `ccc search` (CLI) — to get the skill's most semantically central files
+2. Cross-reference the change manifest files with CCC results
+3. Files appearing in BOTH the change manifest AND CCC's top results are **semantically significant changes** — flag them for priority in the merge step
+4. Store `{ccc_significant_changes: [{file, score}]}` in context
+
+This helps the merge step (section 4) prioritize which changes are most likely to affect the skill's core content vs. peripheral modifications.
+
+CCC failures: skip ranking silently, all changes treated equally.
+
+**Note on remote sources:** If `source_root` is an ephemeral clone (remote source), the clone path is not indexed by CCC. The search will return empty results and semantic ranking will be skipped. This is expected — deferred CCC indexing is implemented in create-skill step-03 but not in update-skill. All changes are treated equally for remote sources.
+
+**IF `tools.ccc` is false:** Skip this section silently.
 
 ### 3. Deep Tier QMD Enrichment (Conditional)
 
@@ -200,7 +224,7 @@ ONLY WHEN all changed files have been extracted and results compiled will you lo
 - Every changed file from manifest extracted with tier-appropriate method
 - All exports labeled with confidence tier (T1/T1-low/T2)
 - AST file:line citations on every extracted export
-- QMD enrichment performed for Deep tier (skipped with notice for Quick/Forge)
+- QMD enrichment performed for Deep tier (skipped with notice for Quick/Forge/Forge+)
 - Extraction results compiled with per-file detail
 - Summary displayed before auto-proceeding
 - No unchanged files extracted

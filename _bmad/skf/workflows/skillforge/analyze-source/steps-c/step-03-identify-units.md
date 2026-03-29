@@ -3,7 +3,7 @@ name: 'step-03-identify-units'
 description: 'Classify discrete skillable units from scan results using detection heuristics and assign scope types'
 
 nextStepFile: './step-04-map-and-detect.md'
-outputFile: '{output_folder}/analyze-source-report-{project_name}.md'
+outputFile: '{forge_data_folder}/analyze-source-report-{project_name}.md'
 heuristicsFile: '../data/unit-detection-heuristics.md'
 ---
 
@@ -150,7 +150,7 @@ Replace the placeholder `[Appended by step-03-identify-units]` with:
 
 Update {outputFile} frontmatter:
 ```yaml
-stepsCompleted: ['step-01-init', 'step-02-scan-project', 'step-03-identify-units']
+stepsCompleted: [append 'step-03-identify-units' to existing array]
 lastStep: 'step-03-identify-units'
 ```
 

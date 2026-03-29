@@ -60,6 +60,12 @@ To analyze the target repository by resolving its location, reading its structur
 **For GitHub URLs:**
 - Use `gh api repos/{owner}/{repo}` to verify the repository exists
 - Use `gh api repos/{owner}/{repo}/git/trees/HEAD?recursive=1` to get the file tree
+
+**Truncation detection:** After receiving the tree response, check the `truncated` field in the JSON output. If `truncated: true`:
+- Display: "Note: GitHub API returned a truncated tree response ({count} items). Full analysis may require a local clone."
+- Record in analysis summary: "Tree listing is partial — some files may not appear in the analysis."
+- For very large repos (>1000 files in tree response): suggest local clone for complete analysis.
+
 - If inaccessible: **HALT** — "**Error:** Cannot access repository at {url}. Please verify the URL is correct and you have access. If private, ensure `gh auth` is configured."
 
 **For local paths:**
@@ -131,6 +137,44 @@ Based on detected language, identify public API surface:
 **Detected Exports/Entry Points:**
 {numbered list of public-facing items found}"
 
+**Semantic Signals (Forge+ and Deep with ccc only):**
+
+**Remote source guard:** If the target source was resolved via GitHub API (remote URL, not a local file path), skip this CCC subsection — CCC requires a local source index and cannot operate on remote-only sources. Note: "CCC semantic discovery skipped — target is remote. CCC discovery will run automatically during create-skill after the source is cloned."
+
+If `tools.ccc` is true in forge-tier.yaml, supplement the module listing with a semantic discovery pass:
+
+**CCC Semantic Discovery:**
+- **Claude Code:** Use `/ccc search "{repo_name} public API exports modules" {source_path}`
+- **Cursor:** Use `ccc` MCP server `search` tool with query `"{repo_name} public API exports modules"` and path `{source_path}`
+- **CLI fallback:** `ccc search "{repo_name} public API exports modules" --path {source_path} --limit 10`
+
+See [knowledge/tool-resolution.md](../../../knowledge/tool-resolution.md) for full bridge-to-tool mapping.
+
+If results are returned, display:
+
+"**Semantic Signals (ccc):**
+{numbered list of file:snippet pairs from CCC results — top 5 most relevant}"
+
+This supplements — never replaces — the explicit module list above. CCC may surface non-obvious entry points (dynamically constructed exports, re-export chains) that static directory analysis misses.
+
+If CCC is unavailable or returns no results: skip this subsection silently.
+
+### 4b. Detect Source Version
+
+Attempt to auto-detect the source version using the rules from the skill-brief-schema.md Version Detection section:
+
+**For Python:** Check `pyproject.toml` `[project] version` (static) → if `dynamic = ["version"]`, check `__init__.py` for `__version__` → `_version.py` if exists → `setup.py` `version=` → `git describe --tags --abbrev=0`
+**For JavaScript/TypeScript:** Check `package.json` `"version"` field
+**For Rust:** Check `Cargo.toml` `[package] version` (static) → if `version = { workspace = true }`, resolve from workspace root `Cargo.toml` → `git describe --tags --abbrev=0`
+**For Go:** Check `go.mod` or `git describe --tags --abbrev=0`
+
+**For GitHub repos:** Use `gh api repos/{owner}/{repo}/contents/{file}` to read version files (decode base64 content).
+**For local repos:** Read the file directly.
+
+Display: "**Detected version:** {version or 'Not detected — will default to 1.0.0'}"
+
+If detection fails or returns a non-semver value: note that version will default to `"1.0.0"` and the user can override in step 04.
+
 ### 5. Report Analysis Summary
 
 Present the complete analysis:
@@ -154,6 +198,7 @@ Present the complete analysis:
 - Tests: {found/not found — location}
 - Docs: {found/not found — location}
 - Config: {list of config files found}
+- Version: {detected version or "Not detected — defaulting to 1.0.0"}
 
 ---
 
@@ -164,16 +209,21 @@ Moving to scope definition where you'll choose what to include and exclude."
 
 ### 6. Auto-Proceed to Scope Definition
 
-Display: "**Proceeding to scope definition...**"
+Display: "**Proceeding to scope definition...**
+
+Review the analysis above. If anything looks wrong, let me know now — otherwise I'll proceed to scope definition."
+
+Pause briefly for user input. If the user provides corrections or asks questions, address them and re-present any updated analysis findings. Then proceed.
 
 #### Menu Handling Logic:
 
-- After analysis report is presented to user, immediately load, read entire file, then execute {nextStepFile}
+- After analysis report is presented to user and any corrections addressed, load, read entire file, then execute {nextStepFile}
 
 #### EXECUTION RULES:
 
-- This is an auto-proceed step — analysis is factual reporting with no user choices
-- Proceed directly to step 03 after presenting the analysis summary
+- This is a soft auto-proceed step — present the pause prompt, wait briefly for user input
+- If user provides corrections: address them, then proceed
+- If no user input after a brief pause: proceed directly to step 03
 
 ## CRITICAL STEP COMPLETION NOTE
 
@@ -189,8 +239,9 @@ ONLY WHEN the analysis is complete and the summary has been presented to the use
 - Repository structure listed clearly
 - Primary language detected with confidence level
 - Top-level modules and exports identified
+- Source version detected (or default noted)
 - Analysis summary presented factually
-- Auto-proceeded to scope definition
+- Auto-proceeded to scope definition (with pause for corrections)
 
 ### ❌ SYSTEM FAILURE:
 

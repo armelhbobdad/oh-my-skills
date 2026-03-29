@@ -39,7 +39,7 @@ To assemble the complete skill content from the extraction inventory and enrichm
 ## EXECUTION PROTOCOLS:
 
 - 🎯 Follow MANDATORY SEQUENCE exactly
-- 💾 Build all content in context or write to a staging directory (`_bmad-output/{name}/`)
+- 💾 Build all content in context AND write to the staging directory (`_bmad-output/{name}/`) — staging write is mandatory for step-06 validation
 - 📖 Follow agentskills.io section structure from data file
 - 🚫 Do not promote any output files to final `skills/` or `forge-data/` directories — that's step-07
 
@@ -59,9 +59,20 @@ To assemble the complete skill content from the extraction inventory and enrichm
 
 Load `{skillSectionsData}` and `{assemblyRulesData}` completely. These define the agentskills.io-compliant format and detailed assembly rules for all output artifacts.
 
+### 1b. Signature Fidelity Rule
+
+**When assembling function signatures, parameter lists, and return types in any SKILL.md section or reference file:**
+
+- **T1 provenance-map entries (AST-extracted) are authoritative** for: function name, parameter names, parameter types, parameter order, return type, and optionality markers (e.g., `?`, `Optional`, `= default`).
+- **T2 (QMD-enriched) and T3 (doc-derived) sources may ADD** contextual descriptions, usage notes, behavioral documentation, and examples to function entries, but **MUST NOT REPLACE** structural signature data from T1 entries.
+- **On conflict:** If a T2/T3 source provides a different signature than the T1 extraction for the same export (e.g., different parameter count, different types, missing `Partial<>` wrapper), keep the T1 signature and log a warning in the evidence report: "Signature conflict for `{export_name}`: T1 shows `{t1_signature}`, T2/T3 shows `{other_signature}`. T1 used as authoritative."
+- **`signature_source` field:** Record `signature_source: "T1" | "T1-low" | "T2" | "T3"` in each provenance-map entry to indicate the highest-confidence tier that contributed the structural signature data (params, return_type). This enables test-skill to verify signature provenance.
+
+This rule applies to ALL sections including Tier 1 Key API Summary, Tier 2 Full API Reference, and Section 4b Migration & Deprecation Warnings.
+
 ### 2. Build SKILL.md Content
 
-Assemble each section in order using the assembly rules data file (`{assemblyRulesData}`). The data file specifies frontmatter format, Tier 1 section details (Sections 1-8), Tier 2 section details (Sections 9-11), and assembly ordering rules. Follow it exactly.
+Assemble each section in order using the assembly rules data file (`{assemblyRulesData}`). The data file specifies frontmatter format, Tier 1 section details (Sections 1-8, including conditional Section 7b for scripts/assets), Tier 2 section details (Sections 9-11), and assembly ordering rules. Follow it exactly. Assemble Section 7b (Scripts & Assets) only if `scripts_inventory` or `assets_inventory` is non-empty.
 
 ### 3. Build context-snippet.md Content
 
@@ -92,12 +103,31 @@ Following the structure from the skill-sections data file:
 - Set `source_commit` from resolved source (if available)
 - Set `stats` from extraction aggregate counts:
   - `exports_documented`: count of exports with documentation in the assembled SKILL.md
-  - `exports_public_api`: count of exports from public entry points (`__init__.py`, `index.ts`, `lib.rs`, or equivalent)
+  - `exports_public_api`: count of exports from public entry points (`__init__.py`, `index.ts`, `lib.rs`, or equivalent) — derive this from step-03's entry-point validation (section 4b), NOT from the provenance-map entry count (which may be incomplete if extraction patterns missed some export types)
   - `exports_internal`: count of all other non-underscore-prefixed exports (internal modules, helpers, adapters)
   - `exports_total`: `exports_public_api` + `exports_internal`
   - `public_api_coverage`: `exports_documented / exports_public_api` (1.0 when all public API exports are documented; `null` if `exports_public_api` is 0)
   - `total_coverage`: `exports_documented / exports_total` (may be low for large codebases — this is expected; `null` if `exports_total` is 0)
-- Set `tool_versions` based on tier and available tools. Resolve `{skf_version}` from the SKF module's `package.json` `version` field (run `node -p "require('./node_modules/bmad-module-skill-forge/package.json').version"` or read the installed module's `package.json`). If unresolvable, fall back to `git describe --tags --abbrev=0` in the SKF module root. Never hardcode the version.
+- Set `description` from the SKILL.md frontmatter `description` field (already assembled in section 2)
+- Set `language` from source analysis (e.g., `"typescript"`, `"python"`) — use the primary language of the entry point file
+- Set `ast_node_count` from extraction stats if ast-grep was used (Forge/Deep tier), otherwise omit
+- Set `tool_versions` based on tier and available tools. Resolve `{skf_version}` using this resolution chain (try each in order, use the first that succeeds):
+  1. `{project-root}/_bmad/skf/package.json` → read `.version` field
+  2. `node -p "require('./node_modules/bmad-module-skill-forge/package.json').version"`
+  3. `{project-root}/_bmad/skf/VERSION` → read plain text file (single line containing version string, written by the SKF installer)
+  4. `"unknown"` (final fallback — add a warning to the evidence report)
+  Never hardcode the version.
+- Resolve `{ast_grep_version}` using this resolution chain (try each in order, use the first that succeeds):
+  1. `ast-grep --version` → parse version string from output (e.g., `ast-grep 0.41.1` → `"0.41.1"`)
+  2. `mcp__ast-grep__find_code` tool metadata (if version is exposed by the MCP server)
+  3. `"unknown"` (final fallback — add a warning to the evidence report)
+- Resolve `{qmd_version}` using this resolution chain (try each in order, use the first that succeeds):
+  1. `mcp__plugin_qmd-plugin_qmd__status` → parse version from status output
+  2. `pip show qmd-plugin` → read `Version:` field from pip metadata
+  3. `"unknown"` (final fallback — add a warning to the evidence report)
+  Note: `qmd --version` and `qmd -V` return usage text instead of a version string — do not use them for version detection.
+- Store `commit_short` = first 8 characters of `source_commit` (or `"unknown"` if unavailable) for use in step-08 report.
+- If `scripts_inventory` is non-empty, populate `scripts[]` array and set `stats.scripts_count`. If `assets_inventory` is non-empty, populate `assets[]` array and set `stats.assets_count`. Omit these fields entirely when inventories are empty.
 
 ### 5. Build references/ Content
 
@@ -111,11 +141,11 @@ Group functions logically by module, file, or functional area.
 
 ### 6. Build provenance-map.json Content
 
-One entry per extracted export: export_name, export_type, params[] (typed strings), return_type, source_file, source_line, confidence tier (T1/T1-low/T2), extraction_method, ast_node_type. See `{skillSectionsData}` for full schema.
+One entry per extracted export: export_name, export_type, params[] (typed strings), return_type, source_file, source_line, confidence tier (T1/T1-low/T2), extraction_method, ast_node_type, signature_source ("T1"|"T1-low"|"T2"|"T3" — indicates which tier contributed the structural signature). If `scripts_inventory` or `assets_inventory` is non-empty, add `file_entries[]` with file_name, file_type, source_file, content_hash, confidence, extraction_method. See `{skillSectionsData}` for full schema.
 
 ### 7. Build evidence-report.md Content
 
-Compilation audit trail: generation date, forge tier, source info, tool versions, extraction summary (files/exports/confidence), validation results (populated in step-06), warnings. See `{skillSectionsData}` for full template. Use the same `{skf_version}` value resolved in section 4 when populating the Tool Versions block.
+Compilation audit trail: generation date, forge tier, source info, tool versions, extraction summary (files/exports/confidence), warnings. For validation-specific fields (Schema, Body, Security, Content Quality, tessl, Metadata), insert the placeholder text `[PENDING — populated by step-06]`. Step-06 will replace these placeholders with actual results. See `{skillSectionsData}` for full template. Use the same `{skf_version}` value resolved in section 4 when populating the Tool Versions block.
 
 ### 8. Menu Handling Logic
 

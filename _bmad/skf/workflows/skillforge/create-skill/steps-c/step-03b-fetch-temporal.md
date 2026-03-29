@@ -27,7 +27,7 @@ To fetch temporal context (issues, PRs, changelogs, release notes) from the sour
 
 ### Step-Specific Rules:
 
-- 🎯 Deep tier only — Quick and Forge tiers skip this step entirely and silently
+- 🎯 Deep tier only — Quick, Forge, and Forge+ tiers skip this step entirely and silently
 - 🎯 GitHub repositories only — other source types degrade gracefully
 - 🚫 FORBIDDEN to halt the workflow if fetching or indexing fails
 - 🚫 FORBIDDEN to modify extraction data from step-03 — this step only creates QMD collections
@@ -43,7 +43,7 @@ To fetch temporal context (issues, PRs, changelogs, release notes) from the sour
 ## CONTEXT BOUNDARIES:
 
 - Available: brief_data, tier, source_location from step-01; extraction_inventory from step-03
-- **Used from extraction_inventory:** `top_exports[]` — the list of top-level public API function names (typically 10-20). Used for targeted GitHub searches (section 3b).
+- **Used from extraction_inventory:** `top_exports[]` — the list of top-level public API function names (typically 10-20). Used for targeted GitHub searches (section 3b). If `extraction_mode: "docs-only"` or `top_exports` is absent/empty, skip targeted searches silently.
 - Focus: Creating a QMD temporal collection for the source repository
 - Limits: Do NOT modify extraction data, begin enrichment, or compile content
 - Dependencies: Extraction must be complete from step-03
@@ -56,11 +56,26 @@ To fetch temporal context (issues, PRs, changelogs, release notes) from the sour
 
 Evaluate the following conditions sequentially. **If ANY condition fails, skip silently to section 5 (auto-proceed) with no output:**
 
-1. **Tier is Deep:** If tier is Quick or Forge, skip silently.
-2. **Source is GitHub:** Verify `source_repo` is a GitHub URL (`https://github.com/...`) or `owner/repo` format. If the source is a local path, a non-GitHub URL, or any other format, skip silently.
+1. **Tier is Deep:** If tier is Quick, Forge, or Forge+, skip silently.
+2. **Source is GitHub:** Verify `source_repo` is a GitHub URL (`https://github.com/...`) or `owner/repo` format. If the source is a local path, a non-GitHub URL, or any other format, attempt GitHub remote detection (section 1b) before skipping.
 3. **`gh` CLI is available:** Run `gh auth status` to verify the CLI is installed and authenticated. If it fails, skip silently.
 
 All three conditions must pass to proceed to section 2.
+
+### 1b. GitHub Remote Detection for Local Sources
+
+**Only runs when condition 2 above fails because `source_repo` is a local path.**
+
+Local repositories that are clones of GitHub repos contain temporal context (issues, PRs, releases) accessible via `gh`. Detect this automatically:
+
+1. Check if the local path is a git repository: `git -C {source_repo} rev-parse --is-inside-work-tree`
+2. If not a git repo: skip silently to section 5 (current behavior).
+3. Extract the origin remote: `git -C {source_repo} remote get-url origin`
+4. If the remote URL contains `github.com`:
+   - Extract `owner/repo` from the remote URL (strip `.git` suffix, handle both HTTPS and SSH formats)
+   - Log: "**Local source with GitHub remote detected:** {owner}/{repo} — fetching temporal context."
+   - Use the extracted `owner/repo` for all `gh` API calls in sections 3-4. Continue to condition 3 (gh CLI check).
+5. If no remote, or remote is not GitHub: skip silently to section 5 (current behavior).
 
 ### 2. Check Cache (Skip If Fresh)
 
@@ -157,7 +172,7 @@ If a `{skill-name}-temporal` collection already exists, remove and recreate for 
 
 ```bash
 qmd collection remove {skill-name}-temporal
-qmd collection add _bmad-output/{skill-name}-temporal/ --name {skill-name}-temporal --mask "*.md"
+qmd collection add {project-root}/_bmad-output/{skill-name}-temporal/ --name {skill-name}-temporal --mask "*.md"
 qmd embed
 ```
 
@@ -178,7 +193,7 @@ If an entry with `name: "{skill-name}-temporal"` already exists in `qmd_collecti
 **Clean up** the staging directory after successful indexing:
 
 ```bash
-rm -rf _bmad-output/{skill-name}-temporal/
+rm -rf {project-root}/_bmad-output/{skill-name}-temporal/
 ```
 
 **Error handling:**
@@ -200,7 +215,7 @@ After temporal context is fetched and indexed (or skipped for any reason), immed
 #### EXECUTION RULES:
 
 - This is an auto-proceed step with no user choices
-- Quick/Forge tiers skip directly to next step with no output
+- Quick/Forge/Forge+ tiers skip directly to next step with no output
 - Non-GitHub sources skip directly to next step with no output
 - Cached collections (< 7 days old) skip with brief cache-hit message
 - Deep tier with fresh fetch displays brief confirmation then auto-proceeds
@@ -208,7 +223,7 @@ After temporal context is fetched and indexed (or skipped for any reason), immed
 
 ## CRITICAL STEP COMPLETION NOTE
 
-ONLY WHEN temporal context is indexed into QMD (or the step is skipped due to eligibility, cache, or failure) will you proceed to load `{nextStepFile}` for QMD enrichment.
+ONLY WHEN temporal context is indexed into QMD (or the step is skipped due to eligibility, cache, or failure) will you proceed to load `{nextStepFile}` for documentation fetch.
 
 ---
 
@@ -216,7 +231,7 @@ ONLY WHEN temporal context is indexed into QMD (or the step is skipped due to el
 
 ### ✅ SUCCESS:
 
-- Non-eligible scenarios (Quick/Forge tier, non-GitHub source, no `gh` CLI) skipped silently
+- Non-eligible scenarios (Quick/Forge/Forge+ tier, non-GitHub source, no `gh` CLI) skipped silently
 - Cached collections (< 7 days old) detected and re-fetch skipped
 - Temporal data fetched via `gh` CLI into staging directory (generic + targeted)
 - Targeted searches performed for up to 10 top_exports function names
@@ -224,14 +239,14 @@ ONLY WHEN temporal context is indexed into QMD (or the step is skipped due to el
 - Collection `{skill-name}-temporal` indexed into QMD
 - Registry entry added/updated in forge-tier.yaml with type `"temporal"`
 - Staging directory cleaned up after indexing
-- Auto-proceeded to step-04
+- Auto-proceeded to step-03c
 
 ### ❌ SYSTEM FAILURE:
 
 - Halting the workflow due to a `gh` CLI, QMD, or network failure
 - Leaving staging files on disk after indexing (must clean up)
 - Overwriting or modifying extraction data from step-03
-- Displaying skip messages for Quick/Forge tiers (should be silent)
+- Displaying skip messages for Quick/Forge/Forge+ tiers (should be silent)
 - Attempting to fetch temporal data from non-GitHub sources
 - Not registering the collection in forge-tier.yaml after successful indexing
 

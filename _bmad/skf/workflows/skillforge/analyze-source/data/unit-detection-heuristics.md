@@ -59,6 +59,15 @@ Rules for identifying discrete skillable units within a project. A "skillable un
 - Custom wrappers, configurations, or integration code
 - Scope type: `public-api`
 
+### Component Library Boundary
+- Contains a component registry or catalog file (array of component definitions with IDs, names, categories)
+- Has `components/`, `packages/components/`, or similar multi-component directory structure
+- Multiple design system variant directories (e.g., `react-shadcn/`, `react-baseui/`, `react-carbon/`)
+- Significant demo/story/example file ratio (>30% of total files)
+- CLI-based installation pattern (e.g., `npx <tool> add <component-id>`)
+- Props interfaces outnumber function signatures as primary API surface
+- Scope type: `component-library`
+
 ## Disqualification Rules
 
 Do NOT recommend as a skillable unit if:
@@ -69,6 +78,32 @@ Do NOT recommend as a skillable unit if:
 4. **Test-only**: Test utilities with no production code
 5. **Vendor/dependency**: Third-party code copied into project
 6. **Already skilled**: Existing skill found in forge_data_folder (recommend update-skill instead)
+
+## Script/Asset Detection Signals
+
+During per-unit analysis, check for scripts and assets alongside code exports.
+
+**Script signals:**
+
+| Strength | Signal | Example |
+|----------|--------|---------|
+| Strong | Entry point in `package.json` `bin`, Cargo.toml `[[bin]]`, pyproject.toml `[project.scripts]` | `"bin": { "migrate": "scripts/migrate.js" }` |
+| Strong | Shebang + executable file | `#!/usr/bin/env python` in `scripts/setup.py` |
+| Moderate | File in `scripts/`, `bin/`, `tools/`, `cli/` directory | `scripts/validate.sh` |
+| Moderate | CI/CD reference to script | `.github/workflows/test.yml` runs `scripts/test.sh` |
+
+**Asset signals:**
+
+| Strength | Signal | Example |
+|----------|--------|---------|
+| Strong | JSON Schema file with `$schema` key | `schemas/config.schema.json` |
+| Strong | Config template with `.example` or `.template` extension | `config.yaml.example` |
+| Moderate | File in `assets/`, `templates/`, `schemas/`, `configs/`, `examples/` directory | `templates/report.hbs` |
+| Moderate | OpenAPI/GraphQL definition | `openapi.json`, `schema.graphql` |
+
+**Per-unit output:** Record `has_scripts: boolean`, `has_assets: boolean`, `script_files: string[]`, `asset_files: string[]`.
+
+**Disqualify:** Generated files (dist/, build/), vendored dependencies, IDE configs (.vscode/, .idea/), binary files (.so, .dll, .jar).
 
 ## Stack Skill Candidate Detection
 
@@ -85,4 +120,5 @@ Flag units as stack skill candidates when:
 |------------|-------------------|
 | Quick | File structure analysis: directory trees, manifest files, entry points, naming conventions |
 | Forge | AST analysis: export surfaces, import graphs, dependency trees, type hierarchies |
+| Forge+ | AST + CCC: semantic file pre-ranking before structural analysis, CCC signals for relevance scoring |
 | Deep | AST + QMD: temporal evolution, refactoring patterns, semantic relationships, architectural drift |
