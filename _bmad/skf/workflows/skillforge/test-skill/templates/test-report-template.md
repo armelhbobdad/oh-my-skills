@@ -6,6 +6,7 @@ testMode: ''
 forgeTier: ''
 testResult: ''
 score: ''
+threshold: ''
 analysisConfidence: ''
 testDate: ''
 stepsCompleted: []
@@ -19,6 +20,8 @@ nextWorkflow: ''
 ## Coverage Analysis
 
 ## Coherence Analysis
+
+## External Validation
 
 ## Completeness Score
 

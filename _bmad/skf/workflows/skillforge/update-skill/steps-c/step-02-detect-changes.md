@@ -35,7 +35,7 @@ Compare current source code state against the provenance map to produce a comple
 - 🎯 Focus ONLY on detecting and classifying changes — do not extract or merge
 - 🚫 FORBIDDEN to modify any files — read-only change detection
 - 🚫 FORBIDDEN to re-extract content — that is step 03
-- 💬 Use subprocess optimization Pattern 4 for parallel comparison when available
+- 💬 Use subprocess Pattern 4 (parallel): In Claude Code, use multiple parallel Agent tool calls or `run_in_background: true`. In Cursor, use parallel requests (IDE-dependent). In CLI, use `xargs -P` or background processes. See [knowledge/tool-resolution.md](../../../knowledge/tool-resolution.md)
 - ⚙️ If subprocess unavailable, perform comparison sequentially in main thread
 
 ## EXECUTION PROTOCOLS:
@@ -110,7 +110,15 @@ Launch subprocesses in parallel that compare source state against provenance map
 
 **Category C — Rename detection:**
 - Cross-reference deleted files/exports with added files/exports
-- If content similarity > 80%: classify as RENAMED instead of deleted+added
+- If content similarity > 80%: classify as RENAMED instead of deleted+added. **Similarity mechanism by tier:** Quick: compare file size ratio (within 20%) and export name overlap (>70% of exports match by name). Forge and above: use ast-grep to compare export signatures between the deleted and added files. Forge+/Deep: use CCC semantic similarity when available
+
+**Category D — Script/asset file changes:**
+- Compare `file_entries` from provenance-map.json against current source files
+- For each file_entry: compute current SHA-256 content hash, compare against stored hash
+- Files with changed hashes → MODIFIED_FILE
+- Files in provenance but missing from source → DELETED_FILE
+- Files in source matching detection patterns (scripts/, bin/, assets/, templates/) but not in provenance → NEW_FILE
+- Files in `scripts/[MANUAL]/` or `assets/[MANUAL]/` → SKIP (user-authored, preserved)
 
 Aggregate all subprocess results into a unified change manifest.
 
@@ -135,6 +143,9 @@ Change Manifest:
   exports_deleted: [count]
   exports_renamed: [count]
   exports_moved: [count]
+
+  scripts_modified, scripts_added, scripts_deleted: {counts}
+  assets_modified, assets_added, assets_deleted: {counts}
 
   Per-file detail:
     {file_path}:
@@ -166,7 +177,7 @@ The skill `{skill_name}` is current — no update needed.
 | Files moved/renamed | {count} |
 | Exports affected | {total_export_changes} |
 
-**Proceeding to re-extraction of {affected_file_count} changed files...**"
+**Proceeding to re-extraction of {affected_file_count if normal mode, or gap_count if gap-driven mode} changes...**"
 
 ### 6. Present MENU OPTIONS
 

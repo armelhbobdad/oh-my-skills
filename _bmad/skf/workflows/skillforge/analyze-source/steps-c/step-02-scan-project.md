@@ -3,7 +3,7 @@ name: 'step-02-scan-project'
 description: 'Map project structure, detect service boundaries, and identify package manifests'
 
 nextStepFile: './step-03-identify-units.md'
-outputFile: '{output_folder}/analyze-source-report-{project_name}.md'
+outputFile: '{forge_data_folder}/analyze-source-report-{project_name}.md'
 heuristicsFile: '../data/unit-detection-heuristics.md'
 ---
 
@@ -167,7 +167,7 @@ Replace the placeholder `[Appended by step-02-scan-project]` with the full scan 
 
 Update {outputFile} frontmatter:
 ```yaml
-stepsCompleted: ['step-01-init', 'step-02-scan-project']
+stepsCompleted: [append 'step-02-scan-project' to existing array]
 lastStep: 'step-02-scan-project'
 ```
 

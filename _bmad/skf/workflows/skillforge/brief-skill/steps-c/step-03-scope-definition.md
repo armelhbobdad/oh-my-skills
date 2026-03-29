@@ -4,8 +4,8 @@ description: 'Collaboratively define skill scope boundaries using analysis findi
 
 nextStepFile: './step-04-confirm-brief.md'
 scopeTemplatesFile: '../data/scope-templates.md'
-advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
-partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
+advancedElicitationSkill: '/bmad-advanced-elicitation'
+partyModeSkill: '/bmad-party-mode'
 ---
 
 # Step 3: Scope Definition
@@ -90,11 +90,25 @@ Wait for confirmation. Then skip to section 5 (Summarize Scope Decisions) with:
 
 **If `source_type: "source"` (default):** Continue to scope templates below.
 
-### 2b. Offer Scope Templates
+### 2b. Confirm Supplemental Documentation (if doc_urls collected)
 
-Load `{scopeTemplatesFile}` for the scope type options ([F], [M], [P]) and their descriptions.
+**If `source_type: "source"` AND supplemental `doc_urls` were collected in step 01:**
 
-Present: "**How broadly should this skill cover the library?**" followed by the three scope type options from the loaded reference.
+"**Supplemental documentation URLs:**
+{numbered list of collected doc_urls with labels}
+
+These will be included as T3 external references in the skill brief.
+Add, remove, or confirm these URLs."
+
+Wait for confirmation. Record any changes to `doc_urls`.
+
+**If no supplemental doc_urls were collected:** Skip this subsection.
+
+### 2c. Offer Scope Templates
+
+Load `{scopeTemplatesFile}` for the scope type options ([F], [M], [P], [C]) and their descriptions.
+
+Present: "**How broadly should this skill cover the library?**" followed by the scope type options from the loaded reference.
 
 Ask: "Which scope type fits your needs?"
 
@@ -102,7 +116,7 @@ Wait for user selection.
 
 ### 3. Define Boundaries Based on Selection
 
-Using the boundary definitions from `{scopeTemplatesFile}`, present the appropriate flow for the user's selected scope type ([F], [M], or [P]). Follow each type's prompts and wait for user input at each phase before proceeding.
+Using the boundary definitions from `{scopeTemplatesFile}`, present the appropriate flow for the user's selected scope type ([F], [M], [P], or [C]). Follow each type's prompts and wait for user input at each phase before proceeding.
 
 ### 4. Handle Language Override
 
@@ -118,7 +132,7 @@ Wait for confirmation or override.
 
 "**Scope Summary:**
 
-**Type:** {Full Library / Specific Modules / Public API}
+**Type:** {Full Library / Specific Modules / Public API / Component Library}
 
 **Include:**
 {bulleted list of include patterns}
@@ -135,14 +149,26 @@ Does this look right? You can adjust before we continue."
 
 Wait for confirmation. Make adjustments if requested.
 
+### 5b. Scripts & Assets Intent (Optional)
+
+**Only ask when `scope.type` is `full-library`, `specific-modules`, or `component-library` (skip for `public-api` and `docs-only`).**
+
+"Does this library include executable scripts (CLI tools, validation scripts, setup helpers) or static assets (config templates, JSON schemas, example configs) that should be packaged with the skill?"
+
+- **[D] Auto-detect** from source (default) — SKF will scan for `scripts/`, `bin/`, `assets/`, `templates/`, `schemas/` directories
+- **[N] None expected** — skip script/asset detection
+- Or describe what you expect (free text)
+
+Record the response as `scripts_intent` and `assets_intent` in the brief. Default to `detect` if user does not respond or skips.
+
 ### 6. Present MENU OPTIONS
 
 Display: **Select an Option:** [A] Advanced Elicitation [P] Party Mode [C] Continue to Brief Confirmation
 
 #### Menu Handling Logic:
 
-- IF A: Execute {advancedElicitationTask}, and when finished redisplay the menu
-- IF P: Execute {partyModeWorkflow}, and when finished redisplay the menu
+- IF A: Invoke {advancedElicitationSkill}, and when finished redisplay the menu
+- IF P: Invoke {partyModeSkill}, and when finished redisplay the menu
 - IF C: Load, read entire file, then execute {nextStepFile}
 - IF Any other comments or queries: help user respond then [Redisplay Menu Options](#6-present-menu-options)
 
@@ -163,7 +189,7 @@ ONLY WHEN C is selected and scope boundaries are confirmed will you load and rea
 
 ### ✅ SUCCESS:
 
-- Scope type selected by user (Full Library, Specific Modules, or Public API)
+- Scope type selected by user (Full Library, Specific Modules, Public API, or Component Library)
 - Include patterns defined and confirmed
 - Exclude patterns defined and confirmed
 - Language confirmed (or overridden if detection was low confidence)

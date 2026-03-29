@@ -103,7 +103,7 @@ Extract from `metadata.json`:
 - `source_authority` — `official`, `internal`, or `community`
 - `exports` — Array of exported functions/types
 - `generation_date` — When the skill was last generated
-- `confidence_tier` — Quick/Forge/Deep
+- `confidence_tier` — Quick/Forge/Forge+/Deep
 
 **For stack skills, also extract:**
 - `components` — Array of dependencies with versions

@@ -2,7 +2,7 @@
 
 ## Principle
 
-Every capability tier — Quick, Forge, and Deep — produces legitimate, useful skills. Tiers describe what tools are available, not a quality hierarchy. A Quick skill is complete at its tier; a Deep skill adds depth, not correctness. Framing is always positive: describe what each tier enables, never what it lacks.
+Every capability tier — Quick, Forge, Forge+, and Deep — produces legitimate, useful skills. Tiers describe what tools are available, not a quality hierarchy. A Quick skill is complete at its tier; a Deep skill adds depth, not correctness. Framing is always positive: describe what each tier enables, never what it lacks.
 
 ## Rationale
 
@@ -24,6 +24,7 @@ With progressive capability:
 | --- | --- | --- | --- |
 | Quick | No tools required | Fast, template-driven, package-name resolution | Speed-first skill creation |
 | Forge | ast-grep available | AST-backed structural analysis, line-level citations | Precision-focused compilation |
+| Forge+ | ast-grep + ccc | Semantic discovery + AST verification, pre-ranked extraction | Intelligent precision compilation |
 | Deep | ast-grep + gh + qmd | AST + GitHub exploration + QMD synthesis, maximum provenance | Full intelligence pipeline |
 
 ## Pattern Examples
@@ -35,12 +36,13 @@ With progressive capability:
 **Implementation:** Each tool is verified by executing its version command — presence in PATH is insufficient. The tier is the highest level where all required tools pass verification:
 
 ```
-ast-grep --version  → required for Forge
+ast-grep --version  → required for Forge and above
+ccc --help + ccc doctor → required for Forge+
 gh --version        → required for Deep
 qmd status          → required for Deep
 ```
 
-If ast-grep passes but gh fails, the tier is Forge (not a "degraded Deep").
+If ast-grep passes but gh fails, the tier is Forge (not a "degraded Deep"). If ast-grep and ccc pass but gh and qmd fail, the tier is Forge+ (not a "degraded Deep").
 
 **Key Points:**
 - Tools must be functional, not just installed
@@ -59,6 +61,10 @@ Quick:  "Fast, template-driven skill creation — package-name resolution and
 Forge:  "AST-backed structural analysis — line-level citations with verified
          signatures. Precision-focused compilation."
 
+Forge+: "Semantic-guided precision compilation — cocoindex-code maps the codebase
+         semantically before AST extraction runs. Every skill begins with a ranked
+         discovery pass, then AST-backed verification."
+
 Deep:   "Full intelligence pipeline — AST verification plus GitHub exploration
          and QMD knowledge synthesis. Maximum provenance depth."
 ```
@@ -75,7 +81,10 @@ Deep:   "Full intelligence pipeline — AST verification plus GitHub exploration
 **Implementation:**
 - **Quick:** Reads source files, applies pattern matching for exports and signatures, produces T1-low citations. Uses `gh_bridge` for file structure when available as a convenience, not a requirement.
 - **Forge:** Uses `ast_bridge.scan_definitions()` for structural parsing, produces T1 citations with exact AST node types. Falls back to source reading for files ast-grep cannot parse.
+- **Forge+:** Identical extraction to Forge, plus ccc semantic pre-discovery narrows the file set before ast-grep runs. For large codebases, `ccc_bridge.search()` produces a ranked candidate list. ast-grep operates on that list rather than the full tree. All results remain T1 (AST-verified) — ccc is upstream, not in the extraction chain.
 - **Deep:** Identical extraction to Forge, plus QMD enrichment in a separate step. T2 annotations layer on top of the T1 base without replacing it.
+
+*Bridge names (`gh_bridge`, `ast_bridge`, `ccc_bridge`, `qmd_bridge`) are conceptual interfaces. See [tool-resolution.md](tool-resolution.md) for concrete tool resolution per IDE.*
 
 **Key Points:**
 - Extraction quality increases with tier, but every tier produces complete output
@@ -87,8 +96,10 @@ Deep:   "Full intelligence pipeline — AST verification plus GitHub exploration
 **Context:** The test-skill workflow adjusts scoring weights based on the forge tier.
 
 **Implementation:**
-- **Quick (Naive mode):** Export Coverage 45%, Signature Accuracy 25%, Type Coverage 20%, External Validation 10%. No coherence check — AST verification unavailable. When external validation tools (skill-check, tessl) are unavailable, their 10% is redistributed proportionally across the remaining categories.
-- **Forge (Contextual mode):** Export Coverage 40%, Signature Accuracy 25%, Type Coverage 15%, Coherence 20%. Full AST-backed verification.
+- **Forge/Deep (Naive mode — individual skill):** Coherence weight (18%) redistributed to remaining categories: Export Coverage 45%, Signature Accuracy 25%, Type Coverage 20%, External Validation 10%. All four active categories are scored with AST-backed data.
+- **Quick (any mode):** Signature Accuracy and Type Coverage are skipped (no AST available). Their weights redistribute proportionally to remaining active categories. For a Quick-tier individual skill (naive mode): after both adjustments (coherence removal + AST-dependent category removal), only Export Coverage and External Validation remain active — approximate redistributed weights: Export Coverage ~82%, External Validation ~18% (exact values depend on proportional redistribution; see scoring-rules.md for the calculation). When external validation tools (skill-check, tessl) are also unavailable, their weight is further redistributed, leaving Export Coverage as the sole scoring axis.
+- **Forge (Contextual mode):** Export Coverage 36%, Signature Accuracy 22%, Type Coverage 14%, Coherence 18%, External Validation 10%. Full AST-backed verification. When external validation tools are unavailable, their 10% is redistributed proportionally.
+- **Forge+ (Contextual mode):** Same weights as Forge. The improved extraction coverage (from ccc pre-ranking) may increase T1 count and reduce gaps, but the scoring weights themselves do not change.
 - **Deep (Contextual mode):** Same weights as Forge, plus cross-repo verification and QMD coherence checks feed into the coherence score.
 
 **Key Points:**
@@ -104,7 +115,7 @@ When a tool becomes unavailable mid-session (e.g., ast-grep uninstalled between 
 3. New extractions use the current tier's capabilities
 4. The tier change is logged in the sidecar for audit trail
 
-When source is remote (GitHub URL) and tier is Forge or Deep:
+When source is remote (GitHub URL) and tier is Forge, Forge+, or Deep:
 1. AST extraction requires local files — ast-grep cannot operate on remote URLs
 2. The extraction step attempts an **ephemeral shallow clone** to a system temp path (if `git` is available)
 3. If the clone succeeds: AST extraction proceeds on the local clone, then the temp directory is cleaned up

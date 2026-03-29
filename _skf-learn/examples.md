@@ -44,7 +44,25 @@ Provenance tags trace each instruction to its source:
 - `[EXT:url]` — sourced from external documentation
 - `[QMD:collection:doc]` — surfaced from indexed developer discourse (issues, PRs, changelogs)
 
-See [How It Works](../architecture.md) for the full output structure.
+See [How It Works](../how-it-works/) for the full output structure.
+
+**Full skill directory structure:**
+
+```
+skills/cognee/
+├── SKILL.md              # What your agent reads
+├── context-snippet.md    # Compressed index for CLAUDE.md
+├── metadata.json         # Machine-readable provenance
+├── references/           # Progressive disclosure detail
+│   ├── api-core.md
+│   └── graph-types.md
+├── scripts/              # Executable utilities (when detected)
+│   └── setup-graphdb.sh
+└── assets/               # Templates and schemas (when detected)
+    └── config-schema.json
+```
+
+The `scripts/` and `assets/` directories appear only when the source repository contains them. Each file traces back to its source with provenance citations and SHA-256 hashes.
 
 ---
 
@@ -94,6 +112,21 @@ Armel's full-stack project: Next.js + Serwist + SpacetimeDB + better-auth.
 ```
 
 Ferris detects 8 significant dependencies, finds 5 co-import integration points. Generates a consolidated stack skill. The agent now knows: "When you modify the auth flow, update the Serwist cache exclusion at `src/sw.ts:L23`." Integration intelligence no other tool provides.
+
+### Pre-Code Architecture Verification — Greenfield Confidence
+
+Jordan is designing a new TypeScript backend with Hono + Drizzle + SpacetimeDB. Architecture doc written, but no code yet. Wants to verify the stack works before building.
+
+```
+@Ferris QS hono          # Quick Skill per library
+@Ferris QS drizzle-orm
+@Ferris QS spacetimedb-sdk
+@Ferris VS               # Verify Stack — feasibility report
+@Ferris RA               # Refine Architecture — enrich with API evidence
+@Ferris SS               # Stack Skill — compose-mode (no codebase needed)
+```
+
+VS finds a Risky integration between Drizzle and SpacetimeDB (incompatible query models) and returns CONDITIONALLY FEASIBLE. Jordan adds a bridge layer to the architecture, re-runs VS → FEASIBLE. RA fills in verified API signatures. SS compose-mode synthesizes the stack skill from existing skills + refined architecture. The agent now has integration intelligence for a project that doesn't have code yet.
 
 ---
 
@@ -150,11 +183,11 @@ The brief's `doc_urls` field drives the doc_fetcher step. The agent uses whateve
 
 ### Progressive Capability
 
-Start with Quick mode (no setup required), upgrade to Forge (install ast-grep), then Deep (install QMD). Each tier builds on the previous — you never lose capability.
+Start with Quick mode (no setup required), upgrade to Forge (install ast-grep), then Forge+ (install cocoindex-code for semantic discovery), then Deep (install QMD). Each tier builds on the previous — you never lose capability.
 
 ### Batch Operations
 
-Use `--batch` with `create-skill` and `test-skill` to process multiple skills at once. Progress is checkpointed — use `--continue` to resume if interrupted.
+Use `--batch` with `create-skill` to process multiple briefs at once. Progress is checkpointed — if interrupted, re-run `@Ferris CS --batch` and Ferris will resume automatically from where it left off.
 
 ### Stack Skills + Individual Skills
 
@@ -164,14 +197,22 @@ Stack skills focus on integration patterns. Individual skills focus on API surfa
 
 After each sprint's refactor, run `@Ferris US` to regenerate changed components. Export updates CLAUDE.md automatically. Skill generation becomes routine — like running tests.
 
+### Best Practices Built In
+
+Generated skills automatically follow authoring best practices: third-person descriptions for reliable agent discovery, consistent terminology, degrees-of-freedom matching (prescriptive for fragile operations, flexible for creative tasks), and table-of-contents headers in large reference files. Discovery testing recommendations are included in test reports.
+
+### Scripts & Assets
+
+If your source repo includes executable scripts (`scripts/`, `bin/`) or static assets (`templates/`, `schemas/`), SKF detects and packages them automatically with provenance tracking. Custom scripts you add to `scripts/[MANUAL]/` are preserved during updates — just like `<!-- [MANUAL] -->` markers in SKILL.md.
+
 ---
 
 ## Troubleshooting
 
 ### Common Issues
 
-**"Forge halted: ast-grep not found"**
-Install ast-grep to unlock Forge mode: <https://ast-grep.github.io>
+**Forge reports ast-grep is unavailable**
+If setup-forge reports that ast-grep was not detected, install it to unlock Forge mode: <https://ast-grep.github.io>
 
 **"No brief found"**
 Run `@Ferris BS` first to create a skill brief, or use `@Ferris QS` for brief-less generation.
@@ -181,6 +222,9 @@ An official skill already exists for this package. Consider installing it with `
 
 **Quick mode skills have lower confidence**
 Quick mode reads source without AST analysis. Install ast-grep to upgrade to Forge mode for structural truth (T1 confidence).
+
+**Want semantic discovery for large codebases?**
+Install [cocoindex-code](https://github.com/cocoindex-io/cocoindex-code) to unlock Forge+ mode. CCC indexes your codebase and pre-ranks files by semantic relevance before AST extraction, improving coverage on projects with 500+ files.
 
 ---
 

@@ -17,7 +17,7 @@ hero:
 
 ## What does Skill Forge do?
 
-AI agents hallucinate API calls. They invent function names, guess parameter types, and produce code that doesn't compile. Skill Forge fixes this by analyzing code repositories, documentation, and developer discourse — extracting real signatures and patterns and compiling them into verified instruction files that any AI agent can follow. Every instruction traces back to where it came from.
+AI agents hallucinate API calls. They invent function names, guess parameter types, and produce code that doesn't compile. Skill Forge fixes this by analyzing code repositories, documentation, and developer discourse — extracting real signatures and patterns and compiling them into verified instruction files that any AI agent can follow. Every instruction traces back to where it came from. Generated skills can also include executable scripts and static assets extracted from the source repository, each with full provenance tracking.
 
 ## Quick Install
 
@@ -40,8 +40,8 @@ See the [Getting Started](./getting-started/) guide for full installation and us
 
 - **[Getting Started](./getting-started/)** — Installation, prerequisites, and your first skill
 - **[Concepts](./concepts/)** — Plain-English definitions of key terms (provenance, tiers, drift, and more)
-- **[How It Works](./architecture/)** — Architecture, capability model, output format, and design decisions
-- **[Workflows](./workflows/)** — All 10 workflows with commands and connection diagrams
+- **[How It Works](./how-it-works/)** — Architecture, capability model, output format, and design decisions
+- **[Workflows](./workflows/)** — All 12 workflows with commands and connection diagrams
 - **[Agents](./agents/)** — Ferris: the AI agent that runs all SKF workflows
 - **[Examples](./examples/)** — Real-world scenarios, tips, and troubleshooting
 

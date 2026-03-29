@@ -112,7 +112,7 @@ Log each issue as a pre-check finding. Continue with testing — frontmatter iss
 Read `{sidecarFile}` to determine available analysis depth.
 
 **If forge-tier.yaml exists:**
-- Read `tier` value (Quick, Forge, or Deep)
+- Read `tier` value (Quick, Forge, Forge+, or Deep)
 - Read tool availability flags (ast_grep, gh_cli, qmd)
 
 **If forge-tier.yaml missing:**
@@ -124,7 +124,7 @@ Default to Quick tier and continue.
 
 ### 4b. Apply Tier Override (if set)
 
-Read `{sidecar_path}/preferences.yaml`. If `tier_override` is set and is a valid tier value (Quick, Forge, or Deep), update `detected_tier` to the override value for use in subsequent steps and output documents.
+Read `{sidecar_path}/preferences.yaml`. If `tier_override` is set and is a valid tier value (Quick, Forge, Forge+, or Deep), update `detected_tier` to the override value for use in subsequent steps and output documents.
 
 ### 5. Load Skill Metadata
 
@@ -150,6 +150,7 @@ testMode: ''
 forgeTier: '{detected_tier}'
 testResult: ''
 score: ''
+threshold: ''
 analysisConfidence: ''
 testDate: '{current_date}'
 stepsCompleted: ['step-01-init']

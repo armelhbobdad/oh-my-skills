@@ -2,7 +2,7 @@
 name: 'step-01-detect-and-tier'
 description: 'Detect available tools and determine forge capability tier'
 
-nextStepFile: './step-02-write-config.md'
+nextStepFile: './step-01b-ccc-index.md'
 tierRulesData: '../data/tier-rules.md'
 ---
 
@@ -10,7 +10,7 @@ tierRulesData: '../data/tier-rules.md'
 
 ## STEP GOAL:
 
-Verify availability of the three forge tools (ast-grep, gh, qmd), read any existing configuration for re-run comparison, check for tier override, and calculate the capability tier.
+Verify availability of the four forge tools (ast-grep, gh, qmd, ccc), read any existing configuration for re-run comparison, check for tier override, and calculate the capability tier.
 
 ## MANDATORY EXECUTION RULES (READ FIRST):
 
@@ -30,7 +30,7 @@ Verify availability of the three forge tools (ast-grep, gh, qmd), read any exist
 
 - 🎯 Focus only on tool detection and tier calculation
 - 🚫 FORBIDDEN to write any files — that is step-02's job
-- 🚫 FORBIDDEN to skip any tool check — all 3 must be verified
+- 🚫 FORBIDDEN to skip any tool check — all 4 must be verified
 - 💬 Tool command failures are NOT errors — they indicate unavailability
 
 ## EXECUTION PROTOCOLS:
@@ -38,13 +38,14 @@ Verify availability of the three forge tools (ast-grep, gh, qmd), read any exist
 - 🎯 Follow the MANDATORY SEQUENCE exactly
 - 💾 Store all results in memory for step-02
 - 📖 Load tier-rules.md for calculation reference
-- 🚫 FORBIDDEN to proceed without checking all 3 tools
+- 🚫 FORBIDDEN to proceed without checking all 4 tools
 
 ## CONTEXT BOUNDARIES:
 
 - This is the first step — no prior context exists
 - Available: forge-tier.yaml and preferences.yaml may exist from prior runs
 - Focus: tool verification and tier calculation only
+- Produces: `{detected_tools}`, `{calculated_tier}`, `{previous_tier}`, `{tier_override}` for downstream steps
 - Dependencies: none — this step bootstraps everything
 
 ## MANDATORY SEQUENCE
@@ -95,22 +96,38 @@ Check if the `SNYK_TOKEN` environment variable is set:
 
 This is informational only — security scan availability does NOT affect the tier level. It is recorded in forge-tier.yaml so that create-skill's validation step can report actionable guidance when security scanning is unavailable.
 
-### 7. Calculate Tier
+### 7. Verify Tool: ccc (cocoindex-code)
 
-**If `{tier_override}` is set and valid (Quick, Forge, or Deep):**
+**Step A — Binary existence:** Run `ccc --help`
+
+- If exits 0: binary confirmed. Continue to Step B.
+- If fails (command not found or error): record `{ccc: false}`. Skip Step B.
+
+**Step B — Daemon health:** Run `ccc doctor`
+
+- If daemon is running and model check OK: record `{ccc: true, ccc_daemon: "healthy"}` and store version string from output
+- If daemon is not running: record `{ccc: true, ccc_daemon: "stopped"}` — binary available, daemon needs starting. Step-01b will handle this.
+- If error or timeout: record `{ccc: true, ccc_daemon: "error"}` — binary works but daemon has issues.
+
+ccc availability gates the Forge+ tier and enhances Deep tier when present.
+
+### 8. Calculate Tier
+
+**If `{tier_override}` is set and valid (Quick, Forge, Forge+, or Deep):**
 - Use `{tier_override}` as `{calculated_tier}`
 - Note that override is active for the report step
 
-**If no override, apply tier rules from {tierRulesData}:**
+**If no override, apply tier rules from {tierRulesData} in order — the first matching rule wins. Do not continue checking once a match is found:**
 - `{ast_grep}` AND `{gh_cli}` AND `{qmd}` all true → **Deep**
-- `{ast_grep}` true (regardless of gh/qmd) → **Forge**
+- `{ast_grep}` AND `{ccc}` both true (regardless of gh/qmd) → **Forge+**
+- `{ast_grep}` true (regardless of ccc/gh/qmd) → **Forge**
 - Otherwise → **Quick**
 
 **If `{tier_override}` is set but invalid:** ignore it, use detected tier, flag for warning in report.
 
-### 8. Auto-Proceed
+### 9. Auto-Proceed
 
-"**Proceeding to write configuration...**"
+"**Proceeding to CCC index check...**"
 
 #### Menu Handling Logic:
 
@@ -123,7 +140,7 @@ This is informational only — security scan availability does NOT affect the ti
 
 ## CRITICAL STEP COMPLETION NOTE
 
-ONLY WHEN all 3 core tools have been verified, optional security scan checked, and the tier calculated will you load and read fully `{nextStepFile}` to execute the configuration write step.
+ONLY WHEN all 4 core tools have been verified, optional security scan checked, and the tier calculated will you load and read fully `{nextStepFile}` to execute the CCC index check step.
 
 ---
 
@@ -131,19 +148,20 @@ ONLY WHEN all 3 core tools have been verified, optional security scan checked, a
 
 ### ✅ SUCCESS:
 
-- All 3 tools checked via verification commands (not existence checks)
+- All 4 tools checked via verification commands (not existence checks)
 - Existing forge-tier.yaml read for re-run comparison (if present)
 - Existing preferences.yaml read for tier_override (if present)
 - Tier correctly calculated from tool results or override applied
-- All results stored in context for step-02
-- Auto-proceeded to step-02
+- All results stored in context for step-01b and step-02
+- Auto-proceeded to step-01b
 
 ### ❌ SYSTEM FAILURE:
 
-- Skipping any tool verification
+- Skipping any tool verification (ast-grep, gh, qmd, ccc — all 4 must be checked)
 - Using `which` or `command -v` instead of verification commands
 - Assuming tool availability without running the command
 - Writing files in this step (that is step-02)
 - Not checking for existing configuration on re-runs
+- Not checking ccc availability (both binary and daemon health)
 
 **Master Rule:** Every tool MUST be verified empirically. No assumptions, no shortcuts.

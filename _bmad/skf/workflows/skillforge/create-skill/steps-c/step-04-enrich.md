@@ -1,6 +1,6 @@
 ---
 name: 'step-04-enrich'
-description: 'QMD knowledge enrichment for extracted functions — Deep tier only, skip for Quick/Forge'
+description: 'QMD knowledge enrichment for extracted functions — Deep tier only, skip for Quick/Forge/Forge+'
 nextStepFile: './step-05-compile.md'
 ---
 
@@ -8,7 +8,7 @@ nextStepFile: './step-05-compile.md'
 
 ## STEP GOAL:
 
-To enrich the extraction inventory with temporal context from QMD knowledge searches — issues, PRs, changelogs, and migration notes that add T2-confidence annotations to extracted functions. Deep tier only; Quick and Forge tiers skip this step entirely.
+To enrich the extraction inventory with temporal context from QMD knowledge searches — issues, PRs, changelogs, and migration notes that add T2-confidence annotations to extracted functions. Deep tier only; Quick, Forge, and Forge+ tiers skip this step entirely.
 
 ## MANDATORY EXECUTION RULES (READ FIRST):
 
@@ -31,7 +31,7 @@ To enrich the extraction inventory with temporal context from QMD knowledge sear
 - 🚫 FORBIDDEN to modify extraction results — enrichment is additive only
 - 🚫 FORBIDDEN to begin compilation — that's step-05
 - 💬 QMD failures degrade gracefully — continue without enrichment
-- ⏱️ Quick and Forge tiers: skip this step entirely, auto-proceed
+- ⏱️ Quick, Forge, and Forge+ tiers: skip this step entirely, auto-proceed
 
 ## EXECUTION PROTOCOLS:
 
@@ -53,7 +53,7 @@ To enrich the extraction inventory with temporal context from QMD knowledge sear
 
 ### 1. Check Tier Eligibility
 
-**If tier is Quick or Forge:**
+**If tier is Quick, Forge, or Forge+:**
 
 Auto-proceed silently. Display no message. Immediately load, read entire file, then execute `{nextStepFile}`.
 
@@ -70,7 +70,7 @@ Before searching, check which QMD collections are available:
 3. **If no enrichment collections exist** (no `"temporal"` or `"docs"` type collections): report this and auto-proceed. Display:
 
 "**Enrichment: no enrichment collections available.**
-Only brief-type or extraction-type QMD collections found — no temporal context (issues, PRs, changelogs) or docs collections indexed. Enrichment skipped (expected for first-run skill creation). Enrichment becomes available when temporal or docs context is indexed into QMD collections.
+Only brief-type or extraction-type QMD collections found — no temporal context (issues, PRs, changelogs) or docs collections indexed. {IF extraction_mode is 'docs-only' AND T3 items exist in extraction_inventory: 'T3 documentation content is available in extraction inventory — enrichment via QMD is skipped but T3 content will be compiled.'} {ELSE: 'Enrichment skipped (expected for first-run skill creation). Enrichment becomes available when temporal or docs context is indexed into QMD collections.'}
 
 Proceeding to compilation..."
 
@@ -95,6 +95,8 @@ For each function, derive the **module context** from the extraction inventory's
 **Supplemental search (best-effort — requires GPU/VRAM, may fail):**
 
 4. **Semantic migration context:** `qmd_bridge.vector_search("{module_context} {function_name} migration deprecated")` — adds semantic matches (synonyms, paraphrases) that BM25 keyword search may miss. Merge results with search #3, deduplicating by document ID. If `vector_search` fails (VRAM, GPU driver, model loading), discard silently — the BM25 results from search #3 provide baseline coverage.
+
+**Tool resolution for qmd_bridge:** Use QMD MCP tools — `mcp__plugin_qmd-plugin_qmd__search` for BM25 search, `mcp__plugin_qmd-plugin_qmd__vector_search` for semantic search (Claude Code). Cursor: qmd MCP server. CLI: `qmd search "{query}"` / `qmd vector_search "{query}"`. See [knowledge/tool-resolution.md](../../../knowledge/tool-resolution.md).
 
 **For each QMD result:**
 
@@ -145,13 +147,13 @@ After enrichment is complete (or skipped for non-Deep tiers), immediately load, 
 #### EXECUTION RULES:
 
 - This is an auto-proceed step with no user choices
-- Quick/Forge tiers skip directly to next step with no output
+- Quick/Forge/Forge+ tiers skip directly to next step with no output
 - Deep tier displays brief enrichment summary then auto-proceeds
 - QMD failures do not halt — degrade and proceed
 
 ## CRITICAL STEP COMPLETION NOTE
 
-ONLY WHEN enrichment is complete (Deep tier) or the step is skipped (Quick/Forge) will you proceed to load `{nextStepFile}` for SKILL.md compilation.
+ONLY WHEN enrichment is complete (Deep tier) or the step is skipped (Quick/Forge/Forge+) will you proceed to load `{nextStepFile}` for SKILL.md compilation.
 
 ---
 
@@ -159,7 +161,7 @@ ONLY WHEN enrichment is complete (Deep tier) or the step is skipped (Quick/Forge
 
 ### ✅ SUCCESS:
 
-- Quick/Forge tiers: skipped silently with no output, auto-proceeded
+- Quick/Forge/Forge+ tiers: skipped silently with no output, auto-proceeded
 - Deep tier: collection inventory checked before searching
 - Deep tier: no temporal collections → reported and auto-proceeded (not silently skipped)
 - Deep tier: temporal collections exist → QMD searches performed per public API function (10-20, not all exports) with module context derived from extraction inventory source paths
@@ -172,7 +174,7 @@ ONLY WHEN enrichment is complete (Deep tier) or the step is skipped (Quick/Forge
 
 - Halting on QMD unavailability or search failures
 - Modifying T1 extraction results with QMD data
-- Displaying skip messages for Quick/Forge tiers (should be silent)
+- Displaying skip messages for Quick/Forge/Forge+ tiers (should be silent)
 - Pre-emptively skipping all searches without checking the collection inventory
 - Searching all 800+ exports instead of scoping to public API surface (10-20)
 - Using bare function names without module context when source path is available in extraction inventory

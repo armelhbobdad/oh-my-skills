@@ -68,10 +68,17 @@ Based on forge tier detected in Step 01:
 - Extract: export name, type (function/class/type/const), full signature, file path, line number
 - Confidence label: T1
 
+**Forge+ tier (ast-grep + ccc available):**
+- Identical extraction to Forge tier: use ast_bridge for AST extraction per source file
+- Confidence label: T1
+- CCC rename detection available (see section 4b)
+
 **Deep tier (ast-grep + QMD available):**
 - Forge extraction (above) PLUS
 - Query qmd_bridge for temporal context: when exports were added, modification history, usage frequency
 - Confidence labels: T1 for structural, T2 for temporal context
+
+**Tool resolution:** `gh_bridge` → `gh api` commands or direct file I/O if local. `ast_bridge` → ast-grep MCP tools (`find_code`, `find_code_by_rule`) or `ast-grep` CLI. `qmd_bridge` → QMD MCP tools (`search`, `vector_search`) or `qmd` CLI. See [knowledge/tool-resolution.md](../../../knowledge/tool-resolution.md).
 
 ### 2. Scan Source Files
 
@@ -134,8 +141,25 @@ Append temporal metadata to each export in the snapshot.
 Log: "No QMD extraction collection found for {skill_name}. Temporal enrichment skipped. Re-run [CS] Create Skill to generate the collection."
 Continue without T2 enrichment — this is not an error.
 
-**IF forge tier is Quick or Forge:**
+**IF forge tier is Quick, Forge, or Forge+:**
 Skip this section. Temporal context requires Deep tier.
+
+### 4b. CCC Rename Detection (Forge+ and Deep with ccc)
+
+**IF `tools.ccc` is true in forge-tier.yaml:**
+
+For each export in the skill baseline that was NOT found at its recorded file path during re-extraction (potential "deleted" export):
+
+1. Run `ccc_bridge.search("{export_name}", source_root, top_k=5)` — **Tool resolution:** Use `/ccc` skill search (Claude Code), ccc MCP server (Cursor), or `ccc search "{export_name}" --path {source_root} --top 5` (CLI) — to find candidate current locations
+2. If CCC returns files containing the export name:
+   - Run ast-grep verification on each candidate file
+   - If verified at a new location: reclassify from "deleted" to "moved" with the new file:line reference
+   - This reduces false-positive structural drift findings where exports were relocated, not removed
+3. If CCC returns no results or verification fails: keep the "deleted" classification
+
+CCC failures: skip rename detection silently, proceed with standard structural diff.
+
+**IF `tools.ccc` is false:** Skip this section silently.
 
 ### 5. Validate Extraction Completeness
 

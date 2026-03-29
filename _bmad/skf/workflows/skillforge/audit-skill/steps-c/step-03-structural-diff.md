@@ -33,7 +33,7 @@ Compare the original provenance map extractions from create-skill against the cu
 - 🎯 Focus only on structural comparison — added/removed/changed exports
 - 🚫 FORBIDDEN to classify severity — that happens in Step 05
 - 🚫 FORBIDDEN to suggest remediation — that happens in Step 06
-- 💬 Use subprocess Pattern 4 (parallel execution) when available to compare export categories simultaneously
+- 💬 Use subprocess Pattern 4 (parallel): In Claude Code, use multiple parallel Agent tool calls or `run_in_background: true`. In Cursor, use parallel requests (IDE-dependent). In CLI, use `xargs -P` or background processes. See [knowledge/tool-resolution.md](../../../knowledge/tool-resolution.md)
 - ⚙️ If subprocess unavailable, compare categories sequentially in main thread
 
 ## EXECUTION PROTOCOLS:
@@ -70,7 +70,7 @@ Normalize both sets for comparison:
 
 ### 2. Detect Added Exports
 
-**Launch subprocess (Pattern 4 — parallel execution):**
+**Launch subprocess (Pattern 4 — parallel execution):** In Claude Code, use multiple parallel Agent tool calls. In CLI, use `xargs -P` or equivalent.
 
 Find exports that exist in current scan but NOT in provenance map.
 
@@ -107,6 +107,20 @@ For each changed export, record:
 - Original location → Current location
 - What changed (signature / type / location)
 - Confidence tier
+
+### 4b. Detect Script/Asset Drift
+
+**Only execute if provenance-map.json contains `file_entries`.**
+
+For each entry in `file_entries`:
+1. Locate the source file at the original `source_file` path
+2. Compute current SHA-256 content hash
+3. Compare against stored `content_hash`
+- CHANGED: hash mismatch → record as script/asset content drift
+- MISSING: source file no longer exists → record as removed
+- NEW: source contains files matching script/asset patterns not in `file_entries` → record as added
+
+Append results to the Structural Drift section as "### Script/Asset Drift ({count})".
 
 ### 5. Compile Structural Drift Section
 

@@ -40,12 +40,12 @@
 
 ## Rules
 
-- **api line**: Top exports from metadata.json `exports` array. Append `()` to function names. Comma-separated.
+- **api line**: Top exports from metadata.json `exports` array (up to 10 for Deep tier, up to 5 for all other tiers). Append `()` to function names. Comma-separated.
 - **key-types line**: Anchor to `#key-types` section + inline summary (~10 words) of the most important type values
 - **gotchas line**: Derived from: T2-future annotations (breaking changes), async requirements, version-specific behavior. If no gotchas available, omit the line.
 - **stack line**: Component versions from metadata.json `components` for stack skills
 - **integrations line**: Co-import patterns from metadata.json `integrations` for stack skills
 - If fewer exports than the limit, list all available
 - If no exports data available, omit the api line
-- Section anchors must be verified against actual SKILL.md headings during generation
+- Section anchors must be verified against actual SKILL.md headings during generation. For split-body skills (where `references/` exists and `## Full` headings are stubs), if a heading is missing from SKILL.md, rewrite the anchor to point to the reference file path (preferred). Omit the anchor line only if the heading cannot be found in either SKILL.md or `references/*.md`
 - Skill path is relative to project root

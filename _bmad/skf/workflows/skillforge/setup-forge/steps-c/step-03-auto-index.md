@@ -1,6 +1,6 @@
 ---
 name: 'step-03-auto-index'
-description: 'Verify and clean QMD collections against the forge-tier.yaml registry (Deep tier only)'
+description: 'Verify and clean QMD collections against the forge-tier.yaml registry (Deep tier only) and CCC index registry hygiene (Forge+/Deep)'
 
 nextStepFile: './step-04-report.md'
 ---
@@ -11,7 +11,7 @@ nextStepFile: './step-04-report.md'
 
 If the detected tier is Deep, verify the health of existing QMD collections by cross-referencing them against the `qmd_collections` registry in `forge-tier.yaml`. Identify orphaned collections (in QMD but not in registry) and stale registry entries (in registry but collection missing from QMD). Prompt the user before removing orphaned collections.
 
-For Quick and Forge tiers, skip silently and proceed.
+For Quick and Forge tiers (without ccc), skip silently and proceed. For Forge+ tier, skip QMD hygiene but the step routes correctly to the next step.
 
 ## MANDATORY EXECUTION RULES (READ FIRST):
 
@@ -41,7 +41,7 @@ For Quick and Forge tiers, skip silently and proceed.
 - 🎯 Follow the MANDATORY SEQUENCE exactly
 - 💾 QMD hygiene only verifies and cleans — it does NOT index new content
 - 📖 Use {calculated_tier} from step-01 context
-- 🚫 FORBIDDEN to attempt hygiene for Quick or Forge tiers
+- 🚫 FORBIDDEN to attempt QMD hygiene for Quick, Forge, or Forge+ tiers (Forge+ has no qmd)
 
 ## CONTEXT BOUNDARIES:
 
@@ -59,7 +59,9 @@ For Quick and Forge tiers, skip silently and proceed.
 
 Read `{calculated_tier}` from context.
 
-**If tier is NOT Deep:** Proceed directly to section 6 (Auto-Proceed) — no output, no messaging.
+**If tier is Quick or Forge:** Set `{ccc_registry_stale_cleaned: 0}`. Proceed directly to section 6 (Auto-Proceed) — no output, no messaging.
+
+**If tier is Forge+:** Skip QMD hygiene (qmd is not available at Forge+). Proceed directly to section 5b (CCC Index Registry Hygiene) — no QMD output, no messaging.
 
 **If tier IS Deep:** Continue to section 2.
 
@@ -132,6 +134,26 @@ Update forge-tier.yaml with the cleaned registry.
 
 **If no stale entries:** Skip this section silently.
 
+### 5b. CCC Index Registry Hygiene (Forge+ and Deep with ccc)
+
+**IF `tools.ccc` is true in forge-tier.yaml (regardless of whether QMD hygiene ran):**
+
+Read the `ccc_index_registry` array from forge-tier.yaml.
+
+For each entry, verify the indexed path still exists on disk:
+
+**Healthy** — path exists: no action needed.
+
+**Stale** — path does not exist (source directory removed or moved):
+- Remove the stale entry from `ccc_index_registry`
+- Log: "Removed stale CCC index registry entry: {path} (path no longer exists)"
+
+Update forge-tier.yaml with the cleaned registry.
+
+Store `{ccc_registry_stale_cleaned: count}` in context for step-04 reporting.
+
+**IF `tools.ccc` is false:** Skip this section silently.
+
 ### 6. Store Hygiene Results and Auto-Proceed
 
 Store in context for step-04 reporting:
@@ -141,6 +163,7 @@ Store in context for step-04 reporting:
 {hygiene_orphaned_removed: count}
 {hygiene_orphaned_kept: count}
 {hygiene_stale_cleaned: count}
+{ccc_registry_stale_cleaned: count}
 ```
 
 "**Proceeding to forge status report...**"
@@ -170,7 +193,7 @@ ONLY WHEN the hygiene check has been performed (or skipped for non-Deep tiers) w
 - Orphaned collections flagged and user prompted before removal
 - Stale registry entries cleaned from forge-tier.yaml
 - Hygiene results stored for step-04 reporting
-- Quick/Forge tier: skipped silently with no negative messaging
+- Quick/Forge/Forge+ tier: skipped silently with no negative messaging
 - Workflow continues regardless of hygiene outcome
 - Auto-proceeded to step-04
 
@@ -178,7 +201,7 @@ ONLY WHEN the hygiene check has been performed (or skipped for non-Deep tiers) w
 
 - Creating new QMD collections (that's create-skill's responsibility)
 - Silently deleting collections without user prompt
-- Attempting QMD hygiene for Quick or Forge tiers
+- Attempting QMD hygiene for Quick, Forge, or Forge+ tiers
 - Displaying "skipped" or "missing" messages for non-Deep tiers
 - Halting the workflow due to QMD hygiene failure
 - Indexing project directories (old auto-index behavior — removed)

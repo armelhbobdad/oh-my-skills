@@ -76,6 +76,8 @@ This performs frontmatter validation, description quality checks, body limit enf
 
 **Context sync after --fix:** If `fixed[]` is non-empty (i.e., `--fix` modified files on disk), re-read the modified SKILL.md to update the in-context copy. Verify the re-read content matches expectations before proceeding. This prevents silent divergence between the in-context SKILL.md and the on-disk version that step-07 will use for artifact generation.
 
+**Description preservation after --fix:** After re-reading the modified SKILL.md, compare the frontmatter `description` field against the original step-05 compiled description. If `--fix` replaced the description with a generic or truncated version, restore the original description to the on-disk file and update the in-context copy. The step-05 compiled description is authoritative — auto-fix tools must not replace trigger-optimized descriptions.
+
 **Note:** `skill-check` may return non-zero exit code even when `errorCount` is 0. Always rely on parsed JSON, not the shell exit code.
 
 - **Score ≥ 70:** Record "Schema: PASS (score: {score}/100)" in evidence-report
@@ -101,9 +103,17 @@ If fails: auto-fix (deterministic), re-validate once, record result. If passes: 
 
 **If step 2 reported `body.max_lines` failure:**
 
-```bash
-npx skill-check split-body <staging-skill-dir> --write
-```
+**Description preservation:** Before any split operation, capture the current SKILL.md frontmatter `description` field. After the split completes, verify the `description` was not modified. If it was replaced with a generic placeholder, restore the original immediately.
+
+**Mandatory approach — selective split:** Identify Tier 2 sections by their `## Full` heading prefix (e.g., `## Full API Reference`, `## Full Type Definitions`, `## Full Integration Patterns`). Extract ONLY those sections to `references/`, starting with the largest. Keep ALL Tier 1 content and any smaller sections inline. Inline passive context achieves 100% task accuracy vs 79% for on-demand retrieval (per Vercel research).
+
+**FORBIDDEN:** Running `npx skill-check split-body --write` without prior selective extraction. The `split-body --write` command extracts ALL `##` sections top-to-bottom, destroying Tier 1 inline content that the two-tier design depends on. This command is a LAST RESORT only after selective split has been attempted and proven insufficient.
+
+**If selective split alone does not bring body under the limit** (rare — typically only occurs when Tier 1 itself exceeds 300 lines): reduce Tier 1 Key API Summary and Architecture at a Glance sections to fit within limits. Do NOT fall back to automated `split-body --write` to solve a Tier 1 sizing problem.
+
+**Tier 1 preservation check:** After ANY split operation, verify that ALL of the following sections remain inline in SKILL.md (not moved to references/): Overview, Quick Start, Common Workflows, Key API Summary, Migration & Deprecation Warnings (if present), Key Types, Architecture at a Glance, CLI (if present), Scripts & Assets (if present), Manual Sections. If any Tier 1 section was moved to references/, restore it immediately and re-split targeting only Tier 2 sections.
+
+**Anchor validation and remediation:** After any split, verify that context-snippet section anchors (`#quick-start`, `#key-types`) still resolve to headings in SKILL.md. If an anchor no longer resolves (section was split out), restore that section to SKILL.md inline content — the context-snippet must always reference sections that exist in the main file.
 
 Then re-validate: `npx skill-check check <staging-skill-dir> --format json --no-security-scan`
 
@@ -119,19 +129,11 @@ npx skill-check check <staging-skill-dir> --format json
 
 (Security scan enabled by default when `--no-security-scan` omitted. The scan uses [Snyk Agent Scan](https://github.com/snyk/agent-scan) to check for prompt injection risks, sensitive data exposure, and unsafe tool permissions.)
 
-Record any security warnings in evidence-report. Security findings are advisory — they do not block artifact generation.
+Record any security warnings in evidence-report. Security findings are advisory — they do not block artifact generation. If the full validation re-run produces a different quality score than section 2, update the evidence-report with the newer score.
 
 **If security scan fails due to missing SNYK_TOKEN:**
 
-Display actionable guidance:
-
-"Security scan requires a Snyk API token. **Important:** The Snyk API requires an Enterprise plan ([authentication docs](https://docs.snyk.io/snyk-api/authentication-for-api)). To enable:
-1. Obtain a Snyk Enterprise account with API access
-2. Get your API token from Account Settings → API Token
-3. Set `SNYK_TOKEN=your-token` in your environment or `.env`
-4. Re-run [SF] Setup Forge to update tool detection, then re-run [CS] Create Skill
-
-If you don't have an Enterprise account, use `--no-security-scan` flag in skill-check to skip, or `--security-scan-runner pipx|uvx|local` to control the execution method. Security scanning is optional and does not affect tier level or block skill compilation."
+Display: "Security scan requires a Snyk Enterprise API token ([docs](https://docs.snyk.io/snyk-api/authentication-for-api)). Set `SNYK_TOKEN=your-token` in environment or `.env`, then re-run [SF] Setup Forge. Without Enterprise, use `--no-security-scan` to skip. Security scanning is optional and does not block skill compilation."
 
 Record: "Security scan skipped — SNYK_TOKEN not configured"
 
@@ -183,8 +185,9 @@ tessl suggestions:
 Cross-check metadata.json against extraction inventory:
 - `stats.exports_documented` / `stats.exports_public_api` / `stats.exports_internal` / `stats.exports_total` are accurate
 - `stats.public_api_coverage` and `stats.total_coverage` are correctly computed (null when denominator is 0)
-- `confidence_t1`, `confidence_t2`, `confidence_t3` match actual counts
+- `confidence_distribution.t1`, `confidence_distribution.t1_low`, `confidence_distribution.t2`, `confidence_distribution.t3` match actual counts
 - `spec_version` is "1.3"
+- If `scripts[]` or `assets[]` arrays present: verify `stats.scripts_count`/`stats.assets_count` match array lengths; verify `file_entries` count in provenance-map.json matches
 
 Auto-fix any discrepancies (these are computed values).
 

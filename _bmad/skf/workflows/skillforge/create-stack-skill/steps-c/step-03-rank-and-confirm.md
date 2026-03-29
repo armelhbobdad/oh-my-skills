@@ -30,7 +30,7 @@ Count import frequency for each dependency across the codebase, rank by usage, a
 - 🎯 Focus on counting imports, ranking, and getting user confirmation
 - 🚫 FORBIDDEN to extract library documentation — that is step 04
 - 💬 Present data clearly so user can make informed scope decisions
-- 🎯 Use subprocess (Pattern 1 grep) for import counting when available
+- 🎯 Use subprocess (Pattern 1 — grep/search): In Claude Code, use the Grep tool or Bash with `rg`. In Cursor, use built-in search. In CLI, use `grep`/`rg` directly. See [knowledge/tool-resolution.md](../../../knowledge/tool-resolution.md)
 
 ## EXECUTION PROTOCOLS:
 
@@ -52,9 +52,35 @@ Count import frequency for each dependency across the codebase, rank by usage, a
 
 ### 1. Count Import Frequency
 
+**If `compose_mode` is true:**
+
+Skip import counting entirely. All skills are included by default.
+
+Set `confirmed_dependencies` = all `raw_dependencies` (the list already stored as workflow state from Step 02).
+
+**Apply scope_overrides:** If `scope_overrides` were provided in step 01, apply them now — force-include or force-exclude skills as specified. Log any overrides applied.
+
+Present skills sorted by architectural layer (from architecture doc if available):
+- If `architecture_doc_path` is not null: parse architecture doc for section headers to determine layer grouping
+- If `architecture_doc_path` is null or layers not detectable: present alphabetically
+
+Display skills as a table:
+
+| # | Skill | Language | Tier | Architecture Layer |
+|---|-------|----------|------|--------------------|
+| 1 | {name} | {language} | {confidence_tier} | {layer or 'Unclassified'} |
+
+User confirms inclusion/exclusion at the gate (same [C] menu as code-mode).
+
+Skip to [Present MENU OPTIONS](#5-present-menu-options).
+
+**If not compose_mode:**
+
 For each dependency in `raw_dependencies`:
 
 **Launch a subprocess** that runs grep across all source files in the project to count import statements for each library. Return only the counts, not file contents.
+
+**Subprocess resolution:** Use the Grep tool (Claude Code), built-in search (Cursor), or `grep`/`rg` (CLI). See [knowledge/tool-resolution.md](../../../knowledge/tool-resolution.md).
 
 Use ecosystem-appropriate import patterns:
 - JavaScript/TypeScript: `import .* from ['"]library`, `require\(['"]library`
@@ -136,8 +162,8 @@ Display: **Select:** [C] Continue to Extraction
 
 #### Menu Handling Logic:
 
-- IF C: Store confirmed_dependencies, then load, read entire file, then execute {nextStepFile}
-- IF Any other: Process as scope modification, redisplay updated list, then [Redisplay Menu Options](#5-present-menu-options)
+- IF C: Store current `confirmed_dependencies` (including any modifications made since initial presentation), then load, read entire file, then execute {nextStepFile}
+- IF Any other: Process as scope modification (add/remove skills from `confirmed_dependencies`), update the in-memory `confirmed_dependencies` list accordingly, redisplay the updated skills table, then [Redisplay Menu Options](#5-present-menu-options)
 
 ---
 
