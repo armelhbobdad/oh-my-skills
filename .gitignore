@@ -4,3 +4,6 @@ _bmad/_memory/
 _bmad-output/
 # CocoIndex Code (ccc)
 /.cocoindex_code/
+# Python bytecode
+__pycache__/
+*.pyc
