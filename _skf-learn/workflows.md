@@ -284,40 +284,45 @@ flowchart TD
 
 ## Pipeline Mode
 
-Instead of running one workflow per session, you can chain multiple workflows in a single command. Ferris executes them left to right, passing data between each workflow automatically.
+Instead of running one workflow per session, you can chain multiple workflows in a single command. Ferris executes them left to right, passing data (brief path, skill name) between each workflow automatically.
 
 ### Syntax
 
 ```
-@Ferris BS CS TS EX              — space-separated codes
-@Ferris QS[lodash] TS EX         — with target argument
-@Ferris CS TS[min:80] EX         — with circuit breaker threshold
-@Ferris forge lodash             — named alias
+@Ferris BS CS TS EX                    — space-separated codes
+@Ferris QS[lodash] TS EX               — with target argument in brackets
+@Ferris CS TS[min:80] EX               — with circuit breaker threshold override
+@Ferris forge-quick cognee             — named alias with target
 ```
 
 ### Pipeline Aliases
 
-| Alias | Expands To | Description |
-|-------|-----------|-------------|
-| `forge` | `BS CS TS EX` | Full skill creation pipeline |
-| `forge-quick` | `QS TS EX` | Quick skill pipeline |
-| `onboard` | `AN CS TS EX` | Full brownfield onboarding |
-| `maintain` | `AS US TS EX` | Maintenance cycle |
+| Alias | Expands To | First Workflow | Required Target |
+|-------|-----------|----------------|-----------------|
+| `forge` | `BS CS TS EX` | BS | GitHub URL or local path **+** skill name |
+| `forge-quick` | `QS TS EX` | QS | GitHub URL **or** package name |
+| `onboard` | `AN CS TS EX` | AN | Project path (defaults to current directory) |
+| `maintain` | `AS US TS EX` | AS | Existing skill name |
+
+**The first workflow's input contract defines what arguments the pipeline needs.** A bare package name works for `forge-quick` (QS resolves packages via the registry) but **not** for `forge` — BS requires both an unambiguous target (URL or path) and a skill name.
 
 ### How It Works
 
 - Pipelines **automatically activate headless mode** — all confirmation gates auto-proceed with their default action
-- **Data flows automatically** — the skill name or brief path from one workflow becomes the input for the next
+- **Data flows automatically** — once the first workflow completes, the brief path or skill name becomes the input for downstream workflows
 - **Circuit breakers** halt the pipeline if quality drops below a threshold (e.g., test score < 60 blocks export)
 - **Anti-pattern warnings** — Ferris warns if you chain workflows in a problematic order (e.g., exporting before testing)
 - **Progress reporting** — Ferris reports completion of each workflow before starting the next
+- **Safe halt on ambiguity** — headless mode won't guess. If the initial target doesn't satisfy the first workflow's contract (e.g., `forge cognee` — ambiguous, not a URL or path), the pipeline halts at step 1 before any work happens and suggests concrete next steps.
 
 ### Examples
 
 ```
-@Ferris forge-quick @tanstack/query    — quick skill + test + export for TanStack Query
-@Ferris maintain lodash                — audit + update + test + export for lodash
-@Ferris AN onboard                     — analyze the project, then forge each recommended unit
+@Ferris forge-quick @tanstack/query                                  — QS + TS + EX for TanStack Query
+@Ferris forge https://github.com/topoteretes/cognee cognee           — BS + CS + TS + EX, explicit URL + name
+@Ferris forge https://github.com/topoteretes/cognee cognee "public API only"   — with scope hint
+@Ferris maintain lodash                                              — AS + US + TS + EX for an existing lodash skill
+@Ferris onboard                                                      — AN + CS + TS + EX on the current project
 ```
 
 ---

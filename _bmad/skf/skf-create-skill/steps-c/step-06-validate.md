@@ -12,6 +12,7 @@ To validate the compiled SKILL.md content against the agentskills.io specificati
 
 - Focus only on validating compiled content against spec — only fix spec compliance issues
 - Validation and auto-fix modify files in the staging directory
+- `<staging-skill-dir>` resolves to `_bmad-output/{skill-name}-skill/` as created by step-05
 - If skill-check unavailable: skip validation, add warning to evidence report
 - Ignore non-zero exit codes from skill-check if JSON output shows 0 errors
 

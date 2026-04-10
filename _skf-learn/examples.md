@@ -71,7 +71,7 @@ Skills are stored per-version — updating cognee to v0.6.0 creates a new versio
 
 ## Example Workflows
 
-### Quick Skill — 47 Seconds
+### Quick Skill — Under a minute
 
 Developer adds [cognee](https://github.com/topoteretes/cognee) to a Python project for AI memory management. Agent keeps hallucinating method signatures and config options.
 
@@ -79,7 +79,7 @@ Developer adds [cognee](https://github.com/topoteretes/cognee) to a Python proje
 @Ferris QS https://github.com/topoteretes/cognee
 ```
 
-Ferris reads the repository, extracts the public API via source reading, validates against spec. Skill appears in `skills/cognee/0.5.5/cognee/`. Agent stops hallucinating. Forty-seven seconds. Done.
+Ferris reads the repository, extracts the public API, and validates against the agentskills.io spec. The skill is written to `skills/cognee/<version>/cognee/` (auto-detected from the source manifest). Agent stops hallucinating.
 
 Need a specific version? Append `@version`:
 
@@ -87,7 +87,7 @@ Need a specific version? Append `@version`:
 @Ferris QS cognee@0.5.0
 ```
 
-### Brownfield Platform — 8 Minutes
+### Brownfield Platform — Pipeline or per-workflow
 
 Alex's team adopts BMAD for 10 microservices (TypeScript, Go, Rust).
 

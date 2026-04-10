@@ -43,10 +43,10 @@ Step through the installer prompts:
 https://github.com/armelhbobdad/bmad-module-skill-forge
 ```
 
-Or, if you've already cloned the repo locally, provide the path to its `src/` folder instead:
+Or, if you've already cloned the repo locally, provide the path to the repo root instead:
 
 ```
-/path/to/bmad-module-skill-forge/src/
+/path/to/bmad-module-skill-forge
 ```
 
 This installs BMad core + SKF together with full IDE integration, manifests, and help catalog. Best when you want the complete BMad development workflow.
@@ -79,9 +79,9 @@ The installer reads the installed version from your manifest and shows the delta
 
 | Tool                                                                   | Required For                                                                          | Install                                                   |
 |------------------------------------------------------------------------|---------------------------------------------------------------------------------------|-----------------------------------------------------------|
-| Node.js >= 22                                                          | Installation, npx commands                                                            | <https://nodejs.org>                                      |
-| Python >= 3.10                                                         | Deterministic scoring, validation, and utility scripts                                | <https://www.python.org>                                  |
-| uv (Python package runner)                                             | Running Python scripts with automatic dependency management                           | <https://docs.astral.sh/uv/getting-started/installation/> |
+| `Node.js` >= 22                                                        | Installation, npx commands                                                            | <https://nodejs.org>                                      |
+| `Python` >= 3.10                                                       | Deterministic scoring, validation, and utility scripts                                | <https://www.python.org>                                  |
+| `uv` (Python package runner)                                           | Running Python scripts with automatic dependency management                           | <https://docs.astral.sh/uv/getting-started/installation/> |
 | `gh` (GitHub CLI)                                                      | Required for Deep mode. Optional convenience in Quick/Forge/Forge+ for source access. | <https://cli.github.com>                                  |
 | `ast-grep`  (CLI tool for code structural search, lint, and rewriting) | Forge + Deep modes                                                                    | <https://ast-grep.github.io>                              |
 | `ast-grep` MCP server (recommended alongside CLI)                      | Forge + Deep modes                                                                    | <https://github.com/ast-grep/ast-grep-mcp>                |
@@ -135,8 +135,10 @@ Ferris reads the repository, extracts the public API, and generates a skill in u
 
 **Full quality path (pipeline mode):**
 ```
-@Ferris forge lodash
+@Ferris forge https://github.com/lodash/lodash lodash
 ```
+
+`forge` chains Brief → Create → Test → Export. It needs an explicit repo URL **and** a skill name because it starts with Brief Skill (BS), which doesn't guess targets. If you just want a fast skill from a package name, use `@Ferris forge-quick cognee` instead — that starts with Quick Skill (QS), which resolves packages via the registry.
 
 Or one workflow per session:
 ```

@@ -114,7 +114,51 @@ Setup detects your installed tools and sets your tier automatically:
 ```
 
 ```
-Forge initialized. Tools: gh, ast-grep, ccc, QMD. Tier: Deep. Ready.
+┌─────────────────────────────┐
+│ FORGE STATUS                │
+└─────────────────────────────┘
+
+  Tier:  Deep
+
+  Deep tier active. Full capability unlocked — AST-backed code
+  analysis, GitHub repository exploration, and QMD knowledge search
+  with cross-repository synthesis. Maximum provenance and intelligence.
+
+  Tools Detected:
+    ast-grep  — 0.42.0
+    gh        — 2.89.0
+    qmd       — operational (104 docs indexed globally)
+    ccc       — 0.2.10 (daemon healthy)
+
+  QMD Registry:
+    0 collection(s) healthy
+    39 orphaned collection(s) removed
+    (empty — collections are created automatically when you run [CS] Create Skill)
+
+  CCC Index:
+    indexed this run — semantic discovery ready (2 files, 14 chunks)
+    SKF infrastructure excluded: _bmad, _bmad-output, .claude,
+    _skf-learn, skills, forge-data
+
+┌────────────────────────────────┐
+│ Forge ready. Deep tier active. │
+└────────────────────────────────┘
+
+Health Check: Clean run. No workflow issues to report.
+
+Workflow complete.
+
+---
+Forge is live at Deep tier, armel. All four core tools are available, the CCC semantic index is built, and the QMD registry is clean.
+
+What would you like to forge next? Common starting points:
+
+- QS — fast skill from a GitHub URL or package name
+- BS → CS — brief, then compile a skill from source
+- AN — analyze a large repo to discover what's worth skilling
+- WS — show current lifecycle status
+
+Or chain them: forge (BS CS TS EX), forge-quick (QS TS EX), onboard (AN CS TS EX).
 ```
 
 Don't have ast-grep, cocoindex-code, or QMD yet? No problem — Quick mode works with no additional tools. Optional GitHub CLI improves source access. Install tools later; your tier upgrades automatically.
@@ -470,12 +514,22 @@ When tools disagree, higher priority wins for instructions. Lower priority is pr
 | 3 | Source reading (non-AST) | `gh_bridge` |
 | 4 | External documentation | `doc_fetcher` |
 
-### Internal Utility
+### Manifest Detection
 
-**`manifest_reader`** detects and parses dependency files across ecosystems:
+Stack skill workflows detect project dependencies by scanning for manifest files. This isn't a tool — it's a reference pattern ([`skf-create-stack-skill/references/manifest-patterns.md`](https://github.com/armelhbobdad/bmad-module-skill-forge/blob/main/src/skf-create-stack-skill/references/manifest-patterns.md)) consulted by workflow steps:
 
-- **Full support:** `package.json`, `pyproject.toml`, `requirements.txt`, `Cargo.toml`, `go.mod`
-- **Basic support:** `build.gradle`, `pom.xml`, `Gemfile`, `composer.json`
+| Ecosystem | Manifest Files |
+|-----------|----------------|
+| JavaScript / TypeScript | `package.json` |
+| Python | `requirements.txt`, `setup.py`, `pyproject.toml`, `Pipfile` |
+| Rust | `Cargo.toml` |
+| Go | `go.mod` |
+| Java | `pom.xml`, `build.gradle` |
+| Ruby | `Gemfile` |
+| PHP | `composer.json` |
+| .NET | `*.csproj` |
+
+Detection runs at depth 0-1 from project root, excluding dependency trees (`node_modules/`, `.venv/`, `vendor/`), build output (`dist/`, `target/`, `__pycache__/`), and VCS directories.
 
 ---
 
