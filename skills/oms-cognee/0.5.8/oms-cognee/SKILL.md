@@ -103,13 +103,17 @@ Before running, set `LLM_API_KEY` for graph extraction and completion; Cognee de
 | `cognee.datasets` | class (ns) | `.list_datasets()`, `.list_data(dataset_id)`, `.has_data(dataset_id)`, `.get_status([ids])`, `.empty_dataset(id)`, `.delete_data(dataset_id, data_id, mode="soft")`, `.delete_all()` — all async | `[AST:cognee/api/v1/datasets/datasets.py:L25]` |
 | `cognee.config` | class (ns) | `set_llm_provider`, `set_llm_model`, `set_llm_api_key`, `set_embedding_provider`, `set_embedding_model`, `set_embedding_dimensions`, `set_vector_db_provider`, `set_graph_database_provider`, `system_root_directory`, ... (32 static methods) | `[AST:cognee/api/v1/config/config.py:L18]` |
 | `cognee.SearchType` | enum | 14 modes: `GRAPH_COMPLETION` (default), `RAG_COMPLETION`, `CHUNKS`, `CHUNKS_LEXICAL`, `SUMMARIES`, `TEMPORAL`, `CODING_RULES`, `CYPHER`, `NATURAL_LANGUAGE`, `FEELING_LUCKY`, `TRIPLET_COMPLETION`, `GRAPH_SUMMARY_COMPLETION`, `GRAPH_COMPLETION_COT`, `GRAPH_COMPLETION_CONTEXT_EXTENSION` | `[AST:cognee/modules/search/types/SearchType.py:L4]` |
-| `cognee.visualize_graph` | async fn | `destination_file_path=None` → returns HTML str | `[AST:cognee/api/v1/visualize/visualize.py:L17]` |
+| `cognee.visualize_graph` | async fn | `destination_file_path=None` → returns HTML str. For lower-level use (when you already have graph data), see `cognee.cognee_network_visualization(graph_data, destination_file_path=None)` in `references/full-api-reference.md`. | `[AST:cognee/api/v1/visualize/visualize.py:L17]` · `[AST:cognee/modules/visualization/cognee_network_visualization.py:L22]` |
 | `cognee.enable_tracing` / `disable_tracing` / `get_last_trace` / `get_all_traces` / `clear_traces` | sync fns | OpenTelemetry in-memory tracing (5 functions) | `[AST:cognee/modules/observability/trace_context.py:L16]` |
 | `cognee.pipelines` | module | Re-exports `Task`, `run_tasks`, `run_tasks_parallel`, `run_pipeline` from `cognee.modules.pipelines` | `[AST:cognee/pipelines.py:L5]` |
 | `cognee.low_level` | module | `DataPoint` (aliased from `ExtendableDataPoint`), `setup()` — primitives for custom-pipeline authors | `[AST:cognee/low_level.py:L1]` |
+| `cognee.session` | module | Session-scoped Q&A helpers — `get_session`, `add_feedback`, `delete_feedback` (all async). Access via `cognee.session.<fn>`. See `references/full-api-reference.md` for signatures. | `[AST:cognee/api/v1/session/session.py:L1]` |
 | `cognee.run_migrations` | async fn | Runs Alembic migrations bundled with the installed package | `[AST:cognee/run_migrations.py:L16]` |
+| `cognee.__version__` | str | Package version string (e.g., `"0.5.8"`) — resolved at import time via `get_cognee_version()`. Use for version-gated code paths. | `[AST:cognee/__init__.py:L6]` |
 
-## Migration & Deprecation Warnings
+## Deprecations & Gotchas
+
+> Current-state deprecations and source/docs discrepancies surfaced during extraction — not forward-looking breaking changes. v0.5.8 introduces no breaking changes over v0.5.7.
 
 - **`cognee.delete(data_id, dataset_id, mode="soft", user=None)` is deprecated since cognee v0.3.9.** Use `await cognee.datasets.delete_data(dataset_id=..., data_id=...)` instead. The old function still works and delegates to `datasets.delete_data`, but is decorated with `@deprecated`. `[AST:cognee/api/v1/delete/delete.py:L10]`
 - **v0.5.8 has no breaking changes.** Release is a stability/bugfix update over v0.5.7: fixed duplicate memories after sync, resolved search timeouts, fixed auth token refresh. `[QMD:oms-cognee-temporal:releases.md]`

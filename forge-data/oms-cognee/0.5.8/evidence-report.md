@@ -116,3 +116,56 @@ Per SKF design principles, the following tessl suggestions were deliberately not
 - Brief's `observability/trace_context/**` pattern is incorrect (directory doesn't exist) — file is `trace_context.py`. Fixed during extraction; `update-skill` may regress this unless the brief is corrected.
 - Brief's `run_migrations.py` is in the exclude list but is a public export. Included during extraction; update the brief to remove the exclusion.
 - `cognee.start_ui` and `cognee.start_visualization_server` are misrepresented in upstream `cognee/skill.md`. This skill documents the actual signatures; future `cognee/skill.md` updates upstream may require re-verification.
+
+## Update Operation — 2026-04-10T19:55:00Z
+
+**Trigger:** manual (`/skf-update-skill @forge-data/oms-cognee/0.5.8/test-report-oms-cognee.md`)
+**Forge Tier:** Deep
+**Mode:** gap-driven (from test report) · incremental
+**Source drift:** none (source @ `b51dcce` unchanged since initial extraction, provenance age 0 days)
+
+### Changes Detected (from test report)
+
+- Files modified: 0 (no source drift)
+- Files added: 0
+- Files deleted: 0
+- Gaps translated to manifest: 4 actionable (Low severity) + 2 advisory (Info, no-op)
+
+### Merge Results
+
+- Exports updated: 1 (`visualize_graph` row — cross-reference to `cognee_network_visualization` added)
+- Exports added to SKILL.md body: 3 (`__version__`, `session`, `cognee_network_visualization` via cross-ref — all were already in `references/full-api-reference.md` and provenance-map.json)
+- Exports removed: 0
+- Structural changes: 1 (section renamed "Migration & Deprecation Warnings" → "Deprecations & Gotchas" + scope note added)
+- [MANUAL] sections preserved: 2/2 byte-identical (`quick-start-notes`, `additional-notes`)
+- Conflicts resolved: 0 (clean merge)
+
+### Gap Resolutions
+
+| Gap | Severity | Category | Resolution |
+|---|---|---|---|
+| GAP-001 | Low | Coverage | Added `cognee.__version__` row to Key API Summary `[AST:cognee/__init__.py:L6]` (verified: `__version__ = get_cognee_version()`) |
+| GAP-002 | Low | Coverage | Added `cognee.session` row to Key API Summary pointing at `references/full-api-reference.md` `[AST:cognee/api/v1/session/session.py:L1]` (verified: 3 async public fns — `get_session`, `add_feedback`, `delete_feedback`) |
+| GAP-003 | Low | Coverage | Extended `visualize_graph` row with inline cross-ref to `cognee_network_visualization` `[AST:cognee/modules/visualization/cognee_network_visualization.py:L22]` (verified: `async def cognee_network_visualization(graph_data, destination_file_path: str = None)`) |
+| GAP-004 | Low | Structural | Renamed "Migration & Deprecation Warnings" → "Deprecations & Gotchas" and prepended a one-line scope blockquote clarifying it documents current-state discrepancies, not forward-looking breaking changes |
+| GAP-005 | Info | Advisory | Not actionable in update workflow — discovery testing must happen before export |
+| GAP-006 | Info | Advisory | Not actionable — tessl content 73% is expected split-body artifact, confirmed still 73% post-update (no regression) |
+
+### Validation Summary (post-write)
+
+- skill-check: **PASS** 100/100 (breakdown: frontmatter 30, description 30, body 20, links 10, file 10), 0 errors, 0 warnings
+- tessl review: **PASS** — description 100%, content 73%, average 89% (unchanged from baseline — expected split-body artifact)
+- [MANUAL] integrity: **PASS** 2/2 byte-identical
+- Confidence tiers: **PASS** — all 3 new citations T1 (source-verified against live clone)
+- Provenance completeness: **PASS** — all 25 exports retain T1 entries; `last_update` metadata block added
+- SKILL.md line count: 189 → 194 (within 500-line limit)
+
+### Non-regression Confirmation
+
+All pre-update test scores preserved:
+- Export Coverage: 96% → **96%** (still 24/25 fully documented — `__version__` is now mentioned in the body but the Coverage denominator-of-record is the provenance-map entry which was already present; GAP-001 was a body-visibility fix, not a net new export)
+- Signature Accuracy: **100%**
+- Type Coverage: **100%**
+- External Validation: **94.5%** (100 + 89 / 2 — unchanged)
+
+**Projected score if re-tested:** 97.65% (unchanged) — the gap fixes do not mechanically change the scoring categories because the coverage denominator was already based on the provenance-map, not body mentions. The real value is **discoverability**: agents skimming SKILL.md will now see `session`, `__version__`, and `cognee_network_visualization` without having to open the reference file.

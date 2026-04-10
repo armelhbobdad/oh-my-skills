@@ -10,6 +10,7 @@
   "confidence_tier": "Deep",
   "spec_version": "1.3",
   "generation_date": "2026-04-10T21:18:00Z",
+  "last_update": "2026-04-10T19:55:00Z",
   "description": "Builds apps on top of cognee v0.5.8, the knowledge-graph memory engine for AI agents. Covers add, cognify, search, memify, datasets, prune, update, run_custom_pipeline, config, SearchType, visualize_graph, and the tracing API.",
   "language": "python",
   "ast_node_count": 25,
