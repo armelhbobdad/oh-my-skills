@@ -1,0 +1,31 @@
+code: skf
+name: "SKF: Skill Forge — Evidence-Based Agent Skills Compiler"
+header: "Turn code and docs into instructions AI agents can actually follow"
+subheader: "Every instruction traces to source. Zero hallucination tolerance."
+description: "Skill Forge transforms code repositories, documentation, and developer discourse into agentskills.io-compliant, version-pinned, provenance-backed agent skills. Uses ast-grep for structural truth, cocoindex-code for semantic discovery, QMD for knowledge intelligence, and a progressive capability model (Quick/Forge/Forge+/Deep). Standalone module — no other modules required. Recommended alongside BMM for full development workflow integration."
+default_selected: false
+
+skills_output_folder:
+  prompt: "Where should generated skills be saved?"
+  default: "skills"
+  result: "{project-root}/{value}"
+
+forge_data_folder:
+  prompt: "Where should forge workspace artifacts be stored?"
+  default: "forge-data"
+  result: "{project-root}/{value}"
+
+sidecar_path:
+  prompt: false
+  default: "_bmad/_memory/forger-sidecar"
+  result: "{project-root}/{value}"
+
+health_check_repo:
+  prompt: false
+  default: "armelhbobdad/bmad-module-skill-forge"
+
+# Variables from Core Config inserted:
+## user_name
+## communication_language
+## document_output_language
+## output_folder
