@@ -1,0 +1,267 @@
+---
+# Extraction rules for oms-cognee v0.5.8 — used by update-skill and audit-skill
+# for reproducible re-extraction from the same source commit.
+
+skill_name: oms-cognee
+skill_version: 0.5.8
+source_language: python
+source_repo: https://github.com/topoteretes/cognee
+source_ref: v0.5.8
+source_commit: b51dcce1d273d47ce864cd6c5e44a7a82f7f8dce
+forge_tier: Deep
+extraction_method: source-read   # direct file reads via Read tool; no ast-grep CLI invocation
+
+# Entry point — authoritative source for the public export list
+entry_point: cognee/__init__.py
+
+# Files read for each public export (one file per export, plus the entry point).
+# Used by audit-skill to detect drift when the source changes.
+extraction_files:
+  - path: cognee/__init__.py
+    role: entry-point
+    exports_contributed:
+      - add
+      - delete
+      - cognify
+      - memify
+      - run_custom_pipeline
+      - update
+      - config
+      - datasets
+      - prune
+      - SearchType
+      - search
+      - visualize_graph
+      - start_visualization_server
+      - cognee_network_visualization
+      - start_ui
+      - session
+      - pipelines
+      - run_migrations
+      - enable_tracing
+      - disable_tracing
+      - get_last_trace
+      - get_all_traces
+      - clear_traces
+      - __version__
+
+  - path: cognee/version.py
+    role: source
+    exports_contributed:
+      - get_cognee_version
+
+  - path: cognee/pipelines.py
+    role: re-export-wrapper
+    exports_contributed:
+      - pipelines
+
+  - path: cognee/low_level.py
+    role: source
+    exports_contributed:
+      - low_level   # DataPoint alias + setup
+
+  - path: cognee/run_migrations.py
+    role: source
+    exports_contributed:
+      - run_migrations
+
+  - path: cognee/api/v1/add/add.py
+    role: source
+    exports_contributed: [add]
+
+  - path: cognee/api/v1/delete/delete.py
+    role: source
+    exports_contributed: [delete]
+    notes: "deprecated since v0.3.9 — @deprecated decorator"
+
+  - path: cognee/api/v1/cognify/cognify.py
+    role: source
+    exports_contributed: [cognify]
+
+  - path: cognee/api/v1/search/__init__.py
+    role: re-export
+    exports_contributed: [search, SearchType]
+
+  - path: cognee/api/v1/search/search.py
+    role: source
+    exports_contributed: [search]
+
+  - path: cognee/modules/search/types/SearchType.py
+    role: source
+    exports_contributed: [SearchType]
+
+  - path: cognee/api/v1/update/update.py
+    role: source
+    exports_contributed: [update]
+
+  - path: cognee/api/v1/config/config.py
+    role: source
+    exports_contributed: [config]
+
+  - path: cognee/api/v1/datasets/datasets.py
+    role: source
+    exports_contributed: [datasets]
+
+  - path: cognee/api/v1/prune/prune.py
+    role: source
+    exports_contributed: [prune]
+
+  - path: cognee/api/v1/session/session.py
+    role: source
+    exports_contributed: [session]
+
+  - path: cognee/api/v1/ui/ui.py
+    role: source
+    exports_contributed: [start_ui]
+
+  - path: cognee/api/v1/visualize/__init__.py
+    role: re-export
+    exports_contributed:
+      - visualize_graph
+      - visualize_multi_user_graph
+      - start_visualization_server
+
+  - path: cognee/api/v1/visualize/visualize.py
+    role: source
+    exports_contributed: [visualize_graph]
+
+  - path: cognee/api/v1/visualize/start_visualization_server.py
+    role: module
+    exports_contributed: [start_visualization_server]
+    notes: "top-level __init__ imports the submodule name; the actual callable is .visualization_server(port) and it is sync"
+
+  - path: cognee/modules/memify/memify.py
+    role: source
+    exports_contributed: [memify]
+
+  - path: cognee/modules/run_custom_pipeline/run_custom_pipeline.py
+    role: source
+    exports_contributed: [run_custom_pipeline]
+
+  - path: cognee/modules/visualization/cognee_network_visualization.py
+    role: source
+    exports_contributed: [cognee_network_visualization]
+
+  - path: cognee/modules/pipelines/__init__.py
+    role: re-export
+    exports_contributed:
+      - Task
+      - run_tasks
+      - run_tasks_parallel
+      - run_pipeline
+
+  - path: cognee/modules/pipelines/tasks/task.py
+    role: source
+    exports_contributed: [Task, task_summary]
+
+  - path: cognee/modules/pipelines/operations/run_tasks.py
+    role: source
+    exports_contributed: [run_tasks]
+
+  - path: cognee/modules/pipelines/operations/run_parallel.py
+    role: source
+    exports_contributed: [run_tasks_parallel]
+
+  - path: cognee/modules/pipelines/operations/pipeline.py
+    role: source
+    exports_contributed: [run_pipeline]
+
+  - path: cognee/modules/observability/trace_context.py
+    role: source
+    exports_contributed:
+      - enable_tracing
+      - disable_tracing
+      - get_last_trace
+      - get_all_traces
+      - clear_traces
+      - is_tracing_enabled
+
+  - path: cognee/exceptions/__init__.py
+    role: re-export
+    exports_contributed:
+      - CogneeApiError
+      - CogneeSystemError
+      - CogneeValidationError
+      - CogneeConfigurationError
+      - CogneeTransientError
+
+  - path: cognee/exceptions/exceptions.py
+    role: source
+    exports_contributed:
+      - CogneeApiError
+      - CogneeSystemError
+      - CogneeValidationError
+      - CogneeConfigurationError
+      - CogneeTransientError
+
+  - path: pyproject.toml
+    role: metadata
+    exports_contributed: []
+    notes: "source of truth for version, dependencies, python compatibility"
+
+  - path: AGENTS.md
+    role: documentation
+    exports_contributed: []
+    notes: "CLI usage, project structure — cited in SKILL.md CLI section"
+
+  - path: cognee/skill.md
+    role: documentation
+    exports_contributed: []
+    notes: "maintainer-authored agent guidance — used for intent/when-to-use language, NOT for signatures (signatures come from source)"
+
+# Scope filter for drift detection — if any of these paths change in a future
+# commit, audit-skill should flag the skill as potentially stale.
+watch_paths:
+  include:
+    - cognee/__init__.py
+    - cognee/version.py
+    - cognee/pipelines.py
+    - cognee/low_level.py
+    - cognee/run_migrations.py
+    - cognee/api/v1/**
+    - cognee/modules/memify/**
+    - cognee/modules/run_custom_pipeline/**
+    - cognee/modules/pipelines/**
+    - cognee/modules/visualization/**
+    - cognee/modules/observability/trace_context.py
+    - cognee/modules/search/types/SearchType.py
+    - cognee/exceptions/**
+    - cognee/skill.md
+    - pyproject.toml
+    - AGENTS.md
+  exclude:
+    - cognee/tests/**
+    - cognee/infrastructure/**
+    - cognee/shared/**
+    - cognee/cli/**
+    - cognee/alembic/**
+    - cognee/eval_framework/**
+    - cognee/memify_pipelines/**
+    - cognee-mcp/**
+    - cognee-frontend/**
+    - cognee-starter-kit/**
+    - distributed/**
+    - evals/**
+    - examples/**
+    - notebooks/**
+    - deployment/**
+    - tools/**
+
+# ast-grep patterns are not recorded because this extraction used direct source
+# reads (the brief's include patterns resolved to ~20 files — small enough to
+# read each one directly). If re-extraction needs AST patterns, use:
+#
+#   - Python async function: `async def $NAME($$$PARAMS) -> $RET`
+#   - Python function:       `def $NAME($$$PARAMS) -> $RET`
+#   - Python class:          `class $NAME($$$BASES): $$$`
+#   - Python enum member:    `$NAME = $VALUE`
+ast_grep_patterns: []
+
+# Brief fixes applied during extraction — these should be propagated back to the brief
+brief_fixes:
+  - pattern: cognee/modules/observability/trace_context/**
+    issue: directory does not exist
+    fix: use cognee/modules/observability/trace_context.py (file)
+  - pattern: cognee/run_migrations.py
+    issue: in brief exclude list but is a public export
+    fix: remove from exclude or move to include
