@@ -1,0 +1,162 @@
+# Extraction rules used by create-skill for oms-uitripled v0.1.0
+# Replay this manifest with update-skill to get a reproducible re-forge.
+
+skill: oms-uitripled
+version: 0.1.0
+generated_at: 2026-04-11
+source:
+  repo: https://github.com/moumen-soliman/uitripled
+  commit: a5ffb45be05335d2c547436664cfbfb8c22d04df
+  ref: HEAD
+  branch: master
+  workspace_clone: ~/.skf/workspace/repos/github.com/moumen-soliman/uitripled/
+
+tier: Deep
+language: typescript
+scope_type: component-library
+
+# File scope (brief-driven; workspace uses file-level filtering since the
+# checkout is full — no sparse-checkout)
+include_patterns:
+  - packages/registry/registry.json
+  - packages/registry/src/**
+  - packages/components/react-shadcn/src/**
+  - packages/components/react-shadcn/package.json
+  - packages/uitripled/src/**
+  - packages/uitripled/bin/**
+  - packages/uitripled/package.json
+  - packages/uitripled/README.md
+  - packages/utils/src/**
+  - packages/utils/package.json
+  - README.md
+  - apps/docs/app/**/page.tsx
+  - apps/docs/app/**/page.mdx
+  # Promoted back into scope during extraction (see evidence report):
+  - apps/docs/public/llms.txt
+  - apps/docs/public/llms-full.txt
+exclude_patterns:
+  - "**/demo/**"
+  - "**/*-demo.tsx"
+  - "**/*.stories.*"
+  - "**/*.story.*"
+  - "**/stories/**"
+  - "**/examples/**"
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "**/tsup.config.ts"
+  - "**/tsconfig.json"
+  - "**/eslint.config.*"
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - packages/components/react-baseui/**
+  - packages/components/react-carbon/**
+  - packages/scripts/**
+  - packages/config/**
+  - .changeset/**
+  - .cursor/**
+  - .vscode/**
+  - .github/**
+  - apps/docs/app/**/layout.tsx
+  - apps/docs/app/**/loading.tsx
+  - apps/docs/app/**/error.tsx
+  - apps/docs/app/**/not-found.tsx
+  - apps/docs/app/**/route.ts
+  - apps/docs/app/api/**
+  - apps/docs/middleware.ts
+  - apps/docs/next.config.ts
+  - apps/docs/postcss.config.mjs
+  - apps/docs/eslint.config.mjs
+  - apps/docs/scripts/**
+  - apps/docs/types/**
+
+# Component-library mode
+component_library:
+  registry_path: packages/registry/registry.json
+  registry_content_hash_sha256: a51b64916a74283b364f5fe1b59aacd36a33134d6431565b3e2df732bff9f540
+  primary_variant: react-shadcn
+  catalog_filter:
+    # Keep only registry items whose files[].path contains this marker
+    shadcn_path_marker: react-shadcn
+    # Registry types kept as index surface
+    index_types:
+      - registry:page
+      - registry:block
+    # Registry types kept as reference surface
+    reference_types:
+      - registry:component
+      - registry:ui
+  deferred_variants:
+    - react-baseui
+    - react-carbon
+
+# AST extraction rules (ast-grep 0.42.0)
+ast_rules:
+  # Exported interfaces (for Props detection)
+  - id: exported-interfaces
+    language: tsx
+    pattern: 'export interface $NAME { $$$ }'
+    path: packages/components/react-shadcn/src
+  - id: exported-type-aliases
+    language: tsx
+    pattern: 'export type $NAME = $VAL'
+    path: packages/components/react-shadcn/src
+  - id: exported-pascalcase-functions
+    language: tsx
+    pattern: 'export function $NAME($$$PARAMS) { $$$ }'
+    constraints:
+      NAME:
+        regex: '^[A-Z]'
+    path: packages/components/react-shadcn/src
+  - id: exported-const-declarations
+    language: tsx
+    pattern: 'export const $NAME = $VAL'
+    path: packages/components/react-shadcn/src
+  - id: utils-exported-functions
+    language: typescript
+    pattern: 'export function $NAME($$$PARAMS) { $$$ }'
+    path: packages/utils/src
+  - id: utils-exported-const
+    language: typescript
+    pattern: 'export const $NAME = $VAL'
+    path: packages/utils/src
+  - id: cli-add-function
+    language: typescript
+    pattern: 'export async function add($$$PARAMS) { $$$ }'
+    path: packages/uitripled/src/commands
+
+# Non-AST extractions
+source_reads:
+  - path: packages/registry/registry.json
+    method: json-parse
+    filter: filter items where files[].path contains "react-shadcn"
+  - path: packages/components/react-shadcn/package.json
+    method: json-parse
+    fields: [name, version, exports, dependencies, peerDependencies]
+  - path: packages/uitripled/package.json
+    method: json-parse
+    fields: [name, version, bin]
+  - path: packages/components/react-shadcn/src/index.ts
+    method: source-read
+    assertion: "file contents equal 'export {};' (plus trailing newline)"
+  - path: apps/docs/public/llms.txt
+    method: source-read
+    promoted: true
+    promotion_reason: "Project-authored AI-optimized docs (per issue #7 / PR #8). Overrides the brief's apps/docs/public/** exclude."
+  - path: apps/docs/public/llms-full.txt
+    method: source-read
+    promoted: true
+
+# QMD collections produced by this run
+qmd_collections:
+  - oms-uitripled-brief
+  - oms-uitripled-temporal
+  - oms-uitripled-docs
+  - oms-uitripled-extraction  # created by step-07
+
+# Tool versions
+tools:
+  ast_grep: 0.42.0
+  qmd: 2.0.1
+  skf: 1.0.0
+  gh_cli: true
+  ccc_daemon: healthy  # indexing deliberately skipped; targeted include patterns make pre-ranking unnecessary
