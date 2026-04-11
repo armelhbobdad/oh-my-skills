@@ -1,0 +1,33 @@
+{
+  "skill": "skf-test-skill",
+  "status": "success",
+  "timestamp": "2026-04-11T23:45:00Z",
+  "outputs": [
+    {"type": "report", "path": "forge-data/oms-cocoindex/0.3.37/test-report-oms-cocoindex.md"}
+  ],
+  "summary": {
+    "skillName": "oms-cocoindex",
+    "skillVersion": "0.3.37",
+    "testMode": "naive",
+    "forgeTier": "Deep",
+    "analysisConfidence": "full",
+    "score": 99.0,
+    "threshold": 80,
+    "result": "PASS",
+    "gapCounts": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 0,
+      "info": 3
+    },
+    "categoryScores": {
+      "exportCoverage": 100,
+      "signatureAccuracy": 100,
+      "typeCoverage": 100,
+      "coherence": null,
+      "externalValidation": 90
+    },
+    "nextWorkflow": "export-skill"
+  }
+}
