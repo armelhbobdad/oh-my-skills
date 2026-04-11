@@ -15,7 +15,7 @@ Perform tier-aware extraction on only the changed files identified in step 02, p
 ## Rules
 
 - Focus only on extracting changed exports — do not merge or modify existing skill
-- Only extract files in the change manifest — do not touch unchanged files
+- Only extract files in the change manifest — do not touch unchanged files. **Exception (gap-driven mode):** §0a's Targeted Re-Extraction Branch also scans files listed in each manifest entry's `remediation_paths[]` to resolve citation-less Critical/High gaps.
 - For each changed file, launch a subprocess for deep AST analysis (Pattern 2); if unavailable, extract sequentially
 
 ## MANDATORY SEQUENCE
@@ -33,35 +33,102 @@ Source code has not drifted — the gap-derived manifest from step-02 contains e
    - Look up the export by `name` in `provenance_map.exports` — read `source_file` and `source_line`
    - **If export not found in provenance map:**
      - **If the manifest entry has a `source_citation` (propagated from the test report by step-02 §0 bullet 4):** read the file at that citation's `file:line ± 5` lines and verify the symbol name still appears within that window. Record a full `verified` / `moved` / `missing` entry using the citation as the starting location — same spot-check logic as the "export found" branch below, keyed on the manifest-supplied citation instead of the provenance map. The export is still flagged `NEW_EXPORT` for the merge step; this branch only upgrades the provenance entry from `unknown` to a live spot-check result so step-06 writes `source_file` / `source_line` instead of `null`.
-     - **If the manifest entry has no `source_citation`:** record as new (`provenance_citation: unknown`) — no spot-check possible; flag for merge step to handle as `NEW_EXPORT`.
+     - **If the manifest entry has no `source_citation` but has a non-empty `remediation_paths[]` AND `severity` is `Critical` or `High`:** route this entry to §0a (Targeted Re-Extraction Branch). §0a scans the remediation paths with the tier-appropriate extractor and, on success, records a full verification record with `verification: re-extracted`, a live `provenance_citation`, and full signature/params/return-type fields for the merge step to consume as a NEW_EXPORT. On failure, §0a halts the workflow — Critical/High gaps are not allowed to degrade to `unknown`. See §0a for the procedure, the consolidated halt protocol, and the output record shape.
+     - **If the manifest entry has no `source_citation` AND (`remediation_paths[]` is empty OR `severity` is `Medium`, `Low`, or `Info`):** record as new (`provenance_citation: unknown`) — no spot-check possible; flag for merge step to handle as `NEW_EXPORT`. Step-06 §3 only accepts null `source_file` / `source_line` for these lower-severity unknowns; a Critical/High unknown reaching step-06 indicates §0a was skipped or bypassed and is a workflow bug.
    - **If export found:** read the source file at `source_line ± 5` lines and verify the symbol name still appears within that window
-   - Record verification outcome: `verified` (symbol at recorded line), `moved` (symbol found elsewhere in same file — record new line), or `missing` (symbol not found in file)
+   - Record verification outcome: `verified` (symbol at recorded line), `moved` (symbol found elsewhere in same file — record new line), `missing` (symbol not found in file), `re-extracted` (resolved via §0a from `remediation_paths[]`), or `unknown` (no usable provenance data)
 3. Build a minimal extraction results block matching section 4's shape, with `mode: gap-driven` and per-export verification records:
 
    ```
    Extraction Results:
      mode: gap-driven
-     files_extracted: 0
+     files_extracted: {count}  # non-zero only when §0a scanned remediation_paths[]
      exports_extracted: {gap_count}
      confidence_breakdown:
-       T1: {verified_count + moved_count}
-       T1-low: 0
+       T1: {verified_count + moved_count + re_extracted_t1_count}
+       T1-low: {re_extracted_t1_low_count}
        T2: 0
 
      Per-export verification:
        {export_name}:
          provenance_citation: {source_file}:{source_line}
-         verification: verified|moved|missing|unknown
-         new_location: {source_file}:{new_line}  # only if moved
+         verification: verified|moved|missing|unknown|re-extracted
+         new_location: {source_file}:{new_line}  # set when moved OR re-extracted
+         resolution_source: remediation-paths    # set only when verification == re-extracted
          gap_category: NEW_EXPORT|MODIFIED_EXPORT|metadata_update
+
+     Per-file extractions:   # populated only when §0a produced re-extracted records
+       {file_path}:
+         exports:
+           - name: {export_name}
+             type: function|class|type|constant
+             signature: {full signature}
+             location: {file}:{start_line}-{end_line}
+             confidence: T1|T1-low
+             params: [{name, type}]
+             return_type: {type}
+             docstring: {summary}
    ```
 
-4. Set `no_reextraction: true` in workflow context — step-06 will use this flag to skip stale `source_file`/`source_line`/`confidence` field updates for verified exports (only `moved` exports get updated citations).
+4. Set `no_reextraction: true` in workflow context — step-06 will use this flag to skip stale `source_file`/`source_line`/`confidence` field updates for `verified` exports. `moved` exports get updated citations; `re-extracted` exports get full fresh provenance from §0a's extraction records (see step-06 §3). The flag is a global gap-driven marker, not a per-entry one — step-06 dispatches on each verification outcome independently.
 5. **Skip all remaining sections of step-03** — sections 1–5 are source-drift extraction paths that do not apply. Display the summary below and load `{nextStepFile}` to proceed directly to the merge step.
 
-"**Gap-driven re-extraction.** Verified {verified_count}/{gap_count} citations against live source. Moved: {moved_count}. Missing: {missing_count}. Unknown (not in provenance map): {unknown_count}. No source re-extraction performed — proceeding to merge."
+"**Gap-driven re-extraction.** Verified {verified_count}/{gap_count} citations against live source. Moved: {moved_count}. Missing: {missing_count}. Re-extracted (via remediation paths, §0a): {re_extracted_count}. Unknown (not in provenance map): {unknown_count}. Proceeding to merge."
 
 **If normal mode (`update_mode` unset or not `gap-driven`):** Continue with docs-only check and source extraction below.
+
+### 0a. Targeted Re-Extraction Branch (Helper — Called from §0 bullet 2)
+
+**Do not execute this section sequentially.** It is a helper procedure invoked by §0 bullet 2 when specific conditions are met (see below). Normal-mode runs, and gap-driven runs where every entry has a `source_citation` or qualifies as `Medium`/`Low`/`Info` unknown, skip this section entirely. §0's "skip sections 1–5" instruction does not apply here — §0a is addressed by name from §0, not by sequential fall-through.
+
+**Used by:** §0 bullet 2, when a manifest entry has no `source_citation`, has non-empty `remediation_paths[]`, and `severity` is `Critical` or `High`.
+
+**Purpose:** produce AST-backed provenance for citation-less Critical/High gaps so step-06 §3 never writes `source_file: null` for blocking findings. Honors the workflow-level rule **Never hallucinate — every statement must have AST provenance** against the most common gap-driven trigger — a failing test report whose Gap Report `Source:` field is a region reference (e.g., `@storybook/addon-docs control primitives`) rather than a `file:line` pair. Gap-driven mode skips §1 through §5, so §0a is also the only place §1b's source-access and extraction machinery is invoked during gap-driven runs.
+
+**Procedure:**
+
+1. **Resolve source access** — invoke §1b's MCP-fallback chain (gh API → zread → deepwiki → workspace / ephemeral clone) once per workflow run to ensure files under `{source_root}` are readable. Cache the chosen access path; do not re-resolve per entry.
+2. **Expand `remediation_paths[]`** — for each path across all qualifying entries:
+   - Literal source file (ends in a recognized source extension): use as-is.
+   - Directory or glob: expand under `{source_root}` using the provenance map's file patterns.
+   - **Security boundary:** reject and skip any path that resolves outside `{source_root}`. Remediation text is user-editable and must never be allowed to escape the source tree.
+   - Deduplicate the resolved file set across all entries routed to §0a — each physical file is scanned at most once.
+3. **Extract** — run the tier-appropriate extractor from §1b (Quick pattern-match → T1-low; Forge/Forge+/Deep AST via ast-grep → T1) over the resolved file set. Launch subprocesses in parallel (Pattern 4) when available; sequential fallback otherwise. Follow the AST Extraction Protocol in `{extractionPatternsData}` for Forge/Deep tiers, and the tier-degradation rules in `{tierDegradationRulesData}` when AST tools fail on individual files.
+4. **Match by name** — for each manifest entry routed here, search the aggregated extraction results for an export whose `name` matches the manifest entry's `name`. Record the first hit as:
+   - `verification: re-extracted`
+   - `provenance_citation: {file}:{start_line}` from the AST result
+   - `new_location: {file}:{start_line}` (same value — satisfies the existing consumer contract)
+   - `resolution_source: remediation-paths`
+   - `confidence: T1` (AST-extracted) or `T1-low` (pattern-matched fallback)
+   - the full extraction signature (type, params, return_type, docstring) — mirror the shape of §4's per-file extraction record so step-04 Priority 5 can merge it with the same code path used in normal mode.
+5. **Track failures across all qualifying entries.** Collect every entry whose symbol was not found in any scanned remediation path into an `unresolved[]` list. After processing every qualifying entry, if `unresolved[]` is non-empty: HALT with a consolidated report listing every unresolved entry (`name`, `severity`, `remediation_paths`, `files_scanned`, `exports_found_in_scan`). Template:
+
+   ```
+   Targeted re-extraction failed for {N} Critical/High gap(s).
+
+   Critical and High gaps must resolve to AST provenance. The Remediation text for
+   the entries below does not name a file that contains the expected export, so the
+   workflow cannot produce a non-null `source_file` / `source_line` without
+   hallucinating.
+
+   Unresolved entries:
+     {for each entry in unresolved[]:}
+       - {name} ({severity})
+         remediation_paths: {paths}
+         files_scanned:     {count}
+         exports_matched:   0
+
+   Fix one of the following, then re-run update-skill:
+     a) Add a `file:line` citation to the Gap Report `Source:` field.
+     b) Edit the Remediation text to name the file(s) that actually contain the export(s).
+     c) Downgrade the gap(s) to Medium/Low/Info (accepts the degraded documentation outcome).
+   ```
+
+   Exit with status `halted-for-remediation-path`. Step-04 merge has not run; no partial writes.
+
+6. **Success summary** — record `targeted_reextraction: {resolved_count, files_scanned, exports_matched, tier}` in workflow context. The evidence report (step-06 §4) surfaces this alongside the verified / moved / missing tally.
+
+**Why halt instead of degrading to `unknown`:** a Critical or High gap by definition blocks skill usefulness — it is either missing documentation for a public API or a wrong signature. Silently writing `source_file: null` for a blocking gap produces a skill that passes re-test but still hides the broken behavior behind a placeholder. The halt forces the test report to carry usable remediation information — a one-time fix-up that is far cheaper than a downstream audit trying to track why the "repaired" skill still fails.
 
 ### 1. Check for Docs-Only Mode
 

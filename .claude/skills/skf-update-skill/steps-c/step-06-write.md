@@ -78,11 +78,13 @@ Update `{skill_package}/metadata.json`:
 Write to `{forge_version}/provenance-map.json`:
 
 **If `no_reextraction == true` (gap-driven mode from step-03 section 0):**
-No fresh extraction data exists for `verified` exports — their provenance entries stay byte-identical. Only apply targeted updates:
-- For `moved` exports: update `source_line` (and `source_file` if different) to the new location recorded by the spot-check
-- For `unknown` exports (not found in provenance map but present in gap manifest): add new entries with fields populated from step-04 merge output; `source_file`/`source_line` may be `null` if the export was undocumented and no fresh extraction was performed — leave these fields unset rather than writing stale values
-- Do NOT overwrite `confidence`, `extraction_method`, `ast_node_type`, `params[]`, or `return_type` for `verified` exports
-- Skip the "For each export in the updated skill" bullets below — they apply only to normal re-extraction mode
+Dispatch per-entry on the verification outcome recorded by step-03 — gap-driven runs produce a mix of `verified`, `moved`, `re-extracted`, and `unknown` outcomes, and each requires a different provenance-map write strategy:
+
+- **`verified` exports**: no fresh extraction data exists — do NOT overwrite `confidence`, `extraction_method`, `ast_node_type`, `params[]`, `return_type`, `source_file`, or `source_line`. The provenance entry stays byte-identical.
+- **`moved` exports**: update `source_line` (and `source_file` if different) to the new location recorded by the spot-check. Do not touch other fields.
+- **`re-extracted` exports** (resolved via step-03 §0a's Targeted Re-Extraction Branch from `remediation_paths[]`): write a full entry — `source_file`, `source_line`, `confidence`, `extraction_method`, `ast_node_type`, `params[]`, `return_type` — from §0a's fresh AST extraction record. This is the only gap-driven outcome that produces normal-mode-quality provenance; do NOT fall through to the byte-identical preservation above.
+- **`unknown` exports** (not in provenance map; no `source_citation`; `severity` is `Medium`, `Low`, or `Info`, OR `remediation_paths[]` was empty and §0a did not halt): add new entries with fields populated from step-04 merge output. `source_file`/`source_line` may be `null` here — leave these fields unset rather than writing stale values. **This path is only acceptable for `severity` in `Medium`, `Low`, or `Info`.** A Critical/High `unknown` reaching this branch indicates step-03 §0a was skipped or bypassed and is a workflow bug — step-03 §0a should have halted with status `halted-for-remediation-path` before step-06 ran. If you encounter one, halt with a pointer to §0a rather than writing null citations for a blocking gap.
+- Skip the "For each export in the updated skill" bullets below — they apply only to normal re-extraction mode.
 
 **For each export in the updated skill (normal mode only):**
 - Update `export_name` if renamed

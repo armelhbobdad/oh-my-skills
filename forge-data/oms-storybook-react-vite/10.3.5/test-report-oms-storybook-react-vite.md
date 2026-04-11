@@ -1,11 +1,11 @@
 ---
 workflowType: 'test-skill'
 skillName: 'oms-storybook-react-vite'
-skillDir: 'skills/oms-storybook-react-vite/active/oms-storybook-react-vite'
+skillDir: 'skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite'
 testMode: 'naive'
 forgeTier: 'Deep'
 testResult: 'fail'
-score: '63.84%'
+score: '79.68%'
 threshold: '80%'
 analysisConfidence: 'full'
 testDate: '2026-04-11'
@@ -21,363 +21,471 @@ nextWorkflow: 'update-skill'
 **Test Mode:** naive
 **Forge Tier:** Deep
 
-**Mode Rationale:** metadata.json declares `skill_type: 'single'` — this is an individual library skill (Storybook v10.3.5 authoring surface), with no cross-skill references. Naive mode is the correct scope.
+**Mode Rationale:** `skill_type` is `single` in metadata.json — this is an individual skill wrapping the Storybook v10 public API surface. No stack cross-references to validate.
 
 **Analysis Plan:**
-- Coverage Check: documented exports vs Storybook v10.3.5 public API surface (AST-backed with ast-grep, Deep tier)
-- Coherence Check: basic structural validation — SKILL.md frontmatter, sections, reference file existence
-- Scoring: naive-mode weights (no cross-reference coherence category)
+- Coverage Check: Compare documented exports vs source API surface via AST analysis of source repo at v10.3.5 (e486d382). Tier=Deep enables full AST + QMD lookups.
+- Coherence Check: Basic structural validation only — SKILL.md ↔ references file coherence, no cross-skill integration patterns.
 
 ## Coverage Analysis
 
-**Tier:** Deep
-**Source Access:** full (State 1 — local clone present at `/home/armel/.skf/workspace/repos/github.com/storybookjs/storybook` @ tag `v10.3.5`, commit `e486d382`)
-**Analysis Confidence:** full
-**Mode:** naive (single-library skill; no cross-skill references to verify)
-**Files Analyzed:** 20+ entry points across 8 monorepo packages in scope
+**Tier:** Deep (ast-grep + gh + QMD)
+**Source Access:** full (State 1 — local clone + provenance-map)
+**Source Path:** /home/armel/.skf/workspace/repos/github.com/storybookjs/storybook @ v10.3.5 (e486d382)
+**Files Analyzed:** 25 storybook subpath entry files + 7 framework/renderer/builder/addon entry files
+**Denominator:** stratified (scope.include live re-derivation, 32 entry files matched, 301 unique exports union)
 
-### Source API Surface — Packages Scanned
+### Denominator Derivation
 
-Storybook is a monorepo. The skill brief's `scope.include` globs define the authoring-surface subset of packages. Named exports were extracted via regex-assisted AST scanning of each package's declared entry points (internals excluded per source-access-protocol).
+`metadata.json.stats.effective_denominator` is absent, so the denominator was live-re-derived from the brief's `scope.include` globs per source-access-protocol.md §Stratified-scope monorepo packages.
 
-| Package | Entry points | Source exports | Documented | Coverage |
-|---|---|---|---|---|
-| `storybook` (core — `test`, `preview-api`, `manager-api`, `theming`, `theming/create`, `actions`, `highlight`, `viewport`) | 8 subpaths | 205 | 135 (incl. 95 strict matches + internal/types items deferred to references) | 46.3% |
-| `@storybook/react-vite` | 2 files | 4 | 3 | 75.0% |
-| `@storybook/react` | 2 files | 20 | 18 | 75.0% |
-| `@storybook/builder-vite` | 1 file | 10 | 10 | 100.0% |
-| `@storybook/addon-docs` | 2 files | 116 | 32 | 27.6% |
-| `@storybook/addon-themes` | 1 file | 9 | 5 | 55.6% |
-| `@storybook/addon-a11y` | 2 files | 12 | 4 | 33.3% |
-| `@storybook/addon-vitest` | 1 file | 0 (default export only) | 12 (via internal constants) | N/A |
+| Package (scope.include glob) | Entry file(s) | Unique exports |
+|------------------------------|---------------|----------------|
+| `storybook` / code/core/** | 25 subpath barrels (from code/core/package.json exports) | 249 |
+| `@storybook/react-vite` / code/frameworks/react-vite/** | node/index.ts + preset.ts | 4 |
+| `@storybook/builder-vite` / code/builders/builder-vite/** | src/index.ts | 5 |
+| `@storybook/react` / code/renderers/react/** | index.ts + preview.tsx + playwright.ts | 11 |
+| `@storybook/addon-a11y` / code/addons/a11y/** | index.ts + preview.tsx | 5 |
+| `@storybook/addon-docs` / code/addons/docs/** | 7 entry files (angular/ember/web-components/mdx shims) | 6 |
+| `@storybook/addon-themes` / code/addons/themes/** | index.ts + preview.ts | 1 (dedup with core) |
+| `@storybook/addon-vitest` / code/addons/vitest/** | index.ts + constants.ts + vitest-plugin/ | 23 |
+| **Cross-package dedup** | `build`, `initialGlobals`, `parameters` appear in 2+ packages | −3 |
+| **Total union** |  | **301** |
 
-**Denominator convention:** `metadata.stats.exports_public_api = 430` is the creation-time AST-authoritative total (counted by `create-skill` with the same extraction patterns). The fresh scan above gave 368 (internals-filtered) or 378 (unfiltered) for comparison — the gap is `internal/types` subpaths and `experimental_*`/`internal_*` symbols. We use `430` as the scoring denominator to match the skill's own self-reported coverage baseline.
+**Discrepancy vs metadata.json:** metadata reports `exports_public_api: 430` and `exports_documented: 320` (74.42%), but its `exports[]` array lists only 82 names. The stats counts appear to be aggregated across multiple extraction passes and disagree with both the live re-derivation (301) and the provenance-map entry count (222). This is a **metadata drift gap** flagged in the report.
 
-**Numerator convention:** `187` unique exports documented across SKILL.md body + all six `references/*.md` files (subagent split-body traversal). This is higher than `metadata.stats.exports_documented = 82` because metadata counts only SKILL.md body; the 187 figure includes the full Tier-2 content in references.
+### Provenance-Map Baseline Cross-Reference
+
+Provenance-map entries: **222** (all T1, AST-verified at compile time, generated 2026-04-11T17:50Z).
+- After canonicalizing disambiguator suffixes (`_exact`, `_def`, `a11y_*`, `themes_*`): **216 unique names**
+- Gap vs stratified re-derivation: **301 − 216 = 85 source exports not captured by provenance-map** (primarily `code/core/src/components/**` UI primitives and `code/core/src/babel|csf-tools|core-server|preview-api/internal/*` infrastructure).
+
+### Documentation Check (provenance-map vs skill docs)
+
+Whole-word match of each canonicalized provenance name against SKILL.md + references/*.md:
+
+- **Documented:** 215/216 (99.5%)
+- **Missing:** 1 — `ThemesGlobalsInterface` (interface from `@storybook/addon-themes`, extracted but not documented in references/addons.md)
+
+### Signature Spot-Check (12-sample AST verification)
+
+Deep-tier rigorous AST re-parse and signature diff on 12 representative exports:
+
+| # | Name | Kind | Status | Issue |
+|---|------|------|--------|-------|
+| 1 | `Meta` | type | match | — |
+| 2 | `StoryObj` | type | match | — |
+| 3 | `composeStories` | function | **partial** | Generic constraint documented as `{ default: Meta }` but source uses `Store_CSFExports<ReactRenderer, any>`; return-type `Omit` uses differing key |
+| 4 | `fn` | function | match | — |
+| 5 | `expect` | const | match | — |
+| 6 | `useArgs` | hook | match | — |
+| 7 | `defineMain` | function | **partial** | Listed in SKILL.md but no parameter/return documentation in references/framework-config.md |
+| 8 | `create` (theming) | function | match | — |
+| 9 | `within` | function | match | — |
+| 10 | `HIGHLIGHT` | const | match | — |
+| 11 | `Canvas` (doc-block) | component | **partial** | Listed in references/doc-blocks.md but CanvasProps interface (of, meta, sourceState, layout, source, story) not documented |
+| 12 | `withThemeByClassName` | decorator | match | — |
+
+**Sample signature match rate:** 9/12 = **75.0%** strict match. Treating partials as half-credit: (9 + 3·0.5)/12 = **87.5%** lenient.
+
+### Type Coverage
+
+Provenance-map type/interface entries: 60 type aliases + 37 interfaces = **97 types**. Of those, 96 are documented and 1 missing (`ThemesGlobalsInterface`) → **99.0%** type coverage within provenance scope.
+
+Note: This denominator is the provenance-map type surface, not the full stratified type surface. The 85-entry gap between stratified re-derivation (301) and provenance-map (216) likely contains additional type aliases and interfaces (e.g., from `code/core/src/types/` or `code/core/src/components/*` props types) that were not captured in provenance-map and therefore cannot be scored against.
 
 ### Coverage Summary
 
-- **Source API (authoritative, metadata.json):** 430 exports
-- **Documented (SKILL.md + references, de-duplicated):** 187 exports
-- **Union name-match coverage:** 187 / 430 = **43.5%**
-- **Strict name match (fresh AST scan, internals excluded):** 162 / 368 = 44.0% (confirms ~44% ballpark)
-- **Signature-bearing entries:** 187 / 187 = 100% (all documented items carry an `[AST:path:line]` citation)
-- **Provenance-map entries:** 92 / 92 are T1 AST-verified (`signature_source: "T1"` on every entry)
-- **Documented but not found in fresh source scan:** 51 items — these are largely:
-  - `storybook/internal/types` public subpath items (`ComponentAnnotations`, `StoryAnnotations`, `ProjectAnnotations`, `PlayFunction`, `WebRenderer`, `CSFFile`, `Globals`, `ViewMode`, `ComponentAnnotations`, etc.) — intentionally excluded from the fresh scan because I filtered `internal/*` subpaths, but Storybook declares them as public
-  - `@storybook/addon-vitest` internal constants (`A11Y_ADDON_ID`, `STORYBOOK_ADDON_TEST_CHANNEL`, `TEST_PROVIDER_ID`, `FULL_RUN_TRIGGERS`, `TriggerTestRun*`) — the addon's public surface is a preset, not a barrel, so the fresh scan found 0 exports
-  - `experimental_UniversalStore`, `useStatusStore`, `useTestProviderStore`, `useUniversalStore` — experimental APIs legitimately documented for advanced use cases
-  - These are not stale documentation — they're cases where the fresh scan under-counted the authoritative source surface
+- **Source exports (stratified union):** 301
+- **Documented:** 215 (71.4%)
+- **Undocumented, in provenance-map:** 1 (`ThemesGlobalsInterface`)
+- **Undocumented, not in provenance-map (compile-time extraction gap):** 85
+- **Signature mismatches (sample):** 0 full, 3 partial / 12 sampled
+- **Stale documentation:** 0 (no SKILL.md entries for symbols absent from source)
 
-### Split-Body Cross-Check (SKILL.md ↔ references/*.md)
+### Category Scores (tier-adjusted, deferred weighting)
 
-All 6 reference files were read and cross-checked against SKILL.md. Five granularity-level mismatches were flagged — **none are hard conflicts**; all are cases where one file gives a more specific signature than the other. SKILL.md body is authoritative per protocol.
+| Category | Raw Score | Notes |
+|----------|-----------|-------|
+| Export Coverage | 71.4% | 215/301 stratified denominator |
+| Signature Accuracy | 75.0% (strict) / 87.5% (lenient) | 9 full + 3 partial matches / 12 sampled |
+| Type Coverage | 99.0% | 96/97 within provenance scope; stratified gap unquantifiable |
 
-| # | Export | SKILL.md | Reference | Issue | Severity |
-|---|---|---|---|---|---|
-| 1 | `setProjectAnnotations` | listed under `storybook/preview-api` (runtime) | `story-types.md:183` pins to `@storybook/react` with `ProjectAnnotations<ReactRenderer>` | Source library attribution differs; runtime surface is shared. | Low |
-| 2 | `composeStory` | `core-api.md:71` positional signature | `story-types.md:185-190` gives generic form `<TMeta, TArgs>` | Compatible — story-types.md is strictly more specific. | Info |
-| 3 | `definePreview` | Key API Summary lists as `storybook/preview-api` runtime | `framework-config.md:54` shows `@storybook/react-vite` re-exports as `__definePreview` | Public alias vs. internal symbol name unresolved. | Low |
-| 4 | `Preview` | `SKILL.md:167` type `ProjectAnnotations<ReactRenderer>` | `core-api.md:78` also lists a `Preview` runtime CLASS under `storybook/preview-api` | Same name, different kinds across subpaths — intentional but potentially confusing. | Info |
-| 5 | `afterEach` (`addon-a11y`) | Key API Summary mentions addon-a11y only as "config only" | `addons.md:57` documents runtime `afterEach` export from `@storybook/addon-a11y/preview` | Minor omission in SKILL.md body. | Low |
-
-### Category Scores (raw — weight application deferred to step-05)
-
-| Category | Score | Basis |
-|---|---|---|
-| Export Coverage | **43.5%** | 187 documented / 430 source API (metadata.json authoritative) |
-| Signature Accuracy | **97.3%** | (187 − 5 cross-check mismatches) / 187. All mismatches are granularity-only, not hard signature conflicts. Provenance-map entries are 100% T1 AST-verified. |
-| Type Coverage | **52.4%** | 77 unique type/interface/class items documented / ~147 type-kind items in source (per subagent kind breakdown). |
-
-**Note:** The 43.5% Export Coverage reflects the skill's stratified-by-design scope: the skill brief's `scope.notes` explicitly documents a three-tier extraction strategy (Tier A authoring surface fully documented, Tier B type/internal deferred to references, Tier C infrastructure out of scope). This will be surfaced in the Gap Report as a mitigating factor — the low coverage is an authored decision, not a defect — but the raw numbers are reported as measured per scoring-rules.md.
+Note: Weight application deferred to step-05 after external validation availability is known.
 
 ## Coherence Analysis
 
-**Mode:** Naive (structural validation only)
-**Coherence category:** Not scored (weight redistributed to Export Coverage, Signature Accuracy, Type Coverage per naive-mode rules)
+**Mode:** naive (basic structural validation only)
 
-### Structural Findings
+### Document Structure
 
-| # | Type | Detail | Line |
-|---|------|--------|------|
-| 1 | migration-section-unexpected | Section 4b ("Migration & Deprecation Warnings") is present, but evidence-report.md reports **0 T2-future annotations**. Per scoring-rules, Section 4b is scoped to forward-looking breaking changes. The section's current content (v10 consolidation, PR #28907, PR #34408, PR #34203) describes **historical** migrations that have already shipped. | 146-156 |
+| Check | Result |
+|-------|--------|
+| Frontmatter present and valid | PASS (0 issues from skf-validate-frontmatter.py) |
+| Required sections (Overview, Quick Start, usage, API summary, types) | PASS — all present |
+| Code blocks have language annotations | PASS — all 6 fenced blocks are ` ```tsx `, ` ```ts `, or ` ```bash ` |
+| No malformed tables / unclosed code blocks | PASS |
+| `scripts/` or `assets/` directory alongside SKILL.md | N/A — no script/asset directories exist (consistent with `metadata.json.stats.scripts_count: 0`, `assets_count: 0`) |
+| Split-body references (`references/*.md`) referenced from SKILL.md Tier 2 | PASS — Full API Reference, Full Type Definitions, and Full Integration Patterns sections point to `references/core-api.md`, `references/story-types.md`, `references/doc-blocks.md`, `references/addons.md`, `references/framework-config.md`, `references/csf3-patterns.md` |
+| Manual-preservation markers (`<!-- [MANUAL:...] -->`) preserved | PASS — 3 markers present and paired |
 
-**Downgrade justification for finding #1:** The v10 consolidation note (`@storybook/test` → `storybook/test`, etc.) is the skill's primary value proposition — it corrects training-data-induced wrong imports. While technically this is a "past" migration, it functions as an ongoing remediation guide for day-to-day story authoring. Per the Section 4b downgrade rule ("if the skill has a legitimate exception where Section 4b was manually populated with non-migration content, downgrade this gap to Low with inline justification"), **this finding is downgraded to Low severity**. Recommend renaming the section to "Import Surface Corrections" or moving this content into an inline callout of Key API Summary to avoid future confusion.
+### Internal Consistency
 
-### Structural Checks (all pass)
+- Code examples use symbols that appear in the exports table (Key API Summary): `Meta`, `StoryObj`, `fn`, `expect`, `userEvent`, `withThemeByClassName`, `useArgs`, `composeStories`, `Canvas`, `Controls`, `Primary`, `Stories` — all matched ✓
+- Import-path claims in examples match Key API Summary table:
+  - `import type { Meta, StoryObj } from '@storybook/react-vite'` ↔ table row 1 ✓
+  - `import { fn, expect } from 'storybook/test'` ↔ table row 3 ✓
+  - `import { withThemeByClassName } from '@storybook/addon-themes'` ↔ table row 13 ✓
+  - `import { useState, useArgs, useParameter } from 'storybook/preview-api'` ↔ table row 4 ✓
+- CSF3 syntax consistent (satisfies Meta, named-export stories, no default-export arrays)
+- Layer model (framework → renderer + builder) stated consistently in Overview, Key API Summary notes, and Architecture at a Glance
 
-| Check | Result | Detail |
-|---|---|---|
-| Top-level sections present | ✅ | 11 `##` sections — Overview, Quick Start, Common Workflows, Key API Summary, Migration & Deprecation Warnings, Key Types, Architecture at a Glance, CLI, Full API Reference, Full Type Definitions, Full Integration Patterns |
-| Code fences balanced | ✅ | 5 open / 5 close (10 total ```) |
-| Code fence language annotations | ✅ | All 5 fences carry a language (`tsx`, `ts`, `bash`) |
-| `[MANUAL:...]` / `[/MANUAL:...]` markers balanced | ✅ | 4 open / 4 close — additional-notes-quickstart, -api, -cli, -reference |
-| Tier-2 stub sections present (split-body architecture) | ✅ | Full API Reference (63 words), Full Type Definitions (43 words), Full Integration Patterns (59 words) all stubbed with `references/*.md` pointers |
-| `references/` directory referenced | ✅ | All 6 files on disk (`addons.md`, `core-api.md`, `csf3-patterns.md`, `doc-blocks.md`, `framework-config.md`, `story-types.md`) are mentioned in SKILL.md |
-| Reference files exist for every mention | ✅ | 0 broken `references/*.md` links |
-| `scripts/` / `assets/` directory | N/A | Neither present — Section 7b ("Scripts & Assets") correctly absent |
-| Internal consistency (examples use documented exports) | ✅ | Quick Start, Common Workflows, and Key Types code samples reference exports that appear in the Key API Summary table (Meta, StoryObj, Preview, fn, expect, userEvent, withThemeByClassName, useArgs, composeStories, setProjectAnnotations) |
+### Cross-Split-Body Consistency
 
-### Reference Consistency (split-body)
+Subagent inventory Section 1b cross-check returned **0 mismatches** — no signature contradictions between SKILL.md body and references/*.md for symbols documented in both locations.
 
-See the **Split-Body Cross-Check** table in the Coverage Analysis section above. 5 granularity-level mismatches flagged (all Low/Info), none are hard signature conflicts.
+### Section 4b (Migration & Deprecation Warnings) Gate
 
-**Exports Cross-Checked:** 187
-**Mismatches Found:** 5 (all soft/granularity)
+**Gate conditions:**
+- Forge tier: **Deep** ✓
+- `evidence-report.md` exists: ✓ (`forge-data/oms-storybook-react-vite/10.3.5/evidence-report.md`)
 
-**Structural Issues:** 1 (Low, downgraded per documented exception)
+**T2-future annotations from evidence-report.md line 52:**
+> `T2-future: 0 (no deprecation warnings or planned renames surfaced in the 100-issue/100-PR window)`
+
+**SKILL.md Section 4b status:** PRESENT — titled **"Import Surface Corrections & Recent Changes"** (SKILL.md:148–160).
+
+**Content classification:** The section's own scope paragraph states: *"this section is not a Storybook changelog — it captures the v10 consolidation that persists as a training-data defect plus a handful of load-bearing recent fixes. There are no forward-looking deprecations announced for v10.3.5 (nothing scheduled to break in v11 yet at the time of extraction)."*
+
+The section documents:
+1. v10 package consolidation (`@storybook/test` → `storybook/test`, `@storybook/preview-api` → `storybook/preview-api`, etc.) — a **shipped** rename that remains load-bearing for correcting training-data drift
+2. PR #28907 (`setProjectAnnotations` expanded) — already shipped
+3. PR #34408 (v10.3.5 `docs.componentManifest` default change) — already shipped
+4. PR #34203 (v10.3.4 a11y timer fix) — already shipped
+
+All four entries are **historical migration** content: completed package renames and shipped API cutovers, no forward-looking breaking changes. Pattern match: citations to shipped PR IDs, old-name → new-name rewrites, "consolidated into the single `storybook` package" language. This matches the Info-severity exception in step-04 §2b exactly.
+
+**Classification:** T2-future = 0 AND Section 4b present AND content is historical migration → **Info severity** (not Medium). Gap report will recommend renaming Section 4b to "Import Corrections" or "Ecosystem Notes" in a future revision to free the Migration & Deprecation heading for its forward-looking contract.
+
+### Structural Issues
+
+None found. One Info-severity observation (Section 4b heading rename recommendation, above).
+
+### Category Score
+
+Coherence category is **not scored in naive mode** — weight is redistributed to Export Coverage, Signature Accuracy, and Type Coverage per scoring-rules.md naive-mode redistribution table.
 
 ## External Validation
 
-**Source:** Reused from `forge-data/oms-storybook-react-vite/10.3.5/evidence-report.md` (create-skill `## Validation Results` section).
-**Freshness check:** Pass — evidence-report `Generated: 2026-04-11T17:50:00Z` equals `metadata.json.generation_date: 2026-04-11T17:50:00Z`. SKILL.md has no uncommitted changes since commit `3747e82 Add oms-storybook-react-vite skill compiled from Storybook v10.3.5`. No re-run required.
+**Cache staleness check:** evidence-report.md internal `## Validation Results` section is from the original create-skill run at 2026-04-11T17:50:00Z (tessl review 89%, content 73%). Current SKILL.md was regenerated by update-skill at 2026-04-11T19:50:00Z (gap-driven remediation). Cached results are stale — re-ran both validators fresh.
 
 ### skill-check
-- **Available:** yes (reused)
+
+- **Available:** yes (v0.75.0)
 - **Quality Score:** 100/100
-- **Schema:** PASS
-- **Frontmatter:** PASS
-- **Body:** PASS (235 lines, within 500-line budget)
-- **Metadata:** PASS
-- **Security:** skipped (SNYK_TOKEN not configured)
 - **Errors:** 0
 - **Warnings:** 0
+- **Breakdown:** frontmatter 30, description 30, body 20, links 10, file 10
 - **Diagnostics:** none
 
 ### tessl
-- **Available:** yes (reused)
-- **Validation:** PASSED
-- **Description Score:** 100%
-- **Content Score:** 73%
-- **Review Score:** 89%
-- **Judge Breakdown:**
-  - Description — 100%: specificity 3/3, trigger_term_quality 3/3, completeness 3/3, distinctiveness_conflict_risk 3/3
-  - Content — 73%: conciseness 2/3 (expected SKF floor for two-tier + provenance design), actionability 3/3, workflow_clarity 2/3, progressive_disclosure 3/3
-  - Review score: 89% (above the 60% SKF warning floor)
 
-**Content quality note:** tessl content at 73% is in the expected range for a split-body skill — tessl evaluates only the SKILL.md body, not `references/*.md` files. The skill intentionally moves Tier-2 content (full API reference, full type definitions, full integration patterns) into reference files per SKF architecture. No warning raised because 73% > 70% floor.
+- **Available:** yes (v0.75.0)
+- **Validation:** PASSED (0 errors, 0 warnings across 11 structural checks)
+- **Description Score:** 100%
+- **Content Score:** 50% — **regression from 73% pre-update** (see warning below)
+- **Review Score:** 80% (down from 89% pre-update)
+
+**Judge breakdown:**
+- Description: specificity 3/3, trigger_term_quality 3/3, completeness 3/3, distinctiveness_conflict_risk 3/3
+- Content: conciseness **1/3**, actionability 3/3, workflow_clarity 2/3, progressive_disclosure 2/3
+
+**Top suggestions:**
+- Move the full API import table to `references/core-api.md` and keep only the 3–4 most load-bearing import corrections inline (e.g., `@storybook/test` → `storybook/test`)
+- Shorten the Architecture at a Glance section; move layer-model detail to a reference file with a 2-line summary inline
+- Collapse Key Types to the Meta/StoryObj/Preview signatures needed for the quick-start; move full types to `references/story-types.md`
+- Add an explicit post-write verification step to workflows (e.g., "Run `npm run storybook` and confirm the story renders without console errors")
+
+**⚠ Content quality warning:** tessl content scored 50% (below the 70% threshold). Unlike a typical post-split-body drop, the root cause here is **inline verbosity, not content absence**: update-skill's gap-driven remediation added more inline content (Key API Summary table, Key Types section, Architecture at a Glance) to recover Export Coverage, which the conciseness judge penalized at 1/3. This is a rescoping opportunity — move the API table and type signatures out to references/ while keeping SKILL.md body lean, and the score will recover. Review score remains 80% because actionability (3/3) and description (100%) compensate.
 
 ### Combined External Score
 
-- **External Validation Score:** **94.5%** (= (skill-check 100 + tessl review 89) / 2)
-- **Tools used:** skill-check, tessl (both via evidence-report reuse)
+- **External Validation Score:** (100 + 80) / 2 = **90.0%**
+- **Tools used:** skill-check, tessl
 
 ## Completeness Score
+
+### Scoring Inputs
+
+```json
+{
+  "mode": "naive",
+  "tier": "Deep",
+  "docsOnly": false,
+  "state2": false,
+  "scores": {
+    "exportCoverage": 71.4,
+    "signatureAccuracy": 75.0,
+    "typeCoverage": 99.0,
+    "coherence": null,
+    "externalValidation": 90.0
+  }
+}
+```
+
+Signature Accuracy uses **strict** interpretation (full matches only: 9/12 = 75.0%). Lenient interpretation (partials count half: 10.5/12 = 87.5%) is noted for sensitivity analysis below.
 
 ### Score Breakdown
 
 | Category | Score | Weight | Weighted |
 |----------|-------|--------|----------|
-| Export Coverage | 43.5% | 45% | 19.58% |
-| Signature Accuracy | 97.3% | 25% | 24.33% |
-| Type Coverage | 52.4% | 20% | 10.48% |
-| Coherence (naive — not scored) | — | 0% | 0.00% |
-| External Validation | 94.5% | 10% | 9.45% |
-| **Total** | | **100%** | **63.84%** |
+| Export Coverage | 71.4% | 45.0% | 32.13% |
+| Signature Accuracy | 75.0% | 25.0% | 18.75% |
+| Type Coverage | 99.0% | 20.0% | 19.80% |
+| Coherence | N/A (naive) | 0% | 0% |
+| External Validation | 90.0% | 10.0% | 9.00% |
+| **Total** |  | **100.0%** | **79.68%** |
 
 ### Result
 
-**Score:** 63.84%
-**Threshold:** 80%
-**Result:** **FAIL**
+**Score:** 79.68%
+**Threshold:** 80.0%
+**Result:** **FAIL** (narrow — 0.32 points below threshold)
 
-**Weight Distribution:** naive (coherence redistributed: Export Coverage 45, Signature Accuracy 25, Type Coverage 20, External Validation 10)
-**Tier Adjustment:** none (Deep tier — Signature Accuracy and Type Coverage both active)
-**External Validators:** both available (skill-check + tessl, reused from evidence-report)
-**Analysis Confidence:** full (State 1 — local clone available at `~/.skf/workspace/repos/github.com/storybookjs/storybook` @ v10.3.5)
+**Weight Distribution:** naive (redistributed — coherence 18% absorbed into coverage 45% + signature 25% + type 20% + external 10%)
+**Tier Adjustment:** none (Deep tier — Signature Accuracy and Type Coverage fully scored)
+**External Validators:** both available (skill-check + tessl)
+**Analysis Confidence:** full (State 1 — local clone + provenance-map)
 
-**Dominant drag:** Export Coverage at 43.5% contributes only 19.58 of a possible 45 weighted points — a 25.42-point shortfall that alone would prevent a PASS even if every other category scored 100%. The secondary drag is Type Coverage at 52.4% (10.48 / 20 weighted points).
+### Sensitivity Analysis
+
+If signature accuracy used lenient scoring (3 partials as 0.5):
+- Signature Accuracy: 87.5% × 25% = 21.88%
+- **Total would be 82.81% → PASS**
+
+The pass/fail boundary is driven entirely by whether the 3 partial signature matches (`composeStories`, `defineMain`, `Canvas`) are counted as half-credit or zero. Fixing those 3 signatures in references/ would flip the result with no other changes.
+
+### Access Degradation Notice
+
+Not applicable — analysis confidence is `full` (State 1). No degradation.
 
 ## Gap Report
 
-**Total Gaps:** 9
-**Blocking (Critical + High):** 1
-**Non-blocking (Medium + Low + Info):** 8
+**Total Gaps:** 11
+**Blocking (Critical + High):** 2
+**Non-blocking (Medium + Low + Info):** 9
 
 ### Remediation Summary
 
 | Severity | Count | Estimated Effort |
-|----------|-------|-----------------|
-| Critical | 1 | Substantial content addition — 150–200 undocumented authoring-surface exports need at least a one-line entry in the appropriate `references/*.md` file with `[AST:path:line]` citation |
-| High | 0 | — |
-| Medium | 2 | Targeted — ~20 type/interface items from `@storybook/addon-docs` control system; Section 4b content re-scoping |
-| Low | 5 | Quick edits — split-body granularity mismatches, alias/rename disambiguation |
-| Info | 1 | Advisory — run realistic-prompt discovery tests before export |
-| **Total** | **9** | |
-
-### GAP-001: Export Coverage below 50% — 243 source API exports undocumented
-
-**Severity:** Critical
-**Category:** Coverage
-**Source:** `SKILL.md` + `references/*.md` (all 6 files); source at `code/core/**`, `code/renderers/react/**`, `code/addons/**`
-
-**Issue:** Coverage is 187 / 430 = **43.5%** against the authoritative `metadata.json.stats.exports_public_api` denominator. The dominant undocumented regions are:
-- **`@storybook/addon-docs` control primitives** (~84 items): `BooleanControl`, `ColorControl`, `DateControl`, `FilesControl`, `NumberControl`, `ObjectControl`, `OptionsControl`, `RangeControl`, `TextControl` plus their `*Config`/`*Props`/`*Value` support types. The skill documents only the MDX block subset (`Canvas`, `Controls`, `Primary`, `Stories`, etc.) and skips the doc-block control primitives used when writing a custom `Controls` panel.
-- **`storybook` core utility exports** (~110 items): `combineArgs`, `combineParameters`, `composeConfigs`, `composeStepRunners`, `filterArgTypes`, `inferControls`, `normalizeStory`, `prepareStory`, `prepareMeta`, `mockChannel`, `sanitizeStoryContextUpdate`, `sortStoriesV7`, `defaultDecorateStory`, `decorateStory`, `applyHooks`, `onMockCall`, `isMockFunction`, `clearAllMocks`, `resetAllMocks`, `restoreAllMocks`, `mocked`, `mocks` — useful for portable-stories and test-harness authors but absent from `references/core-api.md`.
-- **`@storybook/addon-themes` support types** (4 items): `ClassNameStrategyConfiguration`, `DataAttributeStrategyConfiguration`, `ProviderStrategyConfiguration`, `DecoratorHelpers`.
-- **`@storybook/addon-a11y` runtime surface** (7 items): `A11yGlobals`, `A11yParameters`, `A11yReport`, `ContextObjectWithoutNode`, `ContextSpecWithoutNode`, `SelectorWithoutNode`, `decorators`, `initialGlobals` — only `afterEach` and `parameters.a11y.test` are currently covered.
-
-**Remediation:** The skill brief's `scope.notes` documents a three-tier stratification strategy (Tier A authoring, Tier B types, Tier C infrastructure). To close the Export Coverage gap without abandoning that strategy, run the **update-skill** workflow targeting:
-1. `references/doc-blocks.md` — extend with a "Control Primitives" subsection enumerating the ~84 `*Control` / `*Config` / `*Props` / `*Value` types imported from `@storybook/addon-docs/blocks`, each with one-line description and `[AST:code/addons/docs/src/blocks.ts:Lnn]` citation.
-2. `references/core-api.md` — extend with a "Test Harness Utilities" subsection enumerating `combineArgs`, `combineParameters`, `composeConfigs`, `mockChannel`, `prepareStory`, and the ~10 `mocked`/`mocks` family of functions with one-line descriptions.
-3. `references/addons.md` — extend `@storybook/addon-themes` and `@storybook/addon-a11y` sections with the runtime/support types enumerated above.
-4. Alternatively, if the stratified scope is intentional and the authoring surface is complete, **override the scoring threshold** (pass as `--threshold 60` to `skf-test-skill`) and document the rationale in `_bmad/_memory/forger-sidecar/preferences.yaml`. This is only appropriate if the undocumented ~240 exports are truly out-of-scope for the target day-90+ story author.
-
-**Effort:** ~2 hours — one targeted `update-skill` run producing ~240 one-liner entries in three reference files. Source material is already extracted in `forge-data/oms-storybook-react-vite/10.3.5/provenance-map.json` for the 92 T1 entries; remaining ~150 can be re-extracted by pointing ast-grep at the listed files.
+|----------|-------|------------------|
+| Critical | 0 | — |
+| High | 2 | Fix two partial signature documentations in references/ (composeStories, defineMain) — 15–30 min |
+| Medium | 5 | Scope/metadata coherence fixes, missing interface, Canvas props, content-verbosity rescope — 1–3 hours |
+| Low | 3 | Workflow-verification step, progressive-disclosure trimming, metadata drift flag — 30 min |
+| Info | 1 | Section 4b heading rename recommendation (advisory) — future revision |
+| **Total** | **11** | |
 
 ---
 
-### GAP-002: Type Coverage at 52.4% — ~70 type-kind items undocumented
+### GAP-001: `composeStories` generic constraint mismatch
+
+**Severity:** High
+**Category:** Coverage (signature accuracy)
+**Source:** skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/story-types.md:197-200 vs code/renderers/react/src/portable-stories.tsx:148-159
+
+**Issue:** Documented signature shows `composeStories<TModule extends { default: Meta }>(...): Omit<StoriesWithPartialProps<ReactRenderer, TModule>, keyof TModule>`. Real source signature is `composeStories<TModule extends Store_CSFExports<ReactRenderer, any>>(csfExports: TModule, projectAnnotations?: ProjectAnnotations<ReactRenderer>): Omit<StoriesWithPartialProps<ReactRenderer, TModule>, keyof Store_CSFExports>`. The generic constraint (`{ default: Meta }` vs `Store_CSFExports<ReactRenderer, any>`) and the `Omit` key type (`keyof TModule` vs `keyof Store_CSFExports`) both differ. An agent using the skill would write a wrong type annotation when composing stories in Vitest.
+
+**Remediation:** Update references/story-types.md:197-200 to:
+
+```ts
+export function composeStories<TModule extends Store_CSFExports<ReactRenderer, any>>(
+  csfExports: TModule,
+  projectAnnotations?: ProjectAnnotations<ReactRenderer>
+): Omit<StoriesWithPartialProps<ReactRenderer, TModule>, keyof Store_CSFExports>
+```
+
+Add a 1-line note: "`Store_CSFExports` is the internal CSF module shape — narrows `TModule` to a real story module." Cite `[AST:code/renderers/react/src/portable-stories.tsx:L148]`.
+
+---
+
+### GAP-002: `defineMain` missing parameter/return documentation
+
+**Severity:** High
+**Category:** Coverage (signature accuracy)
+**Source:** skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/framework-config.md vs code/frameworks/react-vite/src/node/index.ts:3-5
+
+**Issue:** `defineMain` is listed as a `@storybook/react-vite` export in references/framework-config.md but no parameter or return-type signature is documented. Real source: `export function defineMain(config: StorybookConfig) { return config; }` — it's a pass-through identity function whose only job is to give `.storybook/main.ts` proper type inference. Without documenting this, an agent may invent a more complex signature or miss the intended usage pattern (wrap your `main.ts` config object in `defineMain({...})` to get autocomplete).
+
+**Remediation:** In references/framework-config.md, add a dedicated entry:
+
+```ts
+export function defineMain(config: StorybookConfig): StorybookConfig
+// Identity helper — returns config as-is, exists purely to anchor TypeScript
+// inference at .storybook/main.ts so autocomplete and type-checking work on
+// the framework, addons, and viteFinal fields.
+//
+// Usage: export default defineMain({ framework: '@storybook/react-vite', ... })
+```
+
+Cite `[AST:code/frameworks/react-vite/src/node/index.ts:L3]`.
+
+---
+
+### GAP-003: `Canvas` doc-block props interface undocumented
 
 **Severity:** Medium
-**Category:** Coverage
-**Source:** `references/story-types.md`, `references/doc-blocks.md`
+**Category:** Coverage (type coverage)
+**Source:** skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/doc-blocks.md vs code/addons/docs/src/blocks/blocks/Canvas.tsx:100
 
-**Issue:** 77 of ~147 type/interface/class items in source are documented. Most of the gap sits in `@storybook/addon-docs` (~35 type aliases + ~15 interfaces not documented) and `storybook` core (~46 types, only ~30 documented — missing `Combo`, `StoreOptions`, `StoriesHash`, `HashEntry`, `RootEntry`, `GroupEntry`, `ComponentEntry`, `StoryEntry`, `LeafEntry`, `DocsEntry`, `IndexHash`, `State`, `GlobalState`, `ViewportParameters`, `ViewportStyles`, `ViewportType`, `InitialViewportKeys`, `ManagerContext`, `ManagerProviderProps`, `Refs`, `API_EventMap`, `API_KeyCollection`, `StorybookTheme`, `ThemeVars`, `ThemeVarsColors`, `ThemeVarsPartial`, `Typography`, `TextSize`, `Brand`, `Animation`, `Background`, `Color`).
+**Issue:** `Canvas` is listed as an MDX doc-block component but its props interface is not documented. Real source exposes these props (from the `CanvasProps` type in `code/addons/docs/src/blocks/blocks/Canvas.tsx`): `of?: ModuleExport`, `meta?: ModuleExports`, `sourceState?: 'hidden' | 'shown' | 'none'`, `layout?: Layout`, `source?: Omit<SourceProps, 'dark'>`, `story?: Pick<StoryProps, 'inline' | 'height' | 'autoplay' | '__forceInitialArgs' | '__primary'>`, `withToolbar?: boolean`, `additionalActions?: ActionItem[]`, `className?: string`. Without these, an agent cannot correctly wire `<Canvas of={ButtonStories.Secondary} sourceState="shown" />`.
 
-**Remediation:** Extend `references/story-types.md` with a "Manager/Store Types" subsection covering the `StoriesHash`, `HashEntry`, `IndexHash`, `ComponentEntry`, `StoryEntry` family — these are needed by anyone writing a custom toolbar or panel. Extend `references/framework-config.md` with a "Theme Types" subsection for `StorybookTheme`, `ThemeVars`, `ThemeVarsColors`, `Typography`, `TextSize`, `Brand` (load-bearing for `storybook/theming/create`). Extend `references/doc-blocks.md` with a "Control Types" subsection (see GAP-001).
-
-**Effort:** ~45 min — targeted extension of three reference files.
+**Remediation:** Add a "Canvas props" subsection in references/doc-blocks.md alongside the Canvas entry listing each prop with its type and purpose. At minimum document `of`, `meta`, `sourceState`, `layout`, `story` (the five load-bearing props for authors). Cite `[AST:code/addons/docs/src/blocks/blocks/Canvas.tsx:L100]`.
 
 ---
 
-### GAP-003: Section 4b "Migration & Deprecation Warnings" contains historical content, not T2-future annotations
+### GAP-004: `ThemesGlobalsInterface` interface not documented
 
-**Severity:** Medium (downgraded to Low — see justification)
-**Category:** Structural
-**Source:** `SKILL.md:146-156`
+**Severity:** Medium
+**Category:** Coverage (missing interface)
+**Source:** skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/addons.md
 
-**Issue:** Per scoring-rules and `skf-create-skill/assets/skill-sections.md`, Section 4b is scoped to *forward-looking* breaking changes captured by T2-future annotations in `evidence-report.md`. The evidence report shows `T2-future: 0` (no deprecation warnings or planned renames). Section 4b is nevertheless present, populated with four historical shipped-in-v10 migration notes (v10 consolidation, PR #28907, PR #34408, PR #34203).
+**Issue:** The provenance-map includes `ThemesGlobalsInterface` (extracted T1 AST from `@storybook/addon-themes`) but this interface is not mentioned anywhere in SKILL.md or references/. It is the one and only provenance-map entry that failed the documentation cross-check (215/216 documented).
 
-**Downgrade rationale:** The v10 consolidation note is the skill's core value proposition — it corrects training-data-induced wrong imports that persist 18+ months after the consolidation shipped. Per the Section 4b downgrade rule, this is a "legitimate exception where Section 4b was manually populated with non-migration content" — **downgraded to Low**.
-
-**Remediation:** Two acceptable paths:
-1. **Rename and keep** — rename Section 4b to "Import Surface Corrections" or "v10 Consolidation Notes". Keep the four bullets. This signals to future maintainers that the section is intentionally off the Section 4b contract.
-2. **Move and delete** — fold the v10 consolidation bullet into an inline callout at the top of "Key API Summary", fold the PR notes into the appropriate reference file (`framework-config.md` or `addons.md`), then delete Section 4b entirely. This restores the evidence-report contract.
-
-**Effort:** 10 min (path 1) or 20 min (path 2).
+**Remediation:** Add a brief entry to references/addons.md in the `@storybook/addon-themes` section documenting `ThemesGlobalsInterface`. If the interface is a private implementation detail (e.g., internal globals shape for the addon's own state), note it explicitly as "internal — not imported by story authors" so the skill's reader understands why it exists in exports but isn't in the authoring surface. If it is authoring-surface, document the fields. Cite the source file via ast-grep.
 
 ---
 
-### GAP-004: SKILL.md Key API Summary attributes `setProjectAnnotations` to `storybook/preview-api` but story-types.md pins it to `@storybook/react`
+### GAP-005: Scope denominator discrepancy (stratified 301 vs provenance-map 216)
+
+**Severity:** Medium
+**Category:** Coverage (extraction/scope coherence)
+**Source:** forge-data/oms-storybook-react-vite/10.3.5/provenance-map.json (216 unique canonicalized) vs skill brief scope.include live re-derivation (301 unique)
+
+**Issue:** The brief's `scope.include` globs match 301 unique source exports at test time, but the provenance-map only captures 216. The 85-entry gap primarily consists of `code/core/src/components/**` UI primitives (86 exports — `Badge`, `Bar`, `Blockquote`, `ActionBar`, etc.) and `code/core/src/babel|csf-tools|core-server/internal/*` build/server infrastructure. Per the brief's own notes ("Scope assumption — authoring, not installing. day-90+ story author, not day-1 installer"), these exports are not authoring surface and should be out of scope. But because the scope.include glob `code/core/**` is coarse-grained, the live re-derivation pulls them in and inflates the denominator to 301 — dragging Export Coverage from 99.5% (215/216 on the authoring-surface) down to 71.4% (215/301 on the coarse-glob-surface).
+
+**Remediation:** Two complementary fixes, pick one:
+
+1. **Narrow `scope.include` in `forge-data/oms-storybook-react-vite/skill-brief.yaml`** to exclude build/internal surfaces explicitly:
+   ```yaml
+   exclude:
+     - "code/core/src/components/**"    # UI primitives for addon panels, not authoring
+     - "code/core/src/babel/**"
+     - "code/core/src/csf-tools/**"
+     - "code/core/src/core-server/**"
+     - "code/core/src/router/**"
+     - "code/core/src/node-logger/**"
+   ```
+   Then re-run update-skill to regenerate metadata.json with the corrected denominator.
+
+2. **Populate `metadata.json.stats.effective_denominator`** directly (if the skill-creator workflow's step-05 §4 supports it) so downstream test runs use 216 rather than re-deriving 301.
+
+Either fix will flip Export Coverage from 71.4% to ~99% and drive the total score well above threshold.
+
+---
+
+### GAP-006: metadata.json internal inconsistency
+
+**Severity:** Medium
+**Category:** Structural / metadata coherence
+**Source:** skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/metadata.json
+
+**Issue:** metadata.json reports `stats.exports_public_api: 430`, `stats.exports_documented: 320`, `stats.public_api_coverage: 0.7442` — but the `exports[]` array contains only 82 names. Three different counts for "what's in this skill":
+- `exports[]` array length: 82
+- `stats.exports_documented`: 320
+- `stats.exports_public_api`: 430
+- Provenance-map entries: 222
+- Live stratified re-derivation: 301
+
+No single source of truth. Downstream workflows (audit, update, health-check) cannot reliably answer "how many exports does this skill document?"
+
+**Remediation:** The create-skill step-05 §4 (metadata writer) should be updated so that either (a) `exports[]` contains the full list of documented symbols (matching `exports_documented`), or (b) the stats counts are derived from and match `exports[]` length. Recommendation: set `exports[]` to the full canonicalized provenance-map entry list (216 symbols) and set `stats.exports_documented` + `stats.exports_public_api` to match. Also populate `stats.effective_denominator` explicitly (see GAP-005).
+
+---
+
+### GAP-007: tessl content score regression (73% → 50% post-update)
+
+**Severity:** Medium
+**Category:** External validation (content quality)
+**Source:** tessl judge output — SKILL.md Key API Summary (L122-142), Key Types (L162-194), Architecture at a Glance (L198-209)
+
+**Issue:** Update-skill's gap-driven remediation added the Key API Summary table, Key Types code block, and Architecture at a Glance section inline in SKILL.md body to recover Export Coverage. This worked for coverage (19% → 71%) but the conciseness judge scored 1/3 and the progressive_disclosure judge scored 2/3 — tessl content dropped from 73% to 50%. SKILL.md is now 241 lines with dense inline API material that duplicates content in references/core-api.md, references/story-types.md, and references/framework-config.md.
+
+**Remediation:**
+1. Move the full Key API Summary import table (L126-140) to `references/core-api.md`. Keep only a 3-row inline corrections table in SKILL.md: `@storybook/test → storybook/test`, `@storybook/preview-api → storybook/preview-api`, `@storybook/theming → storybook/theming` (the three corrections that directly address training-data drift — the skill's differentiator).
+2. Collapse Key Types (L162-194) to just `Meta`, `StoryObj`, `Preview` (the three the Quick Start example uses). Move `Decorator`, `Loader`, `StoryContext`, `A11yTestMode`, `Framework` to references/story-types.md.
+3. Shorten Architecture at a Glance (L198-209) to a single 3-line paragraph: "Layer model: `@storybook/react-vite` (framework) → `@storybook/react` (renderer) + `@storybook/builder-vite` (builder). Story render failures → renderer; Vite HMR failures → builder; `.storybook/main.ts` issues → framework. Full layer composition detail in `references/framework-config.md`." Move the 5-bullet detail to references/framework-config.md.
+
+Target: SKILL.md body ≤ 150 lines after rescope. Expected tessl content improvement: 50% → 70–75%.
+
+---
+
+### GAP-008: No post-write verification step in Common Workflows
 
 **Severity:** Low
-**Category:** Coverage (split-body cross-check)
-**Source:** `SKILL.md:132` vs `references/story-types.md:183`
+**Category:** Structural / workflow clarity
+**Source:** SKILL.md:102-120 (Common Workflows section), tessl workflow_clarity judge 2/3
 
-**Issue:** The runtime surface is shared (both subpaths re-export the same symbol), but the user-facing library attribution differs. A reader following the Key API Summary will import from `storybook/preview-api`; a reader following the type section will import from `@storybook/react`. Both work, but the inconsistency undermines the skill's "canonical import" guarantee.
+**Issue:** Common Workflows is a flat list of "how to write" patterns with no explicit "how to verify the story you just wrote actually runs." A user following the skill writes code and has no gate telling them when to stop. tessl flagged this as workflow_clarity 2/3.
 
-**Remediation:** Pick `@storybook/react-vite` (framework-aligned) as the canonical import in `SKILL.md:132` Key API Summary, add a note in `references/story-types.md:183` that `storybook/preview-api` also re-exports the symbol. `[AST:code/renderers/react/src/portable-stories.ts:L1]`.
+**Remediation:** Add a final bullet to Common Workflows (SKILL.md:120):
 
-**Effort:** 5 min.
+```markdown
+**Verify a story after writing it:**
+`npm run storybook` → open `http://localhost:6006` → confirm the story renders in the canvas with no console errors → if it has a `play` function, check the Interactions panel shows each step passing. For CI verification: `npm run test-storybook` (requires addon-vitest configured).
+```
+
+Cite `[EXT:https://storybook.js.org/docs/writing-tests/test-runner]`.
 
 ---
 
-### GAP-005: `composeStory` signature granularity differs between core-api.md and story-types.md
+### GAP-009: Progressive-disclosure weight (Tier 1 bloat)
 
 **Severity:** Low
-**Category:** Coverage (split-body cross-check)
-**Source:** `references/core-api.md:71` vs `references/story-types.md:185-190`
+**Category:** External validation (content organization)
+**Source:** tessl progressive_disclosure judge 2/3
 
-**Issue:** `core-api.md` shows the positional form `composeStory(story, componentAnnotations, projectAnnotations?, exportsName?)`. `story-types.md` shows the generic form `composeStory<TMeta extends Meta, TArgs extends Args>(story, ..., exportsName?): ComposedStoryFn<ReactRenderer, TArgs>`. Signatures are compatible — the second is strictly more specific — but there is no cross-pointer between the two definitions.
+**Issue:** Three sections in SKILL.md Tier 1 body carry content that should live in Tier 2 reference files: Key API Summary (L122-142), Key Types (L162-194), Architecture at a Glance (L198-209). This overlaps with GAP-007 but from a different angle — the issue here is the *organization* (what belongs in SKILL.md vs references/), not just the *volume*.
 
-**Remediation:** In `references/core-api.md:71`, add `See references/story-types.md for the generic form with `<TMeta, TArgs>` type parameters.` Or, better, replace with the generic form and cite `[AST:code/renderers/react/src/portable-stories.ts:L1]`.
-
-**Effort:** 5 min.
+**Remediation:** Covered by the rescope plan in GAP-007. This gap is a cross-reference for tracking.
 
 ---
 
-### GAP-006: `definePreview` public name vs `__definePreview` internal symbol unresolved
+### GAP-010: Metadata drift — multiple conflicting export counts
 
-**Severity:** Low
-**Category:** Coverage (split-body cross-check)
-**Source:** `SKILL.md:132` vs `references/framework-config.md:54` vs `references/story-types.md:229`
+**Severity:** Low (cross-reference for GAP-005 and GAP-006)
+**Category:** Structural / metadata
 
-**Issue:** SKILL.md Key API Summary lists `definePreview` as runtime export from `storybook/preview-api`. `framework-config.md:54` shows `@storybook/react-vite` re-exports it under the internal name `__definePreview`. `story-types.md:229` documents `__definePreview` as the canonical CSF4 factory entry. A reader writing a CSF4 factory preview will be unsure which symbol name to import.
+**Issue:** See GAP-005 (denominator) and GAP-006 (metadata.json inconsistency). Listed separately so the health-check surfaces it as a distinct concern: skill workflows downstream from create-skill assume metadata is coherent, and this skill's metadata is self-contradictory.
 
-**Remediation:** Add a one-line clarification in SKILL.md line 132 Key API Summary: `definePreview` / `__definePreview` *(CSF4 factory — the double-underscore form is the current canonical export name in `@storybook/react-vite`)*. Cite `[AST:code/renderers/react/src/preview.tsx:L1]`.
-
-**Effort:** 5 min.
+**Remediation:** Fixed by applying both GAP-005 and GAP-006 remediations.
 
 ---
 
-### GAP-007: `Preview` symbol is both a type and a runtime class — disambiguate by subpath
-
-**Severity:** Low
-**Category:** Coverage (split-body cross-check)
-**Source:** `SKILL.md:167` vs `references/core-api.md:78`
-
-**Issue:** `SKILL.md:167` Key Types defines `Preview = ProjectAnnotations<ReactRenderer>` (the shape of `.storybook/preview.ts` default export). `core-api.md:78` separately lists a `Preview` runtime **class** under `storybook/preview-api` (the `PreviewWeb` runtime). Same name, different kinds, different subpaths — intentional but potentially confusing to a reader who imports `Preview` expecting the type.
-
-**Remediation:** In `references/core-api.md:78`, rename the entry to `Preview (runtime class, aliased from PreviewWeb)` and add `Not to be confused with the `Preview` **type** in @storybook/react-vite — see SKILL.md:167`. Similarly, add a cross-pointer from `SKILL.md:167` to the runtime class.
-
-**Effort:** 10 min.
-
----
-
-### GAP-008: addon-a11y `afterEach` runtime export missing from Key API Summary
-
-**Severity:** Low
-**Category:** Coverage
-**Source:** `SKILL.md:138` vs `references/addons.md:57`
-
-**Issue:** SKILL.md Key API Summary mentions addon-a11y only as "config only — parameters.a11y.test". `references/addons.md:57` additionally documents a runtime `afterEach` export from `@storybook/addon-a11y/preview` (async function running axe-core per-story) that is not referenced in SKILL.md. Story authors calling `afterEach` in their own `preview.ts` will not discover this from the Tier 1 body.
-
-**Remediation:** In `SKILL.md:138`, extend the addon-a11y row: `| a11y \`parameters: { a11y: { test: ... } }\`, `afterEach()` | param + runtime | `@storybook/addon-a11y/preview` `[AST:code/addons/a11y/src/preview.tsx:L1]` |`.
-
-**Effort:** 3 min.
-
----
-
-### GAP-009: Discovery testing not yet performed
+### GAP-011: Section 4b heading scope (historical-migration exception)
 
 **Severity:** Info
-**Category:** Discovery
-**Source:** workflow advisory
+**Category:** Coherence (structural naming)
+**Source:** SKILL.md:148 ("Import Surface Corrections & Recent Changes" section), evidence-report.md:52 (T2-future: 0)
 
-**Issue:** The skill has not been tested against realistic, noisy user prompts. A skill that passes structural and AST checks can still fail to trigger in production if its description keywords don't match how real users phrase requests.
+**Issue:** SKILL.md Section 4b is present but contains historical-migration content (shipped v10 consolidation, shipped PRs #28907, #34408, #34203) rather than forward-looking T2-future breaking changes. Per step-04 §2b, this is the legitimate historical-migration exception and flagged as Info severity — the content is load-bearing for correcting training-data drift even though no forward change is pending. The heading "Import Surface Corrections & Recent Changes" already communicates this scope correctly and avoids the "Migration & Deprecation Warnings" label, so no rename is actually required.
 
-**Remediation:** Before export, run 3–5 realistic prompts against the skill via `claude` CLI or the SKF discovery harness. Suggested prompts:
-- `"why does my storybook import @storybook/test throw an error in v10?"` (should trigger — targets the skill's core v10 consolidation value prop)
-- `"how do I write a play function with userEvent.click?"` (should trigger — core CSF3 authoring)
-- `"can you set up storybook for the first time in this react app?"` (should NOT trigger — excluded by "Do NOT use for first-time project setup" in the description)
-- `"my story's args aren't updating when I call updateArgs"` (should trigger — preview-api hook surface)
-- `"how do I test my stories in vitest?"` (should trigger — composeStories + setProjectAnnotations portable-stories)
+**Remediation:** No action required. Optional future revision: if Storybook v11 announces T2-future deprecations, split this section into "Import Corrections" (historical, load-bearing for training-data drift) and "Upcoming Deprecations" (forward-looking v11 breakers).
 
-**Effort:** ~15 min for a discovery pass.
+---
 
 ### Discovery Quality
 
-**Description:** tessl description score is **100%** (specificity 3/3, trigger_term_quality 3/3, completeness 3/3, distinctiveness_conflict_risk 3/3). No description optimization required — the description already uses third-person voice, concrete trigger filenames (`*.stories.tsx`, `preview.ts`, `.storybook/main.ts`), version gating (`10.3+`), negative triggers (`Do NOT use for first-time project setup`), and alternative skill references (the upgrade CLI).
+**Description quality:** tessl scored the description 100% (4/4 across specificity, trigger_term_quality, completeness, distinctiveness_conflict_risk). No optimization needed — the description is an exemplar for third-person voice, specific trigger terms (`*.stories.tsx`, `preview.ts`, `.storybook/main.ts`, `CSF3`, `storybook/test`), and explicit negative triggers ("Do NOT use for first-time project setup, framework selection, or upgrade migration").
 
-**Discovery testing recommended.** Before export, test the skill with 3–5 realistic prompts phrased the way real users actually talk — with casual language, typos, incomplete context, and implicit references. See GAP-009 above for a suggested prompt set.
+**Discovery testing recommended.** Before export, test the skill with 3–5 realistic prompts phrased the way real users actually talk — with casual language, typos, incomplete context, and implicit references. A skill tested only with clean prompts may fail to trigger in production. Example realistic prompt patterns for this skill:
 
-### Mitigating Context for the FAIL Score
+- Vague: *"my button story is throwing some weird react error when i click it"*
+- Implicit: *"why is storybook yelling at me about @storybook/test being deprecated"*
+- Abbreviated: *"add a play fn to the primary story that clicks and asserts onClick"*
+- Mixed concern: *"i'm setting up vitest for my components but composeStories isn't picking up my decorators"*
+- Training-data trap: *"import Meta from '@storybook/react'"* — the skill should correct this to `@storybook/react-vite` or note both work but the former is canonical for Vite.
 
-The 63.84% FAIL is driven almost entirely by Export Coverage (43.5% × 45% weight = 19.58 / 45 possible points). This is not a defect in the skill — it is a consequence of the authored stratification strategy documented in `forge-data/oms-storybook-react-vite/skill-brief.yaml` `scope.notes`:
+Record this as a final Info-level gap: **GAP-012 (Info): Discovery testing not performed.** Advisory only — does not affect the 79.68% score.
 
-- Storybook v10 consolidates ~40 packages into a single `storybook` package (~430 public exports across the monorepo).
-- The skill deliberately covers **authoring tier A** (`test`, `preview-api`, hooks, theming, docs blocks, essential addons) with depth, and defers **type tier B** and **infrastructure tier C** to reference files (or omits them entirely).
-- The skill's intended audience is the day-90+ story author, not the toolbar/panel/plugin author — the latter is explicitly out of scope per scope.notes.
-- By this curated-surface measure, the skill's effective coverage of its stated audience is much higher than 43.5%.
 
-**Two paths forward:**
-1. **Run `update-skill` to lift coverage** toward 70–80% by filling reference files with the additional 150–200 one-line entries — this preserves the stratified architecture while crossing the scoring threshold. Recommended if the skill will be distributed via `agentskills.io` where the scoring floor matters.
-2. **Override the threshold to 60%** in `_bmad/_memory/forger-sidecar/preferences.yaml` and document the rationale — appropriate if this skill is for internal use where the stratified scope is understood and the FAIL score is a known false negative. Only viable if `skf-test-skill` is amended to support a persisted threshold override (currently the default is 80%).
-
-Path 1 is the documented workflow and is recommended. Path 2 requires workflow changes.
-
----
-
-**Test complete for oms-storybook-react-vite.**
-
-**Result:** **FAIL** — **63.84%** (threshold: 80%)
-
-**Gaps Found:** 9
-- Critical: 1
-- High: 0
-- Medium: 2 (1 downgraded to Low per documented exception)
-- Low: 5
-- Info: 1
-
-**Recommended next step:** **update-skill** — run the update-skill workflow to address GAP-001 (Export Coverage lift) and optionally GAP-002 through GAP-008 for a cleaner release.

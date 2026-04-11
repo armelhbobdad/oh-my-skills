@@ -1,7 +1,7 @@
 {
   "skill": "skf-test-skill",
   "status": "success",
-  "timestamp": "2026-04-11T18:32:00Z",
+  "timestamp": "2026-04-11T20:17:00Z",
   "outputs": [
     {
       "type": "report",
@@ -14,35 +14,32 @@
     "testMode": "naive",
     "forgeTier": "Deep",
     "analysisConfidence": "full",
-    "score": "63.84%",
+    "score": "79.68%",
     "threshold": "80%",
     "result": "FAIL",
+    "marginFromThreshold": "-0.32",
+    "nextWorkflow": "update-skill",
     "categoryScores": {
-      "exportCoverage": 43.5,
-      "signatureAccuracy": 97.3,
-      "typeCoverage": 52.4,
+      "exportCoverage": 71.4,
+      "signatureAccuracy": 75.0,
+      "typeCoverage": 99.0,
       "coherence": null,
-      "externalValidation": 94.5
-    },
-    "weightedContributions": {
-      "exportCoverage": 19.58,
-      "signatureAccuracy": 24.33,
-      "typeCoverage": 10.48,
-      "coherence": 0,
-      "externalValidation": 9.45
-    },
-    "gapCounts": {
-      "critical": 1,
-      "high": 0,
-      "medium": 2,
-      "low": 5,
-      "info": 1,
-      "total": 9
+      "externalValidation": 90.0
     },
     "externalValidators": {
-      "skillCheck": {"available": true, "score": 100, "source": "reused"},
-      "tessl": {"available": true, "reviewScore": 89, "descriptionScore": 100, "contentScore": 73, "source": "reused"}
+      "skillCheck": 100,
+      "tesslReview": 80,
+      "tesslDescription": 100,
+      "tesslContent": 50
     },
-    "nextWorkflow": "update-skill"
+    "gaps": {
+      "total": 12,
+      "critical": 0,
+      "high": 2,
+      "medium": 5,
+      "low": 3,
+      "info": 2
+    },
+    "sensitivityNote": "Strict signature scoring (9/12 full matches). With lenient scoring (partials as 0.5), total would be 82.81% PASS."
   }
 }
