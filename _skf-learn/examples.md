@@ -270,6 +270,10 @@ Generated skills automatically follow authoring best practices: third-person des
 
 If your source repo includes executable scripts (`scripts/`, `bin/`) or static assets (`templates/`, `schemas/`), SKF detects and packages them automatically with provenance tracking. Custom scripts you add to `scripts/[MANUAL]/` are preserved during updates — just like `<!-- [MANUAL] -->` markers in SKILL.md.
 
+### Let the Health Check Run
+
+Every SKF workflow ends with a shared **health check** step where Ferris reflects on the session and offers to file friction, bugs, or gaps as GitHub issues (with your approval). Clean runs exit in one line — zero overhead. When something breaks, it's SKF's primary feedback channel, so **please let workflows run to completion**. If you had to cancel before the health check fired, ask Ferris to run it (`@Ferris please run the workflow health check for this session`) or [open an issue directly](https://github.com/armelhbobdad/bmad-module-skill-forge/issues/new/choose). See [Workflow Health Check](../workflows/#terminal-step-health-check) for details.
+
 ---
 
 ## Troubleshooting

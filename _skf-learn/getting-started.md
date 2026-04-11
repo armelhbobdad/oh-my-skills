@@ -161,6 +161,8 @@ Or one workflow per session:
 
 Analyzes your project's dependencies and generates a consolidated stack skill with integration patterns.
 
+> **After every workflow:** Ferris runs a **health check** — a reflection step that captures any friction, bugs, or gaps from the session. Clean runs exit in one line; when something breaks, Ferris offers to file structured findings as GitHub issues (with your approval). **Please let workflows run to completion** so the health check can fire. If it was skipped, ask Ferris to run it (`@Ferris please run the workflow health check for this session`) or [open an issue directly](https://github.com/armelhbobdad/bmad-module-skill-forge/issues/new/choose). See [Workflow Health Check](../workflows/#terminal-step-health-check).
+
 ---
 
 ## Common Use Cases
@@ -280,3 +282,4 @@ If you run into issues:
    *Provided by the [BMad Method](https://github.com/bmad-code-org/BMAD-METHOD) — not available in standalone SKF installations.*
 2. Run `@Ferris SF` to check your tool availability and tier
 3. Check `forge-tier.yaml` in your forger sidecar for your current configuration
+4. If a workflow gave you friction, ask Ferris to run the health check for that session, or [open an issue](https://github.com/armelhbobdad/bmad-module-skill-forge/issues/new/choose) — see [Workflow Health Check](../workflows/#terminal-step-health-check)

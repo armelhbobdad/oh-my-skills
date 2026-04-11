@@ -339,4 +339,39 @@ Add `--headless` or `-H` to any workflow command to skip all confirmation gates.
 
 You can also set `headless_mode: true` in your forge preferences (`_bmad/_memory/forger-sidecar/preferences.yaml`) to make headless the default for all workflows.
 
+---
+
+## Terminal Step: Health Check
+
+All 14 workflows above share the same final step — a **health check** defined in [`src/shared/health-check.md`](https://github.com/armelhbobdad/bmad-module-skill-forge/blob/main/src/shared/health-check.md). This isn't a workflow you invoke directly; there's no command code and no menu entry. Every workflow's last step frontmatter points `nextStepFile` at the shared file, so the health check fires automatically once the main work is done. After the main work is done, Ferris silently reflects on the execution:
+
+- Did any step instruction lead the agent astray or cause unnecessary back-and-forth?
+- Was any step ambiguous, forcing the agent to guess?
+- Did a scenario arise that the workflow didn't account for?
+- Were any instructions wrong or contradictory?
+
+If the answer to all of these is "no", the health check exits in one line (`Clean run. No workflow issues to report.`). If real friction was observed, Ferris presents structured findings, waits for your review, and — on your approval — files them as GitHub issues labelled `health-check` on this repo.
+
+**Zero overhead for clean runs. High leverage when something breaks.** The health check is honest-by-default: zero findings is the expected outcome. Fabricated issues would hurt the signal, so Ferris only reports what the agent actually experienced.
+
+### Please let workflows run to completion
+
+If you cancel a workflow early, or interrupt the agent before the terminal step, the health check doesn't run — and any friction from that session is lost. When you have time, let each workflow reach its natural end. The health check is how SKF learns to do better.
+
+### If the health check didn't run
+
+You have two recovery options:
+
+1. **Ask Ferris to run it now** — while the session context is still fresh:
+
+   ```
+   @Ferris please run the workflow health check for this session
+   ```
+
+   Ferris will load `shared/health-check.md` and reflect on what just happened, exactly as if the workflow had reached its natural end.
+
+2. **Open an issue directly** — use the [Workflow Health Check issue template](https://github.com/armelhbobdad/bmad-module-skill-forge/issues/new/choose) on this repo. Any concrete, evidence-based report helps — cite the specific step file and section where the friction occurred, and describe what you actually observed (not what you think the problem is).
+
+Both paths feed the same improvement queue.
+
 > **Note:** Some gates cannot be skipped even in headless mode — for example, merge conflicts in Update Skill always require human judgment.
