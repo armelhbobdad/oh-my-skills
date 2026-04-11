@@ -1,0 +1,63 @@
+---
+name: "oms-storybook-react-vite"
+version: "10.3.5"
+source_type: "source"
+source_repo: "https://github.com/storybookjs/storybook"
+language: "TypeScript"
+description: "Grounds Claude in Storybook v10's consolidated `storybook` package import surface for React+Vite authoring workflows. Covers CSF3 story authoring, `preview.ts` patterns, the React renderer, Vite builder integration, and 4 essential addons (a11y, docs, themes, vitest). Target user: day-90+ story author, not first-time installer."
+forge_tier: "Deep"
+created: "2026-04-11"
+created_by: "armel"
+scope:
+  type: "specific-modules"
+  include:
+    - "code/core/**"
+    - "code/frameworks/react-vite/**"
+    - "code/builders/builder-vite/**"
+    - "code/renderers/react/**"
+    - "code/addons/a11y/**"
+    - "code/addons/docs/**"
+    - "code/addons/themes/**"
+    - "code/addons/vitest/**"
+    - "code/**/template/stories/**/*.stories.*"
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/__tests__/**"
+    - "**/__mocks__/**"
+    - "**/template/**/*.config.*"
+    - "**/template/node_modules/**"
+    - "**/scripts/**"
+    - "**/dist/**"
+    - "tsconfig.json"
+    - "vitest.config.ts"
+    - ".eslintrc.*"
+  notes: |
+    1. v10 consolidation: Storybook v10 consolidates prior @storybook/* packages into a single `storybook` package. The 40 exports in code/core are one package's public contract, not 40 sub-packages.
+
+    2. ./internal/* subpath convention: ./internal/* subpaths in `storybook` are declared in package.json `exports` — part of the public contract under granularity B despite the `internal` naming.
+
+    3. Scope assumption — authoring, not installing: Skill serves developers using Storybook for ongoing story authoring (day-90+ author, not day-1 installer). CLI tools (cli-storybook, create-storybook), codemods, eslint-plugin, and csf-plugin are deliberately excluded. `.storybook/main.ts` setup (framework pick, addon registration, Vite integration) is excluded — edited quarterly, covered by T3 supplemental docs.
+
+    4. `preview.ts` is authoring surface, not config: The `Preview` type from @storybook/react-vite and the `preview.ts` patterns (parameters, decorators, globalTypes, loaders) are load-bearing in extraction despite living in `.storybook/`. Edited weekly during story authoring — treated as authoring surface, not one-time setup.
+
+    5. CSF type verification: create-skill MUST verify extraction includes Meta, StoryObj, StoryFn, Decorator, Parameters, ArgTypes, Args from `storybook` — these are load-bearing for every story file.
+
+    6. CSF3 anchor directive (compile-time): Skill must aggressively anchor generated story code to CSF3 syntax (`satisfies Meta<typeof X>`, named-export stories with `args`/`parameters`/`play`). Disambiguate from CSF2 (default export + const stories) — CSF2 is half the internet but invalid v10 style.
+
+    7. Layer mental model directive (compile-time): Skill must document the framework/renderer/builder layer relationship (@storybook/react-vite → @storybook/builder-vite + @storybook/react) so Claude can locate defects in the correct layer (renderer vs. builder vs. framework integration).
+
+    8. Project-state preflight directive (compile-time): Skill entry point must instruct Claude to read the user's `.storybook/main.ts` and `package.json` before answering — discover (a) installed Storybook version, (b) registered addons, (c) framework in use — then consult the API surface. Turns the skill from a static knowledge dump into grounded guidance.
+
+    9. Differentiator / moat: The skill's primary value vs. web search is grounding Claude in Storybook v10's consolidated `storybook` package import surface. Web examples and model training data lag 12-18 months and still show `@storybook/*` sub-package imports — the skill corrects this.
+doc_urls:
+  - url: "https://storybook.js.org/docs"
+    label: "Main documentation site"
+  - url: "https://storybook.js.org/docs/get-started/frameworks/react-vite/?renderer=react"
+    label: "React-Vite framework guide"
+  - url: "https://storybook.js.org/docs/api"
+    label: "API reference"
+  - url: "https://storybook.js.org/addons"
+    label: "Addon catalog"
+source_authority: "community"
+---
