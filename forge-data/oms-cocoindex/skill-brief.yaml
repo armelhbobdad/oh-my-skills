@@ -41,6 +41,7 @@ scope:
     - "examples/**/*.py"
     - "examples/**/README.md"
     - "README.md"
+    - "CLAUDE.md"
   exclude:
     - "python/cocoindex/tests/**"
     - "python/cocoindex/_internal/**"
@@ -67,6 +68,13 @@ scope:
     - "ruff.toml"
     - "uv.lock"
   notes: "Public API Only scope derived from python/cocoindex/__init__.py __all__. examples/ included as T1 runnable flow patterns (25 apps). docs/docs/** included as T2 authoritative project docs. Rust engine deliberately excluded — users author flows in Python via pyo3-compiled bindings. Deprecated exports (add_flow_def, remove_flow, storages alias) kept and will be marked deprecated during extraction. Version 0.3.37 auto-detected from latest non-prerelease GitHub release tag (pyproject.toml uses dynamic = ['version']). Cocoindex is Development Status 3 - Alpha; API stability is not guaranteed across minor versions, so this brief is pinned to a specific release tag."
+  amendments:
+    - action: "promoted"
+      path: "CLAUDE.md"
+      reason: "authoritative AI docs — matched heuristic CLAUDE.md"
+      heuristic: "CLAUDE.md"
+      date: "2026-04-11"
+      workflow: "skf-create-skill"
 doc_urls:
   - url: "https://cocoindex.io/docs/"
     label: "Official cocoindex documentation site"
