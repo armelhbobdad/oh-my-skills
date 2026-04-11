@@ -1,0 +1,57 @@
+{
+  "skill": "skf-test-skill",
+  "status": "success",
+  "timestamp": "2026-04-11T00:00:00Z",
+  "outputs": [
+    {
+      "type": "report",
+      "path": "forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled.md"
+    }
+  ],
+  "summary": {
+    "skill_name": "oms-uitripled",
+    "skill_version": "0.1.0",
+    "skill_dir": "skills/oms-uitripled/0.1.0/oms-uitripled",
+    "test_mode": "naive",
+    "forge_tier": "Deep",
+    "analysis_confidence": "full",
+    "source_access_state": 1,
+    "score": 93.07,
+    "threshold": 80,
+    "result": "PASS",
+    "category_scores": {
+      "export_coverage": 91.2,
+      "signature_accuracy": 90.3,
+      "type_coverage": 100.0,
+      "coherence": null,
+      "external_validation": 94.5
+    },
+    "external_validators": {
+      "skill_check": {
+        "available": true,
+        "reused_from": "evidence-report.md",
+        "quality_score": 100,
+        "errors": 0,
+        "warnings": 0
+      },
+      "tessl": {
+        "available": true,
+        "reused_from": "evidence-report.md",
+        "validation": "PASSED",
+        "description_score": 100,
+        "content_score": 73,
+        "review_score": 89
+      }
+    },
+    "gaps": {
+      "total": 8,
+      "critical": 0,
+      "high": 3,
+      "medium": 2,
+      "low": 2,
+      "info": 1,
+      "blocking_recommendation": "Despite PASS score, remediate GAP-001/002/003 (Grid helper signature mismatches) before export — silent-failure risk."
+    },
+    "next_workflow": "export-skill"
+  }
+}
