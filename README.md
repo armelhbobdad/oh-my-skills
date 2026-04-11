@@ -154,7 +154,7 @@ We didn't hide the rough edge. We wrote it down. Read it yourself: [`forge-data/
 
 ## Install
 
-The [`skills`](https://www.npmjs.com/package/skills) CLI from [Vercel Labs](https://github.com/vercel-labs/skills) installs any skill from a GitHub URL. One command, one placeholder:
+The [`skills`](https://www.npmjs.com/package/skills) CLI from [Vercel Labs](https://github.com/vercel-labs/skills) installs any skill from a GitHub URL — and it's the same CLI that powers [skills.sh](https://skills.sh), the open agent-skills directory where SKF-compatible skills are listed and ranked. One command, one placeholder:
 
 ```bash
 npx skills add https://github.com/armelhbobdad/oh-my-skills/tree/main/skills/<SKILL>
