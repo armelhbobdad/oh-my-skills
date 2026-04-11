@@ -1,8 +1,8 @@
 ---
 name: oms-storybook-react-vite
 description: >
-  Grounds Claude in Storybook v10's consolidated `storybook` package import
-  surface for React plus Vite story authoring. Use when writing or editing
+  Authors Storybook v10 stories using the consolidated `storybook` package
+  import surface for React plus Vite. Use when writing or editing
   `*.stories.tsx`, `preview.ts`, or `.storybook/main.ts` files on a Storybook
   10.3+ project, including CSF3 story syntax, `play` functions with
   `storybook/test`, `preview-api` hooks, theming, MDX doc blocks from

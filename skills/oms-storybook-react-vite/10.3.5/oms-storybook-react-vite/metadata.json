@@ -13,7 +13,7 @@
   "last_update": "2026-04-11T22:30:00Z",
   "update_mode": "gap-driven",
   "update_source": "test-report oms-storybook-react-vite 79.68% FAIL (2nd gap-driven pass)",
-  "description": "Grounds Claude in Storybook v10's consolidated `storybook` package import surface for React plus Vite story authoring. Use when writing or editing *.stories.tsx, preview.ts, or .storybook/main.ts files on a Storybook 10.3+ project, including CSF3 story syntax, play functions with storybook/test, preview-api hooks, theming, MDX doc blocks from @storybook/addon-docs/blocks, and the a11y, themes, and vitest addons. Covers the @storybook/react-vite framework, @storybook/react renderer, and @storybook/builder-vite layer model so defects can be located at the right layer. Do NOT use for first-time project setup, framework selection, or upgrade migration.",
+  "description": "Authors Storybook v10 stories using the consolidated `storybook` package import surface for React plus Vite. Use when writing or editing *.stories.tsx, preview.ts, or .storybook/main.ts files on a Storybook 10.3+ project, including CSF3 story syntax, play functions with storybook/test, preview-api hooks, theming, MDX doc blocks from @storybook/addon-docs/blocks, and the a11y, themes, and vitest addons. Covers the @storybook/react-vite framework, @storybook/react renderer, and @storybook/builder-vite layer model so defects can be located at the right layer. Do NOT use for first-time project setup, framework selection, or upgrade migration.",
   "language": "typescript",
   "ast_node_count": 430,
   "exports": [
