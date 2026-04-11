@@ -131,7 +131,7 @@ If CCC is unavailable or returns no results: skip this subsection silently.
 Attempt to auto-detect the source version using the rules from the skill-brief-schema.md Version Detection section:
 
 **For Python:** Check `pyproject.toml` `[project] version` (static) → if `dynamic = ["version"]`, check `__init__.py` for `__version__` → `_version.py` if exists → `setup.py` `version=` → `git describe --tags --abbrev=0`
-**For JavaScript/TypeScript:** Check `package.json` `"version"` field
+**For JavaScript/TypeScript:** Check root `package.json` `"version"` field → if root has `"private": true` with a `"workspaces"` array or lacks a `"version"` field, fall back to a primary workspace package's `package.json` (e.g., `code/core/package.json`, or the first matching `packages/*/package.json`). For GitHub sources, prefer `gh api repos/{owner}/{repo}/releases/latest` → `tag_name` when a non-pre-release tag exists, over a default-branch pre-release. Treat a version containing `-alpha`, `-beta`, `-rc`, `-next`, or `-canary` as a pre-release.
 **For Rust:** Check `Cargo.toml` `[package] version` (static) → if `version = { workspace = true }`, resolve from workspace root `Cargo.toml` → `git describe --tags --abbrev=0`
 **For Go:** Check `go.mod` or `git describe --tags --abbrev=0`
 
