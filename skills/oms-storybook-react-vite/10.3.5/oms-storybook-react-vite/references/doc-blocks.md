@@ -27,10 +27,28 @@ import { Meta, Canvas, Controls, Primary, Stories } from '@storybook/addon-docs/
 
 | Component | Props (simplified) | Purpose | Source |
 |---|---|---|---|
-| `Canvas` | `{ of, meta, sourceState, withToolbar, className }` | Render story preview with optional source panel. `of` → story export from `import * as stories`. | `[AST:code/addons/docs/src/blocks.ts]` |
+| `Canvas` | `{ of, meta, sourceState, layout, source, story, withToolbar, additionalActions, className }` | Render story preview with optional source panel. `of` → story export from `import * as stories`. See [`Canvas` props detail](#canvas-props-detail) below. | `[AST:code/addons/docs/src/blocks/blocks/Canvas.tsx:L100]` |
 | `Story` | `{ of, expanded, ... }` | Render single story by import reference. | `[AST:code/addons/docs/src/blocks.ts]` |
 | `Primary` | `{ of? }` | Render the first story (or specified meta's primary). | `[AST:code/addons/docs/src/blocks.ts]` |
 | `Stories` | `{ of?, includePrimary?, title? }` | Render all stories from a CSF module as a list. | `[AST:code/addons/docs/src/blocks.ts]` |
+
+### `Canvas` props detail
+
+The full prop shape accepted by `<Canvas>` in MDX. Defined inline in `code/addons/docs/src/blocks/blocks/Canvas.tsx:L18` as a module-local `type CanvasProps` (not exported — these are the fields you pass to the JSX element, not an importable type).
+
+| Prop | Type | Default | Purpose |
+|---|---|---|---|
+| `of` | `ModuleExport` | — | Story export to render. `<Canvas of={ButtonStories.Primary} />`. Throwing `of={undefined}` is caught at render time. |
+| `meta` | `ModuleExports` | — | All exports of the CSF file when the MDX page is **unattached** (no `<Meta of={...} />`). Example: `<Canvas of={ButtonStories.Primary} meta={ButtonStories} />`. |
+| `sourceState` | `'hidden' \| 'shown' \| 'none'` | `'hidden'` | Initial source panel state. `'none'` hides the reveal button entirely. |
+| `layout` | `Layout` | `'padded'` | How the story is framed within the canvas: `'padded'`, `'fullscreen'`, or `'centered'`. Falls back to `parameters.layout` → `parameters.docs.canvas.layout`. |
+| `source` | `Omit<SourceProps, 'dark'>` | — | Pass-through props for the underlying `Source` block (language, code override, format). `dark` is inherited from the docs theme. |
+| `story` | `Pick<StoryProps, 'inline' \| 'height' \| 'autoplay' \| '__forceInitialArgs' \| '__primary'>` | `{ inline: framework default }` | Story renderer options. `inline: false` forces iframe; `height` sets the iframe height; `autoplay` re-runs the `play` fn when the story mounts in docs. |
+| `withToolbar` | `boolean` | `false` | Show the canvas toolbar (zoom, background, grid controls). |
+| `additionalActions` | `ActionItem[]` | — | Extra buttons rendered into the canvas toolbar. |
+| `className` | `string` | — | Forwarded to the canvas wrapper element for custom styling. |
+
+`[AST:code/addons/docs/src/blocks/blocks/Canvas.tsx:L18]` `[AST:code/addons/docs/src/blocks/blocks/Canvas.tsx:L100]`
 
 **MDX usage:**
 ```mdx

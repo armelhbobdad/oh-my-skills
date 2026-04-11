@@ -194,10 +194,16 @@ export function composeStory<TArgs extends Args = Args>(
   exportsName?: string
 ): ComposedStoryFn<ReactRenderer, Partial<TArgs>>;
 
-export function composeStories<TModule extends { default: Meta }>(
+// code/renderers/react/src/portable-stories.tsx:148
+export function composeStories<TModule extends Store_CSFExports<ReactRenderer, any>>(
   csfExports: TModule,
   projectAnnotations?: ProjectAnnotations<ReactRenderer>
-): Omit<StoriesWithPartialProps<ReactRenderer, TModule>, keyof TModule>;
+): Omit<StoriesWithPartialProps<ReactRenderer, TModule>, keyof Store_CSFExports>;
+// `Store_CSFExports` is the internal CSF module shape — narrows `TModule` to a
+// real story module (default meta + named story exports) rather than any object
+// with a `default: Meta`. The `Omit` key is `keyof Store_CSFExports` (not
+// `keyof TModule`) so only the CSF bookkeeping fields are stripped from the
+// returned object while the story names are preserved.
 
 export const INTERNAL_DEFAULT_PROJECT_ANNOTATIONS: ProjectAnnotations<ReactRenderer>;
 ```

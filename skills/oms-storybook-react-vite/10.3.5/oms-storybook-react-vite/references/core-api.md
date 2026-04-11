@@ -2,6 +2,29 @@
 
 The consolidated `storybook` package exposes 40 subpath exports. This reference covers the 28 authoring-surface and type-surface subpaths extracted for v10.3.5. All provenance is T1 — read from source via AST.
 
+## v10 Consolidated Imports Map (all packages in scope)
+
+Every import this skill teaches, grouped by source package and subpath. Column 3 is the canonical v10 import path — **this is the load-bearing part** the skill corrects against training data.
+
+| Import | Kind | From (v10 consolidated) |
+|---|---|---|
+| `Meta`, `StoryObj`, `StoryFn`, `Decorator`, `Parameters`, `ArgTypes`, `Args`, `StoryContext`, `Loader`, `Preview` | type | `@storybook/react-vite` *(or `@storybook/react`)* `[AST:code/renderers/react/src/public-types.ts:L29]` |
+| `StorybookConfig`, `FrameworkOptions` | type | `@storybook/react-vite` `[AST:code/frameworks/react-vite/src/types.ts:L1]` |
+| `defineMain` | function | `@storybook/react-vite/node` `[AST:code/frameworks/react-vite/src/node/index.ts:L3]` |
+| `expect`, `fn`, `within`, `screen`, `waitFor`, `userEvent`, `fireEvent`, `spyOn` | runtime | `storybook/test` `[AST:code/core/src/test/index.ts:L54]` |
+| `useState`, `useArgs`, `useParameter`, `useChannel`, `useEffect`, `useGlobals`, `useCallback`, `useMemo`, `useRef`, `useReducer`, `useStoryContext` | hook | `storybook/preview-api` `[AST:code/core/src/preview-api/index.ts:L5]` |
+| `addons`, `makeDecorator`, `mockChannel` | runtime | `storybook/preview-api` `[AST:code/core/src/preview-api/index.ts:L21]` |
+| `composeStories`, `composeStory`, `setProjectAnnotations` | runtime | **`@storybook/react-vite`** *(canonical for React+Vite — re-exported from `@storybook/react` where they're defined)* `[AST:code/renderers/react/src/portable-stories.tsx:L148]` |
+| `__definePreview` *(CSF4 factory — the double-underscore form is the canonical public export name in `@storybook/react-vite` / `@storybook/react`; `definePreview` is a user-facing alias in the docs but the symbol emitted from the framework package is `__definePreview`)* | runtime | `@storybook/react-vite` `[AST:code/renderers/react/src/preview.tsx:L55]` |
+| `action` | runtime | `storybook/actions` `[AST:code/core/src/actions/index.ts:L1]` |
+| `create`, `themes`, `styled`, `css`, `useTheme`, `ThemeProvider` | runtime | `storybook/theming` / `storybook/theming/create` `[AST:code/core/src/theming/create.ts:L29]` |
+| `HIGHLIGHT`, `RESET_HIGHLIGHT` | const | `storybook/highlight` `[AST:code/core/src/highlight/index.ts:L1]` |
+| `Canvas`, `Meta`, `Controls`, `Primary`, `Stories`, `Story`, `ArgTypes`, `Source`, `Description`, `Title`, `Markdown`, `Typeset`, `ColorPalette`, `IconGallery`, `Unstyled`, `useOf`, `DocsContainer`, `DocsPage` | MDX block | `@storybook/addon-docs/blocks` `[AST:code/addons/docs/src/blocks.ts:L1]` |
+| `withThemeByClassName`, `withThemeByDataAttribute`, `withThemeFromJSXProvider` | decorator | `@storybook/addon-themes` `[AST:code/addons/themes/src/index.ts:L1]` |
+| a11y `parameters: { a11y: { test: ... } }`, runtime `afterEach`, `decorators`, `initialGlobals` | param + runtime | `@storybook/addon-a11y` / `@storybook/addon-a11y/preview` — the runtime `afterEach(context)` at `[AST:code/addons/a11y/src/preview.tsx:L14]` runs axe-core per story and attaches an `A11yReport` to `context.reporting`; compose it manually in your `preview.ts` only when you need multiple `afterEach` hooks | `[AST:code/addons/a11y/src/preview.tsx:L14]` |
+
+The rest of this file documents each `storybook/*` subpath in detail. CSF types live in `story-types.md`; MDX blocks in `doc-blocks.md`; addon exports in `addons.md`; framework/renderer/builder layer in `framework-config.md`.
+
 ## Contents
 
 - [`storybook/test`](#storybooktest) — Test utilities for `play` functions

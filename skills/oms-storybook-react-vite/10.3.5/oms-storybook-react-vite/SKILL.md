@@ -119,94 +119,49 @@ Sources for the two templates above: `[AST:code/renderers/react/src/public-types
 **Author an MDX docs page:**
 `import { Meta, Canvas, Controls, Primary, Stories } from '@storybook/addon-docs/blocks'` → `<Meta of={ButtonStories} />` → `<Primary />` / `<Canvas of={ButtonStories.Secondary} />` / `<Controls />` / `<Stories />`. `[AST:code/addons/docs/src/blocks.ts:L1]`
 
-## Key API Summary
+**Verify a story after writing it:**
+`npm run storybook` → open `http://localhost:6006` → confirm the story renders in the canvas with no console errors → if it has a `play` function, check the Interactions panel shows each step passing. For CI verification use `npm run test-storybook` (requires `addon-vitest` configured in `main.ts`). `[EXT:https://storybook.js.org/docs/writing-tests/test-runner]`
 
-Imports are grouped by source package. Column 3 is the subpath to import from — **this is the load-bearing part** the skill corrects against training data.
+## v10 Import Corrections (the training-data drift this skill fixes)
 
-| Import | Kind | From (v10 consolidated) |
+Three rewrites carry almost all the value this skill provides. If a generated import uses the left column, rewrite it to the right column:
+
+| Old (v9 / training data) | New (v10 canonical) | Why |
 |---|---|---|
-| `Meta`, `StoryObj`, `StoryFn`, `Decorator`, `Parameters`, `ArgTypes`, `Args`, `StoryContext`, `Loader`, `Preview` | type | `@storybook/react-vite` *(or `@storybook/react`)* `[AST:code/renderers/react/src/public-types.ts:L29]` |
-| `StorybookConfig`, `FrameworkOptions` | type | `@storybook/react-vite` `[AST:code/frameworks/react-vite/src/types.ts:L1]` |
-| `expect`, `fn`, `within`, `screen`, `waitFor`, `userEvent`, `fireEvent`, `spyOn` | runtime | `storybook/test` `[AST:code/core/src/test/index.ts:L54]` |
-| `useState`, `useArgs`, `useParameter`, `useChannel`, `useEffect`, `useGlobals`, `useCallback`, `useMemo`, `useRef`, `useReducer`, `useStoryContext` | hook | `storybook/preview-api` `[AST:code/core/src/preview-api/index.ts:L5]` |
-| `addons`, `makeDecorator`, `mockChannel` | runtime | `storybook/preview-api` `[AST:code/core/src/preview-api/index.ts:L21]` |
-| `composeStories`, `composeStory`, `setProjectAnnotations` | runtime | **`@storybook/react-vite`** *(canonical for React+Vite — re-exported from `@storybook/react` where they're defined)* `[AST:code/renderers/react/src/portable-stories.tsx:L46]` |
-| `__definePreview` *(CSF4 factory — the double-underscore form is the canonical public export name in `@storybook/react-vite` / `@storybook/react`; `definePreview` is a user-facing alias in the docs but the symbol emitted from the framework package is `__definePreview`)* | runtime | `@storybook/react-vite` `[AST:code/renderers/react/src/preview.tsx:L55]` |
-| `action` | runtime | `storybook/actions` `[AST:code/core/src/actions/index.ts:L1]` |
-| `create`, `themes`, `styled`, `css`, `useTheme`, `ThemeProvider` | runtime | `storybook/theming` / `storybook/theming/create` `[AST:code/core/src/theming/create.ts:L29]` |
-| `HIGHLIGHT`, `RESET_HIGHLIGHT` | const | `storybook/highlight` `[AST:code/core/src/highlight/index.ts:L1]` |
-| `Canvas`, `Meta`, `Controls`, `Primary`, `Stories`, `Story`, `ArgTypes`, `Source`, `Description`, `Title`, `Markdown`, `Typeset`, `ColorPalette`, `IconGallery`, `Unstyled`, `useOf`, `DocsContainer`, `DocsPage` | MDX block | `@storybook/addon-docs/blocks` `[AST:code/addons/docs/src/blocks.ts:L1]` |
-| `withThemeByClassName`, `withThemeByDataAttribute`, `withThemeFromJSXProvider` | decorator | `@storybook/addon-themes` `[AST:code/addons/themes/src/index.ts:L1]` |
-| a11y `parameters: { a11y: { test: ... } }`, runtime `afterEach`, `decorators`, `initialGlobals` | param + runtime | `@storybook/addon-a11y` / `@storybook/addon-a11y/preview` — the runtime `afterEach(context)` at `[AST:code/addons/a11y/src/preview.tsx:L14]` runs axe-core per story and attaches an `A11yReport` to `context.reporting`; compose it manually in your `preview.ts` only when you need multiple `afterEach` hooks | `[AST:code/addons/a11y/src/preview.tsx:L14]` |
+| `@storybook/test` | `storybook/test` | v10 consolidation — no scope prefix, no `-` separator. `[QMD:oms-storybook-react-vite-temporal:issues.md #9b8716]` |
+| `@storybook/preview-api` | `storybook/preview-api` | Same consolidation. Hooks (`useArgs`, `useState`, …) all live here now. |
+| `@storybook/theming` / `@storybook/actions` / `@storybook/manager-api` | `storybook/theming` / `storybook/actions` / `storybook/manager-api` | Same pattern — all core subpaths drop the `@` prefix. |
 
-Full signatures, parameter tables, and return types live in `references/core-api.md` (storybook/* subpaths), `references/story-types.md` (CSF types), `references/doc-blocks.md` (MDX blocks), and `references/addons.md`.
+The full import surface (CSF types, test utilities, preview-api hooks, addon exports, MDX blocks) lives in `references/core-api.md` — the complete v10 consolidated import table is the first section of that file. See also `references/story-types.md`, `references/doc-blocks.md`, `references/addons.md`, `references/framework-config.md`.
 
 <!-- [MANUAL:additional-notes-api] -->
 <!-- Add custom notes here. This section is preserved during skill updates. -->
 <!-- [/MANUAL:additional-notes-api] -->
 
-## Import Surface Corrections & Recent Changes
+## Shipped v10.3.x fixes worth knowing
 
-> **Section scope:** this section is not a Storybook changelog — it captures the *v10 consolidation* that persists as a training-data defect plus a handful of load-bearing recent fixes. There are **no forward-looking deprecations** announced for v10.3.5 (nothing scheduled to break in v11 yet at the time of extraction).
+> **Scope:** historical migration + recent shipped fixes. No forward-looking deprecations are announced for v10.3.5 — nothing scheduled to break in v11 yet at the time of extraction. The v10 consolidation itself is covered by the import-corrections table above.
 
-**v10 consolidation (the big one — this is the skill's core value prop):** The package `@storybook/test` is deprecated. Import from `storybook/test` instead (no `@` prefix, no `-` separator). The same applies to `@storybook/preview-api` → `storybook/preview-api`, `@storybook/manager-api` → `storybook/manager-api`, `@storybook/theming` → `storybook/theming`, `@storybook/actions` → `storybook/actions`. Training data and `eslint-plugin-storybook` older versions still suggest the `@storybook/*` forms — override them. `[QMD:oms-storybook-react-vite-temporal:issues.md #9b8716]` `[AST:code/core/package.json:L48]`
+- **`setProjectAnnotations` expanded** (PR #28907): available across more renderers/frameworks for portable stories. Always call it once in your Vitest/Jest setup — otherwise `composeStories` will miss project-level decorators and parameters. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]`
+- **Component manifest default changed in 10.3.5** (PR #34408): `docs.componentManifest` is now disabled by default. If your project uses `@storybook/addon-mcp < 0.5.0`, upgrade it — the MCP docs toolset re-enables manifests. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]`
+- **`addon-a11y` test flake fix** (PR #34203, v10.3.4): status transition timer is now cleared on unmount. If you saw intermittent a11y test failures on older 10.3.x, upgrading resolves them. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]`
 
-**`setProjectAnnotations` expanded** (PR #28907): available across more renderers/frameworks for portable stories. Always call it once in your Vitest/Jest setup — otherwise `composeStories` will miss project-level decorators and parameters. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]`
+## Key Types (quick-start essentials)
 
-**Component manifest default changed in 10.3.5** (PR #34408): `docs.componentManifest` is now disabled by default. If your project uses `@storybook/addon-mcp < 0.5.0`, upgrade it — the MCP docs toolset re-enables manifests. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]`
-
-**`addon-a11y` test flake fix** (PR #34203, v10.3.4): status transition timer is now cleared on unmount. If you saw intermittent a11y test failures on older 10.3.x, upgrading resolves them. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]`
-
-See Full API Reference and `references/framework-config.md` for migration details and the full v10 import mapping.
-
-## Key Types
+The three types every CSF3 story file needs — just enough for the Quick Start above. `Decorator`, `Loader`, `StoryContext`, `A11yTestMode`, `Framework`, and the full generic shapes live in `references/story-types.md`.
 
 ```ts
 // @storybook/react-vite re-exports these from @storybook/react
-// (BOTH import paths work; prefer @storybook/react-vite for framework alignment)
-
-type Preview = ProjectAnnotations<ReactRenderer>;
-// Shape of .storybook/preview.ts default export.
-// ⚠️ Not the same as the runtime `Preview` CLASS exported from
-// `storybook/preview-api` (aliased to `PreviewWeb`, the browser runtime at
-// code/core/src/preview-api/modules/preview-web/Preview.tsx:L60). The class
-// is an internal runtime; story authors only ever use the type.
-
-type Meta<TCmpOrArgs = Args> = [TCmpOrArgs] extends [ComponentType<any>]
-  ? ComponentAnnotations<ReactRenderer, ComponentProps<TCmpOrArgs>>
-  : ComponentAnnotations<ReactRenderer, TCmpOrArgs>;
-// Component metadata — pass a component and args are inferred from props
-
-type StoryObj<TMetaOrCmpOrArgs = Args> = /* CSF3 story; see references/story-types.md */;
-// CSF3 story object — use `satisfies Meta<typeof X>` on meta, then `StoryObj<typeof meta>` on stories
-
-type Decorator<TArgs = StrictArgs> = DecoratorFunction<ReactRenderer, TArgs>;
-type Loader<TArgs = StrictArgs> = LoaderFunction<ReactRenderer, TArgs>;
-type StoryContext<TArgs = StrictArgs> = GenericStoryContext<ReactRenderer, TArgs>;
-
-// Addon-a11y test mode (set in parameters.a11y.test)
-type A11yTestMode = 'off' | 'todo' | 'error';
-
-// .storybook/main.ts framework field — string OR object-with-options
-type Framework = '@storybook/react-vite' | { name: '@storybook/react-vite'; options: FrameworkOptions };
+type Meta<TCmpOrArgs = Args>;      // component metadata — use with `satisfies Meta<typeof X>`
+type StoryObj<TMeta>;              // CSF3 story — `export const X: Story = { args: {...} }`
+type Preview = ProjectAnnotations<ReactRenderer>;  // shape of .storybook/preview.ts default export
 ```
 
-`[AST:code/renderers/react/src/public-types.ts:L29]` `[AST:code/renderers/react/src/public-types.ts:L80]` `[AST:code/frameworks/react-vite/src/types.ts:L1]`
-
-Full type definitions with inline generics, `StoryAnnotations` / `ComponentAnnotations` internal shapes, and all addon parameter types live in `references/story-types.md`.
+`[AST:code/renderers/react/src/public-types.ts:L29]` `[AST:code/renderers/react/src/public-types.ts:L80]`
 
 ## Architecture at a Glance
 
-- **`storybook` core package** — 40 subpath exports. Authoring-surface tier A: `test`, `preview-api`, `manager-api`, `theming`, `theming/create`, `actions`, `actions/decorator`, `highlight`, `viewport`. Type tier B: `internal/types`, `internal/csf`, `internal/preview-errors`, `internal/server-errors`, `internal/components`. `internal/*` is not private — it is declared in the package's `exports` field.
-- **`@storybook/react-vite` (framework)** — Thin layer that re-exports all CSF types from `@storybook/react`, adds `StorybookConfig`, and wires the Vite builder. Imports in stories should target this package for framework-aligned type inference.
-- **`@storybook/react` (renderer)** — Defines `Meta`, `StoryObj`, `StoryFn`, `Decorator`, `Loader`, `StoryContext`, `Preview` in `public-types.ts`. Houses `composeStory`/`composeStories` (portable stories) and CSF4 factory API (`__definePreview`, `ReactPreview`, `ReactMeta`, `ReactStory`).
-- **`@storybook/builder-vite` (builder)** — Vite dev/build backend. Exports `start`, `build`, `ViteBuilder`, `ViteFinal`, `StorybookConfigVite`. Users rarely import from it directly — `react-vite` drives it via `viteFinal` in `main.ts`.
-- **Addons (4 essentials in scope)** — `@storybook/addon-a11y`, `@storybook/addon-docs`, `@storybook/addon-themes`, `@storybook/addon-vitest`. Registered in `main.ts` `addons: []`; expose `parameters`/`decorators` via `./preview` subpath entries.
-- **Template stories** — `code/renderers/react/template/stories/*.stories.tsx` — the repo's own canonical CSF3/CSF4 exemplars. When in doubt, `references/csf3-patterns.md` has verbatim extracts.
-
-Sources: `[AST:code/core/package.json:L48]` `[AST:code/frameworks/react-vite/src/index.ts:L1]` `[AST:code/renderers/react/src/public-types.ts:L1]` `[AST:code/builders/builder-vite/src/index.ts:L1]` `[AST:code/addons/a11y/src/preview.tsx:L1]` `[AST:code/renderers/react/template/stories/decorators.stories.tsx:L1]`.
-
-**Defect localization by layer:** a failing story render → renderer (`@storybook/react`); a failing Vite dev server / HMR → builder (`@storybook/builder-vite`); a failing `main.ts` framework pick → framework (`@storybook/react-vite`); a failing `play` function assertion → `storybook/test`; a failing addon panel → the specific addon package.
+Layer model: `@storybook/react-vite` (framework) composes `@storybook/react` (renderer) + `@storybook/builder-vite` (builder). Defect localization: story render failures → renderer; Vite HMR/build failures → builder; `main.ts` framework pick or addon auto-detect → framework; `play` function assertions → `storybook/test`; addon panel missing → the specific addon package. Full layer composition, `main.ts` contract, and `preview.ts` authoring surface live in `references/framework-config.md`. `[AST:code/frameworks/react-vite/src/index.ts:L1]` `[AST:code/renderers/react/src/public-types.ts:L1]` `[AST:code/builders/builder-vite/src/index.ts:L1]`
 
 ## CLI
 

@@ -17,9 +17,9 @@
     { "export_name": "ReactRenderer", "export_type": "type", "source_library": "@storybook/react", "params": [], "return_type": "{ component: ReactElement; storyResult: ReactNode; canvasElement: HTMLElement; T: unknown }", "source_file": "code/renderers/react/src/types.ts", "source_line": 1, "confidence": "T1", "extraction_method": "ast-grep", "ast_node_type": "export_type_alias", "signature_source": "T1" },
     { "export_name": "StorybookConfig", "export_type": "type", "source_library": "@storybook/react-vite", "params": [], "return_type": "interface", "source_file": "code/frameworks/react-vite/src/types.ts", "source_line": 1, "confidence": "T1", "extraction_method": "ast-grep", "ast_node_type": "export_interface", "signature_source": "T1" },
     { "export_name": "FrameworkOptions", "export_type": "type", "source_library": "@storybook/react-vite", "params": [], "return_type": "interface", "source_file": "code/frameworks/react-vite/src/types.ts", "source_line": 1, "confidence": "T1", "extraction_method": "ast-grep", "ast_node_type": "export_interface", "signature_source": "T1" },
-    { "export_name": "defineMain", "export_type": "function", "source_library": "@storybook/react-vite", "params": ["config: StorybookConfig"], "return_type": "StorybookConfig", "source_file": "code/frameworks/react-vite/src/node/index.ts", "source_line": 1, "confidence": "T1", "extraction_method": "ast-grep", "ast_node_type": "export_function", "signature_source": "T1" },
+    { "export_name": "defineMain", "export_type": "function", "source_library": "@storybook/react-vite", "params": ["config: StorybookConfig"], "return_type": "StorybookConfig", "source_file": "code/frameworks/react-vite/src/node/index.ts", "source_line": 3, "confidence": "T1", "extraction_method": "ast-grep", "ast_node_type": "export_function", "signature_source": "T1" },
     { "export_name": "composeStory", "export_type": "function", "source_library": "@storybook/react", "params": ["story: Story<TArgs>", "componentAnnotations: TMeta", "projectAnnotations?: ProjectAnnotations<ReactRenderer>", "exportsName?: string"], "return_type": "ComposedStoryFn<ReactRenderer, TArgs>", "source_file": "code/renderers/react/src/portable-stories.ts", "source_line": 1, "confidence": "T1", "extraction_method": "ast-grep", "ast_node_type": "export_function", "signature_source": "T1" },
-    { "export_name": "composeStories", "export_type": "function", "source_library": "@storybook/react", "params": ["csfExports: TModule", "projectAnnotations?: ProjectAnnotations<ReactRenderer>"], "return_type": "StoriesWithPartialProps<ReactRenderer, TModule>", "source_file": "code/renderers/react/src/portable-stories.ts", "source_line": 1, "confidence": "T1", "extraction_method": "ast-grep", "ast_node_type": "export_function", "signature_source": "T1" },
+    { "export_name": "composeStories", "export_type": "function", "source_library": "@storybook/react", "params": ["csfExports: TModule extends Store_CSFExports<ReactRenderer, any>", "projectAnnotations?: ProjectAnnotations<ReactRenderer>"], "return_type": "Omit<StoriesWithPartialProps<ReactRenderer, TModule>, keyof Store_CSFExports>", "source_file": "code/renderers/react/src/portable-stories.tsx", "source_line": 148, "confidence": "T1", "extraction_method": "ast-grep", "ast_node_type": "export_function", "signature_source": "T1" },
     { "export_name": "setProjectAnnotations", "export_type": "function", "source_library": "@storybook/react", "params": ["projectAnnotations: ProjectAnnotations<ReactRenderer> | ProjectAnnotations<ReactRenderer>[]"], "return_type": "ProjectAnnotations<ReactRenderer>", "source_file": "code/renderers/react/src/portable-stories.ts", "source_line": 1, "confidence": "T1", "extraction_method": "ast-grep", "ast_node_type": "export_function", "signature_source": "T1" },
     { "export_name": "__definePreview", "export_type": "function", "source_library": "@storybook/react", "params": ["input: PreviewInput"], "return_type": "ReactPreview<Addons>", "source_file": "code/renderers/react/src/preview.tsx", "source_line": 1, "confidence": "T1", "extraction_method": "ast-grep", "ast_node_type": "export_function", "signature_source": "T1" },
     { "export_name": "ReactPreview", "export_type": "interface", "source_library": "@storybook/react", "params": ["T extends AddonTypes"], "return_type": "interface", "source_file": "code/renderers/react/src/preview.tsx", "source_line": 1, "confidence": "T1", "extraction_method": "ast-grep", "ast_node_type": "export_interface", "signature_source": "T1" },
@@ -188,7 +188,7 @@
 
     { "export_name": "ThemeAddonState", "export_type": "interface", "source_library": "@storybook/addon-themes", "params": [], "return_type": "{ themesList: string[]; themeDefault?: string }", "source_file": "code/addons/themes/src/types.ts", "source_line": 1, "confidence": "T1", "extraction_method": "ast-grep-update", "ast_node_type": "export_interface", "signature_source": "T1" },
     { "export_name": "ThemesParameters", "export_type": "interface", "source_library": "@storybook/addon-themes", "params": [], "return_type": "{ themes?: { disable?: boolean; themeOverride?: string } }", "source_file": "code/addons/themes/src/types.ts", "source_line": 6, "confidence": "T1", "extraction_method": "ast-grep-update", "ast_node_type": "export_interface", "signature_source": "T1" },
-    { "export_name": "ThemesGlobalsInterface", "export_type": "interface", "source_library": "@storybook/addon-themes", "params": [], "return_type": "{ theme?: string }", "source_file": "code/addons/themes/src/types.ts", "source_line": 20, "confidence": "T1", "extraction_method": "ast-grep-update", "ast_node_type": "export_interface", "signature_source": "T1" },
+    { "export_name": "ThemesGlobals_def", "export_type": "interface", "source_library": "@storybook/addon-themes", "params": [], "return_type": "{ theme?: string }", "source_file": "code/addons/themes/src/types.ts", "source_line": 20, "confidence": "T1", "extraction_method": "ast-grep-update", "ast_node_type": "export_interface", "signature_source": "T1" },
     { "export_name": "ThemesTypes", "export_type": "interface", "source_library": "@storybook/addon-themes", "params": [], "return_type": "{ parameters: ThemesParameters; globals: ThemesGlobals }", "source_file": "code/addons/themes/src/types.ts", "source_line": 25, "confidence": "T1", "extraction_method": "ast-grep-update", "ast_node_type": "export_interface", "signature_source": "T1" },
     { "export_name": "ClassNameStrategyConfiguration", "export_type": "interface", "source_library": "@storybook/addon-themes", "params": [], "return_type": "{ themes: Record<string,string>; defaultTheme: string; parentSelector?: string }", "source_file": "code/addons/themes/src/decorators/class-name.decorator.tsx", "source_line": 8, "confidence": "T1", "extraction_method": "ast-grep-update", "ast_node_type": "export_interface", "signature_source": "T1" },
     { "export_name": "DataAttributeStrategyConfiguration", "export_type": "interface", "source_library": "@storybook/addon-themes", "params": [], "return_type": "{ themes; defaultTheme; parentSelector?; attributeName? }", "source_file": "code/addons/themes/src/decorators/data-attribute.decorator.tsx", "source_line": 8, "confidence": "T1", "extraction_method": "ast-grep-update", "ast_node_type": "export_interface", "signature_source": "T1" },
@@ -247,17 +247,33 @@
     { "export_name": "Background", "export_type": "type", "source_library": "storybook/theming", "params": [], "return_type": "typeof background", "source_file": "code/core/src/theming/types.ts", "source_line": 58, "confidence": "T1", "extraction_method": "ast-grep-update", "ast_node_type": "export_type_alias", "signature_source": "T1" },
     { "export_name": "Color", "export_type": "type", "source_library": "storybook/theming", "params": [], "return_type": "typeof color", "source_file": "code/core/src/theming/types.ts", "source_line": 57, "confidence": "T1", "extraction_method": "ast-grep-update", "ast_node_type": "export_type_alias", "signature_source": "T1" }
   ],
-  "last_update": "2026-04-11T19:50:00Z",
+  "last_update": "2026-04-11T22:30:00Z",
   "update_type": "incremental-gap-driven",
+  "update_history": [
+    {
+      "date": "2026-04-11T19:50:00Z",
+      "trigger": "test-report",
+      "test_score_before": 63.84,
+      "threshold": 80,
+      "gaps_resolved": 9,
+      "exports_added": 133,
+      "files_changed": 6,
+      "manual_sections_preserved": 4,
+      "notes": "First gap-driven pass — Key API Summary, Key Types, Architecture sections added; coverage 19% → 74.4%."
+    }
+  ],
   "update_metadata": {
     "trigger": "test-report",
     "test_report_path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite.md",
-    "test_score_before": 63.84,
+    "test_score_before": 79.68,
     "threshold": 80,
-    "gaps_resolved": 9,
-    "exports_added": 133,
+    "gaps_resolved": 11,
+    "exports_updated": 2,
+    "exports_added": 0,
+    "exports_renamed": 1,
     "files_changed": 6,
     "manual_sections_preserved": 4,
-    "confidence_tier": "Deep"
+    "confidence_tier": "Deep",
+    "notes": "Second gap-driven pass (2026-04-11T22:30Z). Fixes: composeStories signature + path (.ts→.tsx, L1→L148), defineMain line (L1→L3), ThemesGlobalsInterface renamed to ThemesGlobals_def (disambiguator convention), CanvasProps detail expanded in doc-blocks.md, Key API Summary moved to core-api.md, Key Types trimmed to 3 essentials, Architecture collapsed to paragraph, scope.exclude narrowed (GAP-005) to exclude code/core/src/components|babel|csf-tools|core-server|router|node-logger|telemetry|channels|builder-manager."
   }
 }

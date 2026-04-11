@@ -64,10 +64,45 @@ import { defineMain } from '@storybook/react-vite/node';
 import type { StorybookConfig } from '@storybook/react-vite';
 ```
 
-- `defineMain(config: StorybookConfig): StorybookConfig` — identity helper for type narrowing
-- `StorybookConfig` — the `main.ts` config interface (framework-augmented)
+#### `defineMain`
 
-`[AST:code/frameworks/react-vite/src/node/index.ts:L1]`
+```ts
+// code/frameworks/react-vite/src/node/index.ts:3
+export function defineMain(config: StorybookConfig): StorybookConfig
+```
+
+Identity helper — returns `config` as-is. Exists purely to anchor TypeScript inference at `.storybook/main.ts` so autocomplete and type-checking work on the `framework`, `addons`, and `viteFinal` fields without the user having to annotate the export explicitly.
+
+**Usage:**
+
+```ts
+// .storybook/main.ts
+import { defineMain } from '@storybook/react-vite/node';
+
+export default defineMain({
+  framework: '@storybook/react-vite',
+  stories: ['../src/**/*.stories.@(ts|tsx|mdx)'],
+  addons: ['@storybook/addon-docs', '@storybook/addon-a11y'],
+  viteFinal: async (config) => {
+    // config is now typed as InlineConfig — autocomplete works
+    return config;
+  },
+});
+```
+
+Equivalent annotation without `defineMain` (also valid, slightly noisier):
+
+```ts
+import type { StorybookConfig } from '@storybook/react-vite';
+const config: StorybookConfig = { /* ... */ };
+export default config;
+```
+
+`[AST:code/frameworks/react-vite/src/node/index.ts:L3]`
+
+#### `StorybookConfig`
+
+The `main.ts` config interface (framework-augmented — `framework`, `addons`, `stories`, `viteFinal`, `docs`, `typescript`, `staticDirs`, …). `[AST:code/frameworks/react-vite/src/types.ts:L1]`
 
 ### `./preset` entry (internal)
 
