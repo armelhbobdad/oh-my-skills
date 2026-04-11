@@ -6,10 +6,12 @@ The snippet `root:` path must reflect the IDE's actual skill directory — its `
 
 The root path in context-snippet.md on disk uses the **`skill_root` of the first entry in `target_context_files`** (resolved in step-01 from config.yaml IDE mapping). When assembling managed sections for other context files, step-04 rewrites root paths to match the target context file's skill root.
 
+**Authoring-repo override:** If `snippet_skill_root_override` is set in `config.yaml`, it replaces the IDE-mapped value for snippet generation and freezes matching prefixes against step-04 rewrites. See the "Resolution rules" section in `managed-section-format.md` for the full semantics.
+
 ## Format Rules
 
 - Indexed pipe-delimited format per skill — retrieval instruction + file map + inline gotchas
-- ~80-120 tokens per skill target (up from ~50-80, justified by Vercel research)
+- ~80-120 tokens per skill target (up from ~50-80, justified by Vercel research). Deep tier may exceed 120 tokens when gotchas are load-bearing (substantive breaking-change notices, deprecated-API lists); the hard ceiling is 300 tokens.
 - T1-now content only (AST-current, no annotations)
 - Line 2 (IMPORTANT) is the RETRIEVAL INSTRUCTION — always present, tells agent to read SKILL.md
 - Section anchors (`#quick-start`, `#key-types`) must match actual SKILL.md heading slugs
