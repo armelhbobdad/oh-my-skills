@@ -86,3 +86,71 @@ Targeted function searches: provider functions had no temporal signal (young pro
 - Brief version `0.1.0` aligns only with `@uitripled/react-shadcn`. The standalone `uitripled` CLI package is at `1.1.0` — consumers should understand these are independent packages. Documented in SKILL.md Overview.
 - `packages/components/react-shadcn/CHANGELOG.md` and root `CHANGELOG.md` do not exist (no `.changeset/` directory either). Release trail is thin — update-skill should diff against `source_commit`, not against a changelog.
 - **Staging-directory name check friction:** `skill-check` enforces `frontmatter.name_matches_directory`, so the create-skill staging suffix convention (`_bmad-output/{name}-skill/`) is incompatible with strict validation. Worked around by renaming the staging dir to `_bmad-output/oms-uitripled/`. Consider updating create-skill step-05/step-07 to use the unsuffixed staging path, or passing a directory override to skill-check.
+
+## Update Operation — 2026-04-11T11:33:03Z
+
+**Trigger:** manual (`/skf-update-skill @forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled.md`)
+**Forge Tier:** Deep
+**Mode:** incremental-gap-driven (source at `a5ffb45` unchanged; test report findings drove the change manifest)
+
+### Gaps Addressed
+
+| Gap | Severity | Symbol / Target | Fix |
+|-----|----------|-----------------|-----|
+| GAP-001 | High | `initializeCells` | Params `(rows, cols)` → `(cols, rows)` in `references/utils.md:63` + provenance-map |
+| GAP-002 | High | `getCellKey` | Params `(cell: GridCell)` → `(row: number, col: number)` |
+| GAP-003 | High | `isCellInSelection` | Params `(cell, sel)` → `(row, col, selectedCells)` |
+| GAP-004 | Medium | Section 4b | Removed `## Migration & Deprecation Warnings` (no T2-future annotations); relocated CLI path rationale into `## CLI` as "Preferred path rationale" note |
+| GAP-005 | Medium | Landing Builder helpers | Added `createPage`, `extractSavedPages`, `countSavedProjectComponents` to `references/utils.md` + provenance-map |
+| GAP-006 | Low | `UILibrary` Key Types | Widened to full 4-member union `"shadcnui"\|"baseui"\|"carbon"\|"react"` with runtime-subset note |
+
+**Not addressed (advisory, out of scope):**
+- GAP-007 (Low) — Component Catalog category counts AST re-aggregation deferred to future update-skill run
+- GAP-008 (Info) — Discovery testing is a pre-export task, not a doc repair
+
+### Changes Detected (gap-derived manifest)
+
+- Files modified: 2 (`SKILL.md`, `references/utils.md`)
+- Files added: 0
+- Files deleted: 0
+- Exports affected: 6 (3 signature fixes + 3 new)
+- Structural sections removed: 1 (`## Migration & Deprecation Warnings`)
+
+### Merge Results
+
+- Exports updated (signature): 3
+- Exports added (docs + provenance): 3
+- Exports removed: 0
+- [MANUAL] sections preserved: 4 (`additional-notes-quickstart`, `additional-notes-catalog`, `additional-notes-api`, `additional-notes-reference`)
+- Conflicts resolved: 0 (clean merge — none of the fixes intersected a [MANUAL] block)
+
+### Validation Summary
+
+- Spec compliance: PENDING (deferred to step-06 §7 post-write)
+- [MANUAL] integrity: PASS (4/4 markers byte-identical post-merge)
+- Confidence tiers: PASS (all changes T1, source-read verified against live tree)
+- Provenance: PASS (citations spot-checked against `packages/utils/src/grid-utils.ts` and `packages/utils/src/builder-utils.ts`)
+
+### Per-export Verification Record
+
+| Export | Provenance citation | Verification | Signature source |
+|--------|---------------------|--------------|------------------|
+| `initializeCells` | `packages/utils/src/grid-utils.ts:76` | verified | T1 (source-read) |
+| `getCellKey` | `packages/utils/src/grid-utils.ts:101` | verified | T1 (source-read) |
+| `isCellInSelection` | `packages/utils/src/grid-utils.ts:106` | verified | T1 (source-read) |
+| `createPage` | `packages/utils/src/builder-utils.ts:33` | new (was unknown) | T1 (source-read) |
+| `extractSavedPages` | `packages/utils/src/builder-utils.ts:52` | new (was unknown) | T1 (source-read) |
+| `countSavedProjectComponents` | `packages/utils/src/builder-utils.ts:70` | new (was unknown) | T1 (source-read) |
+
+### Root Cause
+
+All 6 findings trace to extraction bugs during the original `skf-create-skill` run, not to source drift. The `source-read` extraction of `grid-utils.ts` captured `(rows, cols)` order and single-cell argument forms that do not exist in source. The `builder-utils.ts` extraction ran only on `sanitizeSlug` and `generateUniqueSlug` and stopped before reaching the page-management helpers below line 14. Both are systemic gaps in the create-skill extraction pattern, not post-compile drift.
+
+**Recommendation for create-skill improvement:** the `builder-utils.ts` extraction pattern should iterate every top-level `export function`/`export const` in the file rather than matching by known names from the brief. The `grid-utils.ts` parameter-order bug suggests the extraction read the JSDoc preamble ("Convert cells into grid") and inferred types rather than reading the actual `(cols: number, rows: number)` arrow-function signature; future runs should AST-extract the parameter list, not the prose.
+
+### Description Guard
+
+- Restored: false
+- Triggering tool: —
+- Original description preserved: true (no SKILL.md frontmatter touch in this run)
+- Notes: —

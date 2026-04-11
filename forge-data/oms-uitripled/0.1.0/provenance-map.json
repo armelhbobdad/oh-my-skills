@@ -6,6 +6,21 @@
   "source_commit": "a5ffb45be05335d2c547436664cfbfb8c22d04df",
   "source_ref": "HEAD",
   "generated_at": "2026-04-11T00:00:00Z",
+  "last_update": "2026-04-11T11:33:03Z",
+  "update_type": "incremental-gap-driven",
+  "update_operations": [
+    {
+      "date": "2026-04-11T11:33:03Z",
+      "workflow": "skf-update-skill",
+      "trigger": "test-report (gap-driven)",
+      "test_report": "forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled.md",
+      "gaps_addressed": ["GAP-001", "GAP-002", "GAP-003", "GAP-004", "GAP-005", "GAP-006"],
+      "exports_signature_fixed": ["initializeCells", "getCellKey", "isCellInSelection"],
+      "exports_added": ["createPage", "extractSavedPages", "countSavedProjectComponents"],
+      "manual_sections_preserved": 4,
+      "confidence_tier": "Deep"
+    }
+  ],
   "entries": [
     {
       "export_name": "ThemeProvider",
@@ -125,6 +140,45 @@
       "signature_source": "T1"
     },
     {
+      "export_name": "createPage",
+      "export_type": "function",
+      "source_library": "@uitripled/utils",
+      "params": ["name: string", "existingSlugs: string[]"],
+      "return_type": "BuilderProjectPage",
+      "source_file": "packages/utils/src/builder-utils.ts",
+      "source_line": 33,
+      "confidence": "T1",
+      "extraction_method": "source-read",
+      "ast_node_type": "export_function_declaration",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "extractSavedPages",
+      "export_type": "function",
+      "source_library": "@uitripled/utils",
+      "params": ["project: SavedProject"],
+      "return_type": "SavedProjectPage[]",
+      "source_file": "packages/utils/src/builder-utils.ts",
+      "source_line": 52,
+      "confidence": "T1",
+      "extraction_method": "source-read",
+      "ast_node_type": "export_function_declaration",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "countSavedProjectComponents",
+      "export_type": "function",
+      "source_library": "@uitripled/utils",
+      "params": ["project: SavedProject"],
+      "return_type": "number",
+      "source_file": "packages/utils/src/builder-utils.ts",
+      "source_line": 70,
+      "confidence": "T1",
+      "extraction_method": "source-read",
+      "ast_node_type": "export_function_declaration",
+      "signature_source": "T1"
+    },
+    {
       "export_name": "GAP_VALUES",
       "export_type": "const",
       "source_library": "@uitripled/utils",
@@ -179,39 +233,39 @@
     {
       "export_name": "initializeCells",
       "export_type": "const",
-      "params": ["rows: number", "cols: number"],
+      "params": ["cols: number", "rows: number"],
       "return_type": "GridCell[]",
       "source_library": "@uitripled/utils",
       "source_file": "packages/utils/src/grid-utils.ts",
       "source_line": 76,
       "confidence": "T1",
-      "extraction_method": "ast-grep",
+      "extraction_method": "source-read",
       "ast_node_type": "export_const_arrow_function",
       "signature_source": "T1"
     },
     {
       "export_name": "getCellKey",
       "export_type": "const",
-      "params": ["cell: GridCell"],
+      "params": ["row: number", "col: number"],
       "return_type": "string",
       "source_library": "@uitripled/utils",
       "source_file": "packages/utils/src/grid-utils.ts",
       "source_line": 101,
       "confidence": "T1",
-      "extraction_method": "ast-grep",
+      "extraction_method": "source-read",
       "ast_node_type": "export_const_arrow_function",
       "signature_source": "T1"
     },
     {
       "export_name": "isCellInSelection",
       "export_type": "const",
-      "params": ["cell: GridCell", "sel: unknown"],
+      "params": ["row: number", "col: number", "selectedCells: string[]"],
       "return_type": "boolean",
       "source_library": "@uitripled/utils",
       "source_file": "packages/utils/src/grid-utils.ts",
       "source_line": 106,
       "confidence": "T1",
-      "extraction_method": "ast-grep",
+      "extraction_method": "source-read",
       "ast_node_type": "export_const_arrow_function",
       "signature_source": "T1"
     },

@@ -41,12 +41,18 @@ Standard shadcn/ui class-merging helper. Identical implementation shipped at `pa
 ```ts
 export const sanitizeSlug = (value: string) => string;                        // L7
 export function generateUniqueSlug(baseName: string, existingSlugs: string[]): string; // L14
+export function createPage(name: string, existingSlugs: string[]): BuilderProjectPage; // L33
+export function extractSavedPages(project: SavedProject): SavedProjectPage[]; // L52
+export function countSavedProjectComponents(project: SavedProject): number;   // L70
 ```
 
 - `sanitizeSlug`: lowercases, replaces non-alphanumerics with `-`, trims leading/trailing `-`, caps length at 48 chars.
 - `generateUniqueSlug`: produces `{sanitizeSlug(baseName)}` if unique, else `{slug}-2`, `-3`, ... until it finds a free slot.
+- `createPage`: builds a fresh `BuilderProjectPage` with `crypto.randomUUID()` (falls back to `page-{timestamp}-{random}`) and a unique slug derived from `name` via `generateUniqueSlug`. Empty `components` array.
+- `extractSavedPages`: normalizes a `SavedProject` into `SavedProjectPage[]`. If the project already has `pages[]`, returns it as-is. Otherwise synthesizes a single `"Landing"` page using `project.entryPageId` (or a slugified project name) as the id, `project.components ?? []` as content, and `project.code` if present — this handles the legacy single-page project shape.
+- `countSavedProjectComponents`: totals the `components.length` across all pages (via `extractSavedPages`) for display in project lists.
 
-Used by the Landing Builder (`apps/docs/app/builder/`) to name saved pages. `[AST:packages/utils/src/builder-utils.ts:L7]`
+Used by the Landing Builder (`apps/docs/app/builder/`) to name and manage saved pages. `[AST:packages/utils/src/builder-utils.ts:L7]` `[AST:packages/utils/src/builder-utils.ts:L33]` `[AST:packages/utils/src/builder-utils.ts:L52]` `[AST:packages/utils/src/builder-utils.ts:L70]`
 
 ## Grid helpers
 
@@ -59,10 +65,15 @@ export interface BentoPreset { name: string; cols: number; rows: number; cells: 
 export const GAP_VALUES: number[] = [0, 1, 2, 3, 4, 5, 6, 8, 10, 12];
 export const getGapSliderIndex: (value: number) => number;
 export const getGapValueFromIndex: (index: number) => number;
-export const generateGridCode: (...) => string;
-export const initializeCells: (rows: number, cols: number) => GridCell[];
-export const getCellKey: (cell: GridCell) => string;
-export const isCellInSelection: (cell: GridCell, sel: unknown) => boolean;
+export const generateGridCode: (
+  cells: GridCell[],
+  cols: number,
+  gap: number,
+  options?: { useClassName?: boolean; includeBg?: boolean }
+) => string;
+export const initializeCells: (cols: number, rows: number) => GridCell[];
+export const getCellKey: (row: number, col: number) => string;
+export const isCellInSelection: (row: number, col: number, selectedCells: string[]) => boolean;
 ```
 
 `GAP_VALUES` deliberately skips `7`, `9`, and `11` (Tailwind's non-canonical gap steps). `[AST:packages/utils/src/grid-utils.ts:L23]`

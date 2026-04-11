@@ -10,6 +10,8 @@
   "confidence_tier": "Deep",
   "spec_version": "1.3",
   "generation_date": "2026-04-11T00:00:00Z",
+  "last_update": "2026-04-11T11:33:03Z",
+  "last_update_type": "incremental-gap-driven",
   "description": "Installs React 19 and Next.js 16 UI components, blocks, and pages from the uitripled shadcn-compatible registry (the react-shadcn variant). Use when composing landing pages, dashboards, or UI from 171 animated Framer Motion components via \"npx shadcn@latest add @uitripled/COMPONENT_ID\". Covers the registry catalog, CLI install paths, ThemeProvider and UILibraryProvider setup, shadcn/ui primitives, and the @uitripled/utils helpers. Do NOT use this skill for the deferred react-baseui or react-carbon variants (they will ship as separate skills), and do NOT generate barrel imports from the react-shadcn package — its src/index.ts file is empty by design.",
   "language": "typescript",
   "ast_node_count": 345,

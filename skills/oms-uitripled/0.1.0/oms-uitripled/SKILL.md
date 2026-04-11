@@ -125,20 +125,15 @@ export default function Page() {
 <!-- Add custom notes here. This section is preserved during skill updates. -->
 <!-- [/MANUAL:additional-notes-catalog] -->
 
-## Migration & Deprecation Warnings
-
-- **CLI path evolution:** The project's authoritative AI docs (`apps/docs/public/llms.txt`, generated per PR #8 in response to issue #7) standardized on `npx shadcn@latest add @uitripled/<name>` across all 171 entries. The standalone `npx uitripled add <name>` CLI (`packages/uitripled`) still works and still fetches from `https://ui.tripled.work/r/<name>.json`, but the shadcn path is the documented one. `[QMD:oms-uitripled-temporal:prs.md]` `[SRC:apps/docs/public/llms-full.txt:L49]`
-
-See Full API Reference for details.
-
 ## Key Types
 
 ```ts
 // ThemeProvider's defaultTheme prop
 type ThemeMode = "light" | "dark" | "system";
 
-// UILibraryProvider's runtime-reachable values (subset of the @uitripled/utils superset)
-type UILibrary = "shadcnui" | "baseui" | "carbon"; // + "react" in @uitripled/utils
+// @uitripled/utils exports the full 4-member union
+type UILibrary = "shadcnui" | "baseui" | "carbon" | "react";
+// NOTE: UILibraryProvider (react-shadcn package) only reaches "shadcnui" | "baseui" | "carbon" at runtime
 
 // registry.json entry types
 type RegistryItemType = "registry:page" | "registry:block" | "registry:component" | "registry:ui";
@@ -166,6 +161,8 @@ Representative component Props interfaces (e.g., `NativeHoverCardProps` with `im
 npx shadcn@latest add @uitripled/<component-id>
 ```
 `[SRC:apps/docs/public/llms-full.txt:L49]`
+
+**Preferred path rationale:** The project's authoritative AI docs (`apps/docs/public/llms.txt`, introduced in PR #8 per issue #7) standardized on `npx shadcn@latest add @uitripled/<name>` across all 171 entries. Both CLI paths still work and both fetch from `https://ui.tripled.work/r/<name>.json`, but the shadcn path is the documented one. `[QMD:oms-uitripled-temporal:prs.md]`
 
 **Alternative (standalone `uitripled` CLI):**
 ```bash
