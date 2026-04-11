@@ -1,0 +1,48 @@
+{
+  "skill": "skf-test-skill",
+  "status": "success",
+  "timestamp": "2026-04-11T18:32:00Z",
+  "outputs": [
+    {
+      "type": "report",
+      "path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite.md"
+    }
+  ],
+  "summary": {
+    "skillName": "oms-storybook-react-vite",
+    "skillVersion": "10.3.5",
+    "testMode": "naive",
+    "forgeTier": "Deep",
+    "analysisConfidence": "full",
+    "score": "63.84%",
+    "threshold": "80%",
+    "result": "FAIL",
+    "categoryScores": {
+      "exportCoverage": 43.5,
+      "signatureAccuracy": 97.3,
+      "typeCoverage": 52.4,
+      "coherence": null,
+      "externalValidation": 94.5
+    },
+    "weightedContributions": {
+      "exportCoverage": 19.58,
+      "signatureAccuracy": 24.33,
+      "typeCoverage": 10.48,
+      "coherence": 0,
+      "externalValidation": 9.45
+    },
+    "gapCounts": {
+      "critical": 1,
+      "high": 0,
+      "medium": 2,
+      "low": 5,
+      "info": 1,
+      "total": 9
+    },
+    "externalValidators": {
+      "skillCheck": {"available": true, "score": 100, "source": "reused"},
+      "tessl": {"available": true, "reviewScore": 89, "descriptionScore": 100, "contentScore": 73, "source": "reused"}
+    },
+    "nextWorkflow": "update-skill"
+  }
+}
