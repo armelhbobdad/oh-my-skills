@@ -55,12 +55,12 @@ No hallucinations. No guesswork. Just a parser reading real code.
 
 ## The four skills, pinned
 
-| If you're writing... | Version | Upstream source | Pinned at |
-|---|---|---|---|
-| [**cocoindex**](skills/oms-cocoindex/0.3.37/oms-cocoindex/SKILL.md) (Python) | 0.3.37 | [`cocoindex-io/cocoindex`](https://github.com/cocoindex-io/cocoindex) | [`87c5dbf0`](https://github.com/cocoindex-io/cocoindex/commit/87c5dbf087bfccca83791861db0d33519ef09677) · 2026-03-31 |
-| [**cognee**](skills/oms-cognee/0.5.8/oms-cognee/SKILL.md) (Python) | 0.5.8 | [`topoteretes/cognee`](https://github.com/topoteretes/cognee) | [`b51dcce1`](https://github.com/topoteretes/cognee/commit/b51dcce1d273d47ce864cd6c5e44a7a82f7f8dce) · 2026-04-08 |
-| [**Storybook**](skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/SKILL.md) (React + Vite, TS) | 10.3.5 | [`storybookjs/storybook`](https://github.com/storybookjs/storybook) | [`e486d382`](https://github.com/storybookjs/storybook/commit/e486d3826bcd40c52db1c766966d1c8ec16df6cb) · 2026-04-07 |
-| [**uitripled**](skills/oms-uitripled/0.1.0/oms-uitripled/SKILL.md) (TS) | 0.1.0 | [`moumen-soliman/uitripled`](https://github.com/moumen-soliman/uitripled) | [`a5ffb45b`](https://github.com/moumen-soliman/uitripled/commit/a5ffb45be05335d2c547436664cfbfb8c22d04df) · 2026-03-22 |
+| If you're writing... | Version | Test score | Upstream source | Pinned at |
+|---|---|---|---|---|
+| [**cocoindex**](skills/oms-cocoindex/0.3.37/oms-cocoindex/SKILL.md) (Python) | 0.3.37 | [**99.0%**](forge-data/oms-cocoindex/0.3.37/test-report-oms-cocoindex.md) | [`cocoindex-io/cocoindex`](https://github.com/cocoindex-io/cocoindex) | [`87c5dbf0`](https://github.com/cocoindex-io/cocoindex/commit/87c5dbf087bfccca83791861db0d33519ef09677) · 2026-03-31 |
+| [**cognee**](skills/oms-cognee/0.5.8/oms-cognee/SKILL.md) (Python) | 0.5.8 | [**99.45%**](forge-data/oms-cognee/0.5.8/test-report-oms-cognee.md) | [`topoteretes/cognee`](https://github.com/topoteretes/cognee) | [`b51dcce1`](https://github.com/topoteretes/cognee/commit/b51dcce1d273d47ce864cd6c5e44a7a82f7f8dce) · 2026-04-08 |
+| [**Storybook**](skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/SKILL.md) (React + Vite, TS) | 10.3.5 | [**99.49%**](forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite.md) | [`storybookjs/storybook`](https://github.com/storybookjs/storybook) | [`e486d382`](https://github.com/storybookjs/storybook/commit/e486d3826bcd40c52db1c766966d1c8ec16df6cb) · 2026-04-07 |
+| [**uitripled**](skills/oms-uitripled/0.1.0/oms-uitripled/SKILL.md) (TS) | 0.1.0 | [**99.45%**](forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled.md) | [`moumen-soliman/uitripled`](https://github.com/moumen-soliman/uitripled) | [`a5ffb45b`](https://github.com/moumen-soliman/uitripled/commit/a5ffb45be05335d2c547436664cfbfb8c22d04df) · 2026-03-22 |
 
 **Staleness has a date.** Every row above carries the upstream's own commit date. Your `.cursorrules` file doesn't. When upstream ships, we recompile and publish a new skill version next to the old one — never in place.
 
