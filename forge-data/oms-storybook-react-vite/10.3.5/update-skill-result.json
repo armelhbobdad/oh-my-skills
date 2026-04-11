@@ -1,0 +1,48 @@
+{
+  "workflow": "skf-update-skill",
+  "status": "success",
+  "skill_name": "oms-storybook-react-vite",
+  "skill_version": "10.3.5",
+  "forge_tier": "Deep",
+  "mode": "gap-driven",
+  "trigger": {
+    "source": "test-report",
+    "test_report_path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite.md",
+    "test_score_before": 63.84,
+    "test_threshold": 80
+  },
+  "summary": {
+    "exports_affected": 138,
+    "exports_added": 133,
+    "exports_updated": 5,
+    "exports_removed": 0,
+    "files_modified": 9,
+    "gaps_resolved": 9,
+    "manual_sections_preserved": 4,
+    "confidence_distribution": {
+      "t1": 133,
+      "t1_low": 0,
+      "t2": 0
+    },
+    "validation_status": "passed",
+    "skill_check_score": 100,
+    "coverage_before": 0.19,
+    "coverage_after": 0.7442
+  },
+  "outputs": [
+    "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/SKILL.md",
+    "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/metadata.json",
+    "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/addons.md",
+    "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/core-api.md",
+    "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/doc-blocks.md",
+    "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/framework-config.md",
+    "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/story-types.md",
+    "forge-data/oms-storybook-react-vite/10.3.5/provenance-map.json",
+    "forge-data/oms-storybook-react-vite/10.3.5/evidence-report.md"
+  ],
+  "next_recommended_workflows": [
+    "skf-test-skill (re-test to confirm score crosses 80% threshold)",
+    "skf-export-skill (package for distribution once test passes)"
+  ],
+  "generated_at": "2026-04-11T19:50:00Z"
+}

@@ -129,13 +129,15 @@ Imports are grouped by source package. Column 3 is the subpath to import from �
 | `StorybookConfig`, `FrameworkOptions` | type | `@storybook/react-vite` `[AST:code/frameworks/react-vite/src/types.ts:L1]` |
 | `expect`, `fn`, `within`, `screen`, `waitFor`, `userEvent`, `fireEvent`, `spyOn` | runtime | `storybook/test` `[AST:code/core/src/test/index.ts:L54]` |
 | `useState`, `useArgs`, `useParameter`, `useChannel`, `useEffect`, `useGlobals`, `useCallback`, `useMemo`, `useRef`, `useReducer`, `useStoryContext` | hook | `storybook/preview-api` `[AST:code/core/src/preview-api/index.ts:L5]` |
-| `addons`, `composeStories`, `composeStory`, `setProjectAnnotations`, `makeDecorator`, `definePreview` | runtime | `storybook/preview-api` `[AST:code/core/src/preview-api/index.ts:L28]` |
+| `addons`, `makeDecorator`, `mockChannel` | runtime | `storybook/preview-api` `[AST:code/core/src/preview-api/index.ts:L21]` |
+| `composeStories`, `composeStory`, `setProjectAnnotations` | runtime | **`@storybook/react-vite`** *(canonical for React+Vite — re-exported from `@storybook/react` where they're defined)* `[AST:code/renderers/react/src/portable-stories.tsx:L46]` |
+| `__definePreview` *(CSF4 factory — the double-underscore form is the canonical public export name in `@storybook/react-vite` / `@storybook/react`; `definePreview` is a user-facing alias in the docs but the symbol emitted from the framework package is `__definePreview`)* | runtime | `@storybook/react-vite` `[AST:code/renderers/react/src/preview.tsx:L55]` |
 | `action` | runtime | `storybook/actions` `[AST:code/core/src/actions/index.ts:L1]` |
 | `create`, `themes`, `styled`, `css`, `useTheme`, `ThemeProvider` | runtime | `storybook/theming` / `storybook/theming/create` `[AST:code/core/src/theming/create.ts:L29]` |
 | `HIGHLIGHT`, `RESET_HIGHLIGHT` | const | `storybook/highlight` `[AST:code/core/src/highlight/index.ts:L1]` |
 | `Canvas`, `Meta`, `Controls`, `Primary`, `Stories`, `Story`, `ArgTypes`, `Source`, `Description`, `Title`, `Markdown`, `Typeset`, `ColorPalette`, `IconGallery`, `Unstyled`, `useOf`, `DocsContainer`, `DocsPage` | MDX block | `@storybook/addon-docs/blocks` `[AST:code/addons/docs/src/blocks.ts:L1]` |
 | `withThemeByClassName`, `withThemeByDataAttribute`, `withThemeFromJSXProvider` | decorator | `@storybook/addon-themes` `[AST:code/addons/themes/src/index.ts:L1]` |
-| a11y `parameters: { a11y: { test: ... } }` | param | `@storybook/addon-a11y` (config only) `[AST:code/addons/a11y/src/preview.tsx:L1]` |
+| a11y `parameters: { a11y: { test: ... } }`, runtime `afterEach`, `decorators`, `initialGlobals` | param + runtime | `@storybook/addon-a11y` / `@storybook/addon-a11y/preview` — the runtime `afterEach(context)` at `[AST:code/addons/a11y/src/preview.tsx:L14]` runs axe-core per story and attaches an `A11yReport` to `context.reporting`; compose it manually in your `preview.ts` only when you need multiple `afterEach` hooks | `[AST:code/addons/a11y/src/preview.tsx:L14]` |
 
 Full signatures, parameter tables, and return types live in `references/core-api.md` (storybook/* subpaths), `references/story-types.md` (CSF types), `references/doc-blocks.md` (MDX blocks), and `references/addons.md`.
 
@@ -143,9 +145,11 @@ Full signatures, parameter tables, and return types live in `references/core-api
 <!-- Add custom notes here. This section is preserved during skill updates. -->
 <!-- [/MANUAL:additional-notes-api] -->
 
-## Migration & Deprecation Warnings
+## Import Surface Corrections & Recent Changes
 
-**v10 consolidation (the big one):** The package `@storybook/test` is deprecated. Import from `storybook/test` instead (no `@` prefix, no `-` separator). The same applies to `@storybook/preview-api` → `storybook/preview-api`, `@storybook/manager-api` → `storybook/manager-api`, `@storybook/theming` → `storybook/theming`, `@storybook/actions` → `storybook/actions`. Training data and `eslint-plugin-storybook` older versions still suggest the `@storybook/*` forms — override them. `[QMD:oms-storybook-react-vite-temporal:issues.md #9b8716]` `[AST:code/core/package.json:L48]`
+> **Section scope:** this section is not a Storybook changelog — it captures the *v10 consolidation* that persists as a training-data defect plus a handful of load-bearing recent fixes. There are **no forward-looking deprecations** announced for v10.3.5 (nothing scheduled to break in v11 yet at the time of extraction).
+
+**v10 consolidation (the big one — this is the skill's core value prop):** The package `@storybook/test` is deprecated. Import from `storybook/test` instead (no `@` prefix, no `-` separator). The same applies to `@storybook/preview-api` → `storybook/preview-api`, `@storybook/manager-api` → `storybook/manager-api`, `@storybook/theming` → `storybook/theming`, `@storybook/actions` → `storybook/actions`. Training data and `eslint-plugin-storybook` older versions still suggest the `@storybook/*` forms — override them. `[QMD:oms-storybook-react-vite-temporal:issues.md #9b8716]` `[AST:code/core/package.json:L48]`
 
 **`setProjectAnnotations` expanded** (PR #28907): available across more renderers/frameworks for portable stories. Always call it once in your Vitest/Jest setup — otherwise `composeStories` will miss project-level decorators and parameters. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]`
 
@@ -162,7 +166,11 @@ See Full API Reference and `references/framework-config.md` for migration detail
 // (BOTH import paths work; prefer @storybook/react-vite for framework alignment)
 
 type Preview = ProjectAnnotations<ReactRenderer>;
-// Shape of .storybook/preview.ts default export
+// Shape of .storybook/preview.ts default export.
+// ⚠️ Not the same as the runtime `Preview` CLASS exported from
+// `storybook/preview-api` (aliased to `PreviewWeb`, the browser runtime at
+// code/core/src/preview-api/modules/preview-web/Preview.tsx:L60). The class
+// is an internal runtime; story authors only ever use the type.
 
 type Meta<TCmpOrArgs = Args> = [TCmpOrArgs] extends [ComponentType<any>]
   ? ComponentAnnotations<ReactRenderer, ComponentProps<TCmpOrArgs>>

@@ -178,16 +178,21 @@ type Parameters = { [name: string]: any };
 
 ## Portable stories utilities
 
-```ts
-// code/renderers/react/src/portable-stories.ts
-export function setProjectAnnotations(projectAnnotations: ProjectAnnotations<ReactRenderer> | ProjectAnnotations<ReactRenderer>[]): ProjectAnnotations<ReactRenderer>;
+**Canonical import path:** these symbols are **defined** in `code/renderers/react/src/portable-stories.tsx` (the renderer package) and re-exported from `@storybook/react`, `@storybook/react-vite`, *and* `storybook/preview-api`. For story-authoring code on a React+Vite project, prefer `import { composeStories, setProjectAnnotations } from '@storybook/react-vite'` — framework-aligned and stable across renderer upgrades. The `storybook/preview-api` re-export exists but is not framework-specific and should only be used by non-renderer infrastructure code.
 
-export function composeStory<TMeta extends Meta, TArgs extends Args>(
-  story: Story<TArgs>,
-  componentAnnotations: TMeta,
+```ts
+// code/renderers/react/src/portable-stories.tsx:46
+export function setProjectAnnotations(
+  projectAnnotations: NamedOrDefaultProjectAnnotations<any> | NamedOrDefaultProjectAnnotations<any>[]
+): NormalizedProjectAnnotations<ReactRenderer>;
+
+// code/renderers/react/src/portable-stories.tsx:106
+export function composeStory<TArgs extends Args = Args>(
+  story: StoryAnnotationsOrFn<ReactRenderer, TArgs>,
+  componentAnnotations: Meta<TArgs | any>,
   projectAnnotations?: ProjectAnnotations<ReactRenderer>,
   exportsName?: string
-): ComposedStoryFn<ReactRenderer, TArgs>;
+): ComposedStoryFn<ReactRenderer, Partial<TArgs>>;
 
 export function composeStories<TModule extends { default: Meta }>(
   csfExports: TModule,
@@ -218,7 +223,50 @@ test('renders', () => {
 });
 ```
 
-`setProjectAnnotations` was expanded to more renderers/frameworks in PR #28907. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]` `[AST:code/renderers/react/src/portable-stories.ts]`
+`setProjectAnnotations` was expanded to more renderers/frameworks in PR #28907. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]` `[AST:code/renderers/react/src/portable-stories.tsx:L46]`
+
+## Manager / Store types (custom panel & toolbar authoring)
+
+These types are needed when you're **writing a manager-side addon** — a toolbar button, sidebar entry, custom panel, or status-store consumer — not when authoring stories. Imported from `storybook/manager-api`, `storybook/internal/types`, or `storybook/viewport` depending on which the symbol lives in.
+
+### Manager API context and state
+
+| Export | Kind | Signature | Source |
+|---|---|---|---|
+| `Combo` | interface | `{ api: API; state: State }` — the payload `ManagerConsumer` renders its children with | `[AST:code/core/src/manager-api/root.tsx:L116]` |
+| `State` | type | `layout.SubState & stories.SubState & refs.SubState & …` — intersection of every manager slice | `[AST:code/core/src/manager-api/root.tsx:L82]` |
+| `StoreOptions` | type | `Options` — persistence options passed to `store.set` | `[AST:code/core/src/manager-api/root.tsx:L77]` |
+| `ManagerContext` | const | `React.Context<{ api: API; state: State }>` — underlying context that `ManagerConsumer` / `useStorybookApi` read | `[AST:code/core/src/manager-api/root.tsx:L80]` |
+| `ManagerProviderProps` | type | `RouterData & API_ProviderData<API> & { children: ReactNode \| ((combo: Combo) => ReactNode) }` | `[AST:code/core/src/manager-api/root.tsx:L121]` |
+| `Refs` | type | `API_Refs` — map of composed refs keyed by ref ID | `[AST:code/core/src/manager-api/root.tsx:L314]` |
+| `API_EventMap` | interface | `{ [eventId: string]: Listener }` — `api.on(eventId, listener)` event registry | `[AST:code/core/src/manager-api/root.tsx:L318]` |
+| `API_KeyCollection` | type | `string[]` — shortcut key sequence representation | `[AST:code/core/src/manager-api/modules/shortcuts.ts:L99]` |
+| `StoriesHash` | type | `API_IndexHash` — manager-side story index (deprecated alias, use `IndexHash`) | `[AST:code/core/src/manager-api/root.tsx:L304]` |
+
+### Story hierarchy (index hash)
+
+Every story/doc/component in the manager is represented as a `HashEntry` keyed by ID. Walking this tree is how toolbar filters, sidebar rendering, and story-picker UIs work.
+
+| Export | Kind | Signature | Source |
+|---|---|---|---|
+| `IndexHash` | interface | `{ [id: string]: API_HashEntry }` — flat manager-side story index | `[AST:code/core/src/types/modules/api-stories.ts:L80]` |
+| `HashEntry` | type | `RootEntry \| GroupEntry \| ComponentEntry \| DocsEntry \| StoryEntry \| TestEntry` — union of all entry kinds | `[AST:code/core/src/types/modules/api-stories.ts:L67]` |
+| `LeafEntry` | type | `DocsEntry \| StoryEntry \| TestEntry` — entries with no children | `[AST:code/core/src/types/modules/api-stories.ts:L66]` |
+| `RootEntry` | interface | `extends API_BaseEntry { type: 'root'; … }` — top of the hierarchy | `[AST:code/core/src/types/modules/api-stories.ts:L15]` |
+| `GroupEntry` | interface | `extends API_BaseEntry { type: 'group'; … }` — folder/group node | `[AST:code/core/src/types/modules/api-stories.ts:L21]` |
+| `ComponentEntry` | interface | `extends API_BaseEntry { type: 'component'; … }` — component node grouping its stories | `[AST:code/core/src/types/modules/api-stories.ts:L27]` |
+| `DocsEntry` | interface | `extends API_BaseEntry { type: 'docs'; … }` — MDX / Autodocs entry | `[AST:code/core/src/types/modules/api-stories.ts:L34]` |
+| `StoryEntry` | interface | `extends API_BaseEntry { type: 'story'; … }` — single story | `[AST:code/core/src/types/modules/api-stories.ts:L45]` |
+
+### Viewport types (`storybook/viewport`)
+
+| Export | Kind | Signature | Source |
+|---|---|---|---|
+| `GlobalState` | type | `{ value: string \| undefined; isRotated?: boolean }` — viewport toolbar global state | `[AST:code/core/src/viewport/types.ts:L16]` |
+| `ViewportParameters` | interface | `{ viewport?: { disable?: boolean; options: Record<string, ViewportMap> } }` — story-level viewport config | `[AST:code/core/src/viewport/types.ts:L33]` |
+| `ViewportStyles` | interface | `{ height: string; width: string }` — CSS dimensions | `[AST:code/core/src/viewport/types.ts:L9]` |
+| `ViewportType` | type | `'desktop' \| 'mobile' \| 'tablet' \| 'watch' \| 'other'` | `[AST:code/core/src/viewport/types.ts:L7]` |
+| `InitialViewportKeys` | type | `keyof typeof INITIAL_VIEWPORTS` — keys of the built-in viewport map | `[AST:code/core/src/viewport/defaults.ts:L230]` |
 
 ## CSF4 factory API
 

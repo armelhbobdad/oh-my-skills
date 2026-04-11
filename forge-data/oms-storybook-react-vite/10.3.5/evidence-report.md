@@ -98,3 +98,63 @@ None matched the `tessl-dismissal-rules.md` catalog — both novel suggestions s
 
 - Some extraction entries in provenance-map.json have `source_line: 1` as a placeholder because they were traced via re-export barrels rather than AST line extraction. The source file is accurate; the line is not load-bearing for downstream audit/update workflows as long as hash comparison is used.
 - Total coverage of 19% reflects the intentional authoring-focused scope (82 exports documented in SKILL.md+references out of ~430 extracted). The brief deliberately excludes non-authoring infrastructure (CLI, codemods, eslint-plugin, core-server internals).
+
+## Update Operation — 2026-04-11
+
+**Trigger:** skf-test-skill (test report at `forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite.md`)
+**Forge Tier:** Deep
+**Mode:** gap-driven (9 test-report findings, no source drift)
+
+### Changes Detected
+- Files modified: 0 (gap-driven — source commit unchanged at `e486d382`)
+- Files added: 0
+- Files deleted: 0
+- Exports affected: 133 new + 5 signature fixes
+
+### Merge Results
+- Exports updated: 5 (GAP-004..008 signature attribution / cross-pointer fixes)
+- Exports added: 133 T1-cited (addon-docs controls: 51 · preview-api + test utilities: 25 · addon-themes + a11y: 25 · manager/store + theming types: 32)
+- Exports removed: 0
+- [MANUAL] sections preserved: 4 / 4 (byte-identical: `additional-notes-quickstart`, `additional-notes-api`, `additional-notes-cli`, `additional-notes-reference`)
+- Conflicts resolved: 0 (clean merge)
+- Structural changes: 1 (Section 4b renamed from "Migration & Deprecation Warnings" → "Import Surface Corrections & Recent Changes" per GAP-003 downgrade rule)
+
+### Gap Remediation
+| Gap | Severity | Resolution |
+|---|---|---|
+| GAP-001 | Critical | Export Coverage lift 43.5% → **74.4%** (+133 T1-cited one-liners across 5 reference files) |
+| GAP-002 | Medium | Type Coverage lift 52.4% → ~83% (32 type/interface items added across `story-types.md` + `framework-config.md`) |
+| GAP-003 | Medium→Low | Section 4b renamed to "Import Surface Corrections & Recent Changes" + in-section scope note |
+| GAP-004 | Low | `setProjectAnnotations` canonical import moved to `@storybook/react-vite` in SKILL.md Key API Summary; cited to actual source `code/renderers/react/src/portable-stories.tsx:46` (was flat-line `.ts`) |
+| GAP-005 | Low | `composeStory` generic form cross-pointed between `core-api.md` and `story-types.md`; both now cite `portable-stories.tsx:106` |
+| GAP-006 | Low | `definePreview` / `__definePreview` disambiguated in SKILL.md with canonical export name + source citation at `code/renderers/react/src/preview.tsx:55` |
+| GAP-007 | Low | `Preview` type vs class disambiguated in SKILL.md Key Types block + `core-api.md` Preview row; class cited to `code/core/src/preview-api/modules/preview-web/Preview.tsx:60` |
+| GAP-008 | Low | `addon-a11y` runtime `afterEach`, `decorators`, `initialGlobals` added to SKILL.md Key API Summary row and fully documented in `references/addons.md` with `code/addons/a11y/src/preview.tsx:14` citation |
+| GAP-009 | Info | Discovery testing deferred — not a source-drift concern; user decision at export time |
+
+### Validation Summary
+- Spec compliance: PASS (11 sections, 10 balanced code fences, 25 `[AST:]` citations in SKILL.md body)
+- [MANUAL] integrity: PASS (4/4 blocks byte-identical to step-01 inventory)
+- Confidence tiers: PASS (all 133 new entries T1, Deep tier)
+- Provenance: PASS (292 `[AST:]` citations across 6 reference files after merge)
+
+### Description Guard
+- Restored: false
+- Triggering tool: —
+- Original description preserved: true
+- Notes: Guard not triggered; `skill-check --fix` not invoked in this run (gap-driven repairs did not require spec-compliance auto-fixing).
+
+### Context Snippet
+- Regenerated: false
+- Triggers fired: —
+- Notes: Gap-driven repair — headline exports unchanged (Meta, StoryObj, fn, expect, userEvent, withThemeByClassName, Preview all still in top slots), version unchanged (10.3.5), no new gotchas surfaced. Snippet remains valid against prior surface.
+
+### Coverage Delta
+| Metric | Before | After |
+|---|---|---|
+| Exports documented | 82 (metadata) / 187 (full split-body) | 320 |
+| Public API coverage (metadata denominator 430) | 19% | **74.4%** |
+| Type coverage | 52.4% | ~83% |
+| Confidence distribution t1 | 430 | 563 |
+| Provenance map entries | 92 | 222 |
+| Split-body references total size | 1563 lines | 1790 lines |

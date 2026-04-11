@@ -110,3 +110,70 @@ import * as ButtonStories from './Button.stories';
 ## DocsRenderer
 
 Entry: `code/addons/docs/src/index.ts` exports `DocsRenderer` — the React component that renders an entire docs page. Rarely imported directly; registered via `addons: ['@storybook/addon-docs']` in `main.ts`. `[AST:code/addons/docs/src/index.ts:L1]`
+
+## Control Primitives
+
+The primitive control components that back `Controls` / `ArgTypes` panels. Imported as `import { BooleanControl, ... } from '@storybook/addon-docs/blocks'` when building a **custom controls panel** (addon UI). For normal story authoring the `Controls` doc-block is sufficient — these are the lower-level renderers it composes.
+
+### Control value / config types
+
+| Export | Kind | Signature | Source |
+|---|---|---|---|
+| `ControlProps<T>` | type | `{ name: string; value?: T; defaultValue?: T; argType?: ArgType; onChange(v?: T): T \| void; onFocus?(e: any): void; onBlur?(e: any): void }` — base props shared by all control components | `[AST:code/addons/docs/src/blocks/controls/types.ts:L3]` |
+| `BooleanValue` | type | `boolean` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L13]` |
+| `BooleanConfig` | interface | `{}` — no boolean-specific config | `[AST:code/addons/docs/src/blocks/controls/types.ts:L14]` |
+| `ColorValue` | type | `string` — hex / rgb / hsl / named | `[AST:code/addons/docs/src/blocks/controls/types.ts:L16]` |
+| `PresetColor` | type | `ColorValue \| { color: ColorValue; title?: string }` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L17]` |
+| `ColorConfig` | interface | `{ presetColors?: PresetColor[]; startOpen?: boolean }` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L18]` |
+| `DateValue` | type | `Date \| number` (timestamp) | `[AST:code/addons/docs/src/blocks/controls/types.ts:L28]` |
+| `DateConfig` | interface | `{}` — no date-specific config | `[AST:code/addons/docs/src/blocks/controls/types.ts:L29]` |
+| `NumberValue` | type | `number` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L31]` |
+| `NumberConfig` | interface | `{ min?: number; max?: number; step?: number }` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L32]` |
+| `RangeConfig` | type | `NumberConfig` (alias) | `[AST:code/addons/docs/src/blocks/controls/types.ts:L38]` |
+| `ObjectValue` | type | `any` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L40]` |
+| `ObjectConfig` | interface | `{}` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L41]` |
+| `OptionsSingleSelection` | type | `any` — single-value form | `[AST:code/addons/docs/src/blocks/controls/types.ts:L43]` |
+| `OptionsMultiSelection` | type | `any[]` — multi-value form | `[AST:code/addons/docs/src/blocks/controls/types.ts:L44]` |
+| `OptionsSelection` | type | `OptionsSingleSelection \| OptionsMultiSelection` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L45]` |
+| `OptionsArray` | type | `any[]` — array shape for options | `[AST:code/addons/docs/src/blocks/controls/types.ts:L46]` |
+| `OptionsObject` | type | `Record<string, any>` — labeled shape | `[AST:code/addons/docs/src/blocks/controls/types.ts:L47]` |
+| `Options` | type | `OptionsArray \| OptionsObject` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L48]` |
+| `OptionsControlType` | type | `'radio' \| 'inline-radio' \| 'check' \| 'inline-check' \| 'select' \| 'multi-select'` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L49]` |
+| `OptionsConfig` | interface | `{ labels?: Record<any, string>; type: OptionsControlType }` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L57]` |
+| `NormalizedOptionsConfig` | interface | `{ options: OptionsObject }` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L62]` |
+| `TextValue` | type | `string` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L66]` |
+| `TextConfig` | interface | `{ maxLength?: number }` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L67]` |
+| `ControlType` | type | `'array' \| 'boolean' \| 'color' \| 'date' \| 'number' \| 'range' \| 'object' \| OptionsControlType \| 'text'` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L71]` |
+| `Control` | type | `BooleanConfig \| ColorConfig \| DateConfig \| NumberConfig \| ObjectConfig \| OptionsConfig \| RangeConfig \| TextConfig` — full union | `[AST:code/addons/docs/src/blocks/controls/types.ts:L82]` |
+
+### Control components (props + renderer pairs)
+
+| Component / Props | Kind | Signature | Source |
+|---|---|---|---|
+| `BooleanProps` | type | `ControlProps<BooleanValue> & BooleanConfig` | `[AST:code/addons/docs/src/blocks/controls/Boolean.tsx:L104]` |
+| `BooleanControl` | component | `(props: BooleanProps) => JSX.Element` — toggle switch | `[AST:code/addons/docs/src/blocks/controls/Boolean.tsx:L117]` |
+| `ColorControlProps` | type | `ControlProps<ColorValue> & ColorConfig` | `[AST:code/addons/docs/src/blocks/controls/Color.tsx:L360]` |
+| `ColorControl` | component | `(props: ColorControlProps) => JSX.Element` — color picker with color-space cycling | `[AST:code/addons/docs/src/blocks/controls/Color.tsx:L361]` |
+| `DateProps` | type | `ControlProps<DateValue> & DateConfig` | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L68]` |
+| `DateControl` | component | `(props: DateProps) => JSX.Element` — date + time picker | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L69]` |
+| `parseDate` | function | `(value: string) => Date` — YYYY-MM-DD parse helper | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L11]` |
+| `parseTime` | function | `(value: string) => Date` — HH:MM parse helper | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L18]` |
+| `formatDate` | function | `(value: Date \| number) => string` | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L26]` |
+| `formatTime` | function | `(value: Date \| number) => string` | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L34]` |
+| `FilesControlProps` | interface | `extends ControlProps<string[]> { accept?: string }` | `[AST:code/addons/docs/src/blocks/controls/Files.tsx:L11]` |
+| `FilesControl` | component | `(props: FilesControlProps) => JSX.Element` — file input | `[AST:code/addons/docs/src/blocks/controls/Files.tsx:L40]` |
+| `NumberControl` | component | `(props: NumberProps) => JSX.Element` — number input with min/max/step | `[AST:code/addons/docs/src/blocks/controls/Number.tsx:L28]` |
+| `parse` | function | `(value: string) => number \| undefined` — Number control parse helper | `[AST:code/addons/docs/src/blocks/controls/Number.tsx:L17]` |
+| `format` | function | `(value: NumberValue) => string` — Number control format helper | `[AST:code/addons/docs/src/blocks/controls/Number.tsx:L22]` |
+| `ObjectProps` | type | `ControlProps<ObjectValue> & ObjectConfig` | `[AST:code/addons/docs/src/blocks/controls/Object.tsx:L164]` |
+| `ObjectControl` | component | `(props: ObjectProps) => JSX.Element` — JSON tree editor | `[AST:code/addons/docs/src/blocks/controls/Object.tsx:L166]` |
+| `RangeControl` | component | `(props: RangeProps) => JSX.Element` — slider with min/max labels | `[AST:code/addons/docs/src/blocks/controls/Range.tsx:L178]` |
+| `TextProps` | type | `ControlProps<TextValue \| undefined> & TextConfig` | `[AST:code/addons/docs/src/blocks/controls/Text.tsx:L11]` |
+| `TextControl` | component | `(props: TextProps) => JSX.Element` — textarea with max-length | `[AST:code/addons/docs/src/blocks/controls/Text.tsx:L23]` |
+| `OptionsProps` | type | `ControlProps<OptionsSelection> & OptionsConfig` | `[AST:code/addons/docs/src/blocks/controls/options/Options.tsx:L40]` |
+| `OptionsControl` | component | `(props: OptionsProps) => JSX.Element` — dispatcher → CheckboxControl / RadioControl / SelectControl | `[AST:code/addons/docs/src/blocks/controls/options/Options.tsx:L41]` |
+| `CheckboxControl` | component | `(props: CheckboxProps) => JSX.Element` — multi-select checkbox group | `[AST:code/addons/docs/src/blocks/controls/options/Checkbox.tsx:L57]` |
+| `RadioControl` | component | `(props: RadioProps) => JSX.Element` — single-select radio group | `[AST:code/addons/docs/src/blocks/controls/options/Radio.tsx:L57]` |
+| `SelectControl` | component | `(props: SelectProps) => JSX.Element` — dropdown select (single or multi) | `[AST:code/addons/docs/src/blocks/controls/options/Select.tsx:L170]` |
+
+**Custom controls panel usage:** You rarely need to import these individually — the `Controls` doc-block handles dispatching automatically based on `argTypes[key].control.type`. Reach for the primitives only when building an addon that renders its own controls UI (e.g., a visual-testing panel that needs inline range sliders).

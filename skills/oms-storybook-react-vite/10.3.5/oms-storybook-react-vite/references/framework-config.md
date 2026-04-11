@@ -306,4 +306,50 @@ test('Clicked runs play function', async () => {
 2. The meta's annotations (component, args, argTypes, decorators)
 3. The story's own annotations
 
-Result: each story export becomes a React component that renders exactly as it would in Storybook. `[AST:code/renderers/react/src/portable-stories.ts]` `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]`
+Result: each story export becomes a React component that renders exactly as it would in Storybook. `[AST:code/renderers/react/src/portable-stories.tsx:L46]` `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]`
+
+## Theming types (`storybook/theming`)
+
+Needed when you're authoring a **custom Storybook theme** — either for the manager UI (`.storybook/manager.ts`) or for a custom docs theme. Most story authors never import these — `import { create } from 'storybook/theming/create'` and pass a partial is enough.
+
+| Export | Kind | Signature | Source |
+|---|---|---|---|
+| `StorybookTheme` | interface | `{ color: Color; background: Background; typography: Typography; … }` — complete theme object returned by `create()` | `[AST:code/core/src/theming/types.ts:L71]` |
+| `ThemeVars` | interface | `extends ThemeVarsBase, ThemeVarsColors {}` — the full theme input object (base + colors) | `[AST:code/core/src/theming/types.ts:L4]` |
+| `ThemeVarsPartial` | interface | `extends ThemeVarsBase, Partial<ThemeVarsColors> {}` — partial override accepted by `create()` | `[AST:code/core/src/theming/types.ts:L6]` |
+| `ThemeVarsColors` | interface | `{ colorPrimary: string; colorSecondary: string; … }` — complete color palette | `[AST:code/core/src/theming/types.ts:L12]` |
+| `Typography` | type | `typeof typography` — fonts, weights, sizes namespace | `[AST:code/core/src/theming/types.ts:L59]` |
+| `TextSize` | type | `number \| string` — pixel count or CSS unit | `[AST:code/core/src/theming/types.ts:L63]` |
+| `Brand` | interface | `{ title: string \| undefined; url: string \| null \| undefined; image?: string \| null; target?: string }` — sidebar brand block | `[AST:code/core/src/theming/types.ts:L64]` |
+| `Color` | type | `typeof color` — named color tokens (primary, secondary, gold, green, etc.) | `[AST:code/core/src/theming/types.ts:L57]` |
+| `Background` | type | `typeof background` — background color tokens (app, bar, content, critical, warning, hoverable) | `[AST:code/core/src/theming/types.ts:L58]` |
+| `Animation` | type | `typeof animation` — keyframes and motion tokens | `[AST:code/core/src/theming/types.ts:L60]` |
+
+**Building a custom theme:**
+
+```ts
+// .storybook/custom-theme.ts
+import { create } from 'storybook/theming/create';
+import type { ThemeVarsPartial } from 'storybook/theming';
+
+const overrides: ThemeVarsPartial = {
+  base: 'light',
+  colorPrimary: '#ff4785',
+  colorSecondary: '#1ea7fd',
+  brandTitle: 'My Design System',
+  brandUrl: 'https://example.com',
+  fontBase: '"Helvetica Neue", sans-serif',
+};
+
+export default create(overrides);
+```
+
+```ts
+// .storybook/manager.ts
+import { addons } from 'storybook/manager-api';
+import customTheme from './custom-theme';
+
+addons.setConfig({ theme: customTheme });
+```
+
+`[AST:code/core/src/theming/create.ts:L29]`

@@ -45,18 +45,24 @@ Accessibility testing via axe-core. Runs checks in the browser during story rend
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
 | `PARAM_KEY` | const | String identifier for a11y parameters (used internally) | `[AST:code/addons/a11y/src/index.ts]` |
-| `A11yGlobals` | type | Accessibility global configuration | `[AST:code/addons/a11y/src/index.ts]` |
-| `A11yTypes` | type | Addon type definitions (parameters + globals) | `[AST:code/addons/a11y/src/index.ts]` |
-| `A11yReport` | type | Enhanced Axe results or error object | `[AST:code/addons/a11y/src/index.ts]` |
+| `A11yParameters` | interface | `{ context?: ContextSpecWithoutNode; options?: RunOptions; config?: Spec; disable?: boolean; test?: A11yTest }` — per-story a11y config | `[AST:code/addons/a11y/src/params.ts:L20]` |
+| `A11yGlobals` | interface | `{ a11y?: { manual?: boolean } }` — global a11y settings (manual vs auto run) | `[AST:code/addons/a11y/src/types.ts:L16]` |
+| `A11yTypes` | interface | `{ parameters: A11yParameters; globals: A11yGlobals }` — addon type bundle | `[AST:code/addons/a11y/src/types.ts:L55]` |
+| `A11yReport` | type | `EnhancedResults \| { error: Error }` — axe run result or error wrapper | `[AST:code/addons/a11y/src/types.ts:L5]` |
+| `SelectorWithoutNode` | type | `Omit<Selector, 'Node'> \| Omit<SelectorList, 'NodeList'>` — axe selector minus DOM-Node refs (safe to serialize in parameters) | `[AST:code/addons/a11y/src/params.ts:L3]` |
+| `ContextObjectWithoutNode` | type | `{ include: SelectorWithoutNode; exclude?: SelectorWithoutNode } \| { exclude: SelectorWithoutNode; include?: SelectorWithoutNode }` | `[AST:code/addons/a11y/src/params.ts:L6]` |
+| `ContextSpecWithoutNode` | type | `SelectorWithoutNode \| ContextObjectWithoutNode` — shape of `parameters.a11y.context` | `[AST:code/addons/a11y/src/params.ts:L16]` |
 
 ### Preview entry exports
 
+Runtime subpath: `@storybook/addon-a11y/preview`. These are imported as `import { afterEach } from '@storybook/addon-a11y/preview'` in a user's `.storybook/preview.ts` only when composing multiple preview hooks manually.
+
 | Export | Kind | Value/Shape | Source |
 |---|---|---|---|
-| `decorators` | array | `[withVisionSimulator]` — vision simulator decorator | `[AST:code/addons/a11y/src/preview.tsx]` |
-| `afterEach` | async function | Runs a11y tests via axe-core; integrates with the Vitest matcher | `[AST:code/addons/a11y/src/preview.tsx]` |
-| `initialGlobals` | object | `{ a11y: { manual: false }, vision: undefined }` | `[AST:code/addons/a11y/src/preview.tsx]` |
-| `parameters` | object | `{ a11y: { test: 'todo' } }` — default a11y parameters | `[AST:code/addons/a11y/src/preview.tsx]` |
+| `decorators` | const | `[typeof withVisionSimulator]` — auto-applied vision-simulation decorator | `[AST:code/addons/a11y/src/preview.tsx:L12]` |
+| `afterEach` | const | `AfterEach<any>` — async hook `({ id, reporting, parameters, globals, viewMode }) => Promise<void>` that runs axe-core per story and attaches an `A11yReport` to `reporting` | `[AST:code/addons/a11y/src/preview.tsx:L14]` |
+| `initialGlobals` | const | `{ a11y: { manual: false }; vision: undefined }` | `[AST:code/addons/a11y/src/preview.tsx:L98]` |
+| `parameters` | const | `{ a11y: A11yParameters }` — default a11y parameters (`test: 'todo'`, etc.) | `[AST:code/addons/a11y/src/preview.tsx:L105]` |
 
 ### Story-level usage
 
@@ -99,11 +105,26 @@ Theme switching decorators. Register once in `preview.ts` and toggle themes from
 
 | Export | Kind | Signature | Source |
 |---|---|---|---|
-| `withThemeByClassName` | decorator factory | `<R>(config: { themes: Record<string, string>; defaultTheme: string; parentSelector?: string }) => Decorator<R>` — toggles CSS class on the parent element | `[AST:code/addons/themes/src/index.ts:L1]` |
-| `withThemeByDataAttribute` | decorator factory | `<R>(config: { themes: Record<string, string>; defaultTheme: string; parentSelector?: string; attributeName?: string }) => Decorator<R>` — toggles `data-*` attribute (default `data-theme`) | `[AST:code/addons/themes/src/index.ts:L1]` |
-| `withThemeFromJSXProvider` | decorator factory | `<R>(config: { Provider?: ComponentType; GlobalStyles?: ComponentType; defaultTheme?: string; themes?: Record<string, Theme> }) => Decorator<R>` — wraps story in a JSX provider (emotion / styled-components / MUI ThemeProvider) | `[AST:code/addons/themes/src/index.ts:L1]` |
-| `ThemesGlobals` | type | `{ theme?: string }` | `[AST:code/addons/themes/src/index.ts]` |
-| `ThemesTypes` | type | Addon type definitions (parameters + globals) | `[AST:code/addons/themes/src/index.ts]` |
+| `withThemeByClassName` | const | `<R extends Renderer = Renderer>(config: ClassNameStrategyConfiguration) => DecoratorFunction<R>` — toggles CSS class on the parent element | `[AST:code/addons/themes/src/decorators/class-name.decorator.tsx:L19]` |
+| `ClassNameStrategyConfiguration` | interface | `{ themes: Record<string, string>; defaultTheme: string; parentSelector?: string }` — strategy config for `withThemeByClassName` | `[AST:code/addons/themes/src/decorators/class-name.decorator.tsx:L8]` |
+| `withThemeByDataAttribute` | const | `<R extends Renderer = any>(config: DataAttributeStrategyConfiguration) => DecoratorFunction<R>` — toggles `data-*` attribute (default `data-theme`) | `[AST:code/addons/themes/src/decorators/data-attribute.decorator.tsx:L19]` |
+| `DataAttributeStrategyConfiguration` | interface | `{ themes: Record<string, string>; defaultTheme: string; parentSelector?: string; attributeName?: string }` | `[AST:code/addons/themes/src/decorators/data-attribute.decorator.tsx:L8]` |
+| `withThemeFromJSXProvider` | const | `<R extends Renderer = any>(config: ProviderStrategyConfiguration) => DecoratorFunction<R>` — wraps story in a JSX provider (emotion / styled-components / MUI ThemeProvider) | `[AST:code/addons/themes/src/decorators/provider.decorator.tsx:L23]` |
+| `ProviderStrategyConfiguration` | interface | `{ Provider?: any; GlobalStyles?: any; defaultTheme?: string; themes?: ThemeMap }` | `[AST:code/addons/themes/src/decorators/provider.decorator.tsx:L13]` |
+| `ThemeAddonState` | interface | `{ themesList: string[]; themeDefault?: string }` — registered theme state | `[AST:code/addons/themes/src/types.ts:L1]` |
+| `ThemesParameters` | interface | `{ themes?: { disable?: boolean; themeOverride?: string } }` — per-story theme override | `[AST:code/addons/themes/src/types.ts:L6]` |
+| `ThemesGlobals` | interface | `{ theme?: string }` — global toolbar selection | `[AST:code/addons/themes/src/types.ts:L20]` |
+| `ThemesTypes` | interface | `{ parameters: ThemesParameters; globals: ThemesGlobals }` — bundle | `[AST:code/addons/themes/src/types.ts:L25]` |
+
+### Decorator helpers (namespace export)
+
+Exposed as the `DecoratorHelpers` namespace export from `@storybook/addon-themes` (`decorators/index.ts:L5`) — useful when authoring a custom theme decorator that needs to read the active theme or register themes with the toolbar.
+
+| Helper | Kind | Signature | Source |
+|---|---|---|---|
+| `pluckThemeFromContext` | function | `({ globals }: StoryContext) => string` — extract current theme key from globals | `[AST:code/addons/themes/src/decorators/helpers.ts:L16]` |
+| `useThemeParameters` | function | `(context?: StoryContext) => ThemesParameters` — read parameters bag (deprecated — prefer context directly) | `[AST:code/addons/themes/src/decorators/helpers.ts:L20]` |
+| `initializeThemeState` | function | `(themeNames: string[], defaultTheme: string) => void` — register the themes list with the toolbar channel | `[AST:code/addons/themes/src/decorators/helpers.ts:L34]` |
 
 ### Usage
 

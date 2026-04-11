@@ -68,16 +68,54 @@ Entry: `code/core/src/preview-api/index.ts`. Hooks run inside decorators and `re
 | `applyHooks` | function | Apply a hooks context (experimental) | `[AST:code/core/src/preview-api/index.ts:L16]` |
 | `addons` | const | Singleton `AddonStore` — register addon types, channels | `[AST:code/core/src/preview-api/index.ts:L28]` |
 | `mockChannel` | function | Create a mock channel for unit tests | `[AST:code/core/src/preview-api/index.ts:L28]` |
-| `composeStory` | function | `composeStory(story, componentAnnotations, projectAnnotations?, exportsName?)` — compose a single story for testing | `[AST:code/core/src/preview-api/index.ts:L52]` |
+| `composeStory` | function | `composeStory(story, componentAnnotations, projectAnnotations?, exportsName?)` — compose a single story for testing. Generic form with `<TArgs extends Args = Args>` lives at `code/renderers/react/src/portable-stories.tsx:106` — see `story-types.md` "Portable stories utilities" for the full parameterized signature. | `[AST:code/core/src/preview-api/index.ts:L52]` `[AST:code/renderers/react/src/portable-stories.tsx:L106]` |
 | `composeStories` | function | `composeStories(csfExports, projectAnnotations?)` — compose all stories from a CSF module | `[AST:code/core/src/preview-api/index.ts:L51]` |
 | `setProjectAnnotations` | function | Set global project annotations for portable stories (call once in test setup) | `[AST:code/core/src/preview-api/index.ts:L46]` |
 | `definePreview` | function | Define a typed preview (CSF factory API) | `[AST:code/core/src/preview-api/index.ts]` |
 | `decorateStory`, `defaultDecorateStory`, `combineArgs`, `combineParameters`, `composeConfigs`, `composeStepRunners`, `normalizeArrays`, `normalizeStory`, `normalizeProjectAnnotations`, `prepareStory`, `prepareMeta`, `filterArgTypes`, `sanitizeStoryContextUpdate`, `setDefaultProjectAnnotations`, `inferControls`, `userOrAutoTitleFromSpecifier`, `userOrAutoTitle`, `sortStoriesV7` | function | Internal composition utilities (rarely imported by authors) | `[AST:code/core/src/preview-api/index.ts:L46-68]` |
 | `HooksContext` | type | Hooks context shape | `[AST:code/core/src/preview-api/index.ts:L17]` |
 | `DocsContext` | type | Autodocs rendering context | `[AST:code/core/src/preview-api/index.ts:L41]` |
-| `Preview`, `PreviewWeb`, `PreviewWithSelection`, `StoryStore`, `UrlStore`, `WebView` | class | Preview runtime classes (internal) | `[AST:code/core/src/preview-api/index.ts:L78-86]` |
+| `Preview`, `PreviewWeb`, `PreviewWithSelection`, `StoryStore`, `UrlStore`, `WebView` | class | Preview runtime classes (internal). **Not to be confused with the `Preview` type** exported by `@storybook/react-vite` / `@storybook/react` (which is `ProjectAnnotations<ReactRenderer>` — the `.storybook/preview.ts` default-export shape). The runtime `Preview` class lives at `code/core/src/preview-api/modules/preview-web/Preview.tsx:60` and is aliased to `PreviewWeb` at `PreviewWeb.tsx:11`. | `[AST:code/core/src/preview-api/modules/preview-web/Preview.tsx:L60]` |
 
 **Migration note:** `setProjectAnnotations` was expanded to more renderers/frameworks in PR #28907. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]`
+
+### Preview-API composition utilities (declared locations)
+
+The re-export table above lists the public surface; the rows below pin each symbol to its **actual declaration file** so you can step into source when a signature disagrees with the re-export row. Useful to portable-stories authors, test-harness maintainers, and anyone writing a custom preview runtime.
+
+| Export | Kind | Signature | Source |
+|---|---|---|---|
+| `combineArgs` | const | `(value: any, update: any) => Args` — deep-merge two args objects | `[AST:code/core/src/preview-api/modules/store/args.ts:L84]` |
+| `combineParameters` | const | `(...parameterSets: (Parameters \| undefined)[]) => Parameters` — recursively merge parameter bags preserving plain objects | `[AST:code/core/src/preview-api/modules/store/parameters.ts:L11]` |
+| `composeConfigs` | function | `<R extends Renderer>(moduleExportList: ModuleExports[]) => NormalizedProjectAnnotations<R>` — fold config modules into a single normalized ProjectAnnotations | `[AST:code/core/src/preview-api/modules/store/csf/composeConfigs.ts:L43]` |
+| `composeStepRunners` | function | `<R>(stepRunners: StepRunner<R>[]) => StepRunner<R>` — sequence step runners into one | `[AST:code/core/src/preview-api/modules/store/csf/stepRunners.ts:L27]` |
+| `filterArgTypes` | const | `(argTypes: StrictArgTypes, include?: PropDescriptor, exclude?: PropDescriptor) => StrictArgTypes` — filter by regex array or name list | `[AST:code/core/src/preview-api/modules/store/filterArgTypes.ts:L10]` |
+| `inferControls` | const | `ArgTypesEnhancer<Renderer>` — auto-pick control types from runtime arg values + matchers | `[AST:code/core/src/preview-api/modules/store/inferControls.ts:L66]` |
+| `normalizeStory` | function | `<R>(key: StoryId, storyAnnotations: StoryAnnotationsOrFn<R>, meta: NormalizedComponentAnnotations<R>) => NormalizedStoryAnnotations<R>` | `[AST:code/core/src/preview-api/modules/store/csf/normalizeStory.ts:L25]` |
+| `normalizeArrays` | const | `<T>(array: T[] \| T \| undefined) => T[]` — coerce single/undefined to array | `[AST:code/core/src/preview-api/modules/store/csf/normalizeArrays.ts:L1]` |
+| `normalizeProjectAnnotations` | function | `<R>(annotations: ProjectAnnotations<R>) => NormalizedProjectAnnotations<R>` — run arg-type enhancement pipeline | `[AST:code/core/src/preview-api/modules/store/csf/normalizeProjectAnnotations.ts:L17]` |
+| `prepareStory` | function | `<R>(storyAnnotations, componentAnnotations, projectAnnotations) => PreparedStory<R>` — merge annotations + wire decorators/loaders/hooks | `[AST:code/core/src/preview-api/modules/store/csf/prepareStory.ts:L37]` |
+| `prepareMeta` | function | `<R>(componentAnnotations, projectAnnotations, moduleExport) => PreparedMeta<R>` — component-level prep step | `[AST:code/core/src/preview-api/modules/store/csf/prepareStory.ts:L171]` |
+| `sanitizeStoryContextUpdate` | function | `(inputContextUpdate?: StoryContextUpdate) => StoryContextUpdate` — strip immutable keys (id, name, story, kind, …) | `[AST:code/core/src/preview-api/modules/store/decorators.ts:L30]` |
+| `sortStoriesV7` | const | `(stories, storySortParameter, fileNameOrder) => IndexEntry[]` — apply `parameters.options.storySort` | `[AST:code/core/src/preview-api/modules/store/sortStories.ts:L37]` |
+| `defaultDecorateStory` | function | `<R>(storyFn: LegacyStoryFn<R>, decorators: DecoratorFunction<R>[]) => LegacyStoryFn<R>` — chain decorators with context binding | `[AST:code/core/src/preview-api/modules/store/decorators.ts:L49]` |
+| `decorateStory` | function | `<R>(storyFn, decorator, bindWithContext) => LegacyStoryFn<R>` — single-decorator variant | `[AST:code/core/src/preview-api/modules/store/decorators.ts:L10]` |
+| `applyHooks` | const | `<R>(applyDecorators: DecoratorApplicator<R>) => DecoratorApplicator<R>` — wrap decorator applicator with hooks runtime | `[AST:code/core/src/preview-api/modules/addons/hooks.ts:L184]` |
+| `mockChannel` | function | `() => Channel` — create a mock addon channel for tests | `[AST:code/core/src/preview-api/modules/addons/storybook-channel-mock.ts:L3]` |
+
+### Test-harness mock utilities (`storybook/test`)
+
+These mirror Vitest's `vi.*` mock helpers but are re-exported through `storybook/test` so play functions can manipulate mocks without importing Vitest directly.
+
+| Export | Kind | Signature | Source |
+|---|---|---|---|
+| `onMockCall` | function | `(callback: Listener) => () => void` — register global listener on any mock-function call | `[AST:code/core/src/test/spy.ts:L35]` |
+| `isMockFunction` | const | `typeof isMockFunction` — re-exported from `@vitest/spy` | `[AST:code/core/src/test/spy.ts:L17]` |
+| `clearAllMocks` | function | `() => void` — clear call history, keep implementations | `[AST:code/core/src/test/spy.ts:L77]` |
+| `resetAllMocks` | function | `() => void` — reset call history and return values to undefined | `[AST:code/core/src/test/spy.ts:L89]` |
+| `restoreAllMocks` | function | `() => void` — restore original implementations (undo `spyOn`) | `[AST:code/core/src/test/spy.ts:L98]` |
+| `mocked` | function | `(item: T, options?: { partial?: boolean; deep?: boolean }) => MaybeMocked<T>` — TS type assertion helper | `[AST:code/core/src/test/spy.ts:L119]` |
+| `mocks` | const | `typeof mocks` — re-exported from `@vitest/spy`, set of active mocks | `[AST:code/core/src/test/spy.ts:L17]` |
 
 ## storybook/manager-api
 

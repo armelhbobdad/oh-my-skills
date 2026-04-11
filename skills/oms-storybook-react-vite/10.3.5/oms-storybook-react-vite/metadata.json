@@ -9,7 +9,10 @@
   "source_ref": "v10.3.5",
   "confidence_tier": "Deep",
   "spec_version": "1.3",
-  "generation_date": "2026-04-11T17:50:00Z",
+  "generation_date": "2026-04-11T19:50:00Z",
+  "last_update": "2026-04-11T19:50:00Z",
+  "update_mode": "gap-driven",
+  "update_source": "test-report oms-storybook-react-vite 63.84% FAIL",
   "description": "Grounds Claude in Storybook v10's consolidated `storybook` package import surface for React plus Vite story authoring. Use when writing or editing *.stories.tsx, preview.ts, or .storybook/main.ts files on a Storybook 10.3+ project, including CSF3 story syntax, play functions with storybook/test, preview-api hooks, theming, MDX doc blocks from @storybook/addon-docs/blocks, and the a11y, themes, and vitest addons. Covers the @storybook/react-vite framework, @storybook/react renderer, and @storybook/builder-vite layer model so defects can be located at the right layer. Do NOT use for first-time project setup, framework selection, or upgrade migration.",
   "language": "typescript",
   "ast_node_count": 430,
@@ -36,18 +39,18 @@
     "skf": "1.0.0"
   },
   "confidence_distribution": {
-    "t1": 430,
+    "t1": 563,
     "t1_low": 0,
     "t2": 5,
     "t3": 4
   },
   "stats": {
-    "exports_documented": 82,
+    "exports_documented": 320,
     "exports_public_api": 430,
     "exports_internal": 0,
     "exports_total": 430,
-    "public_api_coverage": 0.19,
-    "total_coverage": 0.19,
+    "public_api_coverage": 0.7442,
+    "total_coverage": 0.7442,
     "scripts_count": 0,
     "assets_count": 0
   },
