@@ -1,0 +1,90 @@
+---
+name: "oms-uitripled"
+version: "0.1.0"
+source_type: "source"
+source_repo: "https://github.com/moumen-soliman/uitripled"
+language: "TypeScript"
+description: "Build React 19 / Next.js 16 applications by composing pages and blocks from the uitripled shadcn/ui-style distribution. Covers the react-shadcn variant, its registry.json catalog, the uitripled CLI installer, and composition exemplars from the project's own docs site."
+forge_tier: "Deep"
+created: "2026-04-11"
+created_by: "armel"
+source_authority: "community"
+scope:
+  type: "component-library"
+  registry_path: "packages/registry/registry.json"
+  ui_variants:
+    - name: "react-shadcn"
+      package: "packages/components/react-shadcn"
+  demo_patterns:
+    - "**/demo/**"
+    - "**/*-demo.tsx"
+    - "**/*.stories.*"
+    - "**/*.story.*"
+  include:
+    - "packages/registry/registry.json"
+    - "packages/registry/src/**"
+    - "packages/components/react-shadcn/src/**"
+    - "packages/components/react-shadcn/package.json"
+    - "packages/uitripled/src/**"
+    - "packages/uitripled/bin/**"
+    - "packages/uitripled/package.json"
+    - "packages/uitripled/README.md"
+    - "packages/utils/src/**"
+    - "packages/utils/package.json"
+    - "README.md"
+    - "apps/docs/app/**/page.tsx"
+    - "apps/docs/app/**/page.mdx"
+    - "apps/docs/components/demos/**"
+  exclude:
+    - "**/demo/**"
+    - "**/*-demo.tsx"
+    - "**/*.stories.*"
+    - "**/*.story.*"
+    - "**/stories/**"
+    - "**/examples/**"
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/tsup.config.ts"
+    - "**/tsconfig.json"
+    - "**/eslint.config.*"
+    - "**/node_modules/**"
+    - "**/dist/**"
+    - "packages/components/react-baseui/**"
+    - "packages/components/react-carbon/**"
+    - "packages/scripts/**"
+    - "packages/config/**"
+    - ".changeset/**"
+    - ".cursor/**"
+    - ".vscode/**"
+    - ".github/**"
+    - "apps/docs/app/**/layout.tsx"
+    - "apps/docs/app/**/loading.tsx"
+    - "apps/docs/app/**/error.tsx"
+    - "apps/docs/app/**/not-found.tsx"
+    - "apps/docs/app/**/route.ts"
+    - "apps/docs/app/api/**"
+    - "apps/docs/middleware.ts"
+    - "apps/docs/next.config.ts"
+    - "apps/docs/postcss.config.mjs"
+    - "apps/docs/eslint.config.mjs"
+    - "apps/docs/public/**"
+    - "apps/docs/scripts/**"
+    - "apps/docs/types/**"
+  notes: |
+    Consumption model: shadcn/ui-style CLI-driven copy-paste distribution. The registry.json + `uitripled add <name>` CLI are the primary API surface. Subpath imports exist but are a preview/fallback — agents MUST NOT generate barrel imports like `import { X } from '@uitripled/react-shadcn'`; the package's `src/index.ts` is empty by design.
+
+    Registry tiering rule: during extraction, tier entries by `type` field. `registry:page` and `registry:block` are the INDEX surface (discoverable by category/subcategory). `registry:component` is the REFERENCE surface (resolved via each entry's `registryDependencies` DAG when pages/blocks are composed).
+
+    Field semantics: distinguish `registryDependencies` (other uitripled registry entries, installed via CLI) from `dependencies` (npm packages). They must not be conflated in extracted output.
+
+    Mandatory setup entry points: `packages/components/react-shadcn/src/components/theme-provider.tsx` and `packages/components/react-shadcn/src/ui-library-provider.tsx` must be flagged as required setup before any page/block usage.
+
+    Composition exemplars: `apps/docs/app/**/page.{tsx,mdx}` and `apps/docs/components/demos/**` are NOT documentation scaffolding — they are validated compositions that teach the agent how real pages assemble registry items. Excluded: Next.js build infrastructure (layout/loading/error/route/middleware/configs/public/api).
+
+    Deferred variants: react-baseui (165 files) and react-carbon (52 files) are intentionally excluded from v1. Reason: asymmetric maturity (react-shadcn has 259 files and is the primary variant; baseui and carbon both depend on react-shadcn and are experimental). Will fork as separate skills (oms-uitripled-baseui, oms-uitripled-carbon) if demand emerges.
+
+    Version anchoring: semver 0.1.0 reflects the component package version (the CLI at packages/uitripled is separately at 1.1.0, but the CLI is delivery mechanism, not product). True identity anchors:
+      - target_commit: a5ffb45be05335d2c547436664cfbfb8c22d04df (master HEAD at brief creation)
+      - registry_content_hash (sha256): a51b64916a74283b364f5fe1b59aacd36a33134d6431565b3e2df732bff9f540
+    update-skill should diff against target_commit for identity and detect registry drift via content hash.
+---

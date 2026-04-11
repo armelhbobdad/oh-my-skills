@@ -1,0 +1,54 @@
+{
+  "skill": "skf-test-skill",
+  "status": "success",
+  "timestamp": "2026-04-11T00:30:00Z",
+  "outputs": [
+    {
+      "type": "report",
+      "path": "forge-data/oms-cognee/0.5.8/test-report-oms-cognee.md"
+    }
+  ],
+  "summary": {
+    "skillName": "oms-cognee",
+    "skillVersion": "0.5.8",
+    "skillDir": "skills/oms-cognee/0.5.8/oms-cognee",
+    "testMode": "naive",
+    "forgeTier": "Deep",
+    "analysisConfidence": "full",
+    "score": 99.45,
+    "threshold": 80,
+    "result": "PASS",
+    "categoryScores": {
+      "exportCoverage": 100,
+      "signatureAccuracy": 100,
+      "typeCoverage": 100,
+      "coherence": null,
+      "externalValidation": 94.5
+    },
+    "externalValidators": {
+      "skillCheck": {
+        "available": true,
+        "score": 100,
+        "errors": 0,
+        "warnings": 0
+      },
+      "tessl": {
+        "available": true,
+        "validation": "PASSED",
+        "descriptionScore": 100,
+        "contentScore": 73,
+        "reviewScore": 89
+      }
+    },
+    "gaps": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 0,
+      "info": 3,
+      "total": 3
+    },
+    "blockingGaps": 0,
+    "nextWorkflow": "export-skill"
+  }
+}

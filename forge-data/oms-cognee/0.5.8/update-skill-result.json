@@ -1,0 +1,139 @@
+{
+  "workflow": "update-skill",
+  "skill_name": "oms-cognee",
+  "skill_version": "0.5.8",
+  "skill_type": "single",
+  "timestamp": "2026-04-10T19:55:00Z",
+  "status": "completed",
+  "trigger": "manual",
+  "mode": "gap-driven",
+  "source": {
+    "type": "test-report",
+    "path": "forge-data/oms-cognee/0.5.8/test-report-oms-cognee.md"
+  },
+  "forge_tier": "Deep",
+  "inputs": {
+    "test_report": "forge-data/oms-cognee/0.5.8/test-report-oms-cognee.md",
+    "skill_package": "skills/oms-cognee/0.5.8/oms-cognee/",
+    "provenance_map": "forge-data/oms-cognee/0.5.8/provenance-map.json"
+  },
+  "outputs": [
+    "skills/oms-cognee/0.5.8/oms-cognee/SKILL.md",
+    "skills/oms-cognee/0.5.8/oms-cognee/metadata.json",
+    "skills/oms-cognee/0.5.8/oms-cognee/context-snippet.md",
+    "forge-data/oms-cognee/0.5.8/provenance-map.json",
+    "forge-data/oms-cognee/0.5.8/evidence-report.md"
+  ],
+  "summary": {
+    "files_modified": 5,
+    "files_added": 0,
+    "files_deleted": 0,
+    "exports_affected": 3,
+    "exports_updated": 1,
+    "exports_added_to_body": 3,
+    "exports_removed": 0,
+    "structural_changes": 1,
+    "manual_sections_preserved": 2,
+    "manual_conflicts": 0,
+    "validation_status": "passed",
+    "gaps_resolved": 4,
+    "gaps_deferred": 2
+  },
+  "gap_resolutions": [
+    {
+      "gap_id": "GAP-001",
+      "severity": "Low",
+      "category": "Coverage",
+      "export": "__version__",
+      "resolution": "Added row to SKILL.md Key API Summary",
+      "citation": "[AST:cognee/__init__.py:L6]"
+    },
+    {
+      "gap_id": "GAP-002",
+      "severity": "Low",
+      "category": "Coverage",
+      "export": "session",
+      "resolution": "Added row to SKILL.md Key API Summary with cross-ref to references/full-api-reference.md",
+      "citation": "[AST:cognee/api/v1/session/session.py:L1]"
+    },
+    {
+      "gap_id": "GAP-003",
+      "severity": "Low",
+      "category": "Coverage",
+      "export": "cognee_network_visualization",
+      "resolution": "Extended visualize_graph row in Key API Summary with inline cross-ref",
+      "citation": "[AST:cognee/modules/visualization/cognee_network_visualization.py:L22]"
+    },
+    {
+      "gap_id": "GAP-004",
+      "severity": "Low",
+      "category": "Structural",
+      "export": null,
+      "resolution": "Renamed section 'Migration & Deprecation Warnings' to 'Deprecations & Gotchas' with scope blockquote",
+      "citation": null
+    }
+  ],
+  "gaps_deferred": [
+    {
+      "gap_id": "GAP-005",
+      "severity": "Info",
+      "reason": "Advisory — discovery testing belongs in pre-export workflow, not update"
+    },
+    {
+      "gap_id": "GAP-006",
+      "severity": "Info",
+      "reason": "Advisory — tessl content score 73% is expected split-body artifact, confirmed still 73% post-update"
+    }
+  ],
+  "validation": {
+    "skill_check": {
+      "score": 100,
+      "errors": 0,
+      "warnings": 0,
+      "breakdown": {
+        "frontmatter": 30,
+        "description": 30,
+        "body": 20,
+        "links": 10,
+        "file": 10
+      }
+    },
+    "tessl": {
+      "status": "PASSED",
+      "description_score": 100,
+      "content_score": 73,
+      "average_score": 89,
+      "errors": 0,
+      "warnings": 0
+    },
+    "manual_integrity": {
+      "status": "PASS",
+      "sections_verified": 2,
+      "sections_intact": 2
+    },
+    "confidence_tiers": {
+      "status": "PASS",
+      "new_citations": 3,
+      "all_tier": "T1"
+    },
+    "skill_md_line_count": 194,
+    "line_count_limit": 500
+  },
+  "score_comparison": {
+    "pre_update": {
+      "total": 97.65,
+      "export_coverage": 96,
+      "signature_accuracy": 100,
+      "type_coverage": 100,
+      "external_validation": 94.5
+    },
+    "projected_post_update": {
+      "total": 97.65,
+      "note": "Unchanged — gap fixes improved discoverability within SKILL.md body but denominator was already provenance-map-based"
+    }
+  },
+  "next_steps": [
+    "test-skill (re-run to confirm)",
+    "export-skill (package for distribution)"
+  ]
+}

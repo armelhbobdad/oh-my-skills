@@ -1,0 +1,66 @@
+{
+  "skill": "skf-create-skill",
+  "status": "success",
+  "timestamp": "2026-04-11T01:45:00Z",
+  "outputs": [
+    {"type": "skill", "path": "skills/oms-uitripled/0.1.0/oms-uitripled/SKILL.md"},
+    {"type": "config", "path": "skills/oms-uitripled/0.1.0/oms-uitripled/context-snippet.md"},
+    {"type": "manifest", "path": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json"},
+    {"type": "skill", "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/setup.md"},
+    {"type": "skill", "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/catalog.md"},
+    {"type": "skill", "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/utils.md"},
+    {"type": "skill", "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/types.md"},
+    {"type": "skill", "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/integration.md"},
+    {"type": "manifest", "path": "forge-data/oms-uitripled/0.1.0/provenance-map.json"},
+    {"type": "report", "path": "forge-data/oms-uitripled/0.1.0/evidence-report.md"},
+    {"type": "config", "path": "forge-data/oms-uitripled/0.1.0/extraction-rules.yaml"}
+  ],
+  "summary": {
+    "skill_name": "oms-uitripled",
+    "skill_version": "0.1.0",
+    "skill_type": "component-library",
+    "forge_tier": "Deep",
+    "source_repo": "https://github.com/moumen-soliman/uitripled",
+    "source_commit": "a5ffb45be05335d2c547436664cfbfb8c22d04df",
+    "source_ref": "HEAD",
+    "skill_md_lines": 198,
+    "reference_file_count": 5,
+    "exports_public_api": 11,
+    "provenance_entries": 22,
+    "components_registered": 171,
+    "components_by_type": {
+      "registry:page": 15,
+      "registry:block": 38,
+      "registry:component": 99,
+      "registry:ui": 19
+    },
+    "confidence_distribution": {
+      "t1": 341,
+      "t1_low": 2,
+      "t2": 2,
+      "t3": 0
+    },
+    "validation": {
+      "skill_check_score": 100,
+      "skill_check_errors": 0,
+      "tessl_review_score": 89,
+      "tessl_description_score": 100,
+      "tessl_content_score": 73,
+      "security_scan": "skipped_no_snyk_token"
+    },
+    "qmd_collections_created": [
+      "oms-uitripled-temporal",
+      "oms-uitripled-docs",
+      "oms-uitripled-extraction"
+    ],
+    "ccc_indexed": false,
+    "ccc_skip_reason": "Brief include patterns are highly targeted (~20 paths, registry-first); pre-ranking unnecessary",
+    "tool_versions": {
+      "ast_grep": "0.42.0",
+      "qmd": "2.0.1",
+      "skf": "1.0.0",
+      "skill_check": "latest (npx)",
+      "tessl": "latest (npx)"
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "skill": "skf-test-skill",
+  "status": "success",
+  "timestamp": "2026-04-11T00:00:00Z",
+  "outputs": [
+    {
+      "type": "report",
+      "path": "forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled.md"
+    }
+  ],
+  "summary": {
+    "skill_name": "oms-uitripled",
+    "skill_version": "0.1.0",
+    "skill_dir": "skills/oms-uitripled/0.1.0/oms-uitripled",
+    "test_mode": "naive",
+    "forge_tier": "Deep",
+    "analysis_confidence": "full",
+    "source_access_state": 1,
+    "score": 99.45,
+    "threshold": 80,
+    "result": "PASS",
+    "category_scores": {
+      "export_coverage": 100.0,
+      "signature_accuracy": 100.0,
+      "type_coverage": 100.0,
+      "coherence": null,
+      "external_validation": 94.5
+    },
+    "external_validators": {
+      "skill_check": {
+        "available": true,
+        "reused_from": null,
+        "quality_score": 100,
+        "errors": 0,
+        "warnings": 0
+      },
+      "tessl": {
+        "available": true,
+        "reused_from": null,
+        "validation": "PASSED",
+        "description_score": 100,
+        "content_score": 73,
+        "review_score": 89
+      }
+    },
+    "gaps": {
+      "total": 1,
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 0,
+      "info": 1,
+      "blocking_recommendation": "Nothing blocks export. All 6 prior gaps (GAP-001..006) resolved by update-skill at 2026-04-11T11:33:03Z and verified against live source at commit a5ffb45. Only advisory: run discovery testing with realistic prompts before export-skill."
+    },
+    "prior_run_comparison": {
+      "prior_score": 93.07,
+      "delta": 6.38,
+      "gaps_resolved_since_prior_run": ["GAP-001", "GAP-002", "GAP-003", "GAP-004", "GAP-005", "GAP-006"],
+      "gaps_deferred": ["GAP-007"],
+      "gaps_carried_forward_as_info": ["GAP-008 (reclassified as current-run GAP-001 Info)"]
+    },
+    "next_workflow": "export-skill"
+  }
+}

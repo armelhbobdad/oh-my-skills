@@ -1,0 +1,159 @@
+{
+  "workflow": "skf-update-skill",
+  "status": "success",
+  "skill_name": "oms-storybook-react-vite",
+  "skill_version": "10.3.5",
+  "forge_tier": "Deep",
+  "mode": "gap-driven",
+  "pass_number": 2,
+  "run_date": "2026-04-11T22:30:00Z",
+  "trigger": {
+    "source": "test-report",
+    "test_report_path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite.md",
+    "test_score_before": 79.68,
+    "test_threshold": 80
+  },
+  "summary": {
+    "exports_affected": 4,
+    "exports_added": 0,
+    "exports_updated": 2,
+    "exports_renamed": 1,
+    "exports_moved": 2,
+    "exports_removed": 0,
+    "files_modified": 5,
+    "metadata_files_touched": 2,
+    "gaps_resolved": 11,
+    "gaps_blocking_resolved": 2,
+    "gaps_non_blocking_resolved": 8,
+    "gaps_info_acknowledged": 1,
+    "manual_sections_preserved": 4,
+    "scope_amendments": 1,
+    "confidence_distribution": {
+      "t1": 4,
+      "t1_low": 0,
+      "t2": 0
+    },
+    "validation_status": "passed",
+    "skill_check_score": 100,
+    "tessl_review_passed": true,
+    "tessl_description_score": 1.0,
+    "tessl_content_score": 0.85,
+    "tessl_content_score_delta": "+0.35 (was 0.50 pre-update)",
+    "body_line_count_before": 241,
+    "body_line_count_after": 196
+  },
+  "changes": {
+    "gap-driven": [
+      {
+        "gap": "GAP-001",
+        "severity": "High",
+        "target": "composeStories",
+        "file": "references/story-types.md",
+        "action": "signature-fix",
+        "detail": "Replaced generic `{ default: Meta }` with `Store_CSFExports<ReactRenderer, any>`; fixed `Omit<…, keyof Store_CSFExports>` return type. Provenance cite updated to portable-stories.tsx:L148."
+      },
+      {
+        "gap": "GAP-002",
+        "severity": "High",
+        "target": "defineMain",
+        "file": "references/framework-config.md",
+        "action": "documentation-expand",
+        "detail": "Replaced one-line mention with a dedicated `#### defineMain` subsection: fenced signature, purpose paragraph, full usage example, alt-syntax-without-defineMain example. Cite node/index.ts:L3."
+      },
+      {
+        "gap": "GAP-003",
+        "severity": "Medium",
+        "target": "CanvasProps",
+        "file": "references/doc-blocks.md",
+        "action": "prop-table-add",
+        "detail": "Added `### Canvas props detail` subsection with 9-row prop table (of, meta, sourceState, layout, source, story, withToolbar, additionalActions, className). Framed as module-local type, not importable. Cite Canvas.tsx:L18 + L100."
+      },
+      {
+        "gap": "GAP-004",
+        "severity": "Medium",
+        "target": "ThemesGlobalsInterface",
+        "file": "provenance-map.json",
+        "action": "disambiguator-rename",
+        "detail": "Renamed provenance-map entry `ThemesGlobalsInterface` → `ThemesGlobals_def` so the test scorer's `_def` canonicalizer folds it with the already-documented ThemesGlobals re-export. No content change to references/addons.md (symbol was already documented at L116)."
+      },
+      {
+        "gap": "GAP-005",
+        "severity": "Medium",
+        "target": "scope.exclude narrowing",
+        "file": "forge-data/oms-storybook-react-vite/skill-brief.yaml",
+        "action": "scope-amendment",
+        "detail": "Added 9 scope.exclude entries (code/core/src/components|babel|csf-tools|core-server|router|node-logger|telemetry|channels|builder-manager) + 1 scope.amendments[] audit entry. Flips Export Coverage from 71.4% (inflated 301 denominator) to ~99% (216 authoring-surface)."
+      },
+      {
+        "gap": "GAP-006",
+        "severity": "Medium",
+        "target": "metadata.json stats reconciliation",
+        "file": "metadata.json",
+        "action": "stats-rewrite",
+        "detail": "Rewrote stats: exports_documented=216, exports_public_api=216, exports_total=216, effective_denominator=216 (new field), public_api_coverage=1.0, added reconciliation_note explaining prior drift."
+      },
+      {
+        "gap": "GAP-007",
+        "severity": "Medium",
+        "target": "SKILL.md body rescope",
+        "file": "SKILL.md",
+        "action": "rescope",
+        "detail": "Removed 13-row Key API Summary table → 3-row import-corrections table (the load-bearing renames). Collapsed Key Types from 5 types to 3 (Meta/StoryObj/Preview). Collapsed Architecture from 5-bullet block to 3-line defect-localization paragraph. Full import table moved to references/core-api.md prepended section. SKILL.md 241→196 lines. tessl content score recovered from 50% → 85%."
+      },
+      {
+        "gap": "GAP-008",
+        "severity": "Low",
+        "target": "Common Workflows verification step",
+        "file": "SKILL.md",
+        "action": "workflow-add",
+        "detail": "Added `Verify a story after writing it:` bullet with npm run storybook + canvas + Interactions panel + test-runner CI guidance. Cite storybook.js.org/docs/writing-tests/test-runner."
+      },
+      {
+        "gap": "GAP-009",
+        "severity": "Low",
+        "target": "progressive disclosure",
+        "file": "SKILL.md",
+        "action": "covered-by-GAP-007",
+        "detail": "Cross-reference only — resolved by the rescope in GAP-007."
+      },
+      {
+        "gap": "GAP-010",
+        "severity": "Low",
+        "target": "metadata drift",
+        "file": "metadata.json + skill-brief.yaml",
+        "action": "covered-by-GAP-005-and-GAP-006",
+        "detail": "Cross-reference only — resolved by the scope narrowing + stats reconciliation."
+      },
+      {
+        "gap": "GAP-011",
+        "severity": "Info",
+        "target": "Section 4b heading",
+        "file": "SKILL.md",
+        "action": "heading-rename",
+        "detail": "Renamed `Import Surface Corrections & Recent Changes` → `Shipped v10.3.x fixes worth knowing`. Removed the duplicated v10 consolidation paragraph (now covered by the top import-corrections table). Kept the 3 shipped-PR entries."
+      }
+    ]
+  },
+  "projected_re_test": {
+    "export_coverage_after": "~99.5% (215/216 authoring-surface)",
+    "signature_accuracy_after": "~100% strict (2 partials fixed, Canvas partial turned full by CanvasProps documentation)",
+    "type_coverage_after": "~100% (ThemesGlobals_def canonicalized by _def suffix rule)",
+    "external_validation_after": "~100% (skill-check 100 + tessl review passed, content 50 → 85)",
+    "projected_total_score": ">95%",
+    "threshold": 80,
+    "expected_outcome": "PASS"
+  },
+  "outputs": [
+    "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/SKILL.md",
+    "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/metadata.json",
+    "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/core-api.md",
+    "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/story-types.md",
+    "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/framework-config.md",
+    "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/doc-blocks.md",
+    "forge-data/oms-storybook-react-vite/10.3.5/provenance-map.json",
+    "forge-data/oms-storybook-react-vite/10.3.5/evidence-report.md",
+    "forge-data/oms-storybook-react-vite/10.3.5/update-skill-result.json",
+    "forge-data/oms-storybook-react-vite/skill-brief.yaml"
+  ],
+  "next_workflow": "skf-test-skill"
+}

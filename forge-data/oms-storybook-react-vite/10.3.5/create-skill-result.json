@@ -1,0 +1,50 @@
+{
+  "workflow": "skf-create-skill",
+  "skill_name": "oms-storybook-react-vite",
+  "skill_version": "10.3.5",
+  "generated_at": "2026-04-11T18:20:00Z",
+  "forge_tier": "Deep",
+  "source": {
+    "repo": "https://github.com/storybookjs/storybook",
+    "ref": "v10.3.5",
+    "commit": "e486d3826bcd40c52db1c766966d1c8ec16df6cb"
+  },
+  "outputs": {
+    "skill_md": "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/SKILL.md",
+    "context_snippet": "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/context-snippet.md",
+    "metadata": "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/metadata.json",
+    "references_dir": "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/",
+    "provenance_map": "forge-data/oms-storybook-react-vite/10.3.5/provenance-map.json",
+    "evidence_report": "forge-data/oms-storybook-react-vite/10.3.5/evidence-report.md",
+    "extraction_rules": "forge-data/oms-storybook-react-vite/10.3.5/extraction-rules.yaml",
+    "active_symlink": "skills/oms-storybook-react-vite/active -> 10.3.5"
+  },
+  "summary": {
+    "files_scanned": 70,
+    "exports_extracted": 430,
+    "exports_documented": 82,
+    "references_count": 6,
+    "confidence_distribution": {
+      "t1": 430,
+      "t1_low": 0,
+      "t2": 5,
+      "t3": 4
+    },
+    "qmd_collections_created": [
+      "oms-storybook-react-vite-temporal",
+      "oms-storybook-react-vite-docs",
+      "oms-storybook-react-vite-extraction"
+    ]
+  },
+  "validation": {
+    "skill_check_score": 100,
+    "skill_check_errors": 0,
+    "skill_check_warnings": 0,
+    "tessl_review_score": 89,
+    "tessl_description_score": 100,
+    "tessl_content_score": 73,
+    "description_guard_restored": false,
+    "security_scan": "skipped (SNYK_TOKEN not configured)"
+  },
+  "status": "success"
+}

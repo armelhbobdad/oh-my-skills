@@ -5,6 +5,8 @@ communication_language: en
 document_output_language: en
 skills_output_folder: skills
 forge_data_folder: forge-data
+sidecar_path: _bmad/_memory/forger-sidecar
 skf_folder: _bmad/skf
 ides:
   - claude-code
+install_learning: true

@@ -1,0 +1,41 @@
+{
+  "skill": "skf-update-skill",
+  "status": "success",
+  "timestamp": "2026-04-11T11:33:03Z",
+  "outputs": [
+    {"type": "skill", "path": "skills/oms-uitripled/0.1.0/oms-uitripled/SKILL.md"},
+    {"type": "skill", "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/utils.md"},
+    {"type": "skill", "path": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json"},
+    {"type": "manifest", "path": "forge-data/oms-uitripled/0.1.0/provenance-map.json"},
+    {"type": "report", "path": "forge-data/oms-uitripled/0.1.0/evidence-report.md"}
+  ],
+  "summary": {
+    "skill_name": "oms-uitripled",
+    "version": "0.1.0",
+    "skill_type": "single",
+    "forge_tier": "Deep",
+    "mode": "incremental-gap-driven",
+    "trigger": "test-report",
+    "test_report": "forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled.md",
+    "gaps_addressed": ["GAP-001", "GAP-002", "GAP-003", "GAP-004", "GAP-005", "GAP-006"],
+    "gaps_skipped_advisory": ["GAP-007", "GAP-008"],
+    "files_modified": 5,
+    "exports_affected": 6,
+    "exports_signature_fixed": 3,
+    "exports_added": 3,
+    "exports_removed": 0,
+    "structural_sections_removed": 1,
+    "manual_sections_preserved": 4,
+    "manual_conflicts_resolved": 0,
+    "validation_status": "passed",
+    "skill_check_score": 100,
+    "skill_check_errors": 0,
+    "skill_check_warnings": 0,
+    "confidence_distribution": {
+      "t1": 6,
+      "t1_low": 0,
+      "t2": 0,
+      "t3": 0
+    }
+  }
+}

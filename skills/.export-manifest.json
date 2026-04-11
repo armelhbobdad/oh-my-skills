@@ -1,0 +1,45 @@
+{
+  "schema_version": "2",
+  "exports": {
+    "oms-cocoindex": {
+      "active_version": "0.3.37",
+      "versions": {
+        "0.3.37": {
+          "platforms": ["claude-code"],
+          "last_exported": "2026-04-12",
+          "status": "active"
+        }
+      }
+    },
+    "oms-cognee": {
+      "active_version": "0.5.8",
+      "versions": {
+        "0.5.8": {
+          "platforms": ["claude-code"],
+          "last_exported": "2026-04-12",
+          "status": "active"
+        }
+      }
+    },
+    "oms-storybook-react-vite": {
+      "active_version": "10.3.5",
+      "versions": {
+        "10.3.5": {
+          "platforms": ["claude-code"],
+          "last_exported": "2026-04-12",
+          "status": "active"
+        }
+      }
+    },
+    "oms-uitripled": {
+      "active_version": "0.1.0",
+      "versions": {
+        "0.1.0": {
+          "platforms": ["claude-code"],
+          "last_exported": "2026-04-12",
+          "status": "active"
+        }
+      }
+    }
+  }
+}

@@ -11,7 +11,7 @@ Ferris is the AI agent that runs all SKF workflows. You always interact with Fer
 
 ## Ferris — Skill Architect & Integrity Guardian
 
-**ID:** `_bmad/skf/agents/forger.md`
+**ID:** `skf-forger`
 **Icon:** ⚒️
 
 **Role:**
@@ -29,6 +29,8 @@ Ferris handles all SKF workflows. You always interact with Ferris — he switche
 - Cross-knowledge synthesis for stack skills and integration patterns
 - Skill authoring best practices enforcement (third-person voice, consistent terminology, discovery optimization)
 - Source-derived scripts and assets extraction with provenance tracking
+- **Pipeline orchestration** — chain multiple workflows with automatic data forwarding and circuit breakers
+- **Headless mode** — skip confirmation gates for power users and batch operations (`--headless` or `-H`)
 
 **Workflow-Driven Modes:**
 
@@ -38,6 +40,7 @@ Ferris handles all SKF workflows. You always interact with Ferris — he switche
 | **Surgeon** | Precise, semantic diffing, preserves [MANUAL] | US |
 | **Audit** | Judgmental, drift reports, completeness scoring | AS, TS, VS |
 | **Delivery** | Packaging, platform-aware, ecosystem-ready | EX |
+| **Management** | Transactional rename/drop with platform context rebuild | RS, DS |
 
 **Communication Style:**
 - During work: structured reports with AST citations, no metaphor
@@ -72,9 +75,24 @@ MAINTAIN:
 DELIVER:
   [EX] Export Skill — Package for distribution
 
+MANAGE:
+  [RS] Rename Skill — Rename across all versions (transactional)
+  [DS] Drop Skill — Deprecate or purge a skill version
+
 [WS] Workflow Status — Show current lifecycle position
 [KI] Knowledge Index — List available knowledge fragments
 ```
 
+**Pipeline Aliases:**
+
+| Alias | Expands To | First Workflow | Required Target |
+|-------|-----------|----------------|-----------------|
+| `forge` | BS CS TS EX | BS | GitHub URL or local path **+** skill name |
+| `forge-quick` | QS TS EX | QS | GitHub URL **or** package name |
+| `onboard` | AN CS TS EX | AN | Project path (defaults to current directory) |
+| `maintain` | AS US TS EX | AS | Existing skill name |
+
+Example: `@Ferris forge-quick cognee` chains Quick → Test → Export with automatic data forwarding — QS resolves the package to its GitHub repo. For the full brief-driven pipeline, use `@Ferris forge <repo-url> <skill-name>`. See [Workflows → Pipeline Mode](../workflows/#pipeline-mode) for the full specification.
+
 **Memory:**
-Ferris has a sidecar (`_bmad/_memory/forger-sidecar/`) that persists user preferences and tool availability across sessions.
+Ferris has a sidecar (`_bmad/_memory/forger-sidecar/`) that persists user preferences and tool availability across sessions. Set `headless_mode: true` in preferences to make headless the default.

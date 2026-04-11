@@ -1,0 +1,74 @@
+{
+  "workflow": "create-skill",
+  "skill_name": "oms-cognee",
+  "skill_version": "0.5.8",
+  "tier": "Deep",
+  "status": "success",
+  "generated_at": "2026-04-10T21:18:00Z",
+  "inputs": {
+    "brief_path": "forge-data/oms-cognee/skill-brief.yaml",
+    "source_repo": "https://github.com/topoteretes/cognee",
+    "source_ref": "v0.5.8",
+    "source_commit": "b51dcce1d273d47ce864cd6c5e44a7a82f7f8dce"
+  },
+  "outputs": {
+    "skill_md": "skills/oms-cognee/0.5.8/oms-cognee/SKILL.md",
+    "context_snippet": "skills/oms-cognee/0.5.8/oms-cognee/context-snippet.md",
+    "metadata": "skills/oms-cognee/0.5.8/oms-cognee/metadata.json",
+    "references": [
+      "skills/oms-cognee/0.5.8/oms-cognee/references/config.md",
+      "skills/oms-cognee/0.5.8/oms-cognee/references/core-workflow.md",
+      "skills/oms-cognee/0.5.8/oms-cognee/references/full-api-reference.md",
+      "skills/oms-cognee/0.5.8/oms-cognee/references/pipelines-and-datapoints.md"
+    ],
+    "provenance_map": "forge-data/oms-cognee/0.5.8/provenance-map.json",
+    "evidence_report": "forge-data/oms-cognee/0.5.8/evidence-report.md",
+    "extraction_rules": "forge-data/oms-cognee/0.5.8/extraction-rules.yaml",
+    "active_symlink": "skills/oms-cognee/active -> 0.5.8"
+  },
+  "summary": {
+    "exports_documented": 25,
+    "exports_public_api": 25,
+    "exports_total": 25,
+    "public_api_coverage": 1.0,
+    "total_coverage": 1.0,
+    "confidence_distribution": {
+      "t1": 25,
+      "t1_low": 0,
+      "t2": 4,
+      "t3": 15
+    },
+    "files_scanned": 20,
+    "references_count": 4,
+    "tier_used": "Deep"
+  },
+  "validation": {
+    "skill_check_score": 100,
+    "skill_check_breakdown": {
+      "frontmatter": 30,
+      "description": 30,
+      "body": 20,
+      "links": 10,
+      "file": 10
+    },
+    "skill_check_errors": 0,
+    "skill_check_warnings": 0,
+    "tessl_overall": 89,
+    "tessl_description": 100,
+    "tessl_content": 73,
+    "tessl_validation": "PASSED",
+    "security_scan": "skipped"
+  },
+  "qmd_collections": [
+    "oms-cognee-brief",
+    "oms-cognee-temporal",
+    "oms-cognee-docs",
+    "oms-cognee-extraction"
+  ],
+  "warnings": [
+    "Brief include_patterns bug: `cognee/modules/observability/trace_context/**` is a file not a directory — should be `trace_context.py`",
+    "Brief exclude_patterns bug: `cognee/run_migrations.py` is excluded but IS a public export",
+    "Source/skill.md discrepancy: `cognee.start_visualization_server` is a module (not callable) — documented in SKILL.md Section 4b",
+    "Source/skill.md discrepancy: `cognee.start_ui` is sync (not async) and requires `pid_callback` positional arg — documented in SKILL.md Section 4b"
+  ]
+}

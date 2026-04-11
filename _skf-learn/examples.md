@@ -50,25 +50,28 @@ See [How It Works](../how-it-works/) for the full output structure.
 
 ```
 skills/cognee/
-├── SKILL.md              # What your agent reads
-├── context-snippet.md    # Compressed index for CLAUDE.md
-├── metadata.json         # Machine-readable provenance
-├── references/           # Progressive disclosure detail
-│   ├── api-core.md
-│   └── graph-types.md
-├── scripts/              # Executable utilities (when detected)
-│   └── setup-graphdb.sh
-└── assets/               # Templates and schemas (when detected)
-    └── config-schema.json
+├── active -> 0.5.5
+└── 0.5.5/
+    └── cognee/
+        ├── SKILL.md              # What your agent reads
+        ├── context-snippet.md    # Compressed index for platform context files
+        ├── metadata.json         # Machine-readable provenance
+        ├── references/           # Progressive disclosure detail
+        │   ├── api-core.md
+        │   └── graph-types.md
+        ├── scripts/              # Executable utilities (when detected)
+        │   └── setup-graphdb.sh
+        └── assets/               # Templates and schemas (when detected)
+            └── config-schema.json
 ```
 
-The `scripts/` and `assets/` directories appear only when the source repository contains them. Each file traces back to its source with provenance citations and SHA-256 hashes.
+Skills are stored per-version — updating cognee to v0.6.0 creates a new version directory without overwriting v0.5.5. The `active` symlink always points to the current version. The `scripts/` and `assets/` directories appear only when the source repository contains them. Each file traces back to its source with provenance citations and SHA-256 hashes.
 
 ---
 
 ## Example Workflows
 
-### Quick Skill — 47 Seconds
+### Quick Skill — Under a minute
 
 Developer adds [cognee](https://github.com/topoteretes/cognee) to a Python project for AI memory management. Agent keeps hallucinating method signatures and config options.
 
@@ -76,28 +79,51 @@ Developer adds [cognee](https://github.com/topoteretes/cognee) to a Python proje
 @Ferris QS https://github.com/topoteretes/cognee
 ```
 
-Ferris reads the repository, extracts the public API via source reading, validates against spec. Skill appears in `skills/cognee/`. Agent stops hallucinating. Forty-seven seconds. Done.
+Ferris reads the repository, extracts the public API, and validates against the agentskills.io spec. The skill is written to `skills/cognee/<version>/cognee/` (auto-detected from the source manifest). Agent stops hallucinating.
 
-### Brownfield Platform — 8 Minutes
+Need a specific version? Append `@version`:
+
+```
+@Ferris QS cognee@0.5.0
+```
+
+### Brownfield Platform — Pipeline or per-workflow
 
 Alex's team adopts BMAD for 10 microservices (TypeScript, Go, Rust).
 
 ```
 @Ferris SF          # Setup — Deep mode detected
+# — clear session —
+@Ferris onboard     # Analyze → Create → Test → Export in one pipeline
+```
+
+Or one workflow per session:
+```
+@Ferris SF          # Setup — Deep mode detected
+# — clear session —
 @Ferris AN          # Analyze — 10 services mapped
+# — clear session —
 @Ferris CS --batch  # Create — batch generation
 ```
 
-10 individual skills + 1 platform stack skill. BMM architect navigates cross-service flows with verified knowledge.
+10 individual skills + 1 platform stack skill. [BMM](../bmad-synergy/#skf-and-bmm-phase-by-phase-playbook) architect navigates cross-service flows with verified knowledge.
 
 ### Release Prep — Trust Builder
 
 Sarah prepares v3.0.0 with breaking changes.
 
 ```
+@Ferris maintain cocoindex
+```
+
+Or one workflow per session:
+```
 @Ferris AS    # Audit — finds 3 renames, 1 removal, 1 addition
+# — clear session —
 @Ferris US    # Update — preserves [MANUAL] sections, adds annotations
+# — clear session —
 @Ferris TS    # Test — verify completeness
+# — clear session —
 @Ferris EX    # Export — package for npm release
 ```
 
@@ -134,13 +160,13 @@ VS finds a Risky integration between Drizzle and SpacetimeDB (incompatible query
 
 ### Scenario A: Greenfield + BMM Integration
 
-BMAD user starts a new project. BMM architect suggests skill generation after retrospective.
+BMAD user starts a new project. [BMM](../bmad-synergy/#skf-and-bmm-phase-by-phase-playbook) architect suggests skill generation after retrospective.
 
 ```
 @Ferris BS    # Brief — scope the skill
 @Ferris CS    # Create — compile from brief
 @Ferris TS    # Test — verify completeness
-@Ferris EX    # Export — inject into CLAUDE.md
+@Ferris EX    # Export — inject into platform context files
 ```
 
 Skills accumulate over sprints. Agent gets smarter every iteration.
@@ -168,14 +194,45 @@ No source code available — only documentation.
 ```
 @Ferris BS
 # When asked for target, provide documentation URLs:
-# https://docs.cognee.ai/
+# https://docs.cognee.ai/v2/api/
 # Ferris sets source_type: "docs-only" and collects doc_urls
+# When asked for target version, specify: 2.0.0
+# Ferris confirms your doc URLs match that version
 @Ferris CS
 # step-03 skips (no source), step-03c fetches docs via doc_fetcher
 # All content is T3 [EXT:url] confidence. source_authority: community
 ```
 
 The brief's `doc_urls` field drives the doc_fetcher step. The agent uses whatever web fetching tool is available in its environment (Firecrawl, WebFetch, curl, etc.) to retrieve documentation as markdown and extract API information with T3 citations.
+
+### Scenario E: Rename a Skill
+
+You generated a quick skill for `cognee` and now want a more specific name to distinguish it from the official one.
+
+```
+@Ferris RS
+# Ferris asks: Which skill? → cognee
+# Ferris asks: New name? → cognee-skf-community
+# Ferris copies to new name across all versions, verifies every reference,
+# updates the export manifest, rebuilds CLAUDE.md/AGENTS.md,
+# then deletes the old name.
+```
+
+Transactional safety: if verification fails, the old skill stays intact.
+
+### Scenario F: Drop a Deprecated Version
+
+You have `cognee` with versions 0.1.0, 0.5.0, and 0.6.0 (active). Version 0.1.0 is obsolete.
+
+```
+@Ferris DS
+# Ferris asks: Which skill? → cognee
+# Ferris asks: Which version? → 0.1.0
+# Ferris asks: Deprecate (keep files) or Purge (delete)? → Purge
+# Ferris updates the manifest, rebuilds context files, deletes the 0.1.0 directory.
+```
+
+Version 0.6.0 remains active. Version 0.5.0 is untouched. The managed sections in CLAUDE.md/AGENTS.md no longer reference 0.1.0.
 
 ---
 
@@ -195,7 +252,15 @@ Stack skills focus on integration patterns. Individual skills focus on API surfa
 
 ### The Loop
 
-After each sprint's refactor, run `@Ferris US` to regenerate changed components. Export updates CLAUDE.md automatically. Skill generation becomes routine — like running tests.
+After each sprint's refactor, run `@Ferris US` to regenerate changed components. Export updates your platform context files (CLAUDE.md, AGENTS.md, .cursorrules) automatically. Skill generation becomes routine — like running tests.
+
+### One Workflow Per Session
+
+Clear your conversation context (start a new chat) before invoking a new workflow. Each SKF workflow loads step files, knowledge fragments, and extraction data into context. Starting fresh ensures the next workflow operates without interference from prior steps. Sidecar state (forge tier, preferences) persists automatically across sessions — you don't lose configuration.
+
+### Full Control Over Scope
+
+You can compile multiple skills from the same target (repo or docs) with different scopes and intents. Each brief defines what to extract and why, producing a distinct skill from the same source. For example, from a single library you could compile `cognee-core` for the public API, `cognee-graph-types` for the type system, and `cognee-migration` for upgrade patterns — each serving a different use case.
 
 ### Best Practices Built In
 
@@ -205,6 +270,10 @@ Generated skills automatically follow authoring best practices: third-person des
 
 If your source repo includes executable scripts (`scripts/`, `bin/`) or static assets (`templates/`, `schemas/`), SKF detects and packages them automatically with provenance tracking. Custom scripts you add to `scripts/[MANUAL]/` are preserved during updates — just like `<!-- [MANUAL] -->` markers in SKILL.md.
 
+### Let the Health Check Run
+
+Every SKF workflow ends with a shared **health check** step where Ferris reflects on the session and offers to file friction, bugs, or gaps as GitHub issues (with your approval). Clean runs exit in one line — zero overhead. When something breaks, it's SKF's primary feedback channel, so **please let workflows run to completion**. If you had to cancel before the health check fired, ask Ferris to run it (`@Ferris please run the workflow health check for this session`) or [open an issue directly](https://github.com/armelhbobdad/bmad-module-skill-forge/issues/new/choose). See [Workflow Health Check](../workflows/#terminal-step-health-check) for details.
+
 ---
 
 ## Troubleshooting
@@ -212,7 +281,7 @@ If your source repo includes executable scripts (`scripts/`, `bin/`) or static a
 ### Common Issues
 
 **Forge reports ast-grep is unavailable**
-If setup-forge reports that ast-grep was not detected, install it to unlock Forge mode: <https://ast-grep.github.io>
+If setup reports that ast-grep was not detected, install it to unlock Forge mode: <https://ast-grep.github.io>
 
 **"No brief found"**
 Run `@Ferris BS` first to create a skill brief, or use `@Ferris QS` for brief-less generation.

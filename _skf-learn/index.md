@@ -21,7 +21,7 @@ AI agents hallucinate API calls. They invent function names, guess parameter typ
 
 ## Quick Install
 
-Requires [Node.js](https://nodejs.org/) >= 22.
+Requires [Node.js](https://nodejs.org/) >= 22, [Python](https://www.python.org/) >= 3.10, and [uv](https://docs.astral.sh/uv/) (Python package runner).
 
 ```bash
 npx bmad-module-skill-forge install
@@ -41,9 +41,10 @@ See the [Getting Started](./getting-started/) guide for full installation and us
 - **[Getting Started](./getting-started/)** — Installation, prerequisites, and your first skill
 - **[Concepts](./concepts/)** — Plain-English definitions of key terms (provenance, tiers, drift, and more)
 - **[How It Works](./how-it-works/)** — Architecture, capability model, output format, and design decisions
-- **[Workflows](./workflows/)** — All 12 workflows with commands and connection diagrams
+- **[Workflows](./workflows/)** — All 14 workflows with commands and connection diagrams
 - **[Agents](./agents/)** — Ferris: the AI agent that runs all SKF workflows
 - **[Examples](./examples/)** — Real-world scenarios, tips, and troubleshooting
+- **[BMAD Synergy](./bmad-synergy/)** — How SKF workflows pair with BMAD CORE phases and optional modules
 
 ## Support
 

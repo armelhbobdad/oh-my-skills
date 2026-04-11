@@ -1,0 +1,51 @@
+{
+  "skill": "skf-test-skill",
+  "status": "success",
+  "timestamp": "2026-04-11T21:30:00Z",
+  "outputs": [
+    {
+      "type": "report",
+      "path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite.md"
+    }
+  ],
+  "summary": {
+    "skillName": "oms-storybook-react-vite",
+    "skillVersion": "10.3.5",
+    "testMode": "naive",
+    "forgeTier": "Deep",
+    "analysisConfidence": "full",
+    "score": "99.49%",
+    "threshold": "80%",
+    "result": "PASS",
+    "marginFromThreshold": "+19.49",
+    "nextWorkflow": "export-skill",
+    "categoryScores": {
+      "exportCoverage": 99.54,
+      "signatureAccuracy": 100.0,
+      "typeCoverage": 100.0,
+      "coherence": null,
+      "externalValidation": 97.0
+    },
+    "externalValidators": {
+      "skillCheck": 100,
+      "tesslReview": 94,
+      "tesslDescription": 100,
+      "tesslContent": 85
+    },
+    "gaps": {
+      "total": 5,
+      "critical": 0,
+      "high": 0,
+      "medium": 1,
+      "low": 0,
+      "info": 4
+    },
+    "priorRun": {
+      "score": "79.68%",
+      "result": "FAIL",
+      "timestamp": "2026-04-11T20:17:00Z",
+      "delta": "+19.81pp"
+    },
+    "reconciliationNote": "2nd gap-driven repair closed all 11 prior findings; remaining 5 gaps are non-blocking (1 Medium metadata drift + 4 Info polish/advisory). Export Coverage 71.4% → 99.54% after scope narrowing (GAP-005 prior) + canonical provenance-map surface docs completeness verified. tessl content score 73% → 85% after citation consolidation + structural trimming."
+  }
+}
