@@ -1,0 +1,62 @@
+{
+  "name": "oms-storybook-react-vite",
+  "version": "10.3.5",
+  "skill_type": "single",
+  "source_authority": "community",
+  "source_repo": "https://github.com/storybookjs/storybook",
+  "source_root": "/home/armel/.skf/workspace/repos/github.com/storybookjs/storybook",
+  "source_commit": "e486d3826bcd40c52db1c766966d1c8ec16df6cb",
+  "source_ref": "v10.3.5",
+  "confidence_tier": "Deep",
+  "spec_version": "1.3",
+  "generation_date": "2026-04-11T17:50:00Z",
+  "description": "Grounds Claude in Storybook v10's consolidated `storybook` package import surface for React plus Vite story authoring. Use when writing or editing *.stories.tsx, preview.ts, or .storybook/main.ts files on a Storybook 10.3+ project, including CSF3 story syntax, play functions with storybook/test, preview-api hooks, theming, MDX doc blocks from @storybook/addon-docs/blocks, and the a11y, themes, and vitest addons. Covers the @storybook/react-vite framework, @storybook/react renderer, and @storybook/builder-vite layer model so defects can be located at the right layer. Do NOT use for first-time project setup, framework selection, or upgrade migration.",
+  "language": "typescript",
+  "ast_node_count": 430,
+  "exports": [
+    "Meta", "StoryObj", "StoryFn", "Decorator", "Loader", "StoryContext", "Preview",
+    "Args", "ArgTypes", "Parameters", "ReactRenderer", "StorybookConfig", "FrameworkOptions",
+    "expect", "fn", "within", "screen", "waitFor", "userEvent", "fireEvent", "spyOn",
+    "useState", "useArgs", "useParameter", "useChannel", "useEffect", "useGlobals",
+    "useCallback", "useMemo", "useRef", "useReducer", "useStoryContext", "makeDecorator",
+    "addons", "composeStories", "composeStory", "setProjectAnnotations", "definePreview",
+    "action", "withActions",
+    "create", "themes", "styled", "css", "useTheme", "ThemeProvider", "keyframes",
+    "HIGHLIGHT", "RESET_HIGHLIGHT", "REMOVE_HIGHLIGHT", "SCROLL_INTO_VIEW",
+    "Canvas", "Controls", "Primary", "Stories", "Story", "Source", "Description",
+    "Title", "Subtitle", "Markdown", "Typeset", "ColorPalette", "IconGallery",
+    "Unstyled", "useOf", "DocsContainer", "DocsPage", "DocsContext",
+    "withThemeByClassName", "withThemeByDataAttribute", "withThemeFromJSXProvider",
+    "start", "build", "bail", "ViteBuilder", "ViteFinal", "StorybookConfigVite",
+    "__definePreview", "ReactPreview", "ReactMeta", "ReactStory"
+  ],
+  "tool_versions": {
+    "ast_grep": "0.42.0",
+    "qmd": "2.0.1",
+    "skf": "1.0.0"
+  },
+  "confidence_distribution": {
+    "t1": 430,
+    "t1_low": 0,
+    "t2": 5,
+    "t3": 4
+  },
+  "stats": {
+    "exports_documented": 82,
+    "exports_public_api": 430,
+    "exports_internal": 0,
+    "exports_total": 430,
+    "public_api_coverage": 0.19,
+    "total_coverage": 0.19,
+    "scripts_count": 0,
+    "assets_count": 0
+  },
+  "generated_by": "create-skill",
+  "dependencies": [
+    "react@^16.8 || ^17 || ^18 || ^19",
+    "react-dom@^16.8 || ^17 || ^18 || ^19",
+    "vite@^5 || ^6 || ^7 || ^8",
+    "storybook@^10.3"
+  ],
+  "compatibility": "^10.3.0"
+}
