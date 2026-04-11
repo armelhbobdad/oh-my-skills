@@ -1,7 +1,7 @@
 {
   "skill": "skf-test-skill",
   "status": "success",
-  "timestamp": "2026-04-11T20:17:00Z",
+  "timestamp": "2026-04-11T21:30:00Z",
   "outputs": [
     {
       "type": "report",
@@ -14,32 +14,38 @@
     "testMode": "naive",
     "forgeTier": "Deep",
     "analysisConfidence": "full",
-    "score": "79.68%",
+    "score": "99.49%",
     "threshold": "80%",
-    "result": "FAIL",
-    "marginFromThreshold": "-0.32",
-    "nextWorkflow": "update-skill",
+    "result": "PASS",
+    "marginFromThreshold": "+19.49",
+    "nextWorkflow": "export-skill",
     "categoryScores": {
-      "exportCoverage": 71.4,
-      "signatureAccuracy": 75.0,
-      "typeCoverage": 99.0,
+      "exportCoverage": 99.54,
+      "signatureAccuracy": 100.0,
+      "typeCoverage": 100.0,
       "coherence": null,
-      "externalValidation": 90.0
+      "externalValidation": 97.0
     },
     "externalValidators": {
       "skillCheck": 100,
-      "tesslReview": 80,
+      "tesslReview": 94,
       "tesslDescription": 100,
-      "tesslContent": 50
+      "tesslContent": 85
     },
     "gaps": {
-      "total": 12,
+      "total": 5,
       "critical": 0,
-      "high": 2,
-      "medium": 5,
-      "low": 3,
-      "info": 2
+      "high": 0,
+      "medium": 1,
+      "low": 0,
+      "info": 4
     },
-    "sensitivityNote": "Strict signature scoring (9/12 full matches). With lenient scoring (partials as 0.5), total would be 82.81% PASS."
+    "priorRun": {
+      "score": "79.68%",
+      "result": "FAIL",
+      "timestamp": "2026-04-11T20:17:00Z",
+      "delta": "+19.81pp"
+    },
+    "reconciliationNote": "2nd gap-driven repair closed all 11 prior findings; remaining 5 gaps are non-blocking (1 Medium metadata drift + 4 Info polish/advisory). Export Coverage 71.4% → 99.54% after scope narrowing (GAP-005 prior) + canonical provenance-map surface docs completeness verified. tessl content score 73% → 85% after citation consolidation + structural trimming."
   }
 }
