@@ -1,0 +1,24 @@
+{
+  "workflow": "audit-skill",
+  "skill_name": "oms-cognee",
+  "version": "0.5.8",
+  "target_version": "v1.0.0",
+  "status": "completed",
+  "date": "2026-04-12",
+  "user": "armel",
+  "forge_tier": "Deep",
+  "outputs": [
+    "forge-data/oms-cognee/0.5.8/drift-report-20260412-191200.md"
+  ],
+  "summary": {
+    "drift_count": 16,
+    "severity": "CRITICAL",
+    "critical": 5,
+    "high": 3,
+    "medium": 8,
+    "low": 0,
+    "structural_items": 18,
+    "semantic_items": 8
+  },
+  "nextWorkflow": "update-skill"
+}
