@@ -1,8 +1,5 @@
 ---
-# nextStepFile `shared/health-check.md` resolves relative to the SKF module
-# root (`_bmad/skf/` when installed, `src/` during development), NOT relative
-# to this step file.
-nextStepFile: 'shared/health-check.md'
+nextStepFile: './step-08-health-check.md'
 ---
 
 # Step 7: Report
@@ -15,7 +12,7 @@ Present a comprehensive change summary showing what was updated, [MANUAL] sectio
 
 - Focus only on reporting — all operations are complete; do not modify any files
 - Present clear, actionable summary with next step recommendations
-- Chains to shared health check via `{nextStepFile}` after completion
+- Chains to the local health-check step via `{nextStepFile}` after completion — the user-facing summary is NOT the terminal step
 
 ## MANDATORY SEQUENCE
 
@@ -36,7 +33,7 @@ Source code matches provenance map exactly. The skill `{skill_name}` is current 
 
 **Recommendation:** No action required. Run audit-skill periodically to monitor for drift."
 
-→ Load and execute `{nextStepFile}` for workflow self-improvement check.
+→ Load, read the full file, and execute `{nextStepFile}` — the health-check step is the true terminal step of this workflow.
 
 ### 2. Present Change Summary
 
@@ -145,7 +142,7 @@ Based on the update results:"
 
 Write `{forge_version}/update-skill-result.json` per `shared/references/output-contract-schema.md`. Include all modified file paths in `outputs`; include `exports_affected`, `files_modified`, and `validation_status` (passed/warnings/failures) in `summary`.
 
-### 6. Workflow Health Check
+### 6. Chain to Health Check
 
-Load and execute `{nextStepFile}` for workflow self-improvement check. The health check is the terminal step and will display the workflow-complete marker on exit.
+ONLY WHEN the change summary has been presented, files-written list displayed, and result contract saved will you then load, read the full file, and execute `{nextStepFile}`. The health-check step is the true terminal step — do not stop here even though the report reads as final.
 

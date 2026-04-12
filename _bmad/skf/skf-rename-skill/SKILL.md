@@ -34,6 +34,7 @@ These rules apply to every step in this workflow:
 | 1 | Select & Validate | steps-c/step-01-select.md | No (confirm) |
 | 2 | Execute Rename | steps-c/step-02-execute.md | No (confirm) |
 | 3 | Report | steps-c/step-03-report.md | Yes |
+| 4 | Workflow Health Check | steps-c/step-04-health-check.md | Yes |
 
 ## Invocation Contract
 

@@ -28,7 +28,7 @@ Each workflow directory contains these files, and each has a specific job:
 | File                      | What it does                                                                                                        | When it loads                                     |
 |---------------------------|---------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|
 | `SKILL.md`                | Human-readable entry point — goals, role definition, initialization sequence, invocation contract, routes to first step | Entry point per workflow                          |
-| `steps-c/*.md`            | **Create** steps — primary execution, 5–11 sequential files per workflow                                            | One at a time (just-in-time)                      |
+| `steps-c/*.md`            | **Create** steps — primary execution, 4–10 sequential files per workflow (the last one always chains to the shared health check) | One at a time (just-in-time)                      |
 | `references/*.md`         | Workflow-specific reference data — rules, patterns, protocols                                                       | Read by steps on demand                           |
 | `assets/*.md`             | Workflow-specific output formats — schemas, templates, heuristics                                                   | Read by steps on demand                           |
 | `templates/*.md`          | Output skeletons with placeholder vars — steps fill these in to produce the final artifact                          | Read by steps when generating output              |

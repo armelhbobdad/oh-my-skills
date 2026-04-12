@@ -1,8 +1,5 @@
 ---
-# nextStepFile `shared/health-check.md` resolves relative to the SKF module
-# root (`_bmad/skf/` when installed, `src/` during development), NOT relative
-# to this step file.
-nextStepFile: 'shared/health-check.md'
+nextStepFile: './step-04-health-check.md'
 ---
 
 # Step 3: Report Drop Results
@@ -15,7 +12,7 @@ Present a clear, final summary of what the drop workflow changed — manifest st
 
 - Focus only on reporting results stored in context by step-02 — do not re-execute any part of the drop
 - Do not hide verification errors or failed context file rebuilds
-- Chains to shared health check via `{nextStepFile}` after completion
+- Chains to the local health-check step via `{nextStepFile}` after completion — the user-facing report is NOT the terminal step
 
 ## MANDATORY SEQUENCE
 
@@ -76,11 +73,11 @@ These require manual review — see the error-handling guidance in step-02.
 
 Write `{skills_output_folder}/drop-skill-result.json` per `shared/references/output-contract-schema.md`. Include all purged file paths in `outputs`; include `target_skill`, `drop_mode`, and `versions_affected` in `summary`.
 
-### 3. Workflow Health Check
+### 3. Chain to Health Check
 
-Load and execute `{nextStepFile}` for workflow self-improvement check.
+ONLY WHEN the report has been rendered and the result contract saved will you then load, read the full file, and execute `{nextStepFile}`. The health-check step is the true terminal step — do not stop here even though the report reads as final.
 
 ## CRITICAL STEP COMPLETION NOTE
 
-This step chains to the shared health check. After the health check completes, the drop-skill workflow is fully done. Do not re-run any earlier step automatically — if the user wants another drop, they should re-invoke the workflow from the top.
+This step chains to the local health-check step (`{nextStepFile}`), which in turn delegates to `shared/health-check.md`. After the health check completes, the drop-skill workflow is fully done. Do not re-run any earlier step automatically — if the user wants another drop, they should re-invoke the workflow from the top.
 

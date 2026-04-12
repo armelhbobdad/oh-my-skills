@@ -36,6 +36,7 @@ These rules apply to every step in this workflow:
 | 4 | Map & Detect | steps-c/step-04-map-and-detect.md | Yes |
 | 5 | Recommend | steps-c/step-05-recommend.md | No (confirm) |
 | 6 | Generate Briefs | steps-c/step-06-generate-briefs.md | Yes |
+| 7 | Workflow Health Check | steps-c/step-07-health-check.md | Yes |
 
 ## Invocation Contract
 

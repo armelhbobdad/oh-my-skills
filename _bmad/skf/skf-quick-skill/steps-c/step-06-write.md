@@ -1,8 +1,5 @@
 ---
-# nextStepFile `shared/health-check.md` resolves relative to the SKF module
-# root (`_bmad/skf/` when installed, `src/` during development), NOT relative
-# to this step file.
-nextStepFile: 'shared/health-check.md'
+nextStepFile: './step-07-health-check.md'
 ---
 
 # Step 6: Write Output
@@ -124,7 +121,7 @@ Please check:
 
 Write `{skill_package}/quick-skill-result.json` per `shared/references/output-contract-schema.md`. Include `SKILL.md`, `context-snippet.md`, and `metadata.json` paths in `outputs` and export count in `summary`.
 
-### 7. Workflow Health Check
+### 7. Chain to Health Check
 
-Load and execute `{nextStepFile}` for workflow self-improvement check.
+ONLY WHEN the skill files are written and the completion summary has been displayed will you then load, read the full file, and execute `{nextStepFile}`. The health-check step is the true terminal step — do not stop here even though the summary reads as final.
 

@@ -38,6 +38,7 @@ These rules apply to every step in this workflow:
 | 7 | Generate Output | steps-c/step-07-generate-output.md | Yes |
 | 8 | Validate | steps-c/step-08-validate.md | Yes |
 | 9 | Report | steps-c/step-09-report.md | Yes |
+| 10 | Workflow Health Check | steps-c/step-10-health-check.md | Yes |
 
 ## Invocation Contract
 

@@ -35,6 +35,7 @@ These rules apply to every step in this workflow:
 | 4 | Improvements | steps-c/step-04-improvements.md | Yes |
 | 5 | Compile Refined Architecture | steps-c/step-05-compile.md | No (review) |
 | 6 | Report | steps-c/step-06-report.md | Yes |
+| 7 | Workflow Health Check | steps-c/step-07-health-check.md | Yes |
 
 ## Invocation Contract
 

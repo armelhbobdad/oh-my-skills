@@ -1,8 +1,5 @@
 ---
-# nextStepFile `shared/health-check.md` resolves relative to the SKF module
-# root (`_bmad/skf/` when installed, `src/` during development), NOT relative
-# to this step file.
-nextStepFile: 'shared/health-check.md'
+nextStepFile: './step-09-health-check.md'
 ---
 
 # Step 8: Report
@@ -15,7 +12,7 @@ To display the final compilation summary — skill name, version, source, export
 
 - Focus only on reporting compilation results — do not modify any files
 - Deliver structured report with confidence breakdown
-- Chains to shared health check via `{nextStepFile}` after completion
+- Chains to the local health-check step via `{nextStepFile}` after completion (non-batch mode, or after the final batch brief) — the user-facing report is NOT the terminal step
 
 ## MANDATORY SEQUENCE
 
@@ -120,17 +117,17 @@ End workflow. No further steps.
 
 Write `{forge_version}/create-skill-result.json` per `shared/references/output-contract-schema.md`. Include `SKILL.md`, `context-snippet.md`, and `metadata.json` paths in `outputs` and confidence distribution in `summary`.
 
-### 6. Workflow Health Check
+### 6. Chain to Health Check
 
 **If not batch mode (or all batch briefs complete):**
 
-Load and execute `{nextStepFile}` for workflow self-improvement check.
+ONLY WHEN the compilation report, warnings (if any), recommended next steps, and result contract have been handled will you then load, read the full file, and execute `{nextStepFile}`. The health-check step is the true terminal step — do not stop here even though the report reads as final.
 
-**If batch mode with remaining briefs:** Skip health check — load and execute `steps-c/step-01-load-brief.md` for the next brief. Health check runs after the final brief in the batch.
+**If batch mode with remaining briefs:** Skip the health-check chain — load and execute `steps-c/step-01-load-brief.md` for the next brief instead. The health check runs only after the final brief in the batch.
 
 ## CRITICAL STEP COMPLETION NOTE
 
-This step chains to the shared health check (unless batch mode loops back to step-01). After the health check completes, the create-skill workflow is fully done.
+This step chains to the local health-check step (`{nextStepFile}`), which in turn delegates to `shared/health-check.md` (unless batch mode loops back to step-01). After the health check completes, the create-skill workflow is fully done.
 
 For batch mode: load and execute `steps-c/step-01-load-brief.md` for remaining briefs via sidecar checkpoint. Health check runs only after the last brief.
 

@@ -1,10 +1,7 @@
 ---
 outputFile: '{forge_data_folder}/analyze-source-report-{project_name}.md'
 schemaFile: 'assets/skill-brief-schema.md'
-# nextStepFile `shared/health-check.md` resolves relative to the SKF module
-# root (`_bmad/skf/` when installed, `src/` during development), NOT relative
-# to this step file.
-nextStepFile: 'shared/health-check.md'
+nextStepFile: './step-07-health-check.md'
 ---
 
 # Step 6: Generate Briefs
@@ -18,7 +15,7 @@ To generate a valid skill-brief.yaml file for each confirmed unit using the sche
 - Generate only for units in confirmed_units — no extras, no omissions
 - Do not modify recommendations or re-ask for confirmations
 - Every generated field must trace back to data collected in steps 02-05
-- Chains to shared health check via `{nextStepFile}` after completion
+- Chains to the local health-check step via `{nextStepFile}` after completion — the user-facing summary is NOT the terminal step
 
 ## MANDATORY SEQUENCE
 
@@ -185,7 +182,7 @@ To refine any brief, run the recommended next workflow. To re-analyze with diffe
 
 Write `{forge_data_folder}/analyze-source-result.json` per `shared/references/output-contract-schema.md`. Include all generated `skill-brief.yaml` paths in `outputs` and brief counts in `summary`.
 
-### 10. Workflow Health Check
+### 10. Chain to Health Check
 
-Load and execute `{nextStepFile}` for workflow self-improvement check.
+ONLY WHEN the briefs have been written (or skipped per user abort), the report updated, the summary presented, and the result contract saved will you then load, read the full file, and execute `{nextStepFile}`. The health-check step is the true terminal step — do not stop here even though the summary reads as final.
 

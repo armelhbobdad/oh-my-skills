@@ -1,8 +1,5 @@
 ---
-# nextStepFile `shared/health-check.md` resolves relative to the SKF module
-# root (`_bmad/skf/` when installed, `src/` during development), NOT relative
-# to this step file.
-nextStepFile: 'shared/health-check.md'
+nextStepFile: './step-10-health-check.md'
 ---
 
 # Step 9: Stack Skill Report
@@ -16,7 +13,7 @@ Display the final summary of the forged stack skill with confidence distribution
 - Do not write or modify any files — report is console output only
 - Lead with the positive summary, then details, then warnings
 - Recommend next workflows based on what was produced
-- Chains to shared health check via `{nextStepFile}` after completion
+- Chains to the local health-check step via `{nextStepFile}` after completion — the user-facing report is NOT the terminal step
 
 ## MANDATORY SEQUENCE
 
@@ -93,7 +90,7 @@ Forge tier: **{tier}**"
 
 Write `{forge_version}/create-stack-skill-result.json` per `shared/references/output-contract-schema.md`. Include `SKILL.md`, `context-snippet.md`, and `metadata.json` paths in `outputs`; include `lib_count`, `integration_count`, and confidence distribution in `summary`.
 
-### 7. Workflow Health Check
+### 7. Chain to Health Check
 
-Load and execute `{nextStepFile}` for workflow self-improvement check.
+ONLY WHEN the forge banner, confidence distribution, output file summary, validation summary, warnings (if any), next-workflow recommendations, and result contract have all been handled will you then load, read the full file, and execute `{nextStepFile}`. The health-check step is the true terminal step — do not stop here even though the report reads as final.
 

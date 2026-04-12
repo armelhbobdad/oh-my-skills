@@ -1,9 +1,6 @@
 ---
 outputFile: '{forge_version}/drift-report-{timestamp}.md'
-# nextStepFile `shared/health-check.md` resolves relative to the SKF module
-# root (`_bmad/skf/` when installed, `src/` during development), NOT relative
-# to this step file.
-nextStepFile: 'shared/health-check.md'
+nextStepFile: './step-07-health-check.md'
 ---
 
 # Step 6: Generate Report
@@ -17,7 +14,7 @@ Finalize the drift report by completing the Audit Summary with calculated metric
 - Focus on completing the report — summary, remediation, provenance
 - Do not discover new drift items or reclassify severity
 - Remediation suggestions must be practical: what to change, where, and why
-- Chains to shared health check via `{nextStepFile}` after completion
+- Chains to the local health-check step via `{nextStepFile}` after completion — the user-facing summary is NOT the terminal step
 
 ## MANDATORY SEQUENCE
 
@@ -165,7 +162,7 @@ Update {outputFile} frontmatter:
 
 Write `{forge_version}/audit-skill-result.json` per `shared/references/output-contract-schema.md`. Include the drift report path in `outputs`; include `drift_count` and `severity` (CLEAN/MINOR/SIGNIFICANT/CRITICAL) in `summary`.
 
-### Workflow Health Check
+### 6. Chain to Health Check
 
-Load and execute `{nextStepFile}` for workflow self-improvement check.
+ONLY WHEN the report has been written, presented, and the result contract saved will you then load, read the full file, and execute `{nextStepFile}`. The health-check step is the true terminal step — do not stop here even though the user-facing summary reads as final.
 

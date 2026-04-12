@@ -1,20 +1,17 @@
 ---
-# nextStepFile `shared/health-check.md` resolves relative to the SKF module
-# root (`_bmad/skf/` when installed, `src/` during development), NOT relative
-# to this step file.
-nextStepFile: 'shared/health-check.md'
+nextStepFile: './step-07-health-check.md'
 ---
 
 # Step 6: Summary
 
 ## STEP GOAL:
 
-To present a complete export summary showing all files written, token counts, and provide distribution instructions based on the skill's source authority. This is the final step — workflow ends here.
+To present a complete export summary showing all files written, token counts, and provide distribution instructions based on the skill's source authority. Then chain to the local health-check step — it, not this summary, is the terminal step.
 
 ## Rules
 
 - Focus only on summarizing what was done and providing next steps — no additional file writes
-- Chains to shared health check via `{nextStepFile}` after completion
+- Chains to the local health-check step via `{nextStepFile}` after completion — the user-facing summary is NOT the terminal step
 
 ## MANDATORY SEQUENCE
 
@@ -134,11 +131,11 @@ No files were written. To run the export for real:
 
 Write `{skills_output_folder}/export-skill-result.json` per `shared/references/output-contract-schema.md`. Include all context files and target managed-section files in `outputs`; include total always-on and on-trigger token counts in `summary`.
 
-### 7. Workflow Health Check
+### 7. Chain to Health Check
 
-Load and execute `{nextStepFile}` for workflow self-improvement check. The health check is the terminal step and will display the workflow-complete marker on exit.
+ONLY WHEN the export summary, distribution instructions, and result contract are complete will you then load, read the full file, and execute `{nextStepFile}`. The health-check step is the true terminal step — do not stop here even though the summary reads as final.
 
 ## CRITICAL STEP COMPLETION NOTE
 
-This step chains to the shared health check. After the health check completes, the export-skill workflow is fully done.
+This step chains to the local health-check step (`{nextStepFile}`), which in turn delegates to `shared/health-check.md`. After the health check completes, the export-skill workflow is fully done.
 

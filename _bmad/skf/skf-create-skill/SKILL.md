@@ -40,8 +40,9 @@ These rules apply to every step in this workflow:
 | 6 | Validate | steps-c/step-06-validate.md | Conditional |
 | 7 | Generate Artifacts | steps-c/step-07-generate-artifacts.md | Yes |
 | 8 | Report | steps-c/step-08-report.md | Yes |
+| 9 | Workflow Health Check | steps-c/step-09-health-check.md | Yes |
 
-*Sub-steps under `steps-c/sub/` are conditional branches (CCC discovery, temporal/doc enrichment) kept out of the top-level step count so main-line steps 1–8 drive the workflow. Step 3d (Component Extraction) stays top-level as an alternative main step that replaces the standard extraction path when `scope.type: "component-library"`.*
+*Sub-steps under `steps-c/sub/` are conditional branches (CCC discovery, temporal/doc enrichment) kept out of the top-level step count so main-line steps 1–9 drive the workflow. Step 3d (Component Extraction) stays top-level as an alternative main step that replaces the standard extraction path when `scope.type: "component-library"`.*
 
 ## Invocation Contract
 

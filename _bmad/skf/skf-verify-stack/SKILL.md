@@ -36,6 +36,7 @@ These rules apply to every step in this workflow:
 | 4 | Requirements Mapping | steps-c/step-04-requirements.md | Yes |
 | 5 | Synthesize Verdict | steps-c/step-05-synthesize.md | Yes |
 | 6 | Report | steps-c/step-06-report.md | No (confirm) |
+| 7 | Workflow Health Check | steps-c/step-07-health-check.md | Yes |
 
 ## Invocation Contract
 

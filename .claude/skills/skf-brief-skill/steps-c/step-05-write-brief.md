@@ -1,9 +1,6 @@
 ---
 briefSchemaFile: 'assets/skill-brief-schema.md'
-# nextStepFile `shared/health-check.md` resolves relative to the SKF module
-# root (`_bmad/skf/` when installed, `src/` during development), NOT relative
-# to this step file.
-nextStepFile: 'shared/health-check.md'
+nextStepFile: './step-06-health-check.md'
 ---
 
 # Step 5: Write Brief
@@ -17,7 +14,7 @@ To generate the complete skill-brief.yaml from the approved brief data and write
 - Focus only on writing the file — all decisions have been made
 - Do not change any field values without user request — the brief was already approved
 - Create the output directory if it doesn't exist
-- Chains to shared health check via `{nextStepFile}` after completion
+- Chains to the local health-check step via `{nextStepFile}` after completion — the user-facing success summary is NOT the terminal step
 
 ## MANDATORY SEQUENCE
 
@@ -186,11 +183,11 @@ After compilation, you can:
 
 **Brief-skill workflow complete.**"
 
-### 7. Workflow Health Check
+### 7. Chain to Health Check
 
-Load and execute `{nextStepFile}` for workflow self-improvement check.
+ONLY WHEN the brief file has been written and the success summary displayed will you then load, read the full file, and execute `{nextStepFile}`. The health-check step is the true terminal step — do not stop here even though the summary reads as final.
 
 ## CRITICAL STEP COMPLETION NOTE
 
-This step chains to the shared health check. After the health check completes, the brief-skill workflow is fully done.
+This step chains to the local health-check step (`{nextStepFile}`), which in turn delegates to `shared/health-check.md`. After the health check completes, the brief-skill workflow is fully done.
 

@@ -34,6 +34,7 @@ These rules apply to every step in this workflow:
 | 4 | Compile | steps-c/step-04-compile.md | No (review) |
 | 5 | Validate | steps-c/step-05-validate.md | Yes |
 | 6 | Write Output | steps-c/step-06-write.md | Yes |
+| 7 | Workflow Health Check | steps-c/step-07-health-check.md | Yes |
 
 ## Invocation Contract
 

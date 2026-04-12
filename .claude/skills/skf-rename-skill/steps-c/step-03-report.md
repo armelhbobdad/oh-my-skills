@@ -1,8 +1,5 @@
 ---
-# nextStepFile `shared/health-check.md` resolves relative to the SKF module
-# root (`_bmad/skf/` when installed, `src/` during development), NOT relative
-# to this step file.
-nextStepFile: 'shared/health-check.md'
+nextStepFile: './step-04-health-check.md'
 ---
 
 # Step 3: Report Rename Results
@@ -16,7 +13,7 @@ Present a clear, final summary of what the rename workflow changed — old and n
 - Focus only on reporting results stored in context by step-02 — do not re-execute any part of the rename
 - Do not hide verification warnings, context file rebuild failures, or deletion errors
 - Present next-steps guidance so the user knows which downstream workflows to run
-- Chains to shared health check via `{nextStepFile}` after completion
+- Chains to the local health-check step via `{nextStepFile}` after completion — the user-facing report is NOT the terminal step
 
 ## MANDATORY SEQUENCE
 
@@ -76,11 +73,11 @@ Informational: the old name still appears in SKILL.md body text (prose only, non
 
 Write `{skills_output_folder}/{new_name}/rename-skill-result.json` per `shared/references/output-contract-schema.md`. Include all updated file paths (SKILL.md, metadata.json, context-snippet.md, provenance-map.json) in `outputs`; include `old_name`, `new_name`, and `versions_renamed` in `summary`.
 
-### 2. Workflow Health Check
+### 2. Chain to Health Check
 
-Load and execute `{nextStepFile}` for workflow self-improvement check.
+ONLY WHEN the rename report has been rendered and the result contract saved will you then load, read the full file, and execute `{nextStepFile}`. The health-check step is the true terminal step — do not stop here even though the report reads as final.
 
 ## CRITICAL STEP COMPLETION NOTE
 
-This step chains to the shared health check. After the health check completes, the rename-skill workflow is fully done. Do not re-run any earlier step automatically — if the user wants another rename, they should re-invoke the workflow from the top.
+This step chains to the local health-check step (`{nextStepFile}`), which in turn delegates to `shared/health-check.md`. After the health check completes, the rename-skill workflow is fully done. Do not re-run any earlier step automatically — if the user wants another rename, they should re-invoke the workflow from the top.
 

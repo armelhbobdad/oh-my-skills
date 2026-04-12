@@ -1,9 +1,6 @@
 ---
 tierRulesData: 'references/tier-rules.md'
-# nextStepFile `shared/health-check.md` resolves relative to the SKF module
-# root (`_bmad/skf/` when installed, `src/` during development), NOT relative
-# to this step file.
-nextStepFile: 'shared/health-check.md'
+nextStepFile: './step-05-health-check.md'
 ---
 
 # Step 4: Forge Status Report
@@ -18,7 +15,7 @@ Display the forge status report with positive capability framing and report tier
 - Do not use negative framing ("missing", "lacking", "unavailable")
 - Do not list tools that are not available
 - Use tier capability descriptions from tier-rules.md
-- Chains to shared health check via `{nextStepFile}` after completion
+- Chains to the local health-check step via `{nextStepFile}` after completion — the user-facing status report is NOT the terminal step
 
 ## MANDATORY SEQUENCE
 
@@ -85,11 +82,11 @@ Load and read {tierRulesData} for the tier capability descriptions and re-run me
 - Do NOT list unavailable tools
 - Do NOT show a "missing" column or section
 
-### 3. Workflow Health Check
+### 3. Chain to Health Check
 
-Load and execute `{nextStepFile}` for workflow self-improvement check.
+ONLY WHEN the forge status report has been displayed will you then load, read the full file, and execute `{nextStepFile}`. The health-check step is the true terminal step — do not stop here even though the report reads as final.
 
 ## CRITICAL STEP COMPLETION NOTE
 
-This step chains to the shared health check. After the health check completes, the setup workflow is fully done.
+This step chains to the local health-check step (`{nextStepFile}`), which in turn delegates to `shared/health-check.md`. After the health check completes, the setup workflow is fully done.
 

@@ -1,9 +1,6 @@
 ---
 outputFile: '{forge_data_folder}/feasibility-report-{project_name}.md'
-# nextStepFile `shared/health-check.md` resolves relative to the SKF module
-# root (`_bmad/skf/` when installed, `src/` during development), NOT relative
-# to this step file.
-nextStepFile: 'shared/health-check.md'
+nextStepFile: './step-07-health-check.md'
 ---
 
 # Step 6: Present Report
@@ -15,7 +12,7 @@ Present the complete feasibility report to the user. Display the overall verdict
 ## Rules
 
 - Focus only on presenting the completed report — no new analysis or changes to verdicts
-- Chains to shared health check via `{nextStepFile}` after completion
+- Chains to the local health-check step via `{nextStepFile}` after completion — the user-facing report is NOT the terminal step
 
 ## MANDATORY SEQUENCE
 
@@ -135,7 +132,7 @@ Re-run **[VS] Verify Stack** anytime after making changes to your skills or arch
 
 **Verification workflow complete.**"
 
-  Then load and execute `{nextStepFile}` for workflow self-improvement check.
+  Then load, read the full file, and execute `{nextStepFile}` — the health-check step is the true terminal step of this workflow.
 
 #### EXECUTION RULES:
 
@@ -146,5 +143,5 @@ Re-run **[VS] Verify Stack** anytime after making changes to your skills or arch
 
 ## CRITICAL STEP COMPLETION NOTE
 
-When the user selects X, this step chains to the shared health check. After the health check completes, the verify-stack workflow is fully done. The feasibility report at `{outputFile}` contains the full analysis: Coverage Matrix, Integration Verdicts, Requirements Coverage, and Synthesis & Recommendations.
+When the user selects X, this step chains to the local health-check step (`{nextStepFile}`), which in turn delegates to `shared/health-check.md`. After the health check completes, the verify-stack workflow is fully done. The feasibility report at `{outputFile}` contains the full analysis: Coverage Matrix, Integration Verdicts, Requirements Coverage, and Synthesis & Recommendations.
 
