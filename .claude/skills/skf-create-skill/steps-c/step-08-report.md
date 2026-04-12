@@ -115,7 +115,7 @@ End workflow. No further steps.
 
 **If not batch mode (or all batch briefs complete):**
 
-Write `{forge_version}/create-skill-result.json` per `shared/references/output-contract-schema.md`. Include `SKILL.md`, `context-snippet.md`, and `metadata.json` paths in `outputs` and confidence distribution in `summary`.
+Write the result contract per `shared/references/output-contract-schema.md`: the per-run record at `{forge_version}/create-skill-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{forge_version}/create-skill-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include `SKILL.md`, `context-snippet.md`, and `metadata.json` paths in `outputs` and confidence distribution in `summary`.
 
 ### 6. Chain to Health Check
 

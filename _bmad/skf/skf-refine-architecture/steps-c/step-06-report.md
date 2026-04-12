@@ -81,7 +81,7 @@ Re-run **[RA] Refine Architecture** anytime after updating your skills or archit
 
   ### Result Contract
 
-  Write `{output_folder}/refine-architecture-result.json` per `shared/references/output-contract-schema.md`. Include the refined architecture doc path in `outputs`; include `gap_count`, `issue_count`, and `improvement_count` in `summary`.
+  Write the result contract per `shared/references/output-contract-schema.md`: the per-run record at `{output_folder}/refine-architecture-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{output_folder}/refine-architecture-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include the refined architecture doc path in `outputs`; include `gap_count`, `issue_count`, and `improvement_count` in `summary`.
 
   Then load, read the full file, and execute `{nextStepFile}` — the health-check step is the true terminal step of this workflow.
 

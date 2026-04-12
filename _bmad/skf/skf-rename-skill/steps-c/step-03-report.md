@@ -71,7 +71,7 @@ Informational: the old name still appears in SKILL.md body text (prose only, non
 
 ### Result Contract
 
-Write `{skills_output_folder}/{new_name}/rename-skill-result.json` per `shared/references/output-contract-schema.md`. Include all updated file paths (SKILL.md, metadata.json, context-snippet.md, provenance-map.json) in `outputs`; include `old_name`, `new_name`, and `versions_renamed` in `summary`.
+Write the result contract per `shared/references/output-contract-schema.md`: the per-run record at `{skills_output_folder}/{new_name}/rename-skill-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{skills_output_folder}/{new_name}/rename-skill-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include all updated file paths (SKILL.md, metadata.json, context-snippet.md, provenance-map.json) in `outputs`; include `old_name`, `new_name`, and `versions_renamed` in `summary`.
 
 ### 2. Chain to Health Check
 

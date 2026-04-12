@@ -88,7 +88,7 @@ Forge tier: **{tier}**"
 
 ### 6b. Result Contract
 
-Write `{forge_version}/create-stack-skill-result.json` per `shared/references/output-contract-schema.md`. Include `SKILL.md`, `context-snippet.md`, and `metadata.json` paths in `outputs`; include `lib_count`, `integration_count`, and confidence distribution in `summary`.
+Write the result contract per `shared/references/output-contract-schema.md`: the per-run record at `{forge_version}/create-stack-skill-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{forge_version}/create-stack-skill-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include `SKILL.md`, `context-snippet.md`, and `metadata.json` paths in `outputs`; include `lib_count`, `integration_count`, and confidence distribution in `summary`.
 
 ### 7. Chain to Health Check
 

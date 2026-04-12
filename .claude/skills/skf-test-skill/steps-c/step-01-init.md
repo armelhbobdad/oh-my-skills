@@ -30,6 +30,9 @@ Discover and validate the target skill, load forge tier state to determine analy
 
 If skill path was provided as workflow argument, use it directly.
 
+**Recognized flags on the invocation:**
+- `--allow-workspace-drift` — bypass the section 5b pre-flight guard that halts when local workspace HEAD does not match `metadata.source_commit`. Store `allow_workspace_drift: true` in workflow context when present. No effect when `source_commit` is unpinned or the source is not a git working tree.
+
 If no path provided, ask:
 
 "**Which skill would you like to test?**
@@ -109,10 +112,42 @@ Read `metadata.json` to extract:
 - `name` — display name
 - `skill_type` — single or stack (needed for mode detection)
 - `source_path` — path to source code (if present)
+- `source_commit` — pinned commit the skill was extracted against (may be null for docs-only skills, `"local"` for non-git sources, or a per-repo map for stack skills)
+- `source_ref` — pinned ref (tag/branch/`HEAD`) used at extraction time
 - `generation_date` — when skill was generated
 - `confidence_tier` — tier used during creation
 
 If source path override was provided as optional input, use that instead.
+
+### 5b. Verify Workspace HEAD Matches Pinned Commit
+
+Test-skill reads `source_path` during coverage and coherence analysis. If the local workspace has drifted from `metadata.source_commit`, gap and signature-mismatch findings will silently reflect the drifted tree, not the skill's pinned source — producing false positives that downstream update-skill runs may then "repair" by corrupting correct documentation.
+
+- Resolve `pinned_commit` from `metadata.source_commit`.
+- **If `pinned_commit` is null, empty, `"local"`, or a per-repo map (stack skills):** skip the guard; log `workspace_drift_check: skipped (no single pinned commit)` and continue to section 6.
+- **If `source_path` is not a git working tree** (bare checkout, tarball extract, docs-only source) — detect by `git -C {source_path} rev-parse --is-inside-work-tree`, non-zero exit means skip: log `workspace_drift_check: skipped (not a git working tree)` and continue to section 6.
+- **Otherwise** run `git -C {source_path} rev-parse HEAD` and compare to `pinned_commit`. Accept full-SHA or short-SHA-prefix match (stored pins are often 8-char short hashes — see `src/knowledge/provenance-tracking.md`).
+  - **On match:** log `workspace_drift_check: ok ({short_sha})` and continue.
+  - **On mismatch, AND the user did not pass `--allow-workspace-drift`:** HALT with exit status `halted-for-workspace-drift`. Display:
+
+    ```
+    Workspace HEAD does not match the commit this skill was pinned against.
+
+      pinned (metadata.source_commit): {pinned_commit}
+      pinned ref (metadata.source_ref): {source_ref or "unset"}
+      workspace HEAD ({source_path}):  {head_sha}
+
+    Test-skill verifies against the source the skill was extracted from.
+    Testing against a drifted tree produces false gaps/mismatches. Re-sync:
+
+      git -C {source_path} checkout {source_ref or pinned_commit}
+
+    Or re-run test-skill with `--allow-workspace-drift` to test against the
+    current workspace (accepts that findings reflect HEAD, not the pin).
+    ```
+
+    Do not proceed. The test report has not been created; no partial writes.
+  - **On mismatch WITH `--allow-workspace-drift`:** log `workspace_drift_check: overridden (pinned={pinned_commit}, head={head_sha})` and carry the warning into the final report frontmatter (`workspaceDrift: overridden`) so downstream readers know the findings reflect HEAD rather than the pinned tree. Continue.
 
 ### 6. Create Output Document
 

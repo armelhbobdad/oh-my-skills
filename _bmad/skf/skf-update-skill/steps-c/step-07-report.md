@@ -140,7 +140,7 @@ Based on the update results:"
 
 ### 5b. Result Contract
 
-Write `{forge_version}/update-skill-result.json` per `shared/references/output-contract-schema.md`. Include all modified file paths in `outputs`; include `exports_affected`, `files_modified`, and `validation_status` (passed/warnings/failures) in `summary`.
+Write the result contract per `shared/references/output-contract-schema.md`: the per-run record at `{forge_version}/update-skill-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{forge_version}/update-skill-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include all modified file paths in `outputs`; include `exports_affected`, `files_modified`, and `validation_status` (passed/warnings/failures) in `summary`.
 
 ### 6. Chain to Health Check
 

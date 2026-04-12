@@ -160,7 +160,7 @@ Update {outputFile} frontmatter:
 
 ### Result Contract
 
-Write `{forge_version}/audit-skill-result.json` per `shared/references/output-contract-schema.md`. Include the drift report path in `outputs`; include `drift_count` and `severity` (CLEAN/MINOR/SIGNIFICANT/CRITICAL) in `summary`.
+Write the result contract per `shared/references/output-contract-schema.md`: the per-run record at `{forge_version}/audit-skill-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{forge_version}/audit-skill-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include the drift report path in `outputs`; include `drift_count` and `severity` (CLEAN/MINOR/SIGNIFICANT/CRITICAL) in `summary`.
 
 ### 6. Chain to Health Check
 

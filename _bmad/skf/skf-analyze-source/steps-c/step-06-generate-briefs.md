@@ -180,7 +180,7 @@ To refine any brief, run the recommended next workflow. To re-analyze with diffe
 
 ### 9. Result Contract
 
-Write `{forge_data_folder}/analyze-source-result.json` per `shared/references/output-contract-schema.md`. Include all generated `skill-brief.yaml` paths in `outputs` and brief counts in `summary`.
+Write the result contract per `shared/references/output-contract-schema.md`: the per-run record at `{forge_data_folder}/analyze-source-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{forge_data_folder}/analyze-source-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include all generated `skill-brief.yaml` paths in `outputs` and brief counts in `summary`.
 
 ### 10. Chain to Health Check
 

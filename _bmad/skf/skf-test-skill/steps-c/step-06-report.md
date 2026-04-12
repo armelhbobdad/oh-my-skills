@@ -97,7 +97,7 @@ Record discovery testing status as Info-level in the gap table. This is advisory
 
 ### 4c. Result Contract
 
-Write `{forge_version}/skf-test-skill-result.json` per `{outputContractSchema}`. Include the test report path in `outputs`; include `score`, `threshold`, `result` (PASS/FAIL), and `testMode` (naive/contextual) in `summary`.
+Write the result contract per `{outputContractSchema}`: the per-run record at `{forge_version}/skf-test-skill-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{forge_version}/skf-test-skill-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include the test report path in `outputs`; include `score`, `threshold`, `result` (PASS/FAIL), and `testMode` (naive/contextual) in `summary`.
 
 ### 5. Finalize Output Document
 

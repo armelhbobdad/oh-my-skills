@@ -119,7 +119,7 @@ Please check:
 
 ### Result Contract
 
-Write `{skill_package}/quick-skill-result.json` per `shared/references/output-contract-schema.md`. Include `SKILL.md`, `context-snippet.md`, and `metadata.json` paths in `outputs` and export count in `summary`.
+Write the result contract per `shared/references/output-contract-schema.md`: the per-run record at `{skill_package}/quick-skill-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{skill_package}/quick-skill-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include `SKILL.md`, `context-snippet.md`, and `metadata.json` paths in `outputs` and export count in `summary`.
 
 ### 7. Chain to Health Check
 

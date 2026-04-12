@@ -586,7 +586,7 @@ The `provenance-map.json` includes per-export `entries` with a `source_library` 
 
 ### Pipeline Result Contracts
 
-Pipeline-facing workflows write a machine-readable result JSON file (`{skill-name}-result.json`) alongside their human-readable output. This enables reliable CI integration and pipeline chaining — downstream workflows or scripts can verify what the prior step produced without parsing markdown. The schema follows a consistent format: `skill`, `status` (success/failed/partial), `timestamp`, `outputs` (array of produced artifacts with type and path), and a skill-specific `summary` object.
+Pipeline-facing workflows write a machine-readable result JSON file alongside their human-readable output. This enables reliable CI integration and pipeline chaining — downstream workflows or scripts can verify what the prior step produced without parsing markdown. Each run writes two files: a timestamped per-run record (`{skill-name}-result-{YYYYMMDD-HHmmss}.json`) that preserves the full audit trail across retries and aborts, and a stable `{skill-name}-result-latest.json` copy that pipeline consumers read without enumerating timestamps. The schema follows a consistent format: `skill`, `status` (success/failed/partial), `timestamp`, `outputs` (array of produced artifacts with type and path), and a skill-specific `summary` object.
 
 `skills/` and `forge-data/` are committed. Agent memory (`_bmad/_memory/forger-sidecar/`) is gitignored.
 

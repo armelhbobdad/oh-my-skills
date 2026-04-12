@@ -129,7 +129,7 @@ No files were written. To run the export for real:
 
 ### 6. Result Contract
 
-Write `{skills_output_folder}/export-skill-result.json` per `shared/references/output-contract-schema.md`. Include all context files and target managed-section files in `outputs`; include total always-on and on-trigger token counts in `summary`.
+Write the result contract per `shared/references/output-contract-schema.md`: the per-run record at `{skills_output_folder}/export-skill-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{skills_output_folder}/export-skill-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include all context files and target managed-section files in `outputs`; include total always-on and on-trigger token counts in `summary`.
 
 ### 7. Chain to Health Check
 

@@ -71,7 +71,7 @@ These require manual review — see the error-handling guidance in step-02.
 
 ### Result Contract
 
-Write `{skills_output_folder}/drop-skill-result.json` per `shared/references/output-contract-schema.md`. Include all purged file paths in `outputs`; include `target_skill`, `drop_mode`, and `versions_affected` in `summary`.
+Write the result contract per `shared/references/output-contract-schema.md`: the per-run record at `{skills_output_folder}/drop-skill-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{skills_output_folder}/drop-skill-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include all purged file paths in `outputs`; include `target_skill`, `drop_mode`, and `versions_affected` in `summary`.
 
 ### 3. Chain to Health Check
 

@@ -117,7 +117,7 @@ Based on the overall verdict, present the appropriate recommendation:
 
 ### 4b. Result Contract
 
-Write `{forge_data_folder}/verify-stack-result.json` per `shared/references/output-contract-schema.md`. Include the feasibility report path in `outputs`; include `overall_verdict` (FEASIBLE/CONDITIONALLY FEASIBLE/NOT FEASIBLE), `coverage_percentage`, and `recommendation_count` in `summary`.
+Write the result contract per `shared/references/output-contract-schema.md`: the per-run record at `{forge_data_folder}/verify-stack-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{forge_data_folder}/verify-stack-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include the feasibility report path in `outputs`; include `overall_verdict` (FEASIBLE/CONDITIONALLY FEASIBLE/NOT FEASIBLE), `coverage_percentage`, and `recommendation_count` in `summary`.
 
 ### 5. Present Menu
 

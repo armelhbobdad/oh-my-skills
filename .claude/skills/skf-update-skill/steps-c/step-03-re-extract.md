@@ -28,6 +28,36 @@ Perform tier-aware extraction on only the changed files identified in step 02, p
 
 Source code has not drifted — the gap-derived manifest from step-02 contains export-level findings translated from the test report, not file-level changes. Perform citation spot-checks instead of full re-extraction to verify each gap-affected export is still at its recorded location.
 
+**0.a Pre-flight: verify workspace HEAD matches pinned commit.** Gap-driven spot-checks read source at recorded `source_line` positions and must see the exact bytes the skill was pinned against. A drifted workspace silently verifies against the wrong tree — moved/renamed symbols appear "verified" because the recorded line now points at different code. Before reading any source, run this guard:
+
+- Resolve `pinned_commit` from `metadata.source_commit` (loaded in step-01).
+- **If `pinned_commit` is null, empty, `"local"`, or a per-repo map (stack skills) with no single commit:** skip the guard and log `workspace_drift_check: skipped (no pinned commit)`. Continue to bullet 1.
+- **If `source_root` is not a git working tree** (e.g., bare checkout, tarball extract) — detect by running `git -C {source_root} rev-parse --is-inside-work-tree`; non-zero exit means skip: log `workspace_drift_check: skipped (not a git working tree)`. Continue to bullet 1.
+- **Otherwise** run `git -C {source_root} rev-parse HEAD` and compare to `pinned_commit`. Accept either a full SHA match or a short-SHA prefix match (the pinned commit is often stored as an 8-char short hash — see `src/knowledge/provenance-tracking.md`).
+  - **On match:** log `workspace_drift_check: ok ({short_sha})` and continue.
+  - **On mismatch, AND the user did not pass `--allow-workspace-drift`:** HALT immediately with exit status `halted-for-workspace-drift`. Display:
+
+    ```
+    Workspace HEAD does not match the commit this skill was pinned against.
+
+      pinned (metadata.source_commit): {pinned_commit}
+      pinned ref (metadata.source_ref): {source_ref or "unset"}
+      workspace HEAD ({source_root}):  {head_sha}
+
+    Gap-driven spot-checks read source at pinned line numbers — verifying
+    against a drifted tree silently produces wrong results (symbols appear at
+    unintended locations). Re-sync the workspace before re-running:
+
+      git -C {source_root} checkout {source_ref or pinned_commit}
+
+    Or, to intentionally proceed against the current workspace HEAD (accepting
+    that spot-checks will read bytes that differ from the pinned commit),
+    re-run update-skill with `--allow-workspace-drift`.
+    ```
+
+    Do not proceed to bullet 1. Step-04 merge has not run; no partial writes.
+  - **On mismatch WITH `--allow-workspace-drift`:** log `workspace_drift_check: overridden (pinned={pinned_commit}, head={head_sha})` and surface a visible warning in the final report ("**Workspace drift accepted via --allow-workspace-drift** — spot-checks read HEAD {head_sha}, not pinned {pinned_commit}"). Continue to bullet 1. The override does not automatically re-pin `metadata.source_commit`; re-pinning is explicit user work (run the normal-mode update-skill flow against the same HEAD, or re-create the skill).
+
 1. Use the provenance map already loaded in step-01 (at `{forge_version}/provenance-map.json`) — do not re-read
 2. For each entry in the gap-derived change manifest from step-02:
    - Look up the export by `name` in `provenance_map.exports` — read `source_file` and `source_line`

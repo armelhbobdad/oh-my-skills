@@ -45,6 +45,10 @@ Open `{source_repo}` at `{source_commit}`, jump to `{source_file}` line `{source
 
 If it doesn't, **that's a bug**. [Open an issue](https://github.com/armelhbobdad/bmad-module-skill-forge/issues/new/choose). SKF will republish the skill with a new commit SHA and a new provenance map. Falsifiability isn't a feature — it's the whole deal.
 
+### Workflow-time enforcement
+
+The same anchor is enforced automatically by `skf-test-skill` and by gap-driven `skf-update-skill`. Before either workflow reads source at a recorded `source_line`, it runs `git rev-parse HEAD` on the local workspace and compares it to `metadata.source_commit`. If the workspace has drifted, the workflow halts with a `halted-for-workspace-drift` status and tells you the exact `git checkout {source_ref}` to re-sync — so spot-checks can never silently verify against the wrong tree. Pass `--allow-workspace-drift` to opt in to reading the current HEAD anyway; the override is recorded in the final report rather than hidden.
+
 ---
 
 ## Where to look for what
