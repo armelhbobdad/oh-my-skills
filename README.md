@@ -13,6 +13,8 @@
 [![Built with Skill Forge](https://img.shields.io/badge/built%20with-Skill%20Forge-7c3aed)](https://github.com/armelhbobdad/bmad-module-skill-forge)
 [![Discord](https://img.shields.io/badge/Discord-Join-7289da?logo=discord&logoColor=white)](https://discord.gg/gk8jAdXWmj)
 
+**If these skills saved you from hallucinations, [grab me a coffee ☕](https://buymeacoffee.com/armelhbobdad) — it helps me keep forging.**
+
 </div>
 
 ---
