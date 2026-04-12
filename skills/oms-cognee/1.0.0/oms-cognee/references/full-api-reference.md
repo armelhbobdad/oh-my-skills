@@ -99,12 +99,15 @@ async def search(
     feedback_influence: float = 0.0,
     verbose: bool = False,
     retriever_specific_config: Optional[dict] = None,
+    neighborhood_depth: Optional[int] = None,
+    neighborhood_seed_top_k: Optional[int] = None,
 ) -> List[SearchResult]
 ```
 
 **Key behaviors:**
 
 - **`node_name_filter_operator`** must be `"OR"` or `"AND"` — anything else raises `CogneeValidationError`. `[AST:cognee/api/v1/search/search.py:L198]`
+- **`neighborhood_depth`** and **`neighborhood_seed_top_k`** must each be a positive integer when set (non-None) — anything else raises `CogneeValidationError` (`InvalidNeighborhoodDepth` / `InvalidNeighborhoodSeedTopK`). `[AST:cognee/api/v1/search/search.py:L49-L62]`
 - **`only_context=True`** returns the raw retrieved context as `Union[str, List[str]]` without calling the LLM — useful for debugging or custom prompt construction. `[EXT:https://docs.cognee.ai/guides/search-basics]`
 - **`session_id`** wires the search into a conversation session — only honored by `GRAPH_COMPLETION`, `RAG_COMPLETION`, `TRIPLET_COMPLETION`. Other search types ignore it.
 - **`ENABLE_BACKEND_ACCESS_CONTROL` env var** changes the result shape: when `=true`, results are wrapped per-dataset with `dataset_id`, `dataset_name`, `search_result` fields; when `=false` (default), results are a plain list (unwrapped for single-dataset searches). `[EXT:https://docs.cognee.ai/guides/search-basics]`
