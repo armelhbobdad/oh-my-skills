@@ -39,6 +39,7 @@ async def add(
     incremental_loading: bool = True,
     data_per_batch: Optional[int] = 20,
     importance_weight: Optional[float] = 0.5,
+    run_in_background: bool = False,
     **kwargs,
 ) -> PipelineRunInfo | None
 ```
@@ -47,7 +48,7 @@ async def add(
 
 **Required env:** `LLM_API_KEY` for content processing. Cognee uses the default user `default_user@example.com` when `user` is None (auto-created on first use). See `references/core-workflow.md` for full env-var list.
 
-Provenance: `[AST:cognee/api/v1/add/add.py:L21]`
+Provenance: `[AST:cognee/api/v1/add/add.py:L22]`
 
 #### `cognee.cognify(...)` — build the knowledge graph
 

@@ -40,7 +40,7 @@ async def add(
 )
 ```
 
-Provenance: `[AST:cognee/api/v1/add/add.py:L21]`
+Provenance: `[AST:cognee/api/v1/add/add.py:L22]`
 
 ### Parameters
 

@@ -77,3 +77,54 @@
 - Regenerated: false
 - Triggers fired: —
 - Notes: Gap-driven repair in references/ file — headline exports, version, and gotchas unchanged; snippet remains valid against prior surface
+
+## Update Operation — 2026-04-13T01:56Z
+
+**Trigger:** test-report (forge-data/oms-cognee/1.0.0/test-report-oms-cognee.md, PASS 97.98%)
+**Forge Tier:** Deep
+**Mode:** gap-driven
+**Workspace drift check:** ok (HEAD 3c048aa4 matches pinned 3c048aa4)
+
+### Changes Detected
+- Files modified: 3 (SKILL.md, references/full-api-reference.md, references/core-workflow.md)
+- Files added: 0
+- Files deleted: 0
+- Exports affected: 2 (`search`, `add`)
+- Gaps addressed: GAP-001 (Low — search() line drift L26→L27), GAP-002 (Low — add() line drift L21→L22 + missing `run_in_background` param in full-api-reference.md)
+- Gaps deferred: GAP-003 (Info — section classification, optional), GAP-004 (Info — discovery testing, advisory)
+
+### Spot-check Verification (live source at pinned commit 3c048aa4)
+- `async def search(` at `cognee/api/v1/search/search.py:27` → verified
+- `async def add(` at `cognee/api/v1/add/add.py:22` → verified
+- `run_in_background: bool = False` at `cognee/api/v1/add/add.py:42` → verified (confirmed present in live signature between `importance_weight` and `**kwargs`)
+
+### Merge Results
+- Exports updated: 2 (provenance-line fixes + 1 missing-param backfill in ref file)
+- Exports added: 0
+- Exports removed: 0
+- [MANUAL] sections preserved: 2 (quick-start-notes @ SKILL.md:85, additional-notes @ SKILL.md:246 — byte-identical)
+- Conflicts resolved: 0
+
+### Edits Applied
+- `SKILL.md:81` — `search/search.py:L26` → `L27`
+- `SKILL.md:129` — `search/search.py:L26` → `L27`
+- `references/full-api-reference.md:30-44` — inserted `run_in_background: bool = False,` between `importance_weight` and `**kwargs` in `add()` signature block
+- `references/full-api-reference.md:51` — `add/add.py:L21` → `L22`
+- `references/core-workflow.md:43` — `add/add.py:L21` → `L22`
+
+### Validation Summary
+- Spec compliance: PASS (structural; post-write skill-check deferred to test re-run)
+- [MANUAL] integrity: PASS (2/2 blocks byte-identical)
+- Confidence tiers: PASS (2/2 exports T1 AST-verified)
+- Provenance: PASS (0 stale L26/L21 references remain across SKILL.md + references/)
+
+### Description Guard
+- Restored: false
+- Triggering tool: —
+- Original description preserved: true
+- Notes: —
+
+### Context Snippet
+- Regenerated: false
+- Triggers fired: —
+- Notes: Gap-driven line-drift repair — headline exports, version, and gotchas unchanged; snippet remains valid against prior surface

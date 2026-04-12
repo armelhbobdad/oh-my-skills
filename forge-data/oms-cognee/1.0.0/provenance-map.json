@@ -7,19 +7,23 @@
   "source_ref": "v1.0.0",
   "generated_at": "2026-04-12T19:15:00Z",
   "last_update": {
-    "date": "2026-04-13T00:00:00Z",
+    "date": "2026-04-13T01:56:00Z",
     "trigger": "from-test-report",
     "update_type": "incremental",
     "mode": "gap-driven",
-    "files_changed": 0,
+    "files_changed": 3,
     "files_added": 0,
     "files_deleted": 0,
-    "exports_affected": 1,
+    "exports_affected": 2,
     "confidence_tier": "Deep",
     "manual_sections_preserved": 2,
     "test_report": "forge-data/oms-cognee/1.0.0/test-report-oms-cognee.md",
-    "gaps_addressed": ["GAP-001"],
-    "target_file": "references/full-api-reference.md",
+    "gaps_addressed": ["GAP-001", "GAP-002"],
+    "target_files": [
+      "SKILL.md",
+      "references/full-api-reference.md",
+      "references/core-workflow.md"
+    ],
     "workspace_drift_check": "ok (3c048aa4)"
   },
   "entries": [

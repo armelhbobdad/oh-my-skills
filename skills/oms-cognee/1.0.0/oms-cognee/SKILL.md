@@ -78,7 +78,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-Signatures: `[AST:cognee/api/v1/add/add.py:L22]` · `[AST:cognee/api/v1/cognify/cognify.py:L44]` · `[AST:cognee/api/v1/search/search.py:L26]` · `[AST:cognee/api/v1/remember/remember.py:L339]` · `[AST:cognee/api/v1/recall/recall.py:L122]`
+Signatures: `[AST:cognee/api/v1/add/add.py:L22]` · `[AST:cognee/api/v1/cognify/cognify.py:L44]` · `[AST:cognee/api/v1/search/search.py:L27]` · `[AST:cognee/api/v1/remember/remember.py:L339]` · `[AST:cognee/api/v1/recall/recall.py:L122]`
 
 Before running, set `LLM_API_KEY` for graph extraction and completion; Cognee defaults to OpenAI but supports litellm-compatible providers (Anthropic, Gemini, Ollama, etc.) via `cognee.config.set_llm_provider(...)` and friends. `[AST:cognee/api/v1/config/config.py:L141]` · `[SRC:cognee/api/v1/add/add.py:L166]`
 
@@ -126,7 +126,7 @@ Before running, set `LLM_API_KEY` for graph extraction and completion; Cognee de
 |---|---|---|---|
 | `cognee.add` | async fn | `data, dataset_name="main_dataset", node_set=None, dataset_id=None, incremental_loading=True, data_per_batch=20, importance_weight=0.5, run_in_background=False` | `[AST:cognee/api/v1/add/add.py:L22]` |
 | `cognee.cognify` | async fn | `datasets=None, graph_model=KnowledgeGraph, chunker=TextChunker, chunk_size=None, temporal_cognify=False, custom_prompt=None, run_in_background=False` | `[AST:cognee/api/v1/cognify/cognify.py:L44]` |
-| `cognee.search` | async fn | `query_text, query_type=SearchType.GRAPH_COMPLETION, datasets=None, top_k=10, node_name=None, only_context=False, session_id=None, verbose=False, neighborhood_depth=None, neighborhood_seed_top_k=None` | `[AST:cognee/api/v1/search/search.py:L26]` |
+| `cognee.search` | async fn | `query_text, query_type=SearchType.GRAPH_COMPLETION, datasets=None, top_k=10, node_name=None, only_context=False, session_id=None, verbose=False, neighborhood_depth=None, neighborhood_seed_top_k=None` | `[AST:cognee/api/v1/search/search.py:L27]` |
 | `cognee.memify` | async fn | `extraction_tasks=None, enrichment_tasks=None, data=None, dataset="main_dataset", node_name=None, run_in_background=False` | `[AST:cognee/modules/memify/memify.py:L25]` |
 | `cognee.update` | async fn | `data_id, data, dataset_id, node_set=None, preferred_loaders=None, incremental_loading=True` | `[AST:cognee/api/v1/update/update.py:L12]` |
 | `cognee.run_custom_pipeline` | async fn | `tasks=None, data=None, dataset="main_dataset", pipeline_name="custom_pipeline", run_in_background=False` | `[AST:cognee/modules/run_custom_pipeline/run_custom_pipeline.py:L14]` |
