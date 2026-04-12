@@ -1,62 +1,49 @@
 {
   "workflow": "export-skill",
-  "mode": "batch --all",
+  "mode": "single",
   "date": "2026-04-12",
-  "skills_exported": [
-    {
-      "name": "oms-cocoindex",
-      "version": "0.3.37",
-      "skill_type": "single",
-      "source_authority": "community",
-      "confidence_tier": "Deep"
-    },
-    {
-      "name": "oms-cognee",
-      "version": "0.5.8",
-      "skill_type": "single",
-      "source_authority": "community",
-      "confidence_tier": "Deep"
-    },
-    {
-      "name": "oms-storybook-react-vite",
-      "version": "10.3.5",
-      "skill_type": "single",
-      "source_authority": "community",
-      "confidence_tier": "Deep"
-    },
-    {
-      "name": "oms-uitripled",
-      "version": "0.1.0",
-      "skill_type": "single",
-      "source_authority": "community",
-      "confidence_tier": "Deep"
-    }
+  "skill": {
+    "name": "oms-cognee",
+    "version": "1.0.0",
+    "previous_version": "0.5.8",
+    "skill_type": "single",
+    "source_authority": "community",
+    "confidence_tier": "Deep"
+  },
+  "target_context_files": [
+    {"context_file": "CLAUDE.md", "skill_root": ".claude/skills/", "ides": ["claude-code"]}
   ],
   "outputs": {
     "context_files": [
       {
         "path": "CLAUDE.md",
-        "case": "1-create",
+        "case": "3-regenerate",
         "skill_root": ".claude/skills/",
-        "status": "written"
+        "status": "written (no-op — content already canonical from update-skill)"
       }
     ],
     "snippets": [
-      "skills/oms-cocoindex/0.3.37/oms-cocoindex/context-snippet.md",
-      "skills/oms-cognee/0.5.8/oms-cognee/context-snippet.md",
-      "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/context-snippet.md",
-      "skills/oms-uitripled/0.1.0/oms-uitripled/context-snippet.md"
+      "skills/oms-cognee/1.0.0/oms-cognee/context-snippet.md"
     ],
     "manifest": "skills/.export-manifest.json"
   },
+  "skills_in_index": [
+    {"name": "oms-cocoindex", "version": "0.3.37"},
+    {"name": "oms-cognee", "version": "1.0.0"},
+    {"name": "oms-storybook-react-vite", "version": "10.3.5"},
+    {"name": "oms-uitripled", "version": "0.1.0"}
+  ],
   "summary": {
+    "always_on_tokens": 512,
+    "on_trigger_tokens": 3029,
+    "full_disclosure_tokens": 10745,
+    "snippet_tokens": 172,
     "skills_count": 4,
     "stack_count": 0,
-    "always_on_tokens": 449,
-    "on_trigger_tokens_total": 9298,
-    "full_disclosure_tokens": 44908
+    "case": "regenerate"
   },
   "warnings": [
-    "snippet_skill_root_override not set in config.yaml — snippets use IDE-mapped `.claude/skills/` prefix, but actual packages live under `skills/<name>/active/<name>/`. Authoring repo may want to set the override."
-  ]
+    "No test report found for v1.0.0 — consider running skf-test-skill to verify completeness."
+  ],
+  "nextWorkflow": "test-skill"
 }
