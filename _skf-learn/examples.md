@@ -3,24 +3,27 @@ title: Examples
 description: Real-world scenarios, tips, and troubleshooting for Skill Forge
 ---
 
-# Examples & Use Cases
-
-This section provides practical examples for using SKF: Skill Forge.
-
----
-
 ## What the Output Looks Like
 
-When SKF generates a skill, you get a `SKILL.md` file with machine-readable frontmatter and provenance-backed instructions. Here's a trimmed example from a real skill generated for [cognee](https://github.com/topoteretes/cognee) (browse the full output at [oh-my-skills](https://github.com/armelhbobdad/oh-my-skills)):
+When SKF generates a skill, you get a `SKILL.md` file with machine-readable frontmatter and provenance-backed instructions. Here's a trimmed example from the real [`oms-cognee` SKILL.md](https://github.com/armelhbobdad/oh-my-skills/blob/main/skills/oms-cognee/0.5.8/oms-cognee/SKILL.md) generated for [cognee](https://github.com/topoteretes/cognee) (full portfolio at [oh-my-skills](https://github.com/armelhbobdad/oh-my-skills)):
 
 **Frontmatter (tells AI agents when to load this skill):**
 
 ```yaml
 name: cognee
-description: Use when cognee is a Python AI memory engine that transforms
-  documents into knowledge graphs with vector and graph storage for semantic
-  search and reasoning. Use this skill when writing code that calls cognee's
-  Python API (add, cognify, search, memify, config, datasets, prune, session).
+description: >
+  Builds apps on top of cognee v0.5.8, the knowledge-graph memory engine for AI agents.
+  Use when ingesting text/files/URLs into persistent agent memory, building knowledge
+  graphs with entities and relationships, searching graph-backed memory with multiple
+  search modes (GRAPH_COMPLETION, CHUNKS, SUMMARIES, TEMPORAL, CYPHER, CODING_RULES),
+  enriching existing graphs with memify, scoping memory with datasets and node_sets,
+  configuring LLM/embedding/graph/vector backends, running custom task pipelines,
+  tracing cognee operations, or visualizing the resulting graph. Covers the top-level
+  exports from cognee/__init__.py: add, cognify, search, memify, datasets, prune,
+  update, run_custom_pipeline, config, SearchType, visualize_graph, and the tracing
+  API. Do NOT use for: cognee internals (cognify task implementation, graph adapters),
+  the HTTP REST API (use cognee-mcp or the FastAPI server instead), non-cognee memory
+  or RAG libraries.
 ```
 
 **Body (what your AI agent reads):**
@@ -30,13 +33,15 @@ description: Use when cognee is a Python AI memory engine that transforms
 
 | Function | Purpose | Key Params | Source |
 |----------|---------|------------|--------|
-| add() | Ingest text, files, binary data | data, dataset_name | [AST:cognee/api/v1/add/add.py:L22] |
-| cognify() | Build knowledge graph | datasets, graph_model | [AST:cognee/api/v1/cognify/cognify.py:L47] |
-| search() | Query knowledge graph | query_text, query_type | [AST:cognee/api/v1/search/search.py:L26] |
-| memify() | Enrich graph with custom tasks | extraction_tasks, data | [AST:cognee/modules/memify/memify.py:L27] |
-| session.* | Session history and feedback | get_session(), add_feedback() | [SRC:cognee/api/v1/session/__init__.py:L8] |
+| add() | Ingest text, files, binary data | data, dataset_name | [AST:cognee/api/v1/add/add.py:L21] |
+| cognify() | Build knowledge graph | datasets, graph_model | [AST:cognee/api/v1/cognify/cognify.py:L44] |
+| search() | Query knowledge graph | query_text, query_type | [AST:cognee/api/v1/search/search.py:L27] |
+| memify() | Enrich graph with custom tasks | extraction_tasks, data | [AST:cognee/modules/memify/memify.py:L25] |
+| session | Session module | session.py module | [SRC:cognee/api/v1/session/session.py:L16] |
 | DataPoint | Base class for custom graph nodes | inherit and add fields | [EXT:docs.cognee.ai/guides/custom-data-models] |
 ```
+
+Every line number above is verbatim from the real [`forge-data/oms-cognee/0.5.8/provenance-map.json`](https://github.com/armelhbobdad/oh-my-skills/blob/main/forge-data/oms-cognee/0.5.8/provenance-map.json) shipped with oh-my-skills — not illustrative.
 
 Provenance tags trace each instruction to its source:
 - `[AST:file:line]` — extracted from code via AST parsing (highest confidence)
@@ -46,26 +51,24 @@ Provenance tags trace each instruction to its source:
 
 See [How It Works](../how-it-works/) for the full output structure.
 
-**Full skill directory structure:**
+**Full skill directory structure** (real layout from [`oh-my-skills/skills/oms-cognee/`](https://github.com/armelhbobdad/oh-my-skills/tree/main/skills/oms-cognee)):
 
 ```
-skills/cognee/
-├── active -> 0.5.5
-└── 0.5.5/
-    └── cognee/
+skills/oms-cognee/
+├── active -> 0.5.8
+└── 0.5.8/
+    └── oms-cognee/
         ├── SKILL.md              # What your agent reads
         ├── context-snippet.md    # Compressed index for platform context files
         ├── metadata.json         # Machine-readable provenance
-        ├── references/           # Progressive disclosure detail
-        │   ├── api-core.md
-        │   └── graph-types.md
-        ├── scripts/              # Executable utilities (when detected)
-        │   └── setup-graphdb.sh
-        └── assets/               # Templates and schemas (when detected)
-            └── config-schema.json
+        └── references/           # Progressive disclosure detail
+            ├── config.md
+            ├── core-workflow.md
+            ├── full-api-reference.md
+            └── pipelines-and-datapoints.md
 ```
 
-Skills are stored per-version — updating cognee to v0.6.0 creates a new version directory without overwriting v0.5.5. The `active` symlink always points to the current version. The `scripts/` and `assets/` directories appear only when the source repository contains them. Each file traces back to its source with provenance citations and SHA-256 hashes.
+This is the real directory listing from [`oh-my-skills/skills/oms-cognee/`](https://github.com/armelhbobdad/oh-my-skills/tree/main/skills/oms-cognee). Skills are stored per-version — updating cognee to v1.0.0 creates a new version directory without overwriting v0.5.8. The `active` symlink always points to the current version. Some skills also include `scripts/` and `assets/` directories when the source repository contains executable scripts or static assets — oms-cognee doesn't have either, but see [How It Works → Per-Skill Output](../how-it-works/#per-skill-output) for the full schema.
 
 ---
 
@@ -84,7 +87,7 @@ Ferris reads the repository, extracts the public API, and validates against the 
 Need a specific version? Append `@version`:
 
 ```
-@Ferris QS cognee@0.5.0
+@Ferris QS cognee@0.5.8
 ```
 
 ### Brownfield Platform — Pipeline or per-workflow
@@ -110,7 +113,7 @@ Or one workflow per session:
 
 ### Release Prep — Trust Builder
 
-Sarah prepares v3.0.0 with breaking changes.
+Jin prepares v1.0.0 with breaking changes.
 
 ```
 @Ferris maintain cocoindex
@@ -141,7 +144,7 @@ Ferris detects 8 significant dependencies, finds 5 co-import integration points.
 
 ### Pre-Code Architecture Verification — Greenfield Confidence
 
-Jordan is designing a new TypeScript backend with Hono + Drizzle + SpacetimeDB. Architecture doc written, but no code yet. Wants to verify the stack works before building.
+Gery is designing a new TypeScript backend with Hono + Drizzle + SpacetimeDB. Architecture doc written, but no code yet. Wants to verify the stack works before building.
 
 ```
 @Ferris QS hono          # Quick Skill per library
@@ -173,13 +176,13 @@ Skills accumulate over sprints. Agent gets smarter every iteration.
 
 ### Scenario B: Multi-Repo Platform
 
-Alex needs cross-service knowledge for 10 microservices.
+Blondin needs cross-service knowledge for 10 microservices.
 
 One forge project, multiple QMD collections, hub-and-spoke skills with integration patterns.
 
 ### Scenario C: External Dependency
 
-Developer needs skills for a library that doesn't have official skills.
+Kossi needs skills for a library that doesn't have official skills.
 
 ```
 @Ferris QS better-auth
@@ -189,21 +192,23 @@ Checks ecosystem first. If no official skill exists: generates from source. `sou
 
 ### Scenario D: Docs-Only (SaaS/Closed Source)
 
-No source code available — only documentation.
+No source code to clone — only API documentation. Example: you're integrating the [Stripe API](https://docs.stripe.com/api) and want your agent to know the real endpoints, parameters, and error codes instead of hallucinating from training data.
 
 ```
 @Ferris BS
 # When asked for target, provide documentation URLs:
-# https://docs.cognee.ai/v2/api/
+# https://docs.stripe.com/api/charges
+# https://docs.stripe.com/api/payment_intents
+# https://docs.stripe.com/api/errors
 # Ferris sets source_type: "docs-only" and collects doc_urls
-# When asked for target version, specify: 2.0.0
-# Ferris confirms your doc URLs match that version
+# When asked for target version, specify: 2025-04-30.basil
+# Ferris confirms your doc URLs match that API version
 @Ferris CS
-# step-03 skips (no source), step-03c fetches docs via doc_fetcher
+# step-03 skips (no source to clone), step-03c fetches docs via doc_fetcher
 # All content is T3 [EXT:url] confidence. source_authority: community
 ```
 
-The brief's `doc_urls` field drives the doc_fetcher step. The agent uses whatever web fetching tool is available in its environment (Firecrawl, WebFetch, curl, etc.) to retrieve documentation as markdown and extract API information with T3 citations.
+The brief's `doc_urls` field drives the doc_fetcher step. The agent uses whatever web fetching tool is available in its environment (Firecrawl, WebFetch, curl, etc.) to retrieve documentation as markdown and extract API information with `[EXT:url]` citations. No AST parsing is possible without source code — every instruction carries T3 provenance instead of T1, and the skill is tagged `source_authority: community` regardless of tier.
 
 ### Scenario E: Rename a Skill
 
@@ -237,6 +242,10 @@ Version 0.6.0 remains active. Version 0.5.0 is untouched. The managed sections i
 ---
 
 ## Tips & Tricks
+
+### Skip Permissions for Faster Forging
+
+> **Tip from Armel:** When forging skills with Claude Code, I run `claude --dangerously-skip-permissions` to bypass all permission prompts. SKF workflows only read source code, write to `skills/` and `forge-data/`, and call local tools (ast-grep, qmd, gh) — every step is auditable in the [open source](https://github.com/armelhbobdad/bmad-module-skill-forge). Skipping permissions drastically reduces forge time: I start a pipeline, go [grab one of those coffees ☕ you keep offering](https://buymeacoffee.com/armelhbobdad), and come back to a completed workflow. Review the output at the end, not at every gate.
 
 ### Progressive Capability
 
@@ -301,7 +310,7 @@ Install [cocoindex-code](https://github.com/cocoindex-io/cocoindex-code) to unlo
 
 - Run `/bmad-help` — analyzes your current state and suggests what to do next
   (e.g. `/bmad-help my batch creation failed halfway, how do I resume?`)
-  *Provided by the [BMad Method](https://github.com/bmad-code-org/BMAD-METHOD) — not available in standalone SKF installations.*
+  *Provided by the [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD) — not available in standalone SKF installations.*
 - Run `@Ferris SF` to check your current tier and tool availability
 - Review `forge-tier.yaml` in your forger sidecar for runtime configuration
 - Check module configuration in your BMAD settings

@@ -3,12 +3,6 @@ title: Getting Started
 description: Installation, prerequisites, first steps, and common use cases for Skill Forge
 ---
 
-# Getting Started with SKF: Skill Forge
-
-Welcome to Skill Forge! This guide will help you get up and running.
-
----
-
 ## What This Module Does
 
 Skill Forge analyzes code repositories, documentation websites, and developer discourse to build verified instruction files ("skills") for AI agents. Instead of your agent guessing API calls from training data, it follows instructions where every function, type, and pattern traces back to its source — a file and line for code, a URL for documentation, an issue or PR for discourse. Skills comply with the [agentskills.io](https://agentskills.io) open standard and work across Claude, Cursor, Copilot, and other AI tools. See the [Concepts](../concepts/) page for definitions of key terms.
@@ -27,7 +21,7 @@ npx bmad-module-skill-forge install
 
 Installs SKF on its own. You'll be prompted for project name, output folders, and which IDEs to configure. The installer copies skill directories to each IDE's skills folder (e.g. `.claude/skills/`, `.cursor/skills/`) so skills are available natively.
 
-### As a custom module during BMad Method installation
+### As a custom module during BMAD Method installation
 
 ```bash
 npx bmad-method install
@@ -49,17 +43,17 @@ Or, if you've already cloned the repo locally, provide the path to the repo root
 /path/to/bmad-module-skill-forge
 ```
 
-This installs BMad core + SKF together with full IDE integration, manifests, and help catalog. Best when you want the complete BMad development workflow.
+This installs BMAD core + SKF together with full IDE integration, manifests, and help catalog. Best when you want the complete BMAD development workflow. See [BMAD Synergy](../bmad-synergy/) for how SKF workflows pair with BMM phases and other BMAD modules.
 
-### Add SKF to an existing BMad project
+### Add SKF to an existing BMAD project
 
-If you already have BMad installed, you can add SKF afterward by running the standalone installer in the same directory:
+If you already have BMAD installed, you can add SKF afterward by running the standalone installer in the same directory:
 
 ```bash
 npx bmad-module-skill-forge install
 ```
 
-The installer detects the existing `_bmad/` directory and installs SKF alongside your current modules.
+The installer detects the existing `_bmad/` directory and installs SKF alongside your current modules. See [BMAD Synergy](../bmad-synergy/) for integration patterns with your existing BMM workflows.
 
 ### Updating an existing SKF installation
 
@@ -69,7 +63,7 @@ To move to a newer (or older) SKF version, run the installer again in your proje
 npx bmad-module-skill-forge@latest install
 ```
 
-The installer reads the installed version from your manifest and shows the delta in the prompt — for example `v0.8.3 → v0.8.4 available`. Pick **Update** to replace SKF files while keeping your `config.yaml` intact. The option label adapts to the direction you're moving (upgrade, reinstall the same version, or downgrade) so you always see exactly what you're about to apply. Pick **Fresh install** instead if you want to wipe everything and start clean.
+The installer reads the installed version from your manifest and shows the delta in the prompt — for example `v0.10.0 → v1.0.0 available`. Pick **Update** to replace SKF files while keeping your `config.yaml` intact. The option label adapts to the direction you're moving (upgrade, reinstall the same version, or downgrade) so you always see exactly what you're about to apply. Pick **Fresh install** instead if you want to wipe everything and start clean.
 
 > The `@latest` suffix forces npx to fetch the newest published version instead of reusing a cached copy from a previous run.
 
@@ -95,13 +89,13 @@ Node.js, Python, and uv are required for all tiers. Don't worry about the rest �
 
 ## Configuration
 
-SKF has two install-time variables (defined in `src/module.yaml`), one Core Config variable inherited from BMad, and one runtime preference:
+SKF has two install-time variables (defined in `src/module.yaml`), one Core Config variable inherited from BMAD, and one runtime preference:
 
 | Variable               | Purpose                                                                                                  | Default                     |
 |------------------------|----------------------------------------------------------------------------------------------------------|-----------------------------|
 | `skills_output_folder` | Where generated skills are saved                                                                         | `{project-root}/skills`     |
 | `forge_data_folder`    | Where workspace artifacts are stored (VS reports, evidence)                                              | `{project-root}/forge-data` |
-| `output_folder`        | Where refined architecture documents are saved (used by RA workflow). *Inherited from BMad Core Config.* | Defined by BMad Core Config |
+| `output_folder`        | Where refined architecture documents are saved (used by RA workflow). *Inherited from BMAD Core Config.* | Defined by BMAD Core Config |
 | `tier_override`        | Force a specific tier for comparison or testing (in `_bmad/_memory/forger-sidecar/preferences.yaml`)     | `~` (auto-detect)           |
 | `headless_mode`        | Skip confirmation gates in all workflows (in `_bmad/_memory/forger-sidecar/preferences.yaml`)            | `false`                     |
 
@@ -130,7 +124,7 @@ Ferris reads the repository, extracts the public API, and generates a skill in u
 
 **Targeting a specific version:** Append `@version` to pin the skill to a library version:
 ```
-@Ferris QS cognee@0.5.0
+@Ferris QS cognee@0.5.8
 ```
 
 **Full quality path (pipeline mode):**
@@ -196,6 +190,8 @@ Individual skills cover single libraries. Stack Skill maps how your dependencies
 ```
 
 Ferris detects your manifests, ranks dependencies by significance, and generates a consolidated skill with cross-library integration patterns.
+
+> **Want to try this quickly?** Scaffold a full-stack project in seconds with [better-fullstack.dev](https://better-fullstack.dev/new?view=command&file=) or [better-t-stack.dev](https://www.better-t-stack.dev/new), then run `@Ferris SS` on the generated project to see Stack Skill in action.
 
 ### I'm onboarding a large existing codebase
 
@@ -279,7 +275,7 @@ Scripts from `scripts/`, `bin/`, `tools/`, and `cli/` directories are copied wit
 If you run into issues:
 1. Run `/bmad-help` — analyzes your current state and suggests what to do next
    (e.g. `/bmad-help my quick skill has low confidence scores, how do I improve them?`)
-   *Provided by the [BMad Method](https://github.com/bmad-code-org/BMAD-METHOD) — not available in standalone SKF installations.*
+   *Provided by the [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD) — not available in standalone SKF installations.*
 2. Run `@Ferris SF` to check your tool availability and tier
 3. Check `forge-tier.yaml` in your forger sidecar for your current configuration
 4. If a workflow gave you friction, ask Ferris to run the health check for that session, or [open an issue](https://github.com/armelhbobdad/bmad-module-skill-forge/issues/new/choose) — see [Workflow Health Check](../workflows/#terminal-step-health-check)

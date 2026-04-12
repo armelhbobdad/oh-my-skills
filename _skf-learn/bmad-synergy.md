@@ -3,11 +3,7 @@ title: BMAD Synergy
 description: How SKF workflows pair with BMAD CORE phases and optional modules (BMM, TEA, BMB, GDS, CIS) — integration patterns, entry points, and artifact flow
 ---
 
-# Using SKF with BMAD
-
-This page is for people already using [BMAD](https://docs.bmad-method.org/) who want to know where SKF workflows plug in. It assumes you know what BMM phases are, what TEA does, and what a BMAD module is. If any of that is new, start with the [BMAD docs](https://docs.bmad-method.org/) and then come back.
-
-If you're new to SKF itself, read [Getting Started](../getting-started/) first. The rest of this page assumes you have SKF installed and have run `@Ferris SF`.
+Assumes you know [BMAD](https://docs.bmad-method.org/) — BMM phases, TEA, and what a BMAD module is. If any of that is new, start with the [BMAD docs](https://docs.bmad-method.org/) first. If you're new to SKF, read [Getting Started](../getting-started/) instead.
 
 ---
 
@@ -124,7 +120,7 @@ This retrospective → update loop is the pattern that [Scenario A in Examples](
 
 ## SKF with Optional BMAD Modules
 
-BMAD ships several [optional modules](https://docs.bmad-method.org/). Synergy with SKF ranges from very high (TEA) to none at all (CIS). This section is honest about both.
+BMAD ships several [optional modules](https://github.com/orgs/bmad-code-org/repositories). Synergy with SKF ranges from very high (TEA) to narrow (CIS). This section is honest about both.
 
 ### TEA — Test Architect
 
@@ -146,9 +142,9 @@ Two concrete integrations:
 - **Before Test Design / ATDD / Automate / Framework Scaffolding** — run `@Ferris CS` on whichever test library the strategy depends on (Playwright, Vitest, Pact, etc.). TEA's test-authoring agents then work against verified API surfaces instead of training-data approximations.
 - **Before Release Gate** — run `@Ferris AS` on the skills the gate cites. If the skill has drifted from the current source, the drift report itself becomes evidence the gate can act on, and `@Ferris US` closes the loop.
 
-### BMB — BMad Builder
+### BMB — BMAD Builder
 
-BMB authors extend BMAD with new agents, workflows, or entire modules. When a new module depends on third-party libraries, ship a verified companion skill alongside it:
+BMB authors extend BMAD with new agents, workflows, or entire modules. SKF itself was built using BMB — it's a living proof-of-concept for the BMAD module architecture. When a new module depends on third-party libraries, ship a verified companion skill alongside it:
 
 - During `module-builder`, run `@Ferris SS` on the module's declared stack. The resulting stack skill becomes part of the module's distribution — downstream users get both the BMAD module BMB built and the SKF content skill you compiled as its companion in a single install.
 
@@ -162,7 +158,9 @@ For narrative, character design, world-building, or genre research — no synerg
 
 ### CIS — Creative Intelligence Suite
 
-No direct synergy. CIS covers ideation, brainstorming, innovation strategy, and storytelling — phases with no code to verify. SKF's whole value proposition is turning code and docs into evidence-backed skills, and CIS operates upstream of any of that. Use CIS for the creative work, then bring SKF in once you're producing concrete technical artifacts.
+Narrow but real synergy during the **brief-skill** phase. CIS's brainstorming coach, advanced elicitation, and party mode can sharpen scope decisions before compilation begins — especially when briefing a skill for a library you don't know well, or when multiple stakeholders disagree on what the skill should cover. The [oh-my-skills](https://github.com/armelhbobdad/oh-my-skills) repository uses BMAD Core + CIS alongside SKF: when briefing [`oms-storybook-react-vite`](https://github.com/armelhbobdad/oh-my-skills/blob/main/forge-data/oms-storybook-react-vite/skill-brief.yaml), CIS brainstorming, party mode, and advanced elicitation helped narrow a massive repo (Storybook supports Next.js, Astro, SvelteKit, and more — with extensive documentation for each) down to an accurate brief scoped specifically to React + Vite.
+
+Beyond briefing, CIS and SKF don't overlap — CIS covers ideation, storytelling, and innovation strategy where there's no code to verify. Use CIS for the creative and strategic work, then bring SKF in once you're producing concrete technical artifacts.
 
 ---
 
