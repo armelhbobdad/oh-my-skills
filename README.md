@@ -61,7 +61,7 @@ No hallucinations. No guesswork. Just a parser reading real code.
 | If you're writing... | Version | Test score | Upstream source | Pinned at |
 |---|---|---|---|---|
 | [**cocoindex**](skills/oms-cocoindex/0.3.37/oms-cocoindex/SKILL.md) (Python) | 0.3.37 | [**99.0%**](forge-data/oms-cocoindex/0.3.37/test-report-oms-cocoindex.md) | [`cocoindex-io/cocoindex`](https://github.com/cocoindex-io/cocoindex) | [`87c5dbf0`](https://github.com/cocoindex-io/cocoindex/commit/87c5dbf087bfccca83791861db0d33519ef09677) · 2026-03-31 |
-| [**cognee**](skills/oms-cognee/0.5.8/oms-cognee/SKILL.md) (Python) | 0.5.8 | [**99.45%**](forge-data/oms-cognee/0.5.8/test-report-oms-cognee.md) | [`topoteretes/cognee`](https://github.com/topoteretes/cognee) | [`b51dcce1`](https://github.com/topoteretes/cognee/commit/b51dcce1d273d47ce864cd6c5e44a7a82f7f8dce) · 2026-04-08 |
+| [**cognee**](skills/oms-cognee/1.0.0/oms-cognee/SKILL.md) (Python) | 1.0.0 | [**99.0%**](forge-data/oms-cognee/1.0.0/test-report-oms-cognee.md) | [`topoteretes/cognee`](https://github.com/topoteretes/cognee) | [`3c048aa4`](https://github.com/topoteretes/cognee/commit/3c048aa4147776f14d4546704f986242554a9ef3) · 2026-04-11 |
 | [**Storybook**](skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/SKILL.md) (React + Vite, TS) | 10.3.5 | [**99.49%**](forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite.md) | [`storybookjs/storybook`](https://github.com/storybookjs/storybook) | [`e486d382`](https://github.com/storybookjs/storybook/commit/e486d3826bcd40c52db1c766966d1c8ec16df6cb) · 2026-04-07 |
 | [**uitripled**](skills/oms-uitripled/0.1.0/oms-uitripled/SKILL.md) (TS) | 0.1.0 | [**99.45%**](forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled.md) | [`moumen-soliman/uitripled`](https://github.com/moumen-soliman/uitripled) | [`a5ffb45b`](https://github.com/moumen-soliman/uitripled/commit/a5ffb45be05335d2c547436664cfbfb8c22d04df) · 2026-03-22 |
 
@@ -126,7 +126,7 @@ Further trails for the really skeptical:
 The lowest test score in this repo is **99.0%**. The highest is **99.49%**. Each report shows its math; each report discloses its own ambiguities:
 
 - **oms-cocoindex** — 114/114 provenance entries; 55 public-API denominator from `__init__.py` `__all__`; 20/20 sampled signatures matched at the exact pinned line. Two denominators (barrel vs. full surface) are both disclosed with rationale.
-- **oms-cognee** — 25/25 exports documented; denominator pinned to `cognee/__init__.py` lines 18–47.
+- **oms-cognee** — 34/34 exports documented; denominator is the `cognee/__init__.py` barrel (61 lines, 34 public re-exports) at pinned commit `3c048aa4` (v1.0.0).
 - **oms-storybook-react-vite** — **215/216.** The 1-entry drift is the interesting one — see below.
 - **oms-uitripled** — 34-entry denominator (not 11, not 25) with the full reconciliation reasoning in the report.
 
@@ -168,7 +168,7 @@ Replace `<SKILL>` with the path for the skill you want:
 | Skill                    | `<SKILL>` path                                           |
 | ------------------------ | -------------------------------------------------------- |
 | oms-cocoindex            | `oms-cocoindex/0.3.37/oms-cocoindex`                     |
-| oms-cognee               | `oms-cognee/0.5.8/oms-cognee`                            |
+| oms-cognee               | `oms-cognee/1.0.0/oms-cognee`                            |
 | oms-storybook-react-vite | `oms-storybook-react-vite/10.3.5/oms-storybook-react-vite` |
 | oms-uitripled            | `oms-uitripled/0.1.0/oms-uitripled`                      |
 
@@ -190,13 +190,18 @@ cp -r skills/oms-cocoindex/0.3.37/oms-cocoindex .claude/skills/oms-cocoindex
 
 Skills are pinned to a **source commit**, not a floating tag. When upstream ships, we recompile and publish a new skill version alongside the old one. **Your existing install will never change its mind while you sleep.**
 
+This is not a hypothetical — it is what already happened to `oms-cognee`. Upstream `topoteretes/cognee` shipped v1.0.0 on top of the v0.5.8 surface this repo was originally compiled against. We recompiled from the v1.0.0 commit and wrote the new skill version next to the old one:
+
 ```
-skills/oms-cocoindex/
-  0.3.37/oms-cocoindex/   ← current
-  0.3.38/oms-cocoindex/   ← lives next to the old one when we recompile
+skills/oms-cognee/
+  0.5.8/oms-cognee/   ← still pinned to b51dcce1 (v0.5.8), scoring 99.45%
+  1.0.0/oms-cognee/   ← pinned to 3c048aa4 (v1.0.0, 2026-04-11), current, scoring 99.00%
+  active              → symlink to the current version
 ```
 
-Old versions stay addressable. You pin your `CLAUDE.md` to an exact skill version the same way you pin a `package.json` dependency. Upgrades are install-a-new-version, never mutate-in-place.
+The v0.5.8 tree was never re-pinned. Its [`metadata.json`](skills/oms-cognee/0.5.8/oms-cognee/metadata.json) still anchors `source_commit: b51dcce1`, and its [test report](forge-data/oms-cognee/0.5.8/test-report-oms-cognee.md) still scores the v0.5.8 API surface. A project that pinned `CLAUDE.md` to `skills/oms-cognee/0.5.8/oms-cognee` before the v1.0.0 recompile continues to resolve against that tree today, with zero upstream drift. When the team is ready to adopt v1.0.0's new surface (e.g. `run_startup_migrations` replacing `run_migrations`, `cognee.low_level` moved out of the public API), they bump the path in `CLAUDE.md` — one line, reviewable in a PR — the same way they would bump a `package.json` dependency.
+
+The [export manifest](skills/.export-manifest.json) records the full version history, marking `0.5.8` as `archived` and `1.0.0` as `active`. Upgrades are install-a-new-version, never mutate-in-place.
 
 ---
 
