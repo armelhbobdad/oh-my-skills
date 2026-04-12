@@ -1,0 +1,44 @@
+{
+  "workflow": "skf-test-skill",
+  "version": "1.0",
+  "status": "completed",
+  "completed_at": "2026-04-13T00:31:00Z",
+  "inputs": {
+    "skill_name": "oms-cognee",
+    "skill_version": "1.0.0",
+    "skill_dir": "skills/oms-cognee/1.0.0/oms-cognee"
+  },
+  "outputs": [
+    "forge-data/oms-cognee/1.0.0/test-report-oms-cognee.md"
+  ],
+  "summary": {
+    "testMode": "naive",
+    "forgeTier": "Deep",
+    "analysisConfidence": "full",
+    "score": 98.7,
+    "threshold": 80,
+    "result": "PASS",
+    "gaps": {
+      "critical": 0,
+      "high": 1,
+      "medium": 0,
+      "low": 1,
+      "info": 5,
+      "total": 7
+    },
+    "category_scores": {
+      "export_coverage": 100,
+      "signature_accuracy": 97,
+      "type_coverage": 100,
+      "coherence": null,
+      "external_validation": 94.5
+    },
+    "external_validators": {
+      "skill_check": 100,
+      "tessl_description": 100,
+      "tessl_content": 73,
+      "tessl_review": 89
+    }
+  },
+  "next_workflow": "export-skill"
+}
