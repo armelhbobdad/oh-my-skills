@@ -4,6 +4,8 @@ description: 'Workflow self-improvement health check — captures real friction 
 # No nextStepFile — this is always the terminal step
 healthCheckRepo: '{health_check_repo}'
 localFallbackFolder: '{output_folder}/improvement-queue'
+seenCachePath: '$HOME/.skf/health-check-seen.json'
+liveSubmitSeverities: ['bug']  # friction/gap go local-queue-default with explicit opt-in
 ---
 
 # Health Check: Workflow Self-Improvement
@@ -89,7 +91,8 @@ For each genuine finding, present it in this format:
 | **Severity** | `bug` / `friction` / `gap` |
 | **Workflow** | {workflow name} |
 | **Step File** | `src/skf-{workflow}/steps-c/{step-file-path}` |
-| **Section** | {the specific section or instruction number} |
+| **Section** | {the specific section or instruction number — use a stable section heading slug, not line numbers} |
+| **Fingerprint** | `fp-{7-hex}` — first 7 hex chars of `sha1("{severity}|{workflow}|{step_file}|{section-slug}")` |
 
 **What happened:**
 {Description of the actual issue encountered during execution}
@@ -127,13 +130,59 @@ _You are the final filter. Reject any finding that doesn't reflect a real issue 
 - **IF N:** Display "Findings discarded. Workflow complete." — STOP
 - **IF E:** Let user specify which findings to keep, modify, or remove. Then re-present the revised list and ask again.
 
-### 5. Submit Findings
+### 5. Route Each Finding by Severity
 
-**Check GitHub CLI availability:**
+Before any submission, route each confirmed finding by severity:
 
-Run `gh auth status` to determine if the `gh` CLI is authenticated.
+- **`bug`** → live-submit path (step 5a below). High signal, priority for maintainers.
+- **`friction`** / **`gap`** → local-queue by default (step 5c below). These are the most subjective categories and produce the most near-duplicates. Ask the user once per session: *"Also submit the {N} friction/gap finding(s) as GitHub issues? \[y/N]"* — only if the user affirms explicitly, route them through 5a.
 
-#### IF `gh` is available:
+### 5a. Live-Submit Path: Compute Fingerprint and Dedup
+
+For each finding routed to live-submit:
+
+**1. Compute the fingerprint** — a deterministic 7-hex dedup key:
+
+```
+fp="fp-$(printf '%s|%s|%s|%s' "{severity}" "{workflow}" "{step_file}" "{section-slug}" | sha1sum | cut -c1-7)"
+```
+
+The `section-slug` is a kebab-case normalized section heading (e.g. `missing-staging-path`). Never include line numbers — they drift when files are edited.
+
+**2. Check the local seen-cache** at `{seenCachePath}`:
+
+If the cache exists and already contains this fingerprint for this user, skip submission silently and log: `"fp-{hash}: already submitted from this machine on {date}, issue {url} — skipping"`. This prevents the same user from re-reporting the same defect across sessions.
+
+**3. Check GitHub CLI availability** with `gh auth status`. If `gh` is unavailable, fall through to step 5c (local fallback).
+
+**4. Remote dedup search** — one deterministic call:
+
+```
+gh search issues --repo {healthCheckRepo} --state open "{fp} in:title" --json number,url,title --limit 1
+```
+
+**5a-i. If a matching open issue exists:**
+
+Present to user:
+
+> "**Matching report found:** #{N} — {title}
+>
+> Your finding has the same fingerprint `{fp}`. Options:
+> - **\[R]** React (👍) on the existing issue — silent upvote, adds no comment
+> - **\[C]** React + comment with YOUR environment/evidence delta (use only if it materially differs from the original)
+> - **\[N]** Create a new issue anyway — only if you're certain this is a distinct defect
+> - **\[S]** Skip — don't submit this finding"
+
+Execute the chosen action:
+
+- **R:** `gh api -X POST /repos/{repo}/issues/{N}/reactions -f content='+1'`
+- **C:** Same reaction call, then `gh issue comment {N} --body "{minimal env+delta body}"`. The delta body is the Environment table plus ONE sentence describing what's different from the original. No session narrative.
+- **N:** Proceed to step 5a-ii.
+- **S:** Record nothing.
+
+Record the outcome to the seen-cache under the fingerprint with fields `{action, issue_url, date}`.
+
+**5a-ii. If no matching open issue exists** — create a new issue:
 
 For each confirmed finding, create a GitHub issue:
 
@@ -141,10 +190,14 @@ For each confirmed finding, create a GitHub issue:
 ```
 gh issue create \
   --repo {healthCheckRepo} \
-  --title "[health-check] [{severity}] {workflow}: {short description}" \
-  --label "health-check,workflow-improvement,{severity}" \
+  --title "[health-check][{severity}][{fp}] {workflow}: {short description}" \
+  --label "health-check,workflow-improvement,{severity},{fp}" \
   --body "{formatted body using issue template structure}"
 ```
+
+The fingerprint `{fp}` appears in both title (human-readable) and label (server-side filterable). Maintainers can query all reports for a defect via the `fp-*` label without relying on title text.
+
+After the issue is created, write the fingerprint → issue-url mapping to the seen-cache at `{seenCachePath}` so this user never re-reports the same fingerprint.
 
 **Writing rules — non-negotiable:**
 
@@ -167,6 +220,11 @@ gh issue create \
 <!-- bug: instructions were wrong or contradictory -->
 <!-- friction: instructions worked but caused back-and-forth or guessing -->
 <!-- gap: a scenario arose that wasn't covered at all -->
+
+## Fingerprint
+`{fp}`
+<!-- Deterministic dedup key: sha1(severity|workflow|step_file|section-slug)[:7]. -->
+<!-- Also applied as a label so maintainers can filter all variants server-side. -->
 
 ## Finding
 <!-- ONE sentence. What is the problem? Do not explain why yet. -->
@@ -218,9 +276,25 @@ After creating all issues, display:
 
 Workflow complete."
 
-#### IF `gh` is NOT available:
+### 5b. On success, update the seen-cache
 
-For each confirmed finding, write a local file to `{localFallbackFolder}/`:
+After each successful `gh issue create`, append to `{seenCachePath}`:
+
+```json
+{
+  "fp-XXXXXXX": {
+    "issue_url": "https://github.com/.../issues/123",
+    "action": "created",
+    "date": "YYYY-MM-DD"
+  }
+}
+```
+
+Ensure the parent directory exists. This file is global across the user's machine — not per-project — so the same defect is never re-reported across different repos the user works in.
+
+### 5c. Local-Queue Path (gh unavailable OR friction/gap default)
+
+For findings that didn't go live (gh unavailable, user declined the friction/gap opt-in, or user chose **\[S]** at the dedup gate), write a local file to `{localFallbackFolder}/`:
 
 **Filename:** `hc-{workflow}-{timestamp}.md` (one file per finding, timestamp as YYYYMMDD-HHmmss)
 
@@ -232,6 +306,7 @@ type: workflow-health-finding
 workflow: {workflow name}
 step_file: {step file path}
 severity: {bug | friction | gap}
+fingerprint: {fp-XXXXXXX}
 date: {ISO date}
 ---
 ```
@@ -263,7 +338,10 @@ This is the TERMINAL step — shared across all SKF workflows. After the health 
 - Clean runs exit immediately with no findings (most common outcome)
 - Findings cite specific step files and sections with real evidence
 - User review gate presented before any submission
-- GitHub issues created with correct labels and structured body (when `gh` available)
+- Severity gate respected: only `bug` submits live by default; `friction`/`gap` require explicit opt-in
+- Fingerprint computed deterministically and applied to both title prefix and `fp-*` label
+- Remote dedup search performed before every live submission; existing issues get reactions/delta-comments rather than duplicates
+- Seen-cache at `{seenCachePath}` updated after every submission/reaction and consulted before every search
 - Local fallback files written with clear manual submission instructions (when `gh` unavailable)
 - Workflow ends cleanly
 
@@ -273,6 +351,10 @@ This is the TERMINAL step — shared across all SKF workflows. After the health 
 - Reporting vague issues without step file citations ("the workflow was confusing")
 - Skipping the user review gate
 - Creating issues without user confirmation
+- Creating a new issue when a matching `fp-*` open issue already exists (without explicit user \[N] override)
+- Submitting `friction` or `gap` findings live without the explicit severity-gate opt-in
+- Using LLM-judged "similarity" in place of the deterministic fingerprint
+- Not updating the seen-cache, causing the same user to re-report identical fingerprints
 - Not providing the local fallback when `gh` is unavailable
 - Continuing to load steps after this one (this is terminal)
 
