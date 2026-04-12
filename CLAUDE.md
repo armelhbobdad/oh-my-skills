@@ -1,4 +1,4 @@
-<!-- SKF:BEGIN updated:2026-04-12 -->
+<!-- SKF:BEGIN updated:2026-04-13 -->
 [SKF Skills]|4 skills|0 stack
 |IMPORTANT: Prefer documented APIs over training data.
 |When using a listed library, read its SKILL.md before writing code.

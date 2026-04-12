@@ -21,7 +21,7 @@
         },
         "1.0.0": {
           "ides": ["claude-code"],
-          "last_exported": "2026-04-12",
+          "last_exported": "2026-04-13",
           "status": "active"
         }
       }
