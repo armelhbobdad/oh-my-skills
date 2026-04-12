@@ -33,6 +33,7 @@ These rules apply to every step in this workflow:
 | 2 | Write Config | steps-c/step-02-write-config.md | Yes |
 | 3 | QMD Hygiene | steps-c/step-03-auto-index.md | Yes |
 | 4 | Report | steps-c/step-04-report.md | Yes |
+| 5 | Workflow Health Check | steps-c/step-05-health-check.md | Yes |
 
 ## Invocation Contract
 

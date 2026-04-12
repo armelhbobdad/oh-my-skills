@@ -36,6 +36,7 @@ These rules apply to every step in this workflow:
 | 4 | Semantic Diff | steps-c/step-04-semantic-diff.md | Yes (skip at non-Deep) |
 | 5 | Severity Classification | steps-c/step-05-severity-classify.md | Yes |
 | 6 | Report | steps-c/step-06-report.md | Yes |
+| 7 | Workflow Health Check | steps-c/step-07-health-check.md | Yes |
 
 ## Invocation Contract
 

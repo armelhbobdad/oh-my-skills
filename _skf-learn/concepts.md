@@ -3,19 +3,13 @@ title: Concepts
 description: Plain-English definitions of key Skill Forge terms — agent skills, provenance, confidence tiers, drift, and more
 ---
 
-# Concepts
-
-This page defines the key terms you'll encounter in Skill Forge, with concrete examples.
-
----
-
 ## Agent Skills
 
 An agent skill is an instruction file that tells an AI agent how to use your code. Instead of the agent guessing your API from its training data, it reads the skill and gets real function names, real parameter types, and real usage patterns.
 
 Skills follow the [agentskills.io](https://agentskills.io) open standard, so they work across Claude, Cursor, Copilot, and other AI tools.
 
-**Example:** A skill for [cognee](https://github.com/armelhbobdad/oh-my-skills) tells your agent: "The function is `cognee.search()`, it takes `query_text`, `query_type`, `top_k`, and `session_id`, and it's defined at `cognee/api/v1/search/search.py:L26`." Every parameter and location is AST-verified from the actual source code.
+**Example:** A skill for [cognee](https://github.com/topoteretes/cognee) tells your agent: "The function is `cognee.search()`, it takes `query_text`, `query_type`, `top_k`, and `session_id`, and it's defined at `cognee/api/v1/search/search.py:L27`." Every parameter and location is AST-verified from the actual source code.
 
 ---
 
@@ -24,7 +18,7 @@ Skills follow the [agentskills.io](https://agentskills.io) open standard, so the
 Provenance means every instruction in a skill traces back to where it came from. For code, that's a file and line number. For documentation, it's a URL. For developer discourse, it's an issue or PR reference. If SKF can't point to a source, it doesn't include the instruction.
 
 **Examples** (from a [real generated skill](https://github.com/armelhbobdad/oh-my-skills)):
-- `[AST:cognee/api/v1/search/search.py:L26]` — extracted from source code via AST parsing (T1)
+- `[AST:cognee/api/v1/search/search.py:L27]` — extracted from source code via AST parsing (T1)
 - `[SRC:cognee/api/v1/session/__init__.py:L8]` — read from source code without AST verification (T1-low)
 - `[QMD:cognee-temporal:issues.md]` — surfaced from indexed developer discourse (T2)
 - `[EXT:docs.cognee.ai/getting-started/quickstart]` — sourced from external documentation (T3)
@@ -87,7 +81,7 @@ Your forge tier determines which categories are scored. Quick-tier skills skip s
 
 Every skill records the exact version (or commit) of the source code it was built from. This means you always know which version of the library the instructions apply to.
 
-By default, the version is auto-detected from the source (package.json, pyproject.toml, etc.). You can also target a specific version — either by specifying it during `@Ferris BS` (brief-skill) or by appending `@version` to a quick skill command (`@Ferris QS cognee@0.5.0`). This is especially useful for docs-only skills where no source code is available for auto-detection. When targeting a specific version on a remote repository, SKF resolves the matching git tag and clones from it — so the extracted API signatures actually reflect the target version's code, not just the label applied to whatever happens to be on the default branch.
+By default, the version is auto-detected from the source (package.json, pyproject.toml, etc.). You can also target a specific version — either by specifying it during `@Ferris BS` (brief-skill) or by appending `@version` to a quick skill command (`@Ferris QS cognee@0.5.8`). This is especially useful for docs-only skills where no source code is available for auto-detection. When targeting a specific version on a remote repository, SKF resolves the matching git tag and clones from it — so the extracted API signatures actually reflect the target version's code, not just the label applied to whatever happens to be on the default branch.
 
 When the source updates, you can re-run `@Ferris US` (update-skill) to regenerate the skill for the new version while preserving any manual additions you've made.
 
@@ -99,7 +93,7 @@ Two workflows let you rename and retire skills without manually editing files:
 
 **Rename (`@Ferris RS`)** — Change a skill's name across all its versions. Transactional: copies to the new name, verifies every reference, then deletes the old name only after verification succeeds. If anything fails mid-rename, the old skill stays intact. Use it to graduate quick-skills to formal names, or to add a suffix like `-community`.
 
-**Drop (`@Ferris DS`)** — Retire a specific version (e.g., drop `cognee 0.1.0` because it's deprecated) or an entire skill. Two modes:
+**Drop (`@Ferris DS`)** — Retire a specific version (e.g., drop an older cognee skill version because it's deprecated) or an entire skill. Two modes:
 - **Soft drop (default)** marks the version as deprecated in the manifest and keeps files on disk. It stops appearing in CLAUDE.md/AGENTS.md/.cursorrules immediately but is reversible by editing the manifest.
 - **Hard drop (purge)** also deletes the files from disk. Irreversible.
 
@@ -109,9 +103,9 @@ Both operations automatically rebuild platform context files so your AI agents s
 
 ## BMAD Module
 
-SKF is a plugin (called a "module") for [BMad Method](https://docs.bmad-method.org/), a framework for running structured AI workflows. You don't need to know BMad to use SKF — the standalone installer sets everything up.
+SKF is a plugin (called a "module") for [BMAD Method](https://docs.bmad-method.org/), a framework for running structured AI workflows. You don't need to know BMAD to use SKF — the standalone installer sets everything up.
 
-→ If you already use BMAD, see [BMAD Synergy](../bmad-synergy/) for how SKF workflows pair with BMM phases and optional modules like TEA, BMB, and GDS.
+If you already use BMAD, see [BMAD Synergy](../bmad-synergy/) for how SKF workflows pair with BMM phases and optional modules like TEA, BMB, and GDS.
 
 ---
 
@@ -174,3 +168,5 @@ SKF integrates skill authoring best practices from the Claude platform and commu
 - **One workflow per session** — clear context between workflows to prevent stale state from affecting results
 - **Multiple skills per target** — compile different skills from the same repo or docs for different use cases and audiences
 - **Progressive capability** — start with Quick mode, upgrade tiers as you install more tools
+
+> **Tip from Armel:** When forging skills with Claude Code, I run `claude --dangerously-skip-permissions` to bypass all permission prompts. SKF workflows only read source code, write to `skills/` and `forge-data/`, and call local tools (ast-grep, qmd, gh) — every step is auditable in the [open source](https://github.com/armelhbobdad/bmad-module-skill-forge). Skipping permissions drastically reduces forge time: I start a pipeline, go [grab one of those coffees ☕ you keep offering](https://buymeacoffee.com/armelhbobdad), and come back to a completed workflow. Review the output at the end, not at every gate.

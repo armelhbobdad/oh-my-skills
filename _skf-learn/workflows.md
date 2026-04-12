@@ -3,9 +3,7 @@ title: Workflows
 description: All 14 SKF workflows with commands, steps, and connection diagram
 ---
 
-# Workflows Reference
-
-SKF has 14 workflows. You trigger them by typing commands to [Ferris](../agents/), the AI agent that runs everything. Each workflow handles a specific part of the skill lifecycle — from analyzing source code to packaging for distribution, plus management operations for renaming and dropping skills. If any terms are unfamiliar, see the [Concepts](../concepts/) page for definitions.
+Trigger workflows by typing commands to [Ferris](../agents/). See [Concepts](../concepts/) for definitions.
 
 > Already using BMAD? See [BMAD Synergy](../bmad-synergy/) for when to invoke each SKF workflow during BMM phases and alongside TEA, BMB, and GDS.
 
@@ -77,7 +75,7 @@ SKF has 14 workflows. You trigger them by typing commands to [Ferris](../agents/
 
 **Purpose:** Brief-less fast skill with package-to-repo resolution.
 
-**When to Use:** When you need a skill quickly — no brief needed. Accepts package names or GitHub URLs. Append `@version` to target a specific version (e.g., `@Ferris QS cognee@0.5.0`).
+**When to Use:** When you need a skill quickly — no brief needed. Accepts package names or GitHub URLs. Append `@version` to target a specific version (e.g., `@Ferris QS cognee@0.5.8`).
 
 **Key Steps:** Resolve target → Ecosystem check → Quick extract → Compile → Validate → Write
 
@@ -219,7 +217,7 @@ SKF has 14 workflows. You trigger them by typing commands to [Ferris](../agents/
 
 **Purpose:** Drop a specific skill version or an entire skill. Soft drop (default) marks the version as deprecated in the manifest and keeps files on disk. Hard drop (`--purge`) also deletes the files.
 
-**When to Use:** Retire a deprecated version (e.g., drop `cognee 0.1.0` because it's obsolete), free disk space, or remove a skill you no longer need.
+**When to Use:** Retire a deprecated version (e.g., drop an older cognee skill version because it's obsolete), free disk space, or remove a skill you no longer need.
 
 **Key Steps:** Select skill → Select version(s) + mode → Update manifest → Rebuild context files → Delete files (if purge)
 
@@ -343,16 +341,25 @@ You can also set `headless_mode: true` in your forge preferences (`_bmad/_memory
 
 ## Terminal Step: Health Check
 
-All 14 workflows above share the same final step — a **health check** defined in [`src/shared/health-check.md`](https://github.com/armelhbobdad/bmad-module-skill-forge/blob/main/src/shared/health-check.md). This isn't a workflow you invoke directly; there's no command code and no menu entry. Every workflow's last step frontmatter points `nextStepFile` at the shared file, so the health check fires automatically once the main work is done. After the main work is done, Ferris silently reflects on the execution:
+All 14 workflows above share the same final step — a **health check** defined in [`src/shared/health-check.md`](https://github.com/armelhbobdad/bmad-module-skill-forge/blob/main/src/shared/health-check.md). This isn't a workflow you invoke directly; there's no command code and no menu entry. Each workflow ends with a dedicated local `step-NN-health-check.md` whose `nextStepFile` points at the shared file, so the health check fires automatically once the main work is done. After the main work is done, Ferris silently reflects on the execution:
 
 - Did any step instruction lead the agent astray or cause unnecessary back-and-forth?
 - Was any step ambiguous, forcing the agent to guess?
 - Did a scenario arise that the workflow didn't account for?
 - Were any instructions wrong or contradictory?
 
-If the answer to all of these is "no", the health check exits in one line (`Clean run. No workflow issues to report.`). If real friction was observed, Ferris presents structured findings, waits for your review, and — on your approval — files them as GitHub issues labelled `health-check` on this repo.
+If the answer to all of these is "no", the health check exits in one line (`Clean run. No workflow issues to report.`). If real friction was observed, Ferris presents structured findings, waits for your review, and — on your approval — routes them to this repo.
 
 **Zero overhead for clean runs. High leverage when something breaks.** The health check is honest-by-default: zero findings is the expected outcome. Fabricated issues would hurt the signal, so Ferris only reports what the agent actually experienced.
+
+### How findings are routed
+
+- **Severity gate.** Only `bug` findings submit live as GitHub issues by default. `friction` and `gap` findings — the most subjective categories — go to a **local queue** at `{output_folder}/improvement-queue/` unless you explicitly opt in to submit them live during the review gate. This keeps the high-signal reports (real defects) flowing to maintainers while the softer observations sit safely on your disk for you to batch or revisit.
+- **Fingerprint dedup.** Every finding gets a deterministic 7-hex fingerprint computed from `sha1(severity|workflow|step_file|section)` — no LLM similarity judgment, just a tuple hash. Before Ferris opens a new issue, it searches the repo for an existing open issue with the same `fp-*` label. If one exists, you're offered a choice: add a 👍 reaction (silent upvote), react + post a one-sentence environment delta, open a new issue anyway (if you're certain it's distinct), or skip. Re-reporting the same fingerprint is safe — it just adds to the signal-count on the canonical issue.
+- **Global seen-cache.** Once you've submitted or reacted for a given fingerprint, it's recorded at `~/.skf/health-check-seen.json` so the same user never re-reports the same defect across sessions or across different projects on the same machine.
+- **Server-side safety net.** If two users race past the client-side search and both open issues with the same fingerprint, a GitHub Action on this repo catches it: the later issue is auto-closed as a duplicate, linked to the canonical (lowest-numbered) issue, and a 👍 is added there to preserve the signal-count. Manual filers using the [issue template](https://github.com/armelhbobdad/bmad-module-skill-forge/issues/new/choose) feed the same pipeline.
+
+**Net effect:** 1,000 users hitting the same bug produce **one canonical issue** with a reaction-count of roughly 1,000 — not 1,000 duplicate issues or a 1,000-comment thread. The maintainer sees population impact at a glance, and your report is never lost.
 
 ### Please let workflows run to completion
 

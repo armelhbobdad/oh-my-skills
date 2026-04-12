@@ -36,6 +36,7 @@ These rules apply to every step in this workflow:
 | 5 | Validate | steps-c/step-05-validate.md | Yes |
 | 6 | Write | steps-c/step-06-write.md | Yes |
 | 7 | Report | steps-c/step-07-report.md | Yes |
+| 8 | Workflow Health Check | steps-c/step-08-health-check.md | Yes |
 
 ## Invocation Contract
 

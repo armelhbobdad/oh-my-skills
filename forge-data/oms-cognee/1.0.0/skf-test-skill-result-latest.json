@@ -1,0 +1,46 @@
+{
+  "workflow": "skf-test-skill",
+  "version": "1.0",
+  "status": "completed",
+  "completed_at": "2026-04-12T21:48:21Z",
+  "inputs": {
+    "skill_name": "oms-cognee",
+    "skill_version": "1.0.0",
+    "skill_dir": "skills/oms-cognee/1.0.0/oms-cognee"
+  },
+  "outputs": [
+    "forge-data/oms-cognee/1.0.0/test-report-oms-cognee.md"
+  ],
+  "summary": {
+    "testMode": "naive",
+    "forgeTier": "Deep",
+    "analysisConfidence": "full",
+    "score": 97.98,
+    "threshold": 80,
+    "result": "PASS",
+    "gaps": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 2,
+      "info": 2,
+      "total": 4
+    },
+    "category_scores": {
+      "export_coverage": 100,
+      "signature_accuracy": 94.1,
+      "type_coverage": 100,
+      "coherence": null,
+      "external_validation": 94.5
+    },
+    "external_validators": {
+      "skill_check": 100,
+      "tessl_description": 100,
+      "tessl_content": 73,
+      "tessl_review": 89
+    },
+    "workspace_drift_check": "ok (3c048aa4 matches pinned)",
+    "notes": "Post-repair verification run. v0.5.8→v1.0.0 upgrade and the subsequent gap-driven repair of GAP-001 (search() signature drift in references/full-api-reference.md) both hold. All 34 barrel exports documented. Two residual Low-severity provenance line-drifts remain (search at L26→L27 in SKILL.md; add at L21→L22 in full-api-reference.md) — cosmetic, non-blocking."
+  },
+  "next_workflow": "export-skill"
+}

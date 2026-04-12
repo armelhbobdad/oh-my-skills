@@ -1,0 +1,52 @@
+{
+  "workflow": "skf-update-skill",
+  "skill_name": "oms-cognee",
+  "version": "1.0.0",
+  "run_id": "20260413-015600",
+  "timestamp": "2026-04-13T01:56:00Z",
+  "status": "success",
+  "inputs": {
+    "skill_name": "oms-cognee",
+    "update_mode": "gap-driven",
+    "test_report": "forge-data/oms-cognee/1.0.0/test-report-oms-cognee.md",
+    "forge_tier": "Deep",
+    "source_commit_pinned": "3c048aa4",
+    "workspace_head": "3c048aa4",
+    "workspace_drift_check": "ok"
+  },
+  "summary": {
+    "exports_affected": 2,
+    "exports_affected_names": ["search", "add"],
+    "files_modified": 3,
+    "files_added": 0,
+    "files_deleted": 0,
+    "manual_sections_preserved": 2,
+    "manual_conflicts": 0,
+    "validation_status": "passed",
+    "gaps_addressed": ["GAP-001", "GAP-002"],
+    "gaps_deferred": ["GAP-003", "GAP-004"]
+  },
+  "outputs": {
+    "modified": [
+      "skills/oms-cognee/1.0.0/oms-cognee/SKILL.md",
+      "skills/oms-cognee/1.0.0/oms-cognee/references/full-api-reference.md",
+      "skills/oms-cognee/1.0.0/oms-cognee/references/core-workflow.md",
+      "skills/oms-cognee/1.0.0/oms-cognee/metadata.json",
+      "forge-data/oms-cognee/1.0.0/provenance-map.json",
+      "forge-data/oms-cognee/1.0.0/evidence-report.md"
+    ],
+    "skipped": [
+      "skills/oms-cognee/1.0.0/oms-cognee/context-snippet.md (no surface triggers)"
+    ]
+  },
+  "validation": {
+    "skill_check": {
+      "score": 100,
+      "errors": 0,
+      "warnings": 0
+    },
+    "manual_integrity": "PASS",
+    "provenance_stale_refs": 0
+  },
+  "next_steps": ["test-skill (re-run to confirm GAP-001/002 cleared)", "export-skill"]
+}

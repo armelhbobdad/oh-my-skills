@@ -33,6 +33,7 @@ These rules apply to every step in this workflow:
 | 1 | Select Target | steps-c/step-01-select.md | No (confirm) |
 | 2 | Execute Drop | steps-c/step-02-execute.md | Yes |
 | 3 | Report | steps-c/step-03-report.md | Yes |
+| 4 | Workflow Health Check | steps-c/step-04-health-check.md | Yes |
 
 ## Invocation Contract
 

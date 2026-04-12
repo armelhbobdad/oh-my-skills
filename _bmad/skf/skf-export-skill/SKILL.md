@@ -33,6 +33,7 @@ These rules apply to every step in this workflow:
 | 4 | Update Context | steps-c/step-04-update-context.md | No (confirm) |
 | 5 | Token Report | steps-c/step-05-token-report.md | Yes |
 | 6 | Summary | steps-c/step-06-summary.md | Yes |
+| 7 | Workflow Health Check | steps-c/step-07-health-check.md | Yes |
 
 ## Invocation Contract
 

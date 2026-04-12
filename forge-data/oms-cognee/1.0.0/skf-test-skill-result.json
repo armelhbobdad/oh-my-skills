@@ -1,0 +1,45 @@
+{
+  "workflow": "skf-test-skill",
+  "version": "1.0",
+  "status": "completed",
+  "completed_at": "2026-04-12T21:26:54Z",
+  "inputs": {
+    "skill_name": "oms-cognee",
+    "skill_version": "1.0.0",
+    "skill_dir": "skills/oms-cognee/1.0.0/oms-cognee"
+  },
+  "outputs": [
+    "forge-data/oms-cognee/1.0.0/test-report-oms-cognee.md"
+  ],
+  "summary": {
+    "testMode": "naive",
+    "forgeTier": "Deep",
+    "analysisConfidence": "full",
+    "score": 98.7,
+    "threshold": 80,
+    "result": "PASS",
+    "gaps": {
+      "critical": 0,
+      "high": 1,
+      "medium": 0,
+      "low": 0,
+      "info": 4,
+      "total": 5
+    },
+    "category_scores": {
+      "export_coverage": 100,
+      "signature_accuracy": 97,
+      "type_coverage": 100,
+      "coherence": null,
+      "external_validation": 94.5
+    },
+    "external_validators": {
+      "skill_check": 100,
+      "tessl_description": 100,
+      "tessl_content": 73,
+      "tessl_review": 89
+    },
+    "notes": "Re-run corrected prior test's false GAP-001 (ghost-param claim on SKILL.md:129). Real drift is in references/full-api-reference.md:83-102 where the search() full signature block omits 2 trailing params (neighborhood_depth, neighborhood_seed_top_k) that exist in source at cognee/api/v1/search/search.py:46-47."
+  },
+  "next_workflow": "export-skill"
+}

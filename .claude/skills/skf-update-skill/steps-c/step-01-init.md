@@ -26,6 +26,7 @@ Provide either:
 - A skill name (resolves via version-aware path resolution — see `knowledge/version-paths.md`)
 - A full path to the skill folder
 - A skill name with `--from-test-report` to use the test report's gap findings instead of source drift detection
+- `--allow-workspace-drift` (gap-driven mode only) to intentionally bypass the step-03 §0.a guard that halts when the local workspace HEAD does not match `metadata.source_commit`. Only use this if you know the spot-checks should read the current workspace instead of the pinned tree — step-06 will NOT automatically re-pin
 
 **Skill:** {user provides path or name}"
 
@@ -40,6 +41,8 @@ Resolve the path to an absolute skill folder location.
 
 **If `--from-test-report` was provided (or user references a test report):**
 Search for the test report at `{forge_data_folder}/{skill_name}/{active_version}/test-report-{skill_name}.md` (i.e., `{forge_version}/test-report-{skill_name}.md`). If not found at the versioned path, fall back to `{forge_data_folder}/{skill_name}/test-report-{skill_name}.md`. If found, set `test_report_path` in context and `update_mode: gap-driven`. If not found at either path, warn and continue with normal source drift mode.
+
+**If `--allow-workspace-drift` was provided:** set `allow_workspace_drift: true` in workflow context. This flag is consumed by step-03 §0.a's pre-flight drift guard (gap-driven mode only) and has no effect in normal source-drift mode.
 
 ### 2. Validate Required Artifacts
 

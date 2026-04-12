@@ -1,0 +1,34 @@
+{
+  "workflow": "update-skill",
+  "skill_name": "oms-cognee",
+  "previous_version": "0.5.8",
+  "new_version": "1.0.0",
+  "status": "completed",
+  "date": "2026-04-12",
+  "user": "armel",
+  "forge_tier": "Deep",
+  "mode": "drift-driven",
+  "trigger": "audit-skill chain (drift report CRITICAL)",
+  "source_commit_before": "b51dcce1",
+  "source_commit_after": "3c048aa4",
+  "source_ref": "v1.0.0",
+  "outputs": [
+    "skills/oms-cognee/1.0.0/oms-cognee/SKILL.md",
+    "skills/oms-cognee/1.0.0/oms-cognee/metadata.json",
+    "skills/oms-cognee/1.0.0/oms-cognee/context-snippet.md",
+    "skills/oms-cognee/1.0.0/oms-cognee/references/",
+    "forge-data/oms-cognee/1.0.0/provenance-map.json",
+    "forge-data/oms-cognee/1.0.0/evidence-report.md"
+  ],
+  "summary": {
+    "exports_total": 34,
+    "exports_updated": 3,
+    "exports_added": 11,
+    "exports_removed": 2,
+    "exports_relocated": 2,
+    "manual_sections_preserved": 2,
+    "conflicts_resolved": 0,
+    "quality_score": 100
+  },
+  "nextWorkflow": "export-skill"
+}

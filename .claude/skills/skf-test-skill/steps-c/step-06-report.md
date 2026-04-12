@@ -1,8 +1,5 @@
 ---
-# nextStepFile `shared/health-check.md` resolves relative to the SKF module
-# root (`_bmad/skf/` when installed, `src/` during development), NOT relative
-# to this step file.
-nextStepFile: 'shared/health-check.md'
+nextStepFile: './step-07-health-check.md'
 
 outputFile: '{forge_version}/test-report-{skill_name}.md'
 scoringRulesFile: 'references/scoring-rules.md'
@@ -24,7 +21,7 @@ Generate a detailed gap report listing every issue found during coverage and coh
 - Focus on gap enumeration, severity classification, and remediation — do not recalculate scores
 - Remediation suggestions reference specific files, exports, and line numbers
 - Gaps are ordered by severity (Critical > High > Medium > Low > Info)
-- Chains to shared health check via `{nextStepFile}` after completion
+- Chains to the local health-check step via `{nextStepFile}` after completion — the user-facing report is NOT the terminal step
 
 ## MANDATORY SEQUENCE
 
@@ -100,7 +97,7 @@ Record discovery testing status as Info-level in the gap table. This is advisory
 
 ### 4c. Result Contract
 
-Write `{forge_version}/skf-test-skill-result.json` per `{outputContractSchema}`. Include the test report path in `outputs`; include `score`, `threshold`, `result` (PASS/FAIL), and `testMode` (naive/contextual) in `summary`.
+Write the result contract per `{outputContractSchema}`: the per-run record at `{forge_version}/skf-test-skill-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{forge_version}/skf-test-skill-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include the test report path in `outputs`; include `score`, `threshold`, `result` (PASS/FAIL), and `testMode` (naive/contextual) in `summary`.
 
 ### 5. Finalize Output Document
 
@@ -146,7 +143,7 @@ Display: "**Test complete.** [C] Finish"
 
 #### Menu Handling Logic:
 
-- IF C: Load and execute `{nextStepFile}` for workflow self-improvement check.
+- IF C: Load, read the full file, and execute `{nextStepFile}` — the health-check step is the true terminal step of this workflow.
 - IF Any other: help user respond, then redisplay menu
 
 #### EXECUTION RULES:
@@ -158,5 +155,5 @@ Display: "**Test complete.** [C] Finish"
 
 ## CRITICAL STEP COMPLETION NOTE
 
-When the user selects C, this step chains to the shared health check. After the health check completes, the test-skill workflow is fully done. The test report document at `{outputFile}` contains the full analysis: Test Summary, Coverage Analysis, Coherence Analysis, Completeness Score, and Gap Report.
+When the user selects C, this step chains to the local health-check step (`{nextStepFile}`), which in turn delegates to `shared/health-check.md`. After the health check completes, the test-skill workflow is fully done. The test report document at `{outputFile}` contains the full analysis: Test Summary, Coverage Analysis, Coherence Analysis, Completeness Score, and Gap Report.
 

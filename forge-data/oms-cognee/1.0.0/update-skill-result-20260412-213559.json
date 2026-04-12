@@ -1,0 +1,34 @@
+{
+  "skill": "skf-update-skill",
+  "status": "success",
+  "timestamp": "2026-04-13T00:00:00Z",
+  "outputs": [
+    {"type": "skill", "path": "skills/oms-cognee/1.0.0/oms-cognee/references/full-api-reference.md"},
+    {"type": "manifest", "path": "skills/oms-cognee/1.0.0/oms-cognee/metadata.json"},
+    {"type": "manifest", "path": "forge-data/oms-cognee/1.0.0/provenance-map.json"},
+    {"type": "report", "path": "forge-data/oms-cognee/1.0.0/evidence-report.md"}
+  ],
+  "summary": {
+    "skill_name": "oms-cognee",
+    "version": "1.0.0",
+    "mode": "gap-driven",
+    "trigger": "from-test-report",
+    "test_report": "forge-data/oms-cognee/1.0.0/test-report-oms-cognee.md",
+    "forge_tier": "Deep",
+    "workspace_drift_check": "ok",
+    "source_commit": "3c048aa4",
+    "exports_affected": 1,
+    "exports_updated": 1,
+    "exports_added": 0,
+    "exports_removed": 0,
+    "files_modified": 1,
+    "manual_sections_preserved": 2,
+    "conflicts_resolved": 0,
+    "gaps_addressed": ["GAP-001"],
+    "gaps_deferred": ["GAP-002", "GAP-003", "GAP-004", "GAP-005"],
+    "context_snippet_regenerated": false,
+    "validation_status": "passed",
+    "quality_score": 100
+  },
+  "nextWorkflow": "test-skill"
+}

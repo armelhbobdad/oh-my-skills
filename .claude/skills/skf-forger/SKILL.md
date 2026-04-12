@@ -98,11 +98,11 @@ When the user provides multiple workflow codes (e.g., `BS CS TS EX`, `QS TS EX`,
    - Failed/halted workflow (if any) with the halt reason
    - Remaining workflows that were not executed
    - Next steps recommendation
-6. **Result Contract** — write `{sidecar_path}/pipeline-result.json` per `shared/references/output-contract-schema.md`. Include one entry per completed workflow in `outputs` (referencing each workflow's own result JSON); include per-step status and the overall pipeline status in `summary`.
+6. **Result Contract** — write the pipeline result contract per `shared/references/output-contract-schema.md`: the per-run record at `{sidecar_path}/pipeline-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{sidecar_path}/pipeline-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include one entry per completed workflow in `outputs` (referencing each workflow's own `-latest.json` result record); include per-step status and the overall pipeline status in `summary`.
 
 **Special pipeline behaviors:**
 - `AN` in a pipeline with `CS`: if AN produces multiple recommended briefs, auto-select all and process sequentially in batch mode. If only one unit found, auto-select it.
-- `AS` followed by `US`: if `summary.severity` in audit-skill-result.json is CLEAN, skip US and report "No drift detected — skipping update."
+- `AS` followed by `US`: if `summary.severity` in `audit-skill-result-latest.json` is CLEAN, skip US and report "No drift detected — skipping update."
 - `TS` followed by `EX`: if test result is FAIL and score is below the circuit breaker threshold, halt before EX.
 
 **Inline action handling:**

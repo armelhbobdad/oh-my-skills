@@ -1,0 +1,33 @@
+{
+  "workflow": "update-skill",
+  "skill_name": "oms-cognee",
+  "version": "1.0.0",
+  "status": "failed",
+  "date": "2026-04-13",
+  "user": "armel",
+  "forge_tier": "Deep",
+  "mode": "gap-driven",
+  "trigger": "manual (/skf-update-skill @forge-data/oms-cognee/1.0.0/test-report-oms-cognee.md)",
+  "exit_status": "halted-for-baseline-conflict",
+  "exit_step": "step-03-re-extract (§0 spot-check)",
+  "source_commit_pinned": "3c048aa4",
+  "source_commit_workspace_at_halt": "b51dcce1",
+  "source_ref": "v1.0.0",
+  "outputs": [],
+  "summary": {
+    "files_modified": 0,
+    "exports_affected": 0,
+    "validation_status": "not-run",
+    "gaps_from_test_report": {
+      "total": 7,
+      "high": 1,
+      "low": 1,
+      "info": 5,
+      "actionable_translated": 2,
+      "applied": 0,
+      "rejected_as_false_positive": 2
+    },
+    "halt_reason": "Test report claimed source signature at cognee/api/v1/search/search.py:26 has 19 params. Spot-check at v1.0.0 tag (3c048aa4) found 21 params — test had AST-extracted against workspace HEAD (b51dcce1), which had removed the two neighborhood params post-v1.0.0. Applying GAP-001/002 would have corrupted correct v1.0.0 documentation.",
+    "remediation": "Workspace clone reset to v1.0.0 tag (3c048aa4). Re-run skf-test-skill oms-cognee — GAP-001 and GAP-002 should disappear."
+  }
+}

@@ -37,6 +37,7 @@ These rules apply to every step in this workflow:
 | 4b | External Validators | steps-c/step-04b-external-validators.md | Yes |
 | 5 | Score | steps-c/step-05-score.md | Yes |
 | 6 | Report | steps-c/step-06-report.md | No (confirm) |
+| 7 | Workflow Health Check | steps-c/step-07-health-check.md | Yes |
 
 ## Invocation Contract
 
