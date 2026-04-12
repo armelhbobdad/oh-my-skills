@@ -24,14 +24,17 @@ nextWorkflow: 'export-skill'
 - **Test Mode:** naive
 - **Forge Tier:** Deep
 - **Source:** `/home/armel/.skf/workspace/repos/github.com/topoteretes/cognee` @ `3c048aa4` (v1.0.0)
+- **Workspace drift check:** ok (HEAD 3c048aa4 matches `metadata.source_commit`)
 - **Frontmatter validation:** PASS (0 issues)
 
 **Mode Rationale:** `skill_type: 'single'` in metadata — no cross-skill integration surface to validate, so naive mode (API-surface coverage) is the right fit.
 
 **Analysis Plan:**
-- Coverage Check: documented exports vs. source `cognee/__init__.py` public API surface (AST-backed, Deep tier)
-- Coherence Check: structural validation of SKILL.md and references/ (no cross-skill integration patterns to verify in naive mode)
-- Scoring: naive-mode weight distribution (no coherence/integration category)
+- Coverage Check: documented exports vs. source `cognee/__init__.py` public API surface (AST-verified against local clone, Deep tier)
+- Coherence Check: structural validation of SKILL.md + cross-reference consistency against `references/` (naive mode — no cross-skill patterns to verify)
+- Scoring: naive-mode weight distribution (coherence weight redistributed into coverage)
+
+> **Re-run note (2026-04-13):** This report replaces an earlier same-day report. The prior run flagged `cognee.search` at SKILL.md:129 as having "ghost params" (`neighborhood_depth`, `neighborhood_seed_top_k`). That finding was incorrect — those params exist in source at `cognee/api/v1/search/search.py:46-47`. This re-run correctly locates the signature drift in `references/full-api-reference.md:83-102` instead, where the full signature block stops at `retriever_specific_config` and is missing those two trailing params.
 
 ## Coverage Analysis
 
@@ -50,7 +53,7 @@ nextWorkflow: 'export-skill'
 
 ### Export Coverage (per-export)
 
-All 34 top-level exports in `cognee/__init__.py` are documented in `SKILL.md` + `references/full-api-reference.md`. A condensed status table follows; full per-export detail matches the provenance-map entry list at `forge-data/oms-cognee/1.0.0/provenance-map.json`.
+All 34 top-level exports in `cognee/__init__.py` are documented in `SKILL.md` + `references/full-api-reference.md`. Condensed status table:
 
 | Export | Kind | Documented | Signature | Source | Status |
 |---|---|---|---|---|---|
@@ -60,7 +63,7 @@ All 34 top-level exports in `cognee/__init__.py` are documented in `SKILL.md` + 
 | `memify` | async fn | yes | match (summary simplified) | `cognee/modules/memify/memify.py:25` | PASS |
 | `run_custom_pipeline` | async fn | yes | match | `cognee/modules/run_custom_pipeline/run_custom_pipeline.py:14` | PASS |
 | `update` | async fn | yes | match | `cognee/api/v1/update/update.py:12` | PASS |
-| `search` | async fn | yes | **drift** | `cognee/api/v1/search/search.py:26` | **WARN** |
+| `search` | async fn | yes (SKILL.md summary is subset of 10/20 source params) | **drift in references/ full signature block** (18/20 params — missing `neighborhood_depth`, `neighborhood_seed_top_k`) | `cognee/api/v1/search/search.py:27` | **WARN** |
 | `visualize_graph` | async fn | yes | match | `cognee/api/v1/visualize/visualize.py:17` | PASS |
 | `start_visualization_server` | module | yes | match | `cognee/api/v1/visualize/start_visualization_server.py:6` | PASS |
 | `cognee_network_visualization` | async fn | yes | match | `cognee/modules/visualization/cognee_network_visualization.py:22` | PASS |
@@ -94,28 +97,28 @@ All 34 top-level exports in `cognee/__init__.py` are documented in `SKILL.md` + 
 - **Exports Found (source barrel):** 34
 - **Documented:** 34 (100%)
 - **Missing Documentation:** 0
-- **Signature Mismatches (doc vs source):** 1 (`search` summary row at SKILL.md:129)
+- **Signature Mismatches (doc vs source):** 1 (`search` — full signature block in `references/full-api-reference.md:83-102` is missing 2 trailing params that exist in source)
 - **Stale Documentation (documented but not in source):** 0
-- **Cross-reference consistency (SKILL.md body vs references/):** 1 High finding (search signature divergence between SKILL.md summary and references/full-api-reference.md signature block)
-- **Provenance-map drift vs source:** 2 ghost params (`neighborhood_depth`, `neighborhood_seed_top_k`) in provenance entry for `search` — same drift as SKILL.md:129 summary row. Provenance-map drift is not a SKILL.md coverage gap but is noted for update-skill.
+- **Cross-reference consistency (SKILL.md body vs references/):** 1 High finding — SKILL.md:129 summary correctly lists `neighborhood_depth=None, neighborhood_seed_top_k=None`, but the canonical full-signature block in `references/full-api-reference.md:83-102` omits them. Per workflow rule "SKILL.md body is authoritative," the references file is the one to update.
+- **Provenance-map drift vs source:** none detected — provenance entry for `search` reflects 21 params (20 real + 1 return annotation entry) that align with source `cognee/api/v1/search/search.py:27-48`.
 
 ### Category Scores
 
 | Category | Score |
 |---|---|
 | Export Coverage | 100% (34/34) |
-| Signature Accuracy | 97% (33/34 documented signatures match source — search summary row has 2 ghost params) |
+| Signature Accuracy | 97% (33/34 full-signature blocks match source — `search` full-signature drift in references file) |
 | Type Coverage | 100% (`SearchType` enum 15/15 variants documented; `RememberResult` 8/8 attrs documented) |
 
 Note: Category weights applied in step-05 after external validation.
 
 ### Coverage findings (feed into Gap Report)
 
-1. **HIGH — signature drift (`search` summary row vs source)**: `SKILL.md:129` lists `neighborhood_depth=None, neighborhood_seed_top_k=None` as part of the `cognee.search` summary signature; the source signature at `cognee/api/v1/search/search.py:26` ends at `retriever_specific_config` (19 params, no neighborhood params). `references/full-api-reference.md:83` signature block is correct. The SKILL.md summary table drifted — likely a stale artifact from a pre-v1.0.0 extraction or a mislabelled extension. Fix: drop both params from the SKILL.md:129 summary row, OR add them to source if they're intended.
+1. **HIGH — references/full-api-reference.md `search` signature block missing 2 trailing params** (GAP-001): lines 83-102 show 18 params ending at `retriever_specific_config`. Source at `cognee/api/v1/search/search.py:46-47` adds `neighborhood_depth: Optional[int] = None` and `neighborhood_seed_top_k: Optional[int] = None`. SKILL.md:129 summary row correctly includes them, so an agent reading the Tier-1 summary will call correctly, but an agent drilling into `references/full-api-reference.md` for the canonical signature will believe the function has only 18 params. Fix: add both params (and the validation caveats at `search.py:49-62`) to the reference file signature block.
 
-2. **LOW — provenance-map drift (`search` entry)**: `forge-data/oms-cognee/1.0.0/provenance-map.json` entry for `search` includes the same 2 ghost params (`neighborhood_depth`, `neighborhood_seed_top_k`) at positions 19–20. Not a SKILL.md coverage gap, but should be reconciled on next `skf-update-skill` re-extraction run.
+2. **INFO — `memify` summary row omits 4 optional params**: `SKILL.md:130` summary row shows 6 params; source has 10 (`user`, `node_type=NodeSet`, `vector_db_config`, `graph_db_config` omitted from summary). Per authoring protocol "brief vs detailed is acceptable when not contradictory" — `references/full-api-reference.md:119+` carries the complete 10-param signature. No action required.
 
-3. **INFO — memify summary simplification**: `SKILL.md:130` summary row omits 4 optional params present in source (`user`, `node_type`, `vector_db_config`, `graph_db_config`). Per protocol "brief vs detailed is acceptable when not contradictory" — signatures block in `references/full-api-reference.md:119` carries the full 10-param signature. No action required.
+3. **INFO — `search` summary row is a 10-of-20 subset**: `SKILL.md:129` lists 10 most-commonly-tuned params; source has 20. Same acceptable summarization pattern as `memify`. No action required for the summary row itself.
 
 ## Coherence Analysis
 
@@ -125,21 +128,21 @@ Note: Category weights applied in step-05 after external validation.
 
 | Check | Result |
 |---|---|
-| Frontmatter present and valid | PASS (validator §0 pass) |
+| Frontmatter present and valid | PASS (validator §0 pass, 0 issues) |
 | Top-level sections present (Overview, Quick Start, Common Workflows, Key API Summary, Deprecations & Gotchas, Key Types, Architecture at a Glance, CLI) | PASS |
 | Section headers properly formatted (`#`, `##`, …) | PASS |
-| Code examples language-annotated | PASS (all ```python / ```bash blocks annotated — spot-checked Quick Start, Common Workflows, Config examples) |
+| Code examples language-annotated | PASS (all ```python / ```bash blocks annotated) |
 | Markdown well-formed (no unclosed code fences, tables balanced) | PASS |
-| `scripts/` or `assets/` directory check | N/A — neither directory exists; Section 7b not required. Only `references/` is present, and SKILL.md:252 correctly links all four reference files. |
+| `scripts/` or `assets/` directory check | N/A — neither directory exists; Section 7b not required. Only `references/` is present, and SKILL.md correctly links all four reference files. |
 | Internal consistency — exports cited in Common Workflows match the exports list | PASS — all names referenced in examples (add, cognify, search, memify, config, SearchType, remember, recall, forget, serve, disconnect, agent_memory, start_ui) are documented exports. |
-| Internal consistency — no sync/async contradiction | PASS — `start_ui` correctly documented as sync (Deprecations & Gotchas line 169); `start_visualization_server` correctly documented as a module with a sync call (line 170); all other async exports used with `await` in examples. |
+| Internal consistency — no sync/async contradiction | PASS — `start_ui` correctly documented as sync; `start_visualization_server` correctly documented as a module with a sync call; all other async exports used with `await` in examples. |
 
 ### §2b — Migration/Deprecation section gate (Deep tier + evidence-report.md present → gate runs)
 
 - **T2-future annotation count** (read from `forge-data/oms-cognee/1.0.0/evidence-report.md`): **0**.
 - **Canonical Section 4b heading** (`## Migration & Deprecation Warnings`): **absent**.
 - **Gate trigger condition** (T2-future > 0 AND Section 4b absent): **not met** → no Medium gap.
-- **Adjacent finding (Info):** SKILL.md carries an equivalent section titled `## Deprecations & Gotchas` at line 159 that mixes *historical-migration* content (v0.3.9 `delete` deprecation; v1.0.0 `low_level` removal; v1.0.0 `run_migrations` → `run_startup_migrations`; v1.0.0 `pipelines` restructuring) with *current-state signature gotchas* (`start_ui` is sync; `start_visualization_server` is a module; `serve()` triggers Auth0). Per authoring rule, forward-looking migration content belongs under Section 4b and current-state gotchas belong alongside their function in Full API Reference. Since T2-future=0 no gate is triggered, but the hybrid title obscures the split — recommendation (Info) in gap report.
+- **Adjacent finding (Info):** SKILL.md carries an equivalent section titled `## Deprecations & Gotchas` at line 159 that mixes *historical-migration* content (v0.3.9 `delete` deprecation; v1.0.0 `low_level` removal; v1.0.0 `run_migrations` → `run_startup_migrations`; v1.0.0 `pipelines` restructuring) with *current-state signature gotchas* (`start_ui` is sync; `start_visualization_server` is a module; `serve()` triggers Auth0). Hybrid-section content is acceptable but obscures the split — recommendation (Info) in gap report.
 
 ### Structural issues summary
 
@@ -204,56 +207,60 @@ No blocking structural issues. Naive coherence category is not scored; its weigh
 - **External Validators:** both available (skill-check 100/100, tessl review 89%)
 - **Analysis Confidence:** full (State 1 — local clone + all-T1 provenance-map)
 
-No access degradation — analysis ran against local source with AST-verified signatures. No degradation notice required.
+No access degradation — analysis ran against local source with AST-verified signatures.
 
 ## Gap Report
 
-**Total Gaps:** 6
+**Total Gaps:** 5
 **Blocking (Critical + High):** 1
-**Non-blocking (Medium + Low + Info):** 5
+**Non-blocking (Medium + Low + Info):** 4
 
 ### Remediation Summary
 
 | Severity | Count | Estimated Effort |
 |---|---|---|
 | Critical | 0 | — |
-| High | 1 | ~5 min — single summary-row edit in SKILL.md |
+| High | 1 | ~5 min — append 2 params to a single signature block in the reference file |
 | Medium | 0 | — |
-| Low | 1 | ~10 min — next `skf-update-skill` run will reconcile automatically |
+| Low | 0 | — |
 | Info | 4 | Optional — author judgement |
-| **Total** | **6** | |
+| **Total** | **5** | |
 
-### GAP-001: `cognee.search` summary row lists 2 params not present in source
+### GAP-001: `references/full-api-reference.md` `search()` signature block missing 2 params
 
 **Severity:** High
-**Category:** Coverage (signature accuracy)
-**Source:** `skills/oms-cognee/1.0.0/oms-cognee/SKILL.md:129`
+**Category:** Coverage (signature accuracy — split-body consistency)
+**Source:** `skills/oms-cognee/1.0.0/oms-cognee/references/full-api-reference.md:83-102`
 
-**Issue:** The Key API Summary row for `cognee.search` ends the parameter list with `neighborhood_depth=None, neighborhood_seed_top_k=None`. These two params do not exist in the actual v1.0.0 source signature at `cognee/api/v1/search/search.py:26` (last param is `retriever_specific_config: Optional[dict] = None`). The full signature block in `references/full-api-reference.md:83-102` is correct and contains 19 params. Source of drift: the SKILL.md summary row (and provenance-map entry — see GAP-003) retained two params that were either removed before v1.0.0 shipped or never existed. Agents using the SKILL.md Tier 1 summary will call `search(..., neighborhood_depth=N)` and hit `TypeError: search() got an unexpected keyword argument`.
+**Issue:** The canonical full-signature block for `cognee.search(...)` stops at `retriever_specific_config: Optional[dict] = None` (18 params). The actual v1.0.0 source signature at `cognee/api/v1/search/search.py:27-48` has 20 params — two additional trailing params exist:
 
-**Remediation:** Edit `SKILL.md:129`. Replace the parameter list cell `` `query_text, query_type=SearchType.GRAPH_COMPLETION, datasets=None, top_k=10, node_name=None, only_context=False, session_id=None, verbose=False, neighborhood_depth=None, neighborhood_seed_top_k=None` `` with `` `query_text, query_type=SearchType.GRAPH_COMPLETION, datasets=None, top_k=10, node_name=None, only_context=False, session_id=None, verbose=False` ``. Keep the provenance citation `[AST:cognee/api/v1/search/search.py:L26]` unchanged.
+```python
+neighborhood_depth: Optional[int] = None,
+neighborhood_seed_top_k: Optional[int] = None,
+```
 
-### GAP-002: provenance-map `search` entry carries the same 2 ghost params
+Source also validates these at lines 49-62 (`CogneeValidationError` if non-None and not a positive integer). SKILL.md:129's summary row correctly includes both — the drift is confined to the references file. An agent drilling into the canonical reference for the full signature will believe those params don't exist.
 
-**Severity:** Low
-**Category:** Coverage (data-quality — provenance artifact, not SKILL.md)
-**Source:** `forge-data/oms-cognee/1.0.0/provenance-map.json` entries[6] (`export_name: "search"`), params indices 18–19
+**Remediation:** In `references/full-api-reference.md`, after line 101 (`retriever_specific_config: Optional[dict] = None,`) and before the closing `) -> List[SearchResult]` at line 102, append:
 
-**Issue:** The provenance-map entry for `search` lists 21 params including `neighborhood_depth: Optional[int] = None` and `neighborhood_seed_top_k: Optional[int] = None`, but the on-disk v1.0.0 source at `cognee/api/v1/search/search.py:26` has only 19 params. This is the origin of GAP-001 — the SKILL.md summary row was generated from this provenance entry. Not a SKILL.md gap per se, but leaving it unreconciled will cause the same drift to resurface on the next `skf-update-skill` regeneration.
+```python
+    neighborhood_depth: Optional[int] = None,
+    neighborhood_seed_top_k: Optional[int] = None,
+```
 
-**Remediation:** Run `skf-update-skill oms-cognee` after fixing GAP-001 — the update workflow will re-extract the signature from source and overwrite the stale provenance entry. Alternatively, edit `provenance-map.json` manually to drop params indices 18–19 from the `search` entry.
+Optionally add a "Key behaviors" bullet noting both must be positive integers when set (`CogneeValidationError` otherwise) — see `cognee/api/v1/search/search.py:49-62`.
 
-### GAP-003: `memify` summary row omits 4 optional params (acceptable summarization)
+### GAP-002: `memify` summary row omits 4 optional params (acceptable summarization)
 
 **Severity:** Info
 **Category:** Coverage (summary simplification)
 **Source:** `skills/oms-cognee/1.0.0/oms-cognee/SKILL.md:130`
 
-**Issue:** The Key API Summary row for `cognee.memify` shows 6 params; source has 10. Omitted from the summary: `user`, `node_type: Optional[Type] = NodeSet`, `vector_db_config`, `graph_db_config`. Per SKF authoring convention "brief vs detailed is acceptable when not contradictory" this is acceptable because the full signature block at `references/full-api-reference.md:119-131` carries the complete 10-param signature.
+**Issue:** The Key API Summary row for `cognee.memify` shows 6 params; source has 10. Omitted from the summary: `user`, `node_type: Optional[Type] = NodeSet`, `vector_db_config`, `graph_db_config`. Per SKF authoring convention "brief vs detailed is acceptable when not contradictory" this is acceptable because `references/full-api-reference.md:119+` carries the complete 10-param signature.
 
 **Remediation:** None required. Optional: if you want the summary row to signal the default `node_type=NodeSet` filter (load-bearing for the default Rule-node behaviour), add `node_type=NodeSet` to the summary row.
 
-### GAP-004: `Deprecations & Gotchas` section mixes historical migration with current-state gotchas
+### GAP-003: `Deprecations & Gotchas` section mixes historical migration with current-state gotchas
 
 **Severity:** Info
 **Category:** Structural (section scope)
@@ -263,7 +270,7 @@ No access degradation — analysis ran against local source with AST-verified si
 
 **Remediation (optional, for a future skill revision):** Split the section into `## Import Corrections` (historical migration, items 1-4) and move items 5-8 (async/sync gotchas) into their respective function entries in `references/full-api-reference.md`. Keep the dual listing here if you prefer a single "what will surprise agents" bucket — the authoring rule is a recommendation, not a hard gate when T2-future=0.
 
-### GAP-005: tessl judge — add workflow validation checkpoints
+### GAP-004: tessl judge — add workflow validation checkpoints
 
 **Severity:** Info
 **Category:** Structural (content actionability)
@@ -271,15 +278,15 @@ No access degradation — analysis ran against local source with AST-verified si
 
 **Issue:** Workflows (`Common Workflows` section) chain `remember → recall` or `add → cognify → search` without explicit validation checkpoints: there is no guidance on checking `RememberResult.status`, handling `CogneeApiError` in `try/except`, or verifying cognify completion before searching. Since cognify pipelines can fail or run in background mode, an agent following the workflow verbatim may search against an incomplete graph and silently produce empty results.
 
-**Remediation (optional):** In `Common Workflows`, after the `remember()` / `cognify()` calls add a 1-2 line example showing `result = await remember(...); await result; if result.status != "completed": raise RuntimeError(result.error)` — or wrap the V1 chain with `try/except CogneeApiError`. The existing references already cover `RememberResult` attributes; adding a worked example in the workflow narrative would close the gap.
+**Remediation (optional):** In `Common Workflows`, after the `remember()` / `cognify()` calls add a 1-2 line example showing result-status inspection — or wrap the V1 chain with `try/except CogneeApiError`. The existing references already cover `RememberResult` attributes; adding a worked example in the workflow narrative would close the gap.
 
-### GAP-006: tessl judge — source-citation token overhead
+### GAP-005: tessl judge — source-citation token overhead
 
 **Severity:** Info
 **Category:** Structural (conciseness)
 **Source:** tessl review (Content 73%, conciseness 2/3)
 
-**Issue:** SKILL.md carries `[AST:path:L##]` and `[EXT:url]` provenance markers on nearly every claim (visible throughout Deprecations & Gotchas and Key API Summary). These are load-bearing for the SKF audit workflow (`skf-audit-skill` follows them) but add token overhead for the consuming agent.
+**Issue:** SKILL.md carries `[AST:path:L##]` and `[EXT:url]` provenance markers on nearly every claim. These are load-bearing for the SKF audit workflow (`skf-audit-skill` follows them) but add token overhead for the consuming agent.
 
 **Remediation (optional, not recommended):** If token budget becomes a constraint, move `[AST:...]` / `[EXT:...]` markers to a footnotes section at the end of SKILL.md. **Caveat:** SKF's `skf-audit-skill` and `skf-update-skill` workflows rely on inline provenance markers for drift detection — stripping them degrades auditability. Recommend **keeping markers inline** and accepting the 73% content score as a known split-body artifact rather than a real quality issue.
 
@@ -287,20 +294,10 @@ No access degradation — analysis ran against local source with AST-verified si
 
 **Description optimization:** tessl `description_score` is **100%** (specificity 3/3, trigger terms 3/3, completeness 3/3, distinctiveness 3/3) and skill-check raised zero description issues. No action recommended.
 
-**Discovery testing recommended.** Before export, test the skill with 3-5 realistic prompts phrased the way real users actually talk — with casual language, typos, incomplete context, and implicit references. A skill tested only with clean prompts may fail to trigger in production. Example realistic prompt patterns:
+**Discovery testing recommended.** Before export, test the skill with 3-5 realistic prompts phrased the way real users actually talk — with casual language, typos, incomplete context, and implicit references. Example realistic prompt patterns:
 
 - Vague: "can you help me remember this pdf my PM sent"
 - Implicit: "what did we decide about embeddings last month"
 - Abbreviated: "stick this in cognee and let me ask about it"
-- Deprecated-surface: "use cognee.delete to remove that record" (tests whether the skill steers the agent toward `forget`/`datasets.delete_data`)
-- V1-vs-V2 ambiguous: "set up cognee memory for my agent" (tests whether the skill distinguishes `@agent_memory` + `remember` over raw `add`/`cognify`)
-
-### GAP-007: Discovery testing not yet performed
-
-**Severity:** Info
-**Category:** Structural (discovery readiness)
-**Source:** test-skill workflow scope
-
-**Issue:** This test ran spec-compliance and API-surface coverage only. Realistic-prompt trigger testing has not been executed in this workflow run.
-
-**Remediation:** Perform 3-5 realistic-prompt invocations after export (or in a sandbox Claude session) and verify the skill activates. Advisory only — does not block export.
+- Deprecated-surface: "use cognee.delete to remove that record" (tests whether the skill steers the agent toward `forget` / `datasets.delete_data`)
+- V1-vs-V2 ambiguous: "set up cognee memory for my agent" (tests whether the skill distinguishes `@agent_memory` + `remember` over raw `add` / `cognify`)
