@@ -108,14 +108,7 @@ Pick any symbol in any skill. You can trace it to the exact line of upstream sou
    ```
 3. **Visit the upstream repo at the pinned commit.** Jump to that file and line. If the signature in `SKILL.md` doesn't match, **that's a bug.** Open an issue. We fix it, publicly, with a new commit SHA and a new provenance map. That is the entire deal.
 
-Further trails for the really skeptical:
-
-| Question                                       | File                                              |
-| ---------------------------------------------- | ------------------------------------------------- |
-| What AST patterns were used?                   | `forge-data/<name>/<ver>/extraction-rules.yaml`   |
-| What did the extractor actually capture?       | `forge-data/<name>/<ver>/evidence-report.md`      |
-| How was the skill scored? Show me the math.    | `forge-data/<name>/<ver>/test-report-<name>.md`   |
-| How was the skill scoped?                      | `forge-data/<name>/skill-brief.yaml`              |
+For the deeper trails — extraction rules, evidence reports, per-skill denominator disclosures — see [TRUST.md](TRUST.md).
 
 ---
 
@@ -123,18 +116,7 @@ Further trails for the really skeptical:
 
 **A promise of perfection is suspicious. A promise of visible fallibility is trustworthy.**
 
-The lowest test score in this repo is **99.0%**. The highest is **99.49%**. Each report shows its math; each report discloses its own ambiguities:
-
-- **oms-cocoindex** — 114/114 provenance entries; 55 public-API denominator from `__init__.py` `__all__`; 20/20 sampled signatures matched at the exact pinned line. Two denominators (barrel vs. full surface) are both disclosed with rationale.
-- **oms-cognee** — 34/34 exports documented; denominator is the `cognee/__init__.py` barrel (61 lines, 34 public re-exports) at pinned commit `3c048aa4` (v1.0.0).
-- **oms-storybook-react-vite** — **215/216.** The 1-entry drift is the interesting one — see below.
-- **oms-uitripled** — 34-entry denominator (not 11, not 25) with the full reconciliation reasoning in the report.
-
-None of these numbers are marketing. Every one is reproducible by re-running `skf-test-skill` against the same source tree ([Skill Forge → Workflows](https://armelhbobdad.github.io/bmad-module-skill-forge/workflows/)).
-
-### How the 99% is computed
-
-The final score isn't a vibe — it's a weighted average of five deterministic measurements, run by a Python script that guarantees *"the same inputs always produce the same score."* Because every skill in this repo runs in **naive mode** (individual skills, no cross-stack integration to check), the normally 18%-weighted Coherence dimension is redistributed across the other four categories:
+The lowest test score in this repo is **99.0%**. The highest is **99.49%**. The score is a weighted average of four deterministic measurements (Coherence is redistributed because each skill runs in naive mode):
 
 | Weight  | Dimension             | What it measures                                                                                                    |
 | ------- | --------------------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -143,15 +125,9 @@ The final score isn't a vibe — it's a weighted average of five deterministic m
 | **20%** | Type Coverage         | Are the types and interfaces referenced in exports fully documented?                                                |
 | **10%** | External Validation   | Average of [`skill-check`](https://github.com/thedaviddias/skill-check) quality score and [`tessl`](https://tessl.io) content score |
 
-Each category is computed as `(items_passing / items_total) × 100`. The final score is `sum(category_weight × category_score)`. **Default pass threshold: 80%** — anything below that fails the gate and triggers `update-skill`, not `export-skill`. A 99% score is only meaningful because the denominators are disclosed (in the bullets above) and the arithmetic is reproducible from each skill's [`forge-data/<ver>/test-report-*.md`](forge-data/).
+Pass threshold is 80% — anything below fails the gate and triggers `update-skill`, not `export-skill`. The full arithmetic, per-skill denominators, and reproducibility steps live in [TRUST.md](TRUST.md#how-the-99-is-computed).
 
-Full method: [Skill Forge → Completeness Scoring](https://armelhbobdad.github.io/bmad-module-skill-forge/how-it-works/#completeness-scoring).
-
-### GAP-004: the one we lost
-
-The oms-storybook-react-vite test report scores **215/216**, not 216/216. The missing entry is logged openly as **GAP-004** in the test report: a 1-entry drift where the canonical export surface (via the provenance map) diverges from the stated denominator. The report names the gap, shows the math, and leaves the drift visible for the next recompilation pass.
-
-We didn't hide the rough edge. We wrote it down. Read it yourself: [`forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite.md`](forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite.md).
+**GAP-004 — the one we lost.** `oms-storybook-react-vite` scores **215/216**, not 216/216. The 1-entry drift is logged openly in the test report as GAP-004 and discussed in [TRUST.md](TRUST.md#gap-004-the-one-we-lost). We didn't hide the rough edge. We wrote it down.
 
 ---
 
