@@ -71,6 +71,41 @@ No hallucinations. No guesswork. Just a parser reading real code.
 
 ---
 
+## Install
+
+The [`skills`](https://www.npmjs.com/package/skills) CLI from [Vercel Labs](https://github.com/vercel-labs/skills) installs any skill from a GitHub URL — and it's the same CLI that powers [skills.sh](https://skills.sh), the open agent-skills directory where SKF-compatible skills are listed and ranked. One command, one placeholder:
+
+```bash
+npx skills add https://github.com/armelhbobdad/oh-my-skills/tree/main/skills/<SKILL>
+```
+
+Replace `<SKILL>` with the path for the skill you want:
+
+| Skill                    | `<SKILL>` path                                           |
+| ------------------------ | -------------------------------------------------------- |
+| oms-cocoindex            | `oms-cocoindex/0.3.37/oms-cocoindex`                     |
+| oms-cognee               | `oms-cognee/1.0.0/oms-cognee`                            |
+| oms-storybook-react-vite | `oms-storybook-react-vite/10.3.5/oms-storybook-react-vite` |
+| oms-uitripled            | `oms-uitripled/0.1.0/oms-uitripled`                      |
+
+The CLI drops the package under your project's skills directory (`.claude/skills/` for Claude Code, `.cursor/rules/` for Cursor, etc.). After install, paste the skill's `context-snippet.md` into the SKF-managed block of your `CLAUDE.md` / `AGENTS.md` / `.cursorrules` — see this repo's own [`CLAUDE.md`](CLAUDE.md) for the expected block format.
+
+### Why two files? (SKILL.md + context-snippet.md)
+
+Every skill ships **two** files on purpose. `SKILL.md` is the full instruction set — loaded only when a trigger fires. `context-snippet.md` is an 80–120 token compressed index injected into your agent's baseline context so it *knows the skill exists in the first place* and reaches for it at the right moment. Without the snippet, the agent never knows to open `SKILL.md`; without `SKILL.md`, the snippet has nothing to point at.
+
+This dual-output strategy isn't a style choice — it closes a measured performance gap. Per [Skill Forge → Dual-Output Strategy](https://armelhbobdad.github.io/bmad-module-skill-forge/how-it-works/#dual-output-strategy), Vercel research shows passive context (`CLAUDE.md` / `AGENTS.md`) achieves a **100% pass rate vs. 79% for active skills loaded alone**. Passive knowledge of what exists is what turns "skill available" into "skill used." Both halves ship in every package in this repo.
+
+**Manual install** (for monorepo vendoring):
+
+```bash
+cp -r skills/oms-cocoindex/0.3.37/oms-cocoindex .claude/skills/oms-cocoindex
+```
+
+> **Upstream shipped a new version?** Your existing install never changes itself — see [What happens when the library ships a new version?](#what-happens-when-the-library-ships-a-new-version) below.
+
+---
+
 ## How this compares to what you already use
 
 A skeptical reader is already comparing this repo to four things in their head. Here's the grid:
@@ -130,37 +165,6 @@ Pass threshold is 80% — anything below fails the gate and triggers `update-ski
 **GAP-004 — the one we lost.** `oms-storybook-react-vite` scores **215/216**, not 216/216. The 1-entry drift is logged openly in the test report as GAP-004 and discussed in [TRUST.md](TRUST.md#gap-004-the-one-we-lost). We didn't hide the rough edge. We wrote it down.
 
 ---
-
-## Install
-
-The [`skills`](https://www.npmjs.com/package/skills) CLI from [Vercel Labs](https://github.com/vercel-labs/skills) installs any skill from a GitHub URL — and it's the same CLI that powers [skills.sh](https://skills.sh), the open agent-skills directory where SKF-compatible skills are listed and ranked. One command, one placeholder:
-
-```bash
-npx skills add https://github.com/armelhbobdad/oh-my-skills/tree/main/skills/<SKILL>
-```
-
-Replace `<SKILL>` with the path for the skill you want:
-
-| Skill                    | `<SKILL>` path                                           |
-| ------------------------ | -------------------------------------------------------- |
-| oms-cocoindex            | `oms-cocoindex/0.3.37/oms-cocoindex`                     |
-| oms-cognee               | `oms-cognee/1.0.0/oms-cognee`                            |
-| oms-storybook-react-vite | `oms-storybook-react-vite/10.3.5/oms-storybook-react-vite` |
-| oms-uitripled            | `oms-uitripled/0.1.0/oms-uitripled`                      |
-
-The CLI drops the package under your project's skills directory (`.claude/skills/` for Claude Code, `.cursor/rules/` for Cursor, etc.). After install, paste the skill's `context-snippet.md` into the SKF-managed block of your `CLAUDE.md` / `AGENTS.md` / `.cursorrules` — see this repo's own [`CLAUDE.md`](CLAUDE.md) for the expected block format.
-
-### Why two files? (SKILL.md + context-snippet.md)
-
-Every skill ships **two** files on purpose. `SKILL.md` is the full instruction set — loaded only when a trigger fires. `context-snippet.md` is an 80–120 token compressed index injected into your agent's baseline context so it *knows the skill exists in the first place* and reaches for it at the right moment. Without the snippet, the agent never knows to open `SKILL.md`; without `SKILL.md`, the snippet has nothing to point at.
-
-This dual-output strategy isn't a style choice — it closes a measured performance gap. Per [Skill Forge → Dual-Output Strategy](https://armelhbobdad.github.io/bmad-module-skill-forge/how-it-works/#dual-output-strategy), Vercel research shows passive context (`CLAUDE.md` / `AGENTS.md`) achieves a **100% pass rate vs. 79% for active skills loaded alone**. Passive knowledge of what exists is what turns "skill available" into "skill used." Both halves ship in every package in this repo.
-
-**Manual install** (for monorepo vendoring):
-
-```bash
-cp -r skills/oms-cocoindex/0.3.37/oms-cocoindex .claude/skills/oms-cocoindex
-```
 
 ## What happens when the library ships a new version?
 
