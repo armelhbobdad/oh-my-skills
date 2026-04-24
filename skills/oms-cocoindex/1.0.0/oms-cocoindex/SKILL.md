@@ -114,6 +114,52 @@ Run with: `cocoindex update main.py` (one-shot) or `cocoindex update main.py -L`
 **Text chunking:**
 `from cocoindex.ops.text import RecursiveSplitter, SeparatorSplitter, CustomLanguageConfig, detect_code_language`. Replaces v0.3.37's `cocoindex.functions.SplitRecursively` / `SplitBySeparators`. [AST:python/cocoindex/ops/text.py:L19]
 
+**Lifecycle & utilities:**
+```python
+# Dual-mode runtime context manager — same call works for sync and async drivers
+with coco.runtime():
+    app.update_blocking()
+# or:
+async with coco.runtime():
+    await app.update()
+
+# Sync entry points for non-async callers
+coco.start_blocking()
+try:
+    app.update_blocking()
+finally:
+    coco.stop_blocking()
+
+# Async equivalents and direct env access
+await coco.start()                # start default environment + enter lifespan
+env = await coco.default_env()    # the default environment (starting it if needed)
+await coco.stop()                 # exit lifespan + stop default environment
+
+# Stream progress for a long-running update (consumes the handle)
+handle = app.update()
+result = await coco.show_progress(handle)
+
+# Deterministic identifiers from content dependencies (memoized; idempotent)
+chunk_id   = await coco.resources.id.generate_id(_dep=chunk.text)
+chunk_uuid = await coco.resources.id.generate_uuid(_dep=chunk.text)
+
+# Detect a source file's language (for splitter pipelines)
+lang = coco.ops.text.detect_code_language(filename="foo.py")
+```
+Provenance: [AST:python/cocoindex/_internal/api.py:L603] [:L608] [:L613] [:L618] [:L623] [:L655] · [AST:python/cocoindex/_internal/app.py:L194] · [AST:python/cocoindex/resources/id.py:L31] [:L61] · [AST:python/cocoindex/ops/text.py:L19]
+
+**Component-context helpers (inside `@coco.fn`):**
+`ctx = coco.get_component_context()` returns the current `ComponentContext`; raises `RuntimeError` outside a component. Build scoped keys with `subpath = coco.component_subpath(*key_parts)` — pass as the first positional argument to `mount` / `use_mount`, or use it as a context manager. Push a scoped error handler with `async with coco.exception_handler(handler): ...` to catch exceptions raised by background-mounted children within the block. [AST:python/cocoindex/_internal/component_ctx.py:L305] [:L198] [:L331]
+
+**Advanced extension hooks** (most callers don't need these — they exist for connector / runtime authors):
+
+- `coco.register_root_target_states_provider(name, handler)` — register a new root `TargetStateProvider` (used by connector authors building target backends). [AST:python/cocoindex/_internal/target_state.py:L305]
+- `coco.is_non_existence(obj)` — `TypeIs` guard for the `NON_EXISTENCE` sentinel when implementing memo-state branches. [AST:python/cocoindex/_internal/typing.py:L63]
+- `coco.memo_fingerprint(obj)` and `coco.register_memo_key_function(typ, key_fn, *, state_fn=None)` — customize which fields participate in memoization keys for a custom type. [AST:python/cocoindex/_internal/memo_fingerprint.py:L361] [:L155]
+- `coco.unpickle_safe(cls)` and `coco.serialize_by_pickle(cls)` — class decorators for pickle-safe round-trips of component state. [AST:python/cocoindex/_internal/serde.py:L128] [:L151]
+- `coco.is_live_component_class(cls)` — runtime test for `LiveComponent`-shaped classes. [AST:python/cocoindex/_internal/live_component.py:L35]
+- `coco.resources.schema.get_vector_schema(obj)` and `get_multi_vector_schema(obj)` — introspect a vector-schema provider attached to an `Annotated[...]` type (used when wiring a custom `Embedder` to a target column). [AST:python/cocoindex/resources/schema.py:L33] [:L58]
+
 ## Key API Summary
 
 | Export | Kind | Purpose | Provenance |
@@ -125,6 +171,7 @@ Run with: `cocoindex update main.py` (one-shot) or `cocoindex update main.py -L`
 | `LifespanFn` | type alias | `Callable[[EnvironmentBuilder], Iterator[None] \| AsyncIterator[None]]`. | [AST:python/cocoindex/_internal/environment.py:L118] |
 | `lifespan` | decorator | `@coco.lifespan` registers an environment lifespan. Optional parens. | [AST:python/cocoindex/_internal/environment.py:L452] |
 | `fn` | decorator namespace | `@coco.fn` (preserves sync/async), `@coco.fn(memo=True)`, `@coco.fn(batching=True, max_batch_size=N, runner=GPU)`, `@coco.fn(version=N, logic_tracking="full"\|"self"\|None, deps=...)`. `@coco.fn.as_async(...)` always yields async. | [AST:python/cocoindex/_internal/function.py:L1578] [AST:python/cocoindex/_internal/function.py:L1811] |
+| `LogicTracking` | type alias | `Literal["full", "self"] \| None` — value type of the `logic_tracking=` kwarg on `@coco.fn`. `"full"` (default) tracks own code + transitive children, `"self"` tracks own code only, `None` disables tracking (incompatible with `deps`). | [AST:python/cocoindex/_internal/function.py:L65] |
 | `mount` | async fn | `await coco.mount(processor_fn, *args, **kwargs) -> ComponentMountHandle`. | [AST:python/cocoindex/_internal/api.py:L349] |
 | `mount_each` | async fn | `await coco.mount_each(fn, items, *args) -> ComponentMountHandle`. | [AST:python/cocoindex/_internal/api.py:L445] |
 | `mount_target` | async fn | `await coco.mount_target(target_state) -> TargetStateProvider[ValueT, OptChildHandlerT]`. | [AST:python/cocoindex/_internal/api.py:L566] |

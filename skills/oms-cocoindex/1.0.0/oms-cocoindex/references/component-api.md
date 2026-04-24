@@ -176,6 +176,26 @@ Behavior:
 - **`logic_tracking`**: `"full"` propagates code changes transitively; `"self"` only tracks the function itself (children invalidate independently); `None` disables tracking and is incompatible with `deps`.
 - **`deps`**: external values that affect logic but aren't visible in the body (e.g. module-level prompts). Canonicalized through the memoization-key pipeline at decoration time. For per-call values, pass arguments instead.
 
+### LogicTracking
+
+The `logic_tracking=` kwarg accepts a value of the public `LogicTracking` type alias, re-exported from the package barrel:
+
+```python
+LogicTracking: TypeAlias = Literal["full", "self"] | None
+```
+[AST:python/cocoindex/_internal/function.py:L65]
+
+- `"full"` (default) — fingerprint includes the function's own code AND the code of every transitively-mounted child. A change anywhere under the component invalidates its memoized output.
+- `"self"` — fingerprint includes only the function's own code; children invalidate independently. Use when child components have their own stable memo identity (e.g., a `@coco.fn(memo=True)` chunk processor) and you want their re-runs not to invalidate the parent.
+- `None` — disable logic tracking entirely. **Incompatible with `deps`** — `@coco.fn(logic_tracking=None, deps=...)` raises at decoration time. Use when the function body's behavior is fully captured by its arguments (e.g., a pure stateless transform) and you want no version-derived invalidation.
+
+Type the kwarg explicitly when defining custom decorator wrappers:
+
+```python
+def my_fn(*, tracking: coco.LogicTracking = "full"):
+    return coco.fn(logic_tracking=tracking)
+```
+
 ## Mount APIs
 
 All mount APIs require an active `ComponentContext` (i.e., they must be called from inside a `@coco.fn` running under `App.update()` / `mount()`).

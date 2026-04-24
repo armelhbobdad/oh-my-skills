@@ -1,3 +1,16 @@
+---
+skill_name: oms-cocoindex
+skill_version: 1.0.0
+source_commit: 5fe4f37a526e51516655832ec9814e7ca24ade9a
+source_ref: v1.0.0
+forge_tier: Deep
+generated: 2026-04-25
+last_update: 2026-04-25
+last_update_workflow: skf-update-skill
+last_update_type: gap-driven
+t2_future_count: 0
+---
+
 # Evidence Report: oms-cocoindex
 
 **Generated:** 2026-04-25
@@ -140,3 +153,64 @@ The remainder of this report documents the original v0.3.37 forge run for archiv
 **Original quality score:** 100/100 (skill-check), tessl content_score 50% (intentional two-tier design trade-off)
 
 The full v0.3.37 evidence report is preserved at `forge-data/oms-cocoindex/0.3.37/evidence-report.md` and is unmodified by this update run.
+
+## Update Operation — 2026-04-25 (gap-driven)
+
+**Trigger:** test-report `test-report-oms-cocoindex-20260424T230401Z-257564-6daf.md` (PASS at 98.37%, threshold 80%; 6 gaps surfaced — 2 High, 1 Medium, 1 Low, 2 Info)
+**Forge Tier:** Deep
+**Mode:** Gap-driven (no source drift — same `source_commit` as compilation; only doc-surface fixes)
+**Workflow:** skf-update-skill
+**Workspace drift check:** ok (HEAD `5fe4f37a` == pinned `metadata.source_commit`)
+
+### Changes Detected
+
+| Category | Count | Detail |
+|---|---:|---|
+| Files modified | 4 | `SKILL.md` (+47 lines), `references/component-api.md` (+20 lines), `metadata.json` (stats), `provenance-map.json` (LogicTracking re-pin + last_update block) |
+| Files added | 0 | — |
+| Files deleted | 0 | — |
+| Exports verified (gap-driven spot-check) | 21 | `stop`, `start_blocking`, `stop_blocking`, `default_env`, `runtime`, `register_root_target_states_provider`, `exception_handler`, `component_subpath`, `get_component_context`, `show_progress`, `is_non_existence`, `memo_fingerprint`, `register_memo_key_function`, `unpickle_safe`, `serialize_by_pickle`, `is_live_component_class`, `detect_code_language`, `generate_id`, `generate_uuid`, `get_vector_schema`, `get_multi_vector_schema` |
+| Exports moved (provenance re-pin) | 1 | `LogicTracking` — recorded `function.py:138`, actually at `function.py:65` (original v1.0.0 extraction recorded the wrong line) |
+| Exports added to docs surface | 1 | `LogicTracking` — was in `metadata.exports[]` and `provenance-map` but missing from `SKILL.md` and `references/*.md` (GAP-001) |
+
+### Gap Resolution
+
+| Gap | Severity | Status | Resolution |
+|---|---|---|---|
+| GAP-001 | High | RESOLVED | `LogicTracking` row added to `## Key API Summary` table in SKILL.md; full TypeAlias subsection added under `## @coco.fn` in `references/component-api.md` (4 in-file refs) |
+| GAP-002 | High (×21 sub-instances) | RESOLVED | Added `**Lifecycle & utilities:**` code block + `**Component-context helpers:**` paragraph + `**Advanced extension hooks:**` bullet list to `## Common Workflows`. All 21 functions now grep-reachable in Usage span (lines 12-162) |
+| GAP-003 | Medium | RESOLVED | `metadata.stats.exports_public_api` reconciled `74 → 72` (true `__all__` count); `exports_documented_in_array: 115` and `documented_surface_components: 36` added for explicit dual-denominator |
+| GAP-004 | Low | DEFERRED | tessl content suggestions (move tables to references, strip inline `[AST:...]` provenance, add migration-step checkpoints) — advisory only; skill still PASSES at 98.37%. Not addressed in this run to avoid larger structural rewrite; tracked for a future content refactor |
+| GAP-005 | Info | RESOLVED | `documented_surface_components: 36` written to `metadata.stats` (makes the dual-denominator design machine-readable) |
+| GAP-006 | Info | RESOLVED | YAML frontmatter added to this `evidence-report.md`, including `t2_future_count: 0` so future `skf-test-skill` runs can perform §2b migration verification (was previously skipping silently as Case 4 — legacy schema) |
+
+### Merge Results
+
+- Exports updated: 0
+- Exports added (to docs): 1 (`LogicTracking`)
+- Exports moved (provenance re-pin): 1 (`LogicTracking` 138 → 65)
+- Exports removed: 0
+- [MANUAL] sections preserved: 3 (`quick-start-notes`, `api-notes`, `integration-notes` in SKILL.md — all byte-identical post-merge)
+- Conflicts resolved: 0 (clean merge)
+
+### Validation Summary
+
+- Spec compliance: PASS (manual structural check — required sections all present; skill-check post-write check pending in §7)
+- [MANUAL] integrity: PASS (3/3 byte-identical)
+- Confidence tiers: PASS (gap-driven mode preserves T1 from prior extraction; 1 line-only re-pin retains T1)
+- Provenance completeness: PASS after LogicTracking re-pin to `function.py:65`
+- All 21 GAP-002 functions now grep-reachable in Usage span (Quick Start ∪ Common Workflows, lines 12-162)
+- LogicTracking now documented in SKILL.md (1 ref) and `references/component-api.md` (4 refs)
+
+### Description Guard
+
+- Restored: false
+- Triggering tool: —
+- Original description preserved: true
+- Notes: — (description not modified by any §7 tool — clean run)
+
+### Context Snippet
+
+- Regenerated: true
+- Triggers fired: headline-exports
+- Notes: `LogicTracking` promoted into the snippet's `key-types:` line — the only surface change. No version bump and no new gotchas.
