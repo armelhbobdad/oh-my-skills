@@ -1,0 +1,49 @@
+{
+  "workflow": "skf-test-skill",
+  "version": "1.0",
+  "runId": "20260424T230401Z-257564-6daf",
+  "skillName": "oms-cocoindex",
+  "skillDir": "skills/oms-cocoindex/1.0.0/oms-cocoindex",
+  "outputs": [
+    {
+      "kind": "test-report",
+      "path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20260424T230401Z-257564-6daf.md"
+    }
+  ],
+  "summary": {
+    "score": 98.37,
+    "threshold": 80,
+    "result": "PASS",
+    "testMode": "naive",
+    "forgeTier": "Deep",
+    "analysisConfidence": "full",
+    "workspaceDrift": "ok",
+    "activeCategories": ["exportCoverage", "signatureAccuracy", "typeCoverage", "externalValidation"],
+    "skippedCategories": ["coherence"],
+    "inconclusiveReasons": []
+  },
+  "categoryScores": {
+    "exportCoverage": 98.6,
+    "signatureAccuracy": 100,
+    "typeCoverage": 100,
+    "coherence": null,
+    "externalValidation": 90
+  },
+  "externalValidators": {
+    "skillCheck": { "available": true, "score": 100, "errors": 0, "warnings": 0 },
+    "tessl": { "available": true, "validation": "PASSED", "description": 100, "content": 50, "review": 80 }
+  },
+  "discoveryQuality": {
+    "catalogSize": 4,
+    "promptsTested": 3,
+    "promptsPassed": 3,
+    "verdict": "PASS"
+  },
+  "gaps": {
+    "total": 6,
+    "blocking": 2,
+    "byseverity": { "critical": 0, "high": 2, "medium": 1, "low": 1, "info": 2 }
+  },
+  "nextWorkflow": "export-skill",
+  "healthCheckDispatched": true
+}
