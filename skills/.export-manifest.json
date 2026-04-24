@@ -2,12 +2,19 @@
   "schema_version": "2",
   "exports": {
     "oms-cocoindex": {
-      "active_version": "0.3.37",
+      "active_version": "1.0.0",
       "versions": {
         "0.3.37": {
           "ides": ["claude-code"],
           "last_exported": "2026-04-12",
-          "status": "active"
+          "status": "archived"
+        },
+        "1.0.0": {
+          "ides": [],
+          "last_exported": null,
+          "status": "active",
+          "compiled_at": "2026-04-25",
+          "compiled_by_workflow": "skf-update-skill"
         }
       }
     },
