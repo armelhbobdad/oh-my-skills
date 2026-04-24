@@ -13,6 +13,7 @@ To generate or update context-snippet.md for the skill in the Vercel-aligned ind
 
 - Focus only on generating the context-snippet.md content — T1-now only, no T2 annotations
 - If `passive_context: false` was detected in step-01, skip this step entirely
+- **Multi-skill mode:** when step-01 loaded more than one skill (`len(skill_batch) > 1`), iterate sections 2–5 per skill. Each skill has its own prior-gotchas carry-forward state (§2.5) — do not share state across skills. §2.7 resolves `{skill_root}` once for the run (it depends on `target_context_files`, not the skill). See step-01 §1c.
 
 ## MANDATORY SEQUENCE
 

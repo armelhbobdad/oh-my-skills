@@ -17,19 +17,19 @@ If `source_root` (from metadata.json) is a remote URL (GitHub URL or owner/repo 
    Fetch and checkout the requested ref. For update-skill, `changed_files_from_manifest` scoping happens at extraction time via file-level filtering — the workspace has a full checkout.
 
    ```
-   git -C {workspace_repo_path} fetch origin {source_ref}
+   git -C "{workspace_repo_path}" fetch origin {source_ref}
    ```
 
    Check if checkout is needed — skip if the requested ref is already checked out:
 
    ```
-   current_head = git -C {workspace_repo_path} rev-parse HEAD
-   fetched_head = git -C {workspace_repo_path} rev-parse FETCH_HEAD
+   current_head = git -C "{workspace_repo_path}" rev-parse HEAD
+   fetched_head = git -C "{workspace_repo_path}" rev-parse FETCH_HEAD
    ```
 
    If `current_head != fetched_head`:
    ```
-   git -C {workspace_repo_path} -c advice.detachedHead=false checkout FETCH_HEAD
+   git -C "{workspace_repo_path}" -c advice.detachedHead=false checkout FETCH_HEAD
    ```
 
    Set `remote_clone_path = {workspace_repo_path}`, `remote_clone_type = "workspace"`.
@@ -46,10 +46,10 @@ If `source_root` (from metadata.json) is a remote URL (GitHub URL or owner/repo 
 
    ```
    # If source_ref is a real branch or tag (not HEAD/null/"local"):
-   git clone --depth 1 --branch {source_ref} --single-branch {source_repo} {workspace_repo_path}
+   git clone --depth 1 --branch {source_ref} --single-branch "{source_repo}" "{workspace_repo_path}"
 
    # If source_ref is HEAD or not set (default branch):
-   git clone --depth 1 --single-branch {source_repo} {workspace_repo_path}
+   git clone --depth 1 --single-branch "{source_repo}" "{workspace_repo_path}"
    ```
 
    Set `remote_clone_path = {workspace_repo_path}`, `remote_clone_type = "workspace"`.
@@ -59,10 +59,10 @@ If `source_root` (from metadata.json) is a remote URL (GitHub URL or owner/repo 
    temp_path = {system_temp}/skf-ephemeral-{skill-name}-{timestamp}/
 
    # If source_ref is a real branch or tag (not HEAD/null/"local"):
-   git clone --depth 1 --branch {source_ref} --single-branch --filter=blob:none {source_root} {temp_path}
+   git clone --depth 1 --branch {source_ref} --single-branch --filter=blob:none "{source_root}" "{temp_path}"
 
    # If source_ref is HEAD or not set (default branch):
-   git clone --depth 1 --single-branch --filter=blob:none {source_root} {temp_path}
+   git clone --depth 1 --single-branch --filter=blob:none "{source_root}" "{temp_path}"
    ```
    Set `remote_clone_path = {temp_path}`, `remote_clone_type = "ephemeral"`.
 
@@ -78,7 +78,7 @@ If `source_root` (from metadata.json) is a remote URL (GitHub URL or owner/repo 
 
 After extraction is complete for all files in scope (whether successful or partially failed), before presenting the extraction summary:
 
-- **If `remote_clone_type == "ephemeral"`:** Reset the working directory first (`cd {project-root}` using the absolute path captured at workflow start), then delete the `{temp_path}` directory. Log: "Ephemeral source clone cleaned up." This ensures cleanup runs even if some extractions failed.
+- **If `remote_clone_type == "ephemeral"`:** Reset the working directory first (`cd "{project-root}"` using the absolute path captured at workflow start), then delete the `{temp_path}` directory (`rm -rf "{temp_path}"`). Log: "Ephemeral source clone cleaned up." This ensures cleanup runs even if some extractions failed.
 - **If `remote_clone_type == "workspace"`:** No cleanup. The workspace checkout persists for future forges and updates.
 
 ## Version Reconciliation

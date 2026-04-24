@@ -1,8 +1,9 @@
 ---
 nextStepFile: './step-04b-external-validators.md'
-outputFile: '{forge_version}/test-report-{skill_name}.md'
+outputFile: '{forge_version}/test-report-{skill_name}-{run_id}.md'
 outputFormatsFile: 'assets/output-section-formats.md'
 scoringRulesFile: 'references/scoring-rules.md'
+migrationSectionRules: 'references/migration-section-rules.md'
 ---
 
 # Step 4: Coherence Check
@@ -28,31 +29,78 @@ Read `testMode` from `{outputFile}` frontmatter.
 **IF naive mode → Execute Naive Coherence (Section 2)**
 **IF contextual mode → Execute Contextual Coherence (Sections 3-5)**
 
-### 2. Naive Mode: Basic Structural Validation
+### 2. Naive Mode: Concrete Structural Validation (H1)
 
-Perform lightweight structural checks:
+Perform the following explicit checks (no hand-waving — each recipe is a shell recipe or a literal pattern). Severity assignments are binding; do not relax them.
 
-**Document structure:**
-- SKILL.md has required top-level sections (description, exports, usage)
-- Section headers are properly formatted
-- Code examples have language annotations
-- No broken markdown (unclosed code blocks, malformed tables)
-- If `scripts/` or `assets/` directory exists alongside SKILL.md, a "Scripts & Assets" section (Section 7b) should be present
+**2.1 Required sections present.** For each required top-level H2, run `grep -n "^## {section}" SKILL.md`. A required section is satisfied if **any** synonym in its set matches:
+- Description: `## Description` OR frontmatter `description` field — either satisfies
+- Usage: `## Usage` OR `## Examples` OR `## Quick Start` OR `## Common Workflows`
+- API surface: `## Exports` OR `## Key API Summary` OR `## API`
+- **Zero matches across an entire synonym set → High severity** finding: `naive-coherence — missing required section: {section-set-name}`
 
-**Internal consistency:**
-- Exports referenced in usage examples match exports listed in exports section
-- Type names used in examples match documented types
-- No self-contradictions (e.g., function described as async but shown sync in example)
+Note: SKF-template skills ship with `## Quick Start`, `## Common Workflows`, and `## Key API Summary`. These are first-class synonyms — do not downgrade to Low on literal-name miss; accept them.
 
-Build a simple structural findings list:
+**2.2 Code fence balance.** Count triple-backtick fences with `grep -c '^```' SKILL.md`. **Odd count → High severity** finding: `naive-coherence — unbalanced code fence (unclosed block)`.
+
+**2.3 Language tags on opening fences.** Only **opening** fences are required to carry a language tag; closing fences are bare by markdown convention and must NOT be flagged. Do not use a plain `grep -n '^```$' SKILL.md` — that flags every closing fence and produces one false positive per well-formed code block.
+
+Use a stateful open/close scan (toggle `in_code` on each `^```` line; flag only the line where `in_code` transitions 0→1 with no trailing language tag):
+
+```python
+in_code = False
+for i, line in enumerate(open('SKILL.md'), 1):
+    s = line.rstrip('\n')
+    if s.startswith('```'):
+        if not in_code:
+            if s == '```':
+                print(f'{i}: bare opening fence')
+            in_code = True
+        else:
+            in_code = False
+```
+
+**Each flagged opening fence → Medium severity** finding: `naive-coherence — opening code fence at line {N} missing language tag`.
+
+**2.4 Exports cross-used in Usage section.** For each function name reported in the step-03 subagent inventory (`exports[].name` where `kind == "function"` or `kind == "method"`):
+- `grep -c "{export.name}" SKILL.md` restricted to the Usage section (find the `## Usage` anchor from §2.1 and the next `^## ` anchor; count within that span).
+- **Zero occurrences → High severity** finding: `naive-coherence — exported {kind} \`{name}\` is not referenced in the Usage section`. This catches the "documented but unused" failure mode that trivially fails discovery testing.
+
+**2.5 Async/sync consistency.** For every export with `async` in its description prose (grep for `\basync\b` in the description segment), check the corresponding code example segment for `await` / `async` keywords:
+- Description says async + example shows no `await` → **High severity** finding: `naive-coherence — \`{name}\` described as async but example lacks \`await\``
+- Description says sync + example uses `await {name}` → **High severity** finding: `naive-coherence — \`{name}\` described as sync but example awaits it`
+
+**2.6 Table syntax.** `grep -nE '^\|.*\|$' SKILL.md | head` — for each table row, normalize escaped pipes (`\|`) before splitting, then verify adjacent rows have the same column count. **Escaped pipes appear inside TypeScript union types and discriminated payloads** (e.g. `string \| undefined`) and must not inflate the count.
+
+Recipe:
+
+```bash
+# Normalize `\|` to a placeholder, split on |, count, restore.
+grep -nE '^\|.*\|$' SKILL.md \
+  | sed 's/\\|/\x00/g' \
+  | awk -F'|' '{print NR, NF-2}'   # -2 drops the empty leading/trailing fields
+```
+
+Or equivalent: hand off to a proper markdown-table parser. A plain `split on |` WILL produce false "column drift" findings on any table whose cells contain union types.
+
+**Column-count drift → Medium severity** finding: `naive-coherence — table row at line {N} has {X} columns; neighboring rows have {Y}`.
+
+**2.7 Scripts & Assets section.** If `{skillDir}/scripts/` or `{skillDir}/assets/` exists, `grep -n '^## Scripts' SKILL.md`:
+- Directory exists AND no `## Scripts` section → **Medium severity** finding: `naive-coherence — scripts/assets directory exists but Scripts & Assets section missing` (per `{scoringRulesFile}`)
+
+**Hard rule:** 0 findings across §§2.1–2.7 = naive coherence PASS. ≥1 finding = rerank per the severity rubric above; the count and severity list are appended to the Coherence Analysis output in §6.
+
+Build the findings list:
 
 ```json
 {
   "structural_issues": [
-    {"type": "missing_section", "detail": "No 'Usage' section found"},
-    {"type": "broken_example", "detail": "Line 42: references undeclared function 'getConfig'"}
+    {"type": "missing_section", "severity": "High", "detail": "No 'Usage' section found", "line": null},
+    {"type": "unbalanced_fence", "severity": "High", "detail": "3 opening fences, 2 closing", "line": null},
+    {"type": "export_not_in_usage", "severity": "High", "detail": "exported function `formatDate` never referenced in Usage section", "line": 42},
+    {"type": "async_mismatch", "severity": "High", "detail": "`fetchData` described async but example lacks await", "line": 67}
   ],
-  "issues_found": 2
+  "issues_found": 4
 }
 ```
 
@@ -60,24 +108,9 @@ Build a simple structural findings list:
 
 ### 2b. Migration/Deprecation Verification (Mode-Independent)
 
-**Gate check:** Execute this section ONLY IF both conditions are met:
-1. Forge tier is **Deep** (tool-gated)
-2. `{forge_data_folder}/{skill_name}/evidence-report.md` exists (data-gated)
-
-If either condition fails, skip silently and proceed to Section 6.
-
-**This check runs regardless of naive/contextual mode.** T2-future annotations are a property of the source code and enrichment data, not the skill type.
-
-Check whether SKILL.md contains a "Migration & Deprecation Warnings" section (Section 4b). Then check the skill's `evidence-report.md` (at `{forge_data_folder}/{skill_name}/evidence-report.md`) for T2-future annotation counts.
-
-**Scope of Section 4b (authoring rule this gate enforces):** Section 4b is scoped to *forward-looking* breaking changes only — what T2-future annotations capture. Current-state signature gotchas (e.g. "this function is sync not async") belong alongside the function in Full API Reference, not here. This scoping is authoritative per `skf-create-skill/assets/skill-sections.md` ("Section 4b (Migration & Deprecation Warnings) is conditional: only emitted for Deep tier when T2-future annotations exist"). Two legitimate exceptions for the `T2-future = 0 AND Section 4b present` case are formalized in the rules below: (a) **historical migration** content — past, shipped package renames or consolidated import paths that remain load-bearing for correcting model training-data drift → Info severity, no justification required; (b) other non-migration content → reviewer may downgrade to Low with inline justification. Do not relax the gate otherwise — that would desync the test workflow from the authoring rule.
-
-- **If T2-future annotations > 0 AND Section 4b is absent:** Flag as Medium severity gap: "Migration section missing — T2-future annotations exist but Section 4b is not present in SKILL.md Tier 1."
-- **If T2-future annotations = 0 AND Section 4b is present AND the content is historical migration:** Flag as **Info** severity (not Medium). Historical migration content covers completed package renames (e.g. `@oldscope/*` → `@newscope/*`), consolidated import paths, and shipped API cutovers that still surface in training-data drift — load-bearing for correcting model knowledge even though no forward-looking change is pending. Recognizable patterns: old-name → new-name rewrites, citations to already-shipped PRs/issues, "migrated in version N" or "consolidated from X to Y" language. Recommend in the gap report that a future skill revision rename Section 4b to "Import Corrections" or "Ecosystem Notes" to free the Migration & Deprecation heading for its forward-looking contract. No inline justification required — the historical-migration classification is itself the rationale.
-- **If T2-future annotations = 0 AND Section 4b is present AND the content is non-migration** (neither forward-looking nor historical migration — e.g. general API notes misfiled under Section 4b): Flag as Medium severity gap: "Migration section unexpected — Section 4b contains non-migration content and no T2-future annotations were produced." Reviewer may downgrade to Low with inline justification on a case-by-case basis.
-- **If evidence-report.md is unavailable:** Skip this check silently. Note: "Section 4b verification skipped — evidence-report.md not found."
-
-Add findings to the coherence analysis results.
+Apply rules from `{migrationSectionRules}`. That file is the single source of
+truth for the gate, scope, and case rules; §5b below applies the same rules on
+the contextual path.
 
 **After Section 2b (naive path) → Skip to Section 6 (Append Results)**
 
@@ -111,6 +144,8 @@ If subprocess unavailable, validate each reference in main thread.
 
 4. **Scripts/assets directory check:** If a `scripts/` or `assets/` directory exists alongside SKILL.md, verify that a "Scripts & Assets" section (Section 7b) is present in SKILL.md. This directory-level check applies in both modes (naive mode performs it in Section 2; contextual mode performs it here alongside per-reference validation). Flag absence as Medium severity gap per `{scoringRulesFile}`.
 
+5. **Path containment (S8):** for every resolved reference target, compute its canonical path (`os.path.realpath`) and require that it lives inside `{skillDir}` OR inside `{source_path}` (the extraction tree recorded in metadata.json). References whose canonical path escapes both roots (e.g. `../../../etc/passwd`, absolute paths to unrelated dirs, symlink redirections outside the skill or its source) are **High severity** findings: `coherence — reference escapes skill/source sandbox: {raw_ref} → {canonical_path}`. Do NOT validate the target's contents for escaping references — the escape itself is the finding.
+
 ### 5. Contextual Mode: Check Integration Pattern Completeness
 
 For stack skills, verify integration patterns are complete:
@@ -140,24 +175,9 @@ Build integration completeness findings:
 
 ### 5b. Migration/Deprecation Verification (Contextual Path)
 
-**This section shares logic with Section 2b.** If updating the shared logic, ensure both sections remain synchronized. If you are on the contextual mode path (Sections 3-5), execute the migration check here using the same rules as Section 2b:
-
-**Gate check:** Execute ONLY IF both conditions are met:
-1. Forge tier is **Deep** (tool-gated)
-2. `{forge_data_folder}/{skill_name}/evidence-report.md` exists (data-gated)
-
-If either condition fails, skip silently.
-
-Check whether SKILL.md contains a "Migration & Deprecation Warnings" section (Section 4b). Then check the skill's `evidence-report.md` for T2-future annotation counts.
-
-**Scope of Section 4b (authoring rule this gate enforces):** Section 4b is scoped to *forward-looking* breaking changes only — what T2-future annotations capture. Current-state signature gotchas (e.g. "this function is sync not async") belong alongside the function in Full API Reference, not here. This scoping is authoritative per `skf-create-skill/assets/skill-sections.md` ("Section 4b (Migration & Deprecation Warnings) is conditional: only emitted for Deep tier when T2-future annotations exist"). Two legitimate exceptions for the `T2-future = 0 AND Section 4b present` case are formalized in the rules below: (a) **historical migration** content — past, shipped package renames or consolidated import paths that remain load-bearing for correcting model training-data drift → Info severity, no justification required; (b) other non-migration content → reviewer may downgrade to Low with inline justification. Do not relax the gate otherwise — that would desync the test workflow from the authoring rule.
-
-- **If T2-future annotations > 0 AND Section 4b is absent:** Flag as Medium severity gap: "Migration section missing — T2-future annotations exist but Section 4b is not present in SKILL.md Tier 1."
-- **If T2-future annotations = 0 AND Section 4b is present AND the content is historical migration:** Flag as **Info** severity (not Medium). Historical migration content covers completed package renames (e.g. `@oldscope/*` → `@newscope/*`), consolidated import paths, and shipped API cutovers that still surface in training-data drift — load-bearing for correcting model knowledge even though no forward-looking change is pending. Recognizable patterns: old-name → new-name rewrites, citations to already-shipped PRs/issues, "migrated in version N" or "consolidated from X to Y" language. Recommend in the gap report that a future skill revision rename Section 4b to "Import Corrections" or "Ecosystem Notes" to free the Migration & Deprecation heading for its forward-looking contract. No inline justification required — the historical-migration classification is itself the rationale.
-- **If T2-future annotations = 0 AND Section 4b is present AND the content is non-migration** (neither forward-looking nor historical migration — e.g. general API notes misfiled under Section 4b): Flag as Medium severity gap: "Migration section unexpected — Section 4b contains non-migration content and no T2-future annotations were produced." Reviewer may downgrade to Low with inline justification on a case-by-case basis.
-- **If evidence-report.md is unavailable:** Skip this check silently. Note: "Section 4b verification skipped — evidence-report.md not found."
-
-Add findings to the coherence analysis results.
+Apply rules from `{migrationSectionRules}`. Same rules as §2b — the reference
+file is the single source of truth. Append findings to the coherence analysis
+results.
 
 ### 5c. Calculate Coherence Scores
 

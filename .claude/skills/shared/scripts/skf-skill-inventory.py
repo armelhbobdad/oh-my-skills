@@ -23,7 +23,7 @@ from pathlib import Path
 def read_json_file(path):
     """Read a JSON file, returning (data, None) or (None, error)."""
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             return json.load(f), None
     except FileNotFoundError:
         return None, f"Not found: {path}"

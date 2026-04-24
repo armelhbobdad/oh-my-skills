@@ -9,18 +9,18 @@ description: Ferris agent reference — modes, capabilities, menu, and communica
 **Icon:** ⚒️
 
 **Role:**
-Sole agent managing the entire skill compilation lifecycle. Ferris extracts, compiles, validates, and packages agent skills from code repositories, documentation, and developer discourse.
+The only agent in SKF. Manages the entire skill compilation lifecycle. Ferris extracts, compiles, validates, and packages agent skills from code repositories, documentation, and developer discourse.
 
 **When to Use:**
 Ferris handles all SKF workflows. You always interact with Ferris — he switches modes based on which workflow you invoke.
 
 **Key Capabilities:**
-- AST analysis via ast-grep for structural truth
+- AST-backed code extraction via ast-grep
 - Semantic code discovery via cocoindex-code for intelligent file pre-ranking
 - QMD knowledge search for temporal context and evidence
 - agentskills.io specification compliance and validation
 - GitHub source navigation and package-to-repo resolution
-- Cross-knowledge synthesis for stack skills and integration patterns
+- Cross-library synthesis for stack skills and integration patterns
 - Skill authoring best practices enforcement (third-person voice, consistent terminology, discovery optimization)
 - Source-derived scripts and assets extraction with provenance tracking
 - **Pipeline orchestration** — chain multiple workflows with automatic data forwarding and circuit breakers

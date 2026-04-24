@@ -3,7 +3,7 @@ title: BMAD Synergy
 description: How SKF workflows pair with BMAD CORE phases and optional modules (BMM, TEA, BMB, GDS, CIS) — integration patterns, entry points, and artifact flow
 ---
 
-Assumes you know [BMAD](https://docs.bmad-method.org/) — BMM phases, TEA, and what a BMAD module is. If any of that is new, start with the [BMAD docs](https://docs.bmad-method.org/) first. If you're new to SKF, read [Getting Started](../getting-started/) instead.
+This page builds on BMAD concepts (BMM phases, TEA, modules). New to BMAD? Start with the [BMAD docs](https://docs.bmad-method.org/) first. New to SKF? Read [Getting Started](../getting-started/) instead.
 
 ---
 
@@ -166,7 +166,7 @@ Beyond briefing, CIS and SKF don't overlap — CIS covers ideation, storytelling
 
 ## Delivery and Lifecycle in a BMAD Project
 
-`@Ferris EX` is the **only workflow that introduces new skill context** into the three context files that serve all 23 IDEs: `CLAUDE.md` (Claude Code), `.cursorrules` (Cursor), and `AGENTS.md` (the remaining 21 IDEs — GitHub Copilot, Windsurf, Cline, Roo Code, Gemini CLI, and others). Each IDE also has its own skill root directory where skill files are installed (e.g., `.windsurf/skills/`, `.roo/skills/`, `.gemini/skills/`). Create-skill and update-skill produce draft artifacts that never touch those files directly — nothing reaches an agent's passive context until it has been through the EX gate. See [How It Works](../how-it-works/) for the architectural rationale.
+`@Ferris EX` is the **only workflow that introduces new skill context** into the three context files that serve all 23 IDEs: `CLAUDE.md` (Claude Code), `.cursorrules` (Cursor), and `AGENTS.md` (the remaining 21 IDEs — GitHub Copilot, Windsurf, Cline, Roo Code, Gemini CLI, and others). Each IDE also has its own skill root directory where skill files are installed (e.g., `.windsurf/skills/`, `.roo/skills/`, `.gemini/skills/`). Create-skill and update-skill produce draft artifacts that never touch those files directly — nothing reaches an agent's passive context until it has been through the EX gate. See [Skill Model → Dual-Output Strategy](../skill-model/#dual-output-strategy) for the architectural rationale.
 
 This matters specifically in a BMAD project: you may have multiple BMAD modules, each with its own launcher skills, plus SKF content skills, all trying to contribute context. The write-guard means only verified, tested SKF skills ever reach an agent's passive context — nothing half-baked sneaks in. `@Ferris EX` injects managed sections that coexist cleanly with whatever BMAD's installer wrote in the same files.
 

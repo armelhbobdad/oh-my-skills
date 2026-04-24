@@ -26,8 +26,8 @@ To search the agentskills.io ecosystem for an existing official skill matching t
 
 Query the ecosystem using the skill name from the brief:
 - Call the registry API with brief.name — check if an official skill already exists
-- Enforce 5-second timeout — if the query does not return within 5 seconds, treat as no match
-- Cache results for 24 hours (if re-running same skill)
+- Enforce 5-second timeout — if the query does not return within 5 seconds, treat as no match. Rationale: ecosystem check is an opportunistic advisory; a slow or degraded registry must not stall the compilation pipeline, and 5s is well beyond any healthy registry's p99 latency.
+- Cache results for 24 hours (if re-running same skill). Rationale: the agentskills.io registry publishes new official skills in daily batches; a 24-hour TTL balances freshness against redundant network calls during iterative brief refinement.
 
 **If registry API is NOT available (current default):**
 
@@ -70,7 +70,7 @@ Display: "**Ecosystem match found — Select an Option:** [P] Proceed with compi
 #### EXECUTION RULES:
 
 - ALWAYS halt and wait for user input after presenting menu
-- **GATE [default: P]** — If `{headless_mode}` and match found: auto-proceed with [P] Proceed, log: "headless: ecosystem match found, auto-proceeding"
+- **GATE [default: P]** — If `{headless_mode}` and match found: auto-proceed with [P] Proceed, log: "headless: ecosystem match found, auto-proceeding", AND append an entry to the in-context `headless_decisions[]` list: `{step: "step-02-ecosystem-check", gate: "ecosystem-match", decision: "P", rationale: "headless mode — match found, auto-proceed with user's own compilation", timestamp: {ISO}}`. Step-05 §7 (evidence-report assembly) reads `headless_decisions[]` and emits an "Auto-Decisions" section into evidence-report.md.
 - This menu ONLY appears when an ecosystem match is found
 - If no match, timeout, or tool unavailable — auto-proceed with no menu
 

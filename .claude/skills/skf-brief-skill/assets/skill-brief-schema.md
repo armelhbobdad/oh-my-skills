@@ -56,7 +56,7 @@ The create-skill workflow (step-03-extract) also performs version reconciliation
 
 ```yaml
 scope:
-  type: full-library | specific-modules | public-api | component-library | docs-only
+  type: full-library | specific-modules | public-api | component-library | reference-app | docs-only
   include:
     - "src/**/*.ts"           # Glob patterns for included files/directories
   exclude:
@@ -133,7 +133,7 @@ forge_tier: "{Quick|Forge|Forge+|Deep}"
 created: "{date}"
 created_by: "{user_name}"
 scope:
-  type: "{full-library|specific-modules|public-api|component-library|docs-only}"
+  type: "{full-library|specific-modules|public-api|component-library|reference-app|docs-only}"
   include:
     - "{pattern}"
   exclude:
@@ -199,7 +199,7 @@ Created by: {created_by}
 1. `name` must be unique within {forge_data_folder}
 2. `source_repo` must be accessible (gh api for GitHub, path exists for local)
 3. `language` must be a recognized programming language
-4. `scope.type` must be one of the five defined types
+4. `scope.type` must be one of the six defined types
 5. `scope.include` must have at least one pattern (exception: `docs-only` scope, where include patterns are optional since no source code is available)
 6. `forge_tier` must be one of: Quick, Forge, Forge+, Deep (Title Case, must match the tier from forge-tier.yaml, or default to Quick)
 7. When `source_type: "docs-only"`: `doc_urls` must have >= 1 entry, `source_repo` becomes optional

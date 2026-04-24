@@ -216,12 +216,14 @@ If the version did not change, the existing symlink already points to the correc
 
 ### 6. Verify Derived Artifact Writes
 
-SKILL.md was verified in section 1 and stack reference files in section 5 (both written by step-04 section 6b). This section verifies the artifacts this step wrote: `metadata.json`, `provenance-map.json`, `evidence-report.md`, and `context-snippet.md`.
+SKILL.md was verified in section 1 and stack reference files in section 5 (both written by step-04 section 6b). This section verifies the artifacts this step wrote: `metadata.json`, `provenance-map.json`, `evidence-report.md`, `context-snippet.md`, and the `active` symlink from §5b.
 
 For each derived artifact:
 - Read back the file
 - Confirm content matches expected output
 - Report verification status
+
+**Active symlink verification:** resolve `readlink({skill_group}/active)` and assert it equals the `version` just written to `metadata.json` in §2. This closes the §5b gap where a silent skip would otherwise leave the manifest and symlink divergent — the symlink is the fallback resolver for consumers that don't read the manifest (see `knowledge/version-paths.md` §Reading Workflows step 5), so a mismatch must fail the step, not warn. Applies in every mode — gap-driven runs do not bump `version`, but the symlink must still point to the current `version`, otherwise a prior partial run left it pointing elsewhere.
 
 "**Write Verification:**
 
@@ -232,7 +234,10 @@ For each derived artifact:
 | provenance-map.json | {VERIFIED/FAILED} |
 | evidence-report.md | {VERIFIED/FAILED} |
 | context-snippet.md | {VERIFIED/FAILED} |
+| {skill_group}/active symlink | {VERIFIED/FAILED} (readlink → {resolved_version}, expected {version}) |
 | {stack reference files...} | {VERIFIED in section 5} |
+
+**On symlink FAILED:** HALT. Do not proceed to §7 post-write validation or §8 menu. Alert the user: "**Active symlink divergence.** `{skill_group}/active` resolves to `{resolved_version}` but `metadata.json` reports `version: {version}`. §5b did not apply. Re-point the symlink manually (`ln -sfn {version} {skill_group}/active`) or re-run update-skill, then re-verify." This matches the severity of the other four artifact checks — silent divergence here mis-routes any downstream consumer that uses the symlink fallback.
 
 **All files written and verified.**"
 

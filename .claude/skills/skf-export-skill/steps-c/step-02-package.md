@@ -12,6 +12,7 @@ To assemble and validate an agentskills.io-compliant package structure from the 
 
 - Focus only on package structure assembly and validation — do not modify SKILL.md content
 - Auto-proceed when complete
+- **Multi-skill mode:** when step-01 loaded more than one skill (`len(skill_batch) > 1`), iterate sections 1–4 below per skill using each skill's `{resolved_skill_package}`. Collect per-skill status; report the aggregate in §4 as one row per skill. Halt the batch if any skill is NOT READY. See step-01 §1c.
 
 ## MANDATORY SEQUENCE
 

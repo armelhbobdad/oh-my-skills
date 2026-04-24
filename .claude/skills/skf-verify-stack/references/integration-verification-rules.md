@@ -8,12 +8,16 @@ Rules for cross-referencing API surfaces between two skills to determine integra
 
 ## Verdict Definitions
 
-| Verdict       | Meaning                                                                                        | Required Evidence                                                                                              |
-|---------------|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
-| **Verified**  | APIs demonstrably connect — matching types, documented bridge, or shared protocol              | At least one export from Skill A is consumable by an API in Skill B (or vice versa) with compatible types      |
-| **Plausible** | Compatible types or protocols but no documented integration path                               | Both libraries operate in compatible domains with compatible data formats, but no direct API bridge is evident |
-| **Risky**     | Type mismatch, protocol gap, or language boundary requiring a bridge                           | A clear gap exists (e.g., TypeScript↔Rust FFI needed) but a workaround is architecturally feasible             |
-| **Blocked**   | Fundamental incompatibility — no feasible integration path even with a bridge or adapter layer | The two libraries cannot exchange data in any documented way; requires replacing one of the libraries          |
+Token set is defined canonically in `src/shared/references/feasibility-report-schema.md` — the table below restates the same set with this skill's evidence obligations. Tokens are case-sensitive (`Verified`, `Plausible`, `Risky`, `Blocked`); emitting any other token is a schema violation.
+
+| Verdict       | Meaning                                                                                        | Required Evidence                                                                                                                                                                                                                                                   |
+|---------------|------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Verified**  | APIs demonstrably connect AND docs cross-reference each other                                  | Check 1 (language) passes with declared evidence; Check 3 (types) passes from cited `exports` signatures; **Check 4 (docs cross-reference) MUST pass with a literal substring/name citation** — without Check 4 evidence, cap at `Plausible`. Check 2 is best-effort only and cannot by itself promote to `Verified`. |
+| **Plausible** | Checks pass but rely on inferred or indirect evidence                                          | Language + type checks pass; Check 2 uses inferred `protocols_inferred`/`data_formats_inferred` (prose scan); Check 4 is weak or missing (no literal cross-reference). This is the mandatory cap whenever Check 4 does not surface a literal citation.             |
+| **Risky**     | Type mismatch, protocol gap, or language boundary requiring a bridge                           | A clear gap exists (e.g., TypeScript↔Rust FFI needed) but a workaround is architecturally feasible — a named workaround MUST be cited in the recommendation                                                                                                        |
+| **Blocked**   | Fundamental incompatibility — no feasible integration path even with a bridge or adapter layer | The two libraries cannot exchange data in any documented way; requires replacing one of the libraries                                                                                                                                                              |
+
+**Promotion rule:** `Verified` requires Check 4 evidence. If Checks 1 and 3 pass but Check 4 fails (no literal substring/name citation from either skill's SKILL.md), the verdict is capped at `Plausible`. This rule is enforced by step-03 §4 and is the producer obligation declared in the shared schema.
 
 ---
 
@@ -46,12 +50,13 @@ For each integration pair (Library A ↔ Library B):
 - Check: does Library A export a type that Library B accepts as input?
 - Common patterns: JSON serialization (universal bridge), binary formats (check codec), shared schemas (strong compatibility)
 
-### 4. Documentation Cross-Reference
+### 4. Documentation Cross-Reference (required for `Verified`)
 
-- Search Skill A's content for mentions of Library B's name
-- Search Skill B's content for mentions of Library A's name
-- If either mentions the other: strong evidence of documented integration
-- Check if either library's README lists the other as a companion/integration
+- Search Skill A's SKILL.md for a literal substring/name citation of Library B
+- Search Skill B's SKILL.md for the reciprocal citation
+- Accept literal names or aliases declared in that skill's metadata; do NOT accept paraphrase or fuzzy matches
+- A pass requires at least one literal citation in at least one direction; the exact substring and location MUST be recorded in the evidence block
+- If neither skill literally cites the other, Check 4 FAILS and the per-pair verdict MUST cap at `Plausible` (not `Verified`)
 
 ---
 

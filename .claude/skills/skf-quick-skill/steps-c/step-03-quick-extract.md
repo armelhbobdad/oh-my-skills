@@ -40,6 +40,8 @@ Based on detected language, read the primary manifest file:
 - **Python:** `pyproject.toml` or `setup.py` — extract project name, version, description, dependencies
 - **Rust:** `Cargo.toml` — extract package name, version, description, dependencies
 - **Go:** `go.mod` — extract module path, require list
+- **Java (Maven):** `pom.xml` — extract `<groupId>`, `<artifactId>`, `<version>`, `<description>`, direct `<dependencies>`. For multi-module projects, also enumerate `<modules><module>` entries and read each submodule's `pom.xml` (treat each as a logical unit in the extraction inventory).
+- **Kotlin / Java (Gradle):** `build.gradle.kts` or `build.gradle` — extract `group`, `version`, `description` (when declared), and top-level `dependencies { }` block. For multi-project builds, read `settings.gradle[.kts]` for `include(...)` entries and repeat per subproject.
 
 Extract:
 - **Package metadata:** name, version, description
@@ -69,6 +71,18 @@ Based on language and entry points from manifest, read the primary export files:
 - Read exported functions from top-level `.go` files
 - Extract: capitalized function names (Go export convention)
 - Pattern: lines matching `func [A-Z]`
+
+**Java:**
+- Read `src/main/java/**/*.java` (focus on top-level packages declared in the manifest's `groupId`)
+- Extract: public classes, public methods, and framework annotations that mark API surfaces (Spring, Jakarta EE, CDI)
+- Pattern: lines matching `@(RestController|Service|Component|Configuration|Controller|Repository|Bean)|public (class|interface|enum|record) |public .* \(`
+- **Multi-module Maven:** iterate the `<module>` entries discovered in §2 and repeat the scan per module, reading each `{module}/src/main/java/**/*.java`
+
+**Kotlin:**
+- Read `src/main/kotlin/**/*.kt` (Kotlin defaults to `public` visibility — omit `internal`/`private` declarations)
+- Extract: top-level `fun`, `class`, `object`, `interface` declarations
+- Pattern: lines matching `^(fun |class |object |interface |data class |sealed class |@(RestController|Service|Component|Configuration|Controller))`
+- **Multi-project Gradle:** iterate the `include(...)` entries discovered in §2 and repeat the scan per subproject
 
 **If scope_hint provided:** Focus reading on the specified directories instead of root.
 

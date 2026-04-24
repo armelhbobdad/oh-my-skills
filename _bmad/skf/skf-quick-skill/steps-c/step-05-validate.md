@@ -2,37 +2,77 @@
 nextStepFile: './step-06-write.md'
 ---
 
-# Step 5: Validate
+# Step 5: Write & Validate
 
 ## STEP GOAL:
 
-To validate the compiled SKILL.md, context-snippet.md, and metadata.json against the agentskills.io specification at community tier. Report any gaps or issues. This is advisory validation — issues are reported but do not block output.
+To write the compiled SKILL.md, context-snippet.md, and metadata.json to the versioned skill package, then validate them on disk against the agentskills.io specification at community tier. Writing happens here (before step-06 finalization) because `skill-check` is a file-based CLI — it reads artifacts from disk — so the files must exist before validation runs. Report any gaps or issues. Validation is advisory — issues are reported but do not block the workflow.
 
 ## Rules
 
+- Write exactly what was compiled — do not modify content during writing
 - Validation is advisory — report issues but never block output
-- Do not modify compiled content — report only
+- Do not modify compiled content post-validation — report only
 - Community-tier validation (lighter than official requirements)
 
 ## MANDATORY SEQUENCE
 
 **CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise unless user explicitly requests a change.
 
-### 1. Check Tool Availability
+### 1. Create Output Directory
+
+Resolve `{version}` from the extraction inventory's detected version, defaulting to `1.0.0` if not detected. Create the skill output directories:
+
+```
+{skill_group}                          # {skills_output_folder}/{repo_name}/
+{skill_package}                        # {skills_output_folder}/{repo_name}/{version}/{repo_name}/
+```
+
+If `{skill_package}` already exists, confirm with user before overwriting:
+
+"**Directory `{skill_package}` already exists.** Overwrite will replace the prior compiled output; validation results, result contracts, and any manual tweaks from the previous run will not be preserved. Overwrite existing files? [Y/N]"
+
+- **If user selects Y:** Proceed to section 2.
+- **If user selects N:** Halt with: "Overwrite cancelled. Existing skill preserved. Run [QS] with a different skill name or remove the existing directory manually."
+
+**GATE [default: Y]** — If `{headless_mode}` is true, auto-proceed with Y and log: "headless: overwriting existing `{skill_package}`".
+
+### 2. Write Deliverables
+
+Write the three compiled artifacts to the skill package so that validation in sections 3–9 has files on disk to read:
+
+**File 1:** `{skill_package}/SKILL.md` — the compiled skill document
+**File 2:** `{skill_package}/context-snippet.md` — the compressed context snippet
+**File 3:** `{skill_package}/metadata.json` — the machine-readable metadata
+
+Confirm after each write: "Written: SKILL.md" / "Written: context-snippet.md" / "Written: metadata.json".
+
+**If any write fails — HARD HALT:**
+
+"**Write failed:** Could not write to `{file_path}`.
+
+Error: {error details}
+
+Please check:
+- Does the output directory exist and is it writable?
+- Is there sufficient disk space?
+- Are there permission issues?"
+
+### 3. Check Tool Availability
 
 Run: `npx skill-check -h`
 
-- If succeeds (returns usage information): Continue to automated validation (section 2)
-- If fails (command not found or error): Skip to manual fallback in section 2
+- If succeeds (returns usage information): Continue to automated validation (section 4)
+- If fails (command not found or error): Skip to manual fallback in section 4
 
 **Important:** Use the verification command. Do not assume availability — empirical check required.
 
-### 2. Validate SKILL.md via skill-check (if available)
+### 4. Validate SKILL.md via skill-check (if available)
 
-**If `npx skill-check` is available**, run automated validation with auto-fix:
+**If `npx skill-check` is available**, run automated validation with auto-fix against the skill package written in section 2:
 
 ```bash
-npx skill-check check <skill-dir> --fix --format json --no-security-scan
+npx skill-check check {skill_package} --fix --format json --no-security-scan
 ```
 
 This validates frontmatter, description, body limits, links, and formatting — and auto-fixes deterministic issues (field ordering, slug format, required fields, trailing newlines).
@@ -54,7 +94,7 @@ Record quality score and any remaining diagnostics as validation issues.
 
 **For each violation, log an issue.** Missing frontmatter or missing required fields are high-severity issues — skills without valid frontmatter will fail `npx skills add` and `npx skill-check check`.
 
-### 3. Validate SKILL.md Body Structure
+### 5. Validate SKILL.md Body Structure
 
 Check that SKILL.md has these required sections populated:
 
@@ -65,7 +105,7 @@ Check that SKILL.md has these required sections populated:
 
 **For each missing or empty required section, log an issue.**
 
-### 4. Validate Context Snippet Format
+### 6. Validate Context Snippet Format
 
 Check context-snippet.md format compliance:
 
@@ -76,7 +116,7 @@ Check context-snippet.md format compliance:
 
 **If format is wrong, log an issue.**
 
-### 5. Validate Metadata JSON
+### 7. Validate Metadata JSON
 
 Check metadata.json has required fields:
 
@@ -96,12 +136,12 @@ Check metadata.json has required fields:
 
 **For each missing or invalid field, log an issue.**
 
-### 6. Security Scan (if skill-check available)
+### 8. Security Scan (if skill-check available)
 
-Run security scan on the compiled skill:
+Run security scan on the compiled skill package:
 
 ```bash
-npx skill-check check <skill-dir> --format json
+npx skill-check check {skill_package} --format json
 ```
 
 (Security scan is enabled by default when `--no-security-scan` is omitted.)
@@ -110,7 +150,7 @@ Record any security findings as advisory warnings. Security issues do not block 
 
 **If skill-check unavailable:** Skip with note in validation results.
 
-### 7. Report Validation Results
+### 9. Report Validation Results
 
 "**Validation complete:**
 
@@ -130,13 +170,13 @@ Record any security findings as advisory warnings. Security issues do not block 
 **Overall:** {pass / N issues found}
 
 {If issues found:}
-These issues are advisory for community-tier skills. You can proceed to write output or go back to adjust.
+These issues are advisory for community-tier skills. You can proceed to finalize or go back to adjust.
 
-**Proceeding to write output...**"
+**Proceeding to finalize...**"
 
 Set `validation_result` with pass/fail status, quality score, and issues list.
 
-### 8. Auto-Proceed to Write
+### 10. Auto-Proceed to Finalize
 
 #### Menu Handling Logic:
 
@@ -145,9 +185,9 @@ Set `validation_result` with pass/fail status, quality score, and issues list.
 #### EXECUTION RULES:
 
 - This is an auto-proceed step — validation is advisory
-- Proceed directly to write step after reporting results
+- Proceed directly to finalize step after reporting results
 
 ## CRITICAL STEP COMPLETION NOTE
 
-ONLY WHEN validation checks are complete and results reported will you load and read fully `{nextStepFile}` to execute file writing.
+ONLY WHEN deliverables have been written to `{skill_package}` and validation checks are complete and results reported will you load and read fully `{nextStepFile}` to execute finalization.
 

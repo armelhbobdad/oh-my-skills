@@ -21,18 +21,22 @@ To load the target skill's artifacts, validate they meet agentskills.io spec com
 
 "**Starting skill export...**"
 
-Determine the skill to export and any flags:
+Determine the skill(s) to export and any flags:
 
 **Skill Path Discovery (version-aware — see `knowledge/version-paths.md`):**
-- If user provided a skill name or path as argument, use that
-- If not provided, discover available skills using the export manifest:
+- If user provided one or more skill names or paths as arguments, use that list directly
+- If `--all` was passed, build the list from every skill in `{skills_output_folder}/.export-manifest.json.exports` whose `active_version` entry is not `status: "deprecated"` (deprecated skills are excluded from all exports — see step-04 §4b)
+- If no explicit skill and no `--all`, discover available skills using the export manifest:
   1. Read `{skills_output_folder}/.export-manifest.json` — list skill names from `exports`
   2. For each skill group directory in `{skills_output_folder}/`, check for `{skill_group}/active/{skill-name}/SKILL.md`
   3. If neither manifest nor `active` symlink yields results, fall back to flat path: `{skills_output_folder}/{skill-name}/SKILL.md`
-- If multiple skills found, present list and ask user to select
+- If multiple skills are found, present the list and accept either a single selection or a comma-/space-separated multi-selection (e.g. `1, 2, 3` or `all`)
 - If no skills found, halt: "No skills found in {skills_output_folder}/. Run create-skill first."
 
+Store the resolved selection as `skill_batch` — a list of one or more skill names. `len(skill_batch) > 1` activates multi-skill mode (see §1c below).
+
 **Flag Parsing:**
+- `--all` flag: Check if provided. When true and no explicit skill list was given, `skill_batch` is the full non-deprecated manifest set (see above).
 - `--context-file` flag: Check if explicitly provided (CLAUDE.md, .cursorrules, or AGENTS.md). Replaces the old `--platform` flag.
 - `--dry-run` flag: Check if provided. Default: `false`
 
@@ -54,9 +58,60 @@ For each IDE in `config.yaml.ides`:
 - If mapping produces one or more context files (after dedup), store as `target_context_files` list — each entry has `{context_file, skill_root}`
 - If mapping produces zero entries (empty ides list and no recognized entries), fall back to `[{context_file: "AGENTS.md", skill_root: ".agents/skills/"}]` with note: "No IDEs configured in config.yaml — defaulting to AGENTS.md with `.agents/skills/`."
 
-"**Skill:** {skill-name}
+"**Skill(s):** {skill-batch-list} ({N} total)
 **Context file(s):** {context-file-list} (skill root: {skill-root-list})
 **Dry Run:** {yes/no}"
+
+### 1b. Detect Snippet Root Prefix Mismatch
+
+**Skip entirely if `snippet_skill_root_override` is already set in `config.yaml`** — the authoring-repo escape hatch is already configured and any on-disk prefix that matches it is ground truth (see `assets/managed-section-format.md` override rules).
+
+Otherwise, probe existing snippets to catch the authoring-repo case (skills live under a single shared directory like `skills/` that does not match any per-IDE `skill_root`) before step-04 silently rewrites their root paths:
+
+1. Collect candidate snippet paths:
+   - Read `{skills_output_folder}/.export-manifest.json` if it exists. For each skill in `exports` with a resolvable `active_version`, add `{skills_output_folder}/{skill-name}/{active_version}/{skill-name}/context-snippet.md`
+   - Also include the current skill's snippet if present (resolved via manifest / `active` symlink / flat path per `knowledge/version-paths.md`)
+2. For each snippet that exists on disk, read the first line and parse the `root:` value. Strip the trailing `{skill-name}/` to extract the prefix (e.g. `skills/`, `.claude/skills/`)
+3. Collect unique prefixes into `observed_prefixes`
+4. Compare against `target_context_files[0].skill_root` (the first entry's IDE-mapped skill root — used as reference since step-03 §2.7 picks this same entry for snippet generation when no override is set)
+
+**If `observed_prefixes` contains any value that does not match the reference `skill_root`:**
+
+Emit a single warning (once, not per snippet) and present resolution options before proceeding:
+
+"**Snippet root prefix mismatch detected.**
+Existing snippets use: `{observed_prefixes}`
+IDE-mapped skill_root:  `{target_context_files[0].skill_root}`
+
+This usually means you are in an authoring repo where skills live under a single shared directory. Options:
+- **(a) Set override** — add `snippet_skill_root_override: {observed_prefix}` to `config.yaml`. Snippets keep their on-disk prefix; the managed section references the real location.
+- **(b) Proceed with IDE mapping** — step-04 will rewrite every snippet's root path to the IDE's skill_root. Use this only if the IDE's skill directory actually contains the skill files.
+- **(c) Cancel** — abort export and investigate.
+
+If multiple distinct prefixes were observed, the snippets disagree with each other — investigate before choosing (a)."
+
+In `{headless_mode}`, default to (b) and log the observed prefix(es) so the mismatch is visible in run logs. In interactive mode, wait for user choice before continuing to section 2.
+
+**If all observed prefixes match the reference `skill_root` (or no existing snippets were found):** Proceed silently.
+
+### 1c. Multi-skill Mode (when `len(skill_batch) > 1`)
+
+When multiple skills are being exported in a single run (via `--all`, multi-selection at the discovery menu, or an explicit multi-argument invocation), the workflow does NOT loop the full step-01→step-07 sequence once per skill. Instead, it partitions work across steps to avoid repeated gates and redundant batch work:
+
+| Step | Behavior in multi-skill mode |
+|------|------------------------------|
+| step-01 §2–5 | **Iterate per skill** — load, validate, read metadata, and check the test report for every skill in `skill_batch`. Collect per-skill results. |
+| step-01 §6 | **Single gate** — present one consolidated summary table (one row per skill) and a single [C] gate for the whole batch. |
+| step-02 | **Iterate per skill** — validate each skill's package structure and collect per-skill readiness. |
+| step-03 | **Iterate per skill** — regenerate each skill's `context-snippet.md` independently (each skill has its own prior-gotchas carry-forward state). |
+| step-04 | **Batch once** — §3b orphan detection, §4 skill-index rebuild, §5 managed-section assembly, and §6–9 diff + write all execute once for the entire batch. The exported skill set in §4b already enumerates every skill in the manifest — it does not need per-skill iteration. §9b adds/updates a manifest entry per skill in `skill_batch` (not just the last one), then writes the manifest once. |
+| step-05 | **Iterate per skill** — compute token counts per skill, then present one aggregate report. |
+| step-06 | **One batch summary + one result contract** — the files-written table lists every skill; the result contract JSON covers the whole run, and `outputs` enumerates every context-snippet + target context file touched. |
+| step-07 | **Runs once** — health check is per-workflow-run, not per-skill. |
+
+**Halt semantics in batch mode:** if any single skill fails validation in §2 (required-file or metadata-field failure), halt the entire batch before §5 — do not partially export. Report which skill failed and why.
+
+**Single-skill mode (`len(skill_batch) == 1`)** preserves the legacy behavior: every section below operates on the one skill without iteration.
 
 ### 2. Load and Validate Skill Artifacts
 
@@ -124,6 +179,8 @@ Continue to step 5 regardless — this is advisory, not blocking.
 
 ### 5. Present Skill Summary
 
+**Single-skill mode:**
+
 "**Skill loaded and validated.**
 
 | Field | Value |
@@ -149,9 +206,29 @@ Continue to step 5 regardless — this is advisory, not blocking.
 
 **Is this the correct skill to export?**"
 
+**Multi-skill mode** (`len(skill_batch) > 1`):
+
+"**{N} skills loaded and validated.**
+
+| # | Name | Type | Authority | Tier | Exports | Test |
+|---|------|------|-----------|------|---------|------|
+| 1 | {name-1} | {type} | {authority} | {tier} | {count} | {pass/fail/none} |
+| 2 | {name-2} | ... | ... | ... | ... | ... |
+| N | {name-N} | ... | ... | ... | ... | ... |
+
+**Export Configuration (applies to all):**
+| Setting | Value |
+|---------|-------|
+| **Context File(s)** | {context-file-list} (skill root: {skill-root-list}) |
+| **Explicit --context-file** | {yes / no (from config.yaml)} |
+| **Dry Run** | {yes/no} |
+| **Passive Context** | {enabled/disabled} |
+
+**Are these the correct skills to export?**"
+
 ### 6. Present MENU OPTIONS
 
-Display: "**Select:** [C] Continue to packaging"
+Display: "**Select:** [C] Continue to packaging" (multi-skill mode: the single [C] gate covers the whole batch)
 
 #### Menu Handling Logic:
 

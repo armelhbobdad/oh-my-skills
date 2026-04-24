@@ -1,6 +1,9 @@
 ---
 nextStepFile: './step-05-synthesize.md'
-outputFile: '{forge_data_folder}/feasibility-report-{project_name}.md'
+feasibilitySchemaRef: 'src/shared/references/feasibility-report-schema.md'
+atomicWriteScript: '{project-root}/src/shared/scripts/skf-atomic-write.py'
+outputFile: '{forge_data_folder}/feasibility-report-{project_slug}-{timestamp}.md'
+outputFileLatest: '{forge_data_folder}/feasibility-report-{project_slug}-latest.md'
 ---
 
 # Step 4: Requirements Coverage
@@ -21,7 +24,7 @@ If a PRD or vision document was provided in Step 01, verify that the combined ca
 
 ### 1. Check PRD Availability
 
-**Check `prd_available` from workflow state (set in Step 01). If `prd_available` is false (no PRD/vision document was provided):**
+**Read `prdAvailable` from `{outputFile}` frontmatter (set in Step 01). If `prdAvailable` is false (no PRD/vision document was provided):**
 
 "**Pass 3: Requirements Coverage — Skipped**
 
@@ -31,7 +34,7 @@ To include this pass, re-run **[VS]** with a PRD or vision document path.
 
 **Proceeding to synthesis...**"
 
-Update {outputFile} frontmatter: append `'step-04-requirements'` to `stepsCompleted`, set `requirements_pass: "skipped"`.
+Update `{outputFile}` frontmatter: append `'step-04-requirements'` to `stepsCompleted`; set `requirementsPass: "skipped"`. Pipe the updated content through `python3 {atomicWriteScript} write --target {outputFile}` and again with `--target {outputFileLatest}`.
 
 Load, read the full file and then execute `{nextStepFile}`. **STOP HERE — do not execute sections 2-6.**
 
@@ -96,12 +99,13 @@ For each requirement, evaluate whether the combined capabilities of the generate
 
 ### 5. Append to Report
 
-Write the **Requirements Coverage** section to `{outputFile}`:
+Write the Requirements Coverage content under the `## Recommendations` section (or as a clearly-titled subsection preceding Recommendations — the shared schema's fixed top-level headings are Executive Summary, Coverage Analysis, Integration Verdicts, Recommendations, Evidence Sources; requirements detail lives under Recommendations):
 - Include the full requirements coverage table
 - Include recommendations for Not Addressed and Partially Fulfilled items
 - Update frontmatter: append `'step-04-requirements'` to `stepsCompleted`
-- Set `requirements_pass: "completed"`
-- Set `requirements_fulfilled`, `requirements_partial`, `requirements_not_addressed` counts
+- Set `requirementsPass: "completed"`
+- Set `requirementsFulfilled`, `requirementsPartial`, `requirementsNotAddressed` counts
+- Pipe the updated full content through `python3 {atomicWriteScript} write --target {outputFile}` and again with `--target {outputFileLatest}`
 
 ### 6. Auto-Proceed to Next Step
 

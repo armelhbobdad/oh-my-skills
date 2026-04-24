@@ -37,7 +37,7 @@ Provenance maps live in `forge-data/{skill}/{version}/provenance-map.json` along
 }
 ```
 
-The snippet above is a real entry from [`forge-data/oms-cognee/0.5.8/provenance-map.json`](https://github.com/armelhbobdad/oh-my-skills/blob/main/forge-data/oms-cognee/0.5.8/provenance-map.json). Line number is not rounded. Confidence tier is explicit. Extraction method is named. Nothing is paraphrased.
+The snippet above is a real entry from [`forge-data/oms-cognee/1.0.0/provenance-map.json`](https://github.com/armelhbobdad/oh-my-skills/blob/main/forge-data/oms-cognee/1.0.0/provenance-map.json). Line number is not rounded. Confidence tier is explicit. Extraction method is named. Nothing is paraphrased.
 
 ### 3. Visit the upstream repo at the pinned commit
 
@@ -70,24 +70,129 @@ Everything a reader needs to reconstruct the compilation is in the two sibling d
 
 ## The scores, including the ones we lose
 
-Completeness scoring is never 100%. The [scoring formula](../how-it-works/#completeness-scoring) is deterministic and the pass threshold is **80%** — but every test report also logs the specific edges where a skill falls short, so the numbers aren't marketing.
+Completeness scoring is never 100%. The [scoring formula](#how-the-score-is-computed) is deterministic and the pass threshold is **80%** — but every test report also logs the specific edges where a skill falls short, so the numbers aren't marketing.
 
 Take oh-my-skills' four reference skills as an example. Their scores range from **99.0% to 99.49%** — none are perfect, and every test report names the specific drift it found:
 
 | Skill | Score | What the report discloses |
 |---|---|---|
 | [oms-cocoindex](https://github.com/armelhbobdad/oh-my-skills/blob/main/forge-data/oms-cocoindex/0.3.37/test-report-oms-cocoindex.md) | **99.0%** | 114/114 provenance entries; 55 public-API denominator from `__init__.py` `__all__`; 20/20 sampled signatures matched. Two denominators (barrel vs. full surface) both disclosed with rationale. |
-| [oms-cognee](https://github.com/armelhbobdad/oh-my-skills/blob/main/forge-data/oms-cognee/0.5.8/test-report-oms-cognee.md) | **99.45%** | 25/25 exports documented; denominator pinned to `cognee/__init__.py` lines 18–47. |
+| [oms-cognee](https://github.com/armelhbobdad/oh-my-skills/blob/main/forge-data/oms-cognee/1.0.0/test-report-oms-cognee.md) | **99.0%** | 34/34 exports documented; denominator is the `cognee/__init__.py` barrel (61 lines, 34 public re-exports) at pinned commit `3c048aa4` (v1.0.0). |
 | [oms-storybook-react-vite](https://github.com/armelhbobdad/oh-my-skills/blob/main/forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite.md) | **99.49%** | 215/216 documented — the missing 1 entry is logged openly as **GAP-004**, a canonical surface count drift from the stated denominator. |
 | [oms-uitripled](https://github.com/armelhbobdad/oh-my-skills/blob/main/forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled.md) | **99.45%** | 34-entry denominator (not 11, not 25) with the full reconciliation reasoning in the report. |
 
-A promise of perfection is suspicious. A promise of visible fallibility is trustworthy. SKF writes down the edges it can't score cleanly — so you can read them and decide for yourself whether the remaining coverage is enough for your use case.
+Perfection is suspicious. Visible fallibility is trustworthy. SKF writes down the edges it can't score cleanly — so you can read them and decide for yourself whether the remaining coverage is enough for your use case.
 
 ### GAP-004: a worked example of the 1% that fails
 
 The [`oms-storybook-react-vite` test report](https://github.com/armelhbobdad/oh-my-skills/blob/main/forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite.md) scores **215/216** — not 216/216. The missing 1 entry is logged as **GAP-004**: a canonical export surface count (via the provenance map) diverges from the stated denominator in metadata.json. The report names the gap, shows the math, and leaves the drift visible for the next recompilation pass. Nothing was hidden.
 
 That's the pattern SKF asks you to trust: when scoring can't reach 100%, the report says so, cites the line, and leaves a fingerprint for the next audit.
+
+---
+
+## How the Score Is Computed
+
+The Test Skill workflow (`@Ferris TS`) calculates the completeness score — a weighted measure of how thoroughly and accurately a skill documents its target. This score is the quality gate: pass and the skill is ready for export; fail and it routes to update-skill for remediation.
+
+### Categories and weights
+
+The score is the weighted sum of five categories:
+
+| Category | Weight | What it measures |
+|---|---|---|
+| **Export Coverage** | 36% | Percentage of source exports documented in `SKILL.md` |
+| **Signature Accuracy** | 22% | Documented function signatures match actual source signatures (parameter names, types, order, return types) |
+| **Type Coverage** | 14% | Types and interfaces referenced in exports are fully documented |
+| **Coherence** | 18% | Cross-references resolve, integration patterns are complete (contextual mode only) |
+| **External Validation** | 10% | Average of skill-check quality score (0–100) and tessl content score (0–100%) |
+
+### Formula
+
+```
+total_score = sum(category_weight × category_score)
+```
+
+Each category score is a percentage: `(items_passing / items_total) × 100`.
+
+**Coherence** (contextual mode) combines two sub-scores:
+
+```
+coherence = (reference_validity × 0.6) + (integration_completeness × 0.4)
+```
+
+If no integration patterns exist, coherence equals reference validity alone.
+
+**External validation** averages the two tools when both are available. When only one tool is available, that tool's score is used. When neither is available, the 10% weight is redistributed proportionally to the other active categories.
+
+### Deterministic scoring
+
+The weight redistribution and score aggregation are computed by a deterministic Python script ([`compute-score.py`](https://github.com/armelhbobdad/bmad-module-skill-forge/blob/main/src/skf-test-skill/scripts/compute-score.py)). The LLM extracts category scores from the test report, constructs a JSON input, invokes the script, and uses its output for the final score. Same inputs always produce the same score. If the script is unavailable, the LLM falls back to manual calculation using the same formulas.
+
+### Naive vs contextual mode
+
+Test Skill runs in one of two modes, detected automatically:
+
+- **Contextual mode** (stack skills) — all five categories scored with the default weights above.
+- **Naive mode** (individual skills) — Coherence is not scored. Its 18% weight is redistributed:
+
+| Category | Naive Weight |
+|---|---|
+| Export Coverage | 45% |
+| Signature Accuracy | 25% |
+| Type Coverage | 20% |
+| External Validation | 10% |
+
+### Tier adjustments
+
+Your forge tier determines which categories can be scored:
+
+| Tier | Skipped Categories | Reason |
+|---|---|---|
+| **Quick** | Signature Accuracy, Type Coverage | No AST parsing available |
+| **Docs-only** | Signature Accuracy, Type Coverage | No source code to compare against |
+| **Provenance-map** (State 2) | Signature Accuracy, Type Coverage | String comparison only, no semantic AST verification |
+| **Forge / Forge+ / Deep** | None | Full AST-backed scoring |
+
+When categories are skipped, their combined weight is redistributed proportionally to the remaining active categories. A Quick-tier skill and a Deep-tier skill both pass at the same 80% threshold — the score reflects what your tier can actually measure.
+
+### Pass/fail
+
+```
+threshold = custom_threshold OR 80% (default)
+
+score >= threshold  →  PASS  →  Recommend export-skill
+score <  threshold  →  FAIL  →  Recommend update-skill
+```
+
+The default is 80%. You can override it by specifying a custom threshold when invoking the workflow (e.g., "test this skill with a 70% threshold").
+
+### Gap severities
+
+When the score is calculated, each finding is classified by severity to guide remediation:
+
+| Severity | Examples |
+|---|---|
+| **Critical** | Missing exported function/class documentation |
+| **High** | Signature mismatch between source and `SKILL.md` |
+| **Medium** | Missing type/interface documentation; scripts/assets directory inconsistencies |
+| **Low** | Missing optional metadata or examples; description optimization opportunities |
+| **Info** | Style suggestions; discovery testing recommendations |
+
+### Score report output
+
+The test report includes a score breakdown table showing each category's raw score, weight, and weighted contribution:
+
+| Category | Score | Weight | Weighted |
+|---|---|---|---|
+| Export Coverage | 92% | 36% | 33.1% |
+| Signature Accuracy | 85% | 22% | 18.7% |
+| Type Coverage | 100% | 14% | 14.0% |
+| Coherence | 80% | 18% | 14.4% |
+| External Validation | 78% | 10% | 7.8% |
+| **Total** | | **100%** | **88.0%** |
+
+The report also records `analysisConfidence` (full, provenance-map, metadata-only, remote-only, or docs-only) and includes a degradation notice when source access was limited.
 
 ---
 

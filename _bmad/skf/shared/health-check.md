@@ -186,7 +186,17 @@ Record the outcome to the seen-cache under the fingerprint with fields `{action,
 
 For each confirmed finding, create a GitHub issue:
 
-**Command:**
+**First, ensure the `{fp}` label exists** — it is per-fingerprint, so the first reporter of any defect is always creating a brand-new label. `gh issue create --label fp-XXXX` hard-fails if the label is missing, so guard it:
+
+```
+gh label create "{fp}" --repo {healthCheckRepo} \
+  --color "ededed" \
+  --description "Health-check fingerprint dedup key" 2>/dev/null || true
+```
+
+The `|| true` makes this idempotent: if the label already exists (second reporter of the same defect whose prior issue was closed, racing a parallel submission, etc.), `gh label create` exits non-zero and we proceed unharmed. The other labels in the command below (`health-check`, `workflow-improvement`, `bug`/`friction`/`gap`) are pre-created repo labels and do not need this guard.
+
+**Then create the issue:**
 ```
 gh issue create \
   --repo {healthCheckRepo} \
@@ -340,6 +350,7 @@ This is the TERMINAL step — shared across all SKF workflows. After the health 
 - User review gate presented before any submission
 - Severity gate respected: only `bug` submits live by default; `friction`/`gap` require explicit opt-in
 - Fingerprint computed deterministically and applied to both title prefix and `fp-*` label
+- `fp-*` label is ensured idempotently (`gh label create ... || true`) before `gh issue create`, so a first reporter of a defect never hard-fails
 - Remote dedup search performed before every live submission; existing issues get reactions/delta-comments rather than duplicates
 - Seen-cache at `{seenCachePath}` updated after every submission/reaction and consulted before every search
 - Local fallback files written with clear manual submission instructions (when `gh` unavailable)

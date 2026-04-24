@@ -26,11 +26,19 @@ Parse document section headers for technology groupings:
 
 ### Coverage Verdict
 
-| Verdict     | Meaning                                                                                                   |
-|-------------|-----------------------------------------------------------------------------------------------------------|
-| **Covered** | A generated skill exists in `skills/` for this technology                                                 |
-| **Missing** | Technology is referenced in architecture doc but no skill exists                                          |
-| **Extra**   | A skill exists but the technology is not referenced in the architecture doc (informational, not an error) |
+The coverage matrix renders two verdict tokens per referenced technology: **Covered** and **Missing**. Extra skills (skills present in the inventory but NOT referenced by the architecture document) are tracked in a separate informational subdivision — they are not coverage verdicts and do not appear in the primary `Technology → Skill Match → Verdict` column. See step-02 §4 for the Extra-skill subdivision output.
+
+| Verdict     | Meaning                                                          |
+|-------------|------------------------------------------------------------------|
+| **Covered** | A generated skill exists in `skills/` for this technology        |
+| **Missing** | Technology is referenced in architecture doc but no skill exists |
+
+**Informational — Extra skills subdivision (not a verdict; rendered in a separate section per step-02 §4):**
+
+| Label                                  | Meaning                                                                                                                          |
+|----------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| **Extra (unreferenced)**               | Skill exists with a resolvable `source_repo` / `source_root`, but no architecture tech token matches it                          |
+| **Orphan (source_repo unresolvable)**  | Skill's `source_repo` is empty, malformed, or its basename cannot be extracted — cross-reference against architecture impossible |
 
 ## Output Format
 

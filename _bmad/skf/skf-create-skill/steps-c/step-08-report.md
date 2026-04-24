@@ -1,5 +1,11 @@
 ---
 nextStepFile: './step-09-health-check.md'
+# Resolve `{atomicWriteHelper}` by probing `{atomicWriteProbeOrder}` in order
+# (installed SKF module path first, src/ dev-checkout fallback); first existing
+# path wins. HALT if neither resolves.
+atomicWriteProbeOrder:
+  - '{project-root}/_bmad/skf/shared/scripts/skf-atomic-write.py'
+  - '{project-root}/src/shared/scripts/skf-atomic-write.py'
 ---
 
 # Step 8: Report
@@ -101,7 +107,9 @@ completed: [{list of completed skill names}]
 last_updated: {ISO timestamp}
 ```
 
-Then load and execute `steps-c/step-01-load-brief.md` for the next brief. Step-01 detects an active batch via `batch-state.yaml` and loads the brief at `current_index`.
+**Before writing:** validate the same two invariants that step-01 re-checks on resume — `0 <= current_index < len(brief_list)` AND `os.path.exists(brief_list[current_index])`. If either fails (e.g., the next brief file was deleted mid-batch, or arithmetic pushed the index off the end), set `batch_active: false` and write `batch_halt_reason: "invalid checkpoint at write time — index or file missing"` instead of the active record. The next run will re-discover rather than resume a broken index.
+
+Then load and execute `steps-c/step-01-load-brief.md` for the next brief. Step-01 detects an active batch via `batch-state.yaml` and loads the brief at `current_index` only after re-validating the same invariants (belt and braces — the checkpoint may have been edited between runs).
 
 **If all batch briefs complete:**
 
@@ -115,7 +123,11 @@ End workflow. No further steps.
 
 **If not batch mode (or all batch briefs complete):**
 
-Write the result contract per `shared/references/output-contract-schema.md`: the per-run record at `{forge_version}/create-skill-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{forge_version}/create-skill-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include `SKILL.md`, `context-snippet.md`, and `metadata.json` paths in `outputs` and confidence distribution in `summary`.
+**Resolve the schema reference:** before writing, verify that `{project-root}/src/shared/references/output-contract-schema.md` exists and is readable. Try in order: `{project-root}/src/shared/references/output-contract-schema.md`, then `{project-root}/_bmad/skf/shared/references/output-contract-schema.md` (installed-forge path).
+
+- **If resolved:** write the result contract per the schema — the per-run record at `{forge_version}/create-skill-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{forge_version}/create-skill-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include `SKILL.md`, `context-snippet.md`, and `metadata.json` paths in `outputs` and confidence distribution in `summary`. Use `python3 {atomicWriteHelper} write --target {forge_version}/create-skill-result-{YYYYMMDD-HHmmss}.json` (stdin-piped JSON) for the per-run record, then the same helper for the `-latest.json` copy.
+
+- **If neither candidate path resolves:** skip the result-contract write entirely. Append a warning to `evidence-report.md`: "Result contract skipped — `shared/references/output-contract-schema.md` could not be resolved at either candidate path." Then set `validation_status: 'schema-unavailable'` in `metadata.json` (and re-write metadata.json via `skf-atomic-write.py write`). Pipeline consumers will observe the missing `-latest.json` and the metadata flag.
 
 ### 6. Chain to Health Check
 

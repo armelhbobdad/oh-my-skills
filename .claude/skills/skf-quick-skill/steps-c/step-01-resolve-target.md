@@ -89,6 +89,8 @@ Determine primary language from:
    - `pyproject.toml` or `setup.py` → Python
    - `Cargo.toml` → Rust
    - `go.mod` → Go
+   - `pom.xml` → Java (or Kotlin if `src/main/kotlin/` is present)
+   - `build.gradle.kts` or `build.gradle` → Kotlin (or Java if only `src/main/java/` is present)
 
 Set `language` to detected language.
 

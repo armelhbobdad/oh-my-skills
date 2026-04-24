@@ -27,9 +27,11 @@ Set `confirmed_dependencies` = all `raw_dependencies` (the list already stored a
 
 **Apply scope_overrides:** If `scope_overrides` were provided in step 01, apply them now — force-include or force-exclude skills as specified. Log any overrides applied.
 
+**Validate override keys (S4):** Every key in `scope_overrides` MUST be present in `raw_dependencies`. For any unknown key, emit `"scope_override: unknown dependency '{key}' — skipping"` and drop that override entry (do not fail the run). Known-key overrides still apply.
+
 Present skills sorted by architectural layer (from architecture doc if available):
-- If `architecture_doc_path` is not null: parse architecture doc for section headers to determine layer grouping
-- If `architecture_doc_path` is null or layers not detectable: present alphabetically
+- If `architecture_doc_path` is not null: **wrap the architecture-doc parse in try/except (S5)**. On any parse error (file unreadable, malformed markdown, no H2 structure), fall back to alphabetical ordering and log a warning `"architecture-doc parse failed: {error} — falling back to alphabetical"`. Otherwise parse section headers to determine layer grouping.
+- If `architecture_doc_path` is null or layers not detectable: present alphabetically.
 
 Display skills as a table:
 

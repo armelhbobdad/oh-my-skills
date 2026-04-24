@@ -22,7 +22,10 @@
 # File ignored by Astro/Starlight content collections because the parent
 # directory starts with `_`. It is purely a build-time / CI-time anchor.
 
-# SKF package version — matches the `version` field in package.json
+# SKF package version — matches the `version` field in package.json.
+# Enforced two ways: (1) release.yaml bumps this line in the same commit
+# as package.json + marketplace.json on every release; (2) validate-docs-drift.js
+# cross-checks this value against package.json.version and fails on mismatch.
 skf_version: "1.0.0"
 
 # Path to the oh-my-skills repo, resolved relative to this repo's root.
@@ -36,12 +39,12 @@ oh_my_skills_path: "../oh-my-skills"
 skills:
   oms-cognee:
     library: cognee
-    version: "0.5.8"
+    version: "1.0.0"
     source_repo: "https://github.com/topoteretes/cognee"
-    source_commit: "b51dcce1d273d47ce864cd6c5e44a7a82f7f8dce"
-    source_ref: "v0.5.8"
-    upstream_commit_date: "2026-04-08"
-    test_score: 99.45
+    source_commit: "3c048aa4147776f14d4546704f986242554a9ef3"
+    source_ref: "v1.0.0"
+    upstream_commit_date: "2026-04-11"
+    test_score: 99.00
     test_mode: "naive"
     confidence_tier: "Deep"
     source_authority: "community"

@@ -66,6 +66,9 @@ def make_error(message):
 # --- Validation ---
 
 
+BOOL_FIELDS = ("docsOnly", "state2", "stackSkill")
+
+
 def validate_input(inp):
     if inp is None or not isinstance(inp, dict):
         return "Input must be a JSON object"
@@ -76,6 +79,20 @@ def validate_input(inp):
     valid_tiers = ["Quick", "Forge", "Forge+", "Deep"]
     if not inp.get("tier") or inp["tier"] not in valid_tiers:
         return f"Missing or invalid required field: tier (must be one of: {', '.join(valid_tiers)})"
+
+    # H3: reject string booleans — bare true/false only.
+    # `bool` is a subclass of `int` in Python; accept only actual bools or the
+    # absence of the field. Strings like "true"/"false" and ints 0/1 are rejected
+    # to catch the common YAML/JSON hand-editing mistake of quoting the value.
+    for field in BOOL_FIELDS:
+        if field in inp and inp[field] is not None:
+            if not isinstance(inp[field], bool):
+                return (
+                    f"Field `{field}` must be a bare boolean (true/false). "
+                    f"Got {type(inp[field]).__name__}: {inp[field]!r}. "
+                    "String 'true'/'false' or 0/1 is not accepted — "
+                    "this typically indicates a YAML/JSON quoting mistake."
+                )
 
     if "scores" not in inp or not isinstance(inp.get("scores"), dict):
         return "Missing required field: scores"
@@ -91,7 +108,7 @@ def validate_input(inp):
     for cat in CATEGORIES:
         score = inp["scores"].get(cat)
         if score is not None:
-            if not isinstance(score, (int, float)):
+            if isinstance(score, bool) or not isinstance(score, (int, float)):
                 return f"scores.{cat} must be a number or null, got: {type(score).__name__}"
             if score < 0 or score > 100:
                 return f"scores.{cat} must be between 0 and 100, got: {score}"
@@ -112,6 +129,7 @@ def compute_score(inp):
     tier = inp["tier"]
     docs_only = inp.get("docsOnly") is True
     state2 = inp.get("state2") is True
+    stack_skill = inp.get("stackSkill") is True
     threshold = inp.get("threshold") if inp.get("threshold") is not None else DEFAULT_THRESHOLD
     scores = inp["scores"]
 
@@ -120,7 +138,7 @@ def compute_score(inp):
 
     # 3. Determine skip set
     skip_reasons = {}
-    skip_sig_type = tier == "Quick" or docs_only or state2
+    skip_sig_type = tier == "Quick" or docs_only or state2 or stack_skill
 
     if skip_sig_type:
         reasons = []
@@ -130,6 +148,8 @@ def compute_score(inp):
             reasons.append("docs-only mode")
         if state2:
             reasons.append("State 2 (provenance-map)")
+        if stack_skill:
+            reasons.append("stack skill (external type surface)")
         reason = " + ".join(reasons)
         skip_reasons["signatureAccuracy"] = reason
         skip_reasons["typeCoverage"] = reason
@@ -184,14 +204,50 @@ def compute_score(inp):
     # Weight sum for verification
     weight_sum = round2(sum(final_weights[cat] for cat in CATEGORIES))
 
-    # 7. Determine result
-    result = "PASS" if total_score >= threshold else "FAIL"
-
-    # 8. Build output
+    # 7. Determine result — MINIMUM-EVIDENCE FLOOR first, then PASS/FAIL.
+    # skf-test-skill grades other skills; a false PASS is catastrophic.
+    # If the evidence base is too thin to cross-validate itself, force
+    # INCONCLUSIVE (a gate, not a pass/fail). See scoring-rules.md.
     active_categories = [cat for cat in CATEGORIES if final_weights[cat] > 0]
     skipped_categories = [
         cat for cat in CATEGORIES if cat in skipped_set or base_weights[cat] == 0
     ]
+
+    floor_reasons = []
+    if len(active_categories) < 2:
+        floor_reasons.append(
+            f"insufficient evidence: only {len(active_categories)} active category"
+        )
+    elif tier == "Quick" and active_categories == ["exportCoverage"]:
+        # Defensive second check: if somehow there are >= 2 active categories
+        # but they collapse to just exportCoverage (shouldn't happen given the
+        # first clause, kept for robustness), still force INCONCLUSIVE.
+        floor_reasons.append(
+            "Quick tier: Export Coverage alone is insufficient evidence "
+            "— add a second active category by upgrading tier or enabling "
+            "external validators"
+        )
+    elif tier == "Quick":
+        # Cover the case where Export Coverage is the only active category
+        # carrying signal in Quick tier even when technically another
+        # non-contributing category survived redistribution.
+        non_export_active_scores = [
+            scores.get(cat) for cat in active_categories if cat != "exportCoverage"
+        ]
+        # All other active categories have a zero score => Export Coverage is
+        # the sole real contributor.
+        if active_categories and "exportCoverage" in active_categories and all(
+            (s == 0) for s in non_export_active_scores
+        ) and non_export_active_scores:
+            floor_reasons.append(
+                "Quick tier: Export Coverage is the sole scoring contributor "
+                "(other active categories scored 0) — insufficient evidence"
+            )
+
+    if floor_reasons:
+        result = "INCONCLUSIVE"
+    else:
+        result = "PASS" if total_score >= threshold else "FAIL"
 
     # Build scores echo with null preservation
     scores_echo = {}
@@ -204,6 +260,7 @@ def compute_score(inp):
             "tier": tier,
             "docsOnly": docs_only,
             "state2": state2,
+            "stackSkill": stack_skill,
             "threshold": threshold,
             "scores": scores_echo,
         },
@@ -220,6 +277,9 @@ def compute_score(inp):
 
     if warnings:
         output["warnings"] = warnings
+
+    if floor_reasons:
+        output["inconclusiveReasons"] = floor_reasons
 
     return output
 

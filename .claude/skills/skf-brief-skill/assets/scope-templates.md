@@ -22,6 +22,12 @@ Present these options to the user for selection:
 - Auto-exclude demo/example/story files (with user confirmation)
 - Variant consolidation across design systems
 
+**[R] Reference App** — Whole-app pattern-reference skill. Use when the source is a working example app and the skill's value is **wiring patterns** (lifecycle, IPC, build-config, distribution) rather than a public library API.
+- Pattern surface as primary API slot (not individual exports)
+- Adoption Steps as primary workflow format (not API-call chains)
+- Tier 2 organized as `references/pattern-*.md` groupings (not per-function)
+- Export-count stats are pattern-surface proxies, not library exports
+
 ## Boundary Definitions by Scope Type
 
 ### Full Library Boundaries
@@ -64,6 +70,23 @@ Prompt: "Which of these would you like to include? (Enter numbers, or 'all'):"
 
 Exclusions will include all internal implementation files, tests, and utilities.
 Prompt: "Any additional items you'd like to include or exclude?"
+
+### Reference App Boundaries
+
+**Phase 1 — Pattern surface intent:**
+
+Ask: "What is the authored pattern surface for this skill? List the files (or directories) the user must touch to adopt the pattern — entry points, config files, lifecycle hooks, build scripts."
+
+- Record the user's list as `scope.tier_a_include` when narrower than a broad `scope.include`. Reference-app briefs benefit strongly from `tier_a_include` because the denominator is small and precise.
+- Prompt follow-up: "Any files outside that list that should still be in scope for completeness (tests, fixtures, supporting configs)?"
+
+**Phase 2 — Scope.include and exclusions:**
+
+Set `scope.include` to the pattern-surface file list (or broader union when the author flagged supporting files). Default exclusions mirror the Full Library defaults (tests, build artifacts, docs source). Record `scope.notes` with a one-sentence description of the pattern (e.g., "Embedded Python sidecar pattern for Electron apps — lifecycle orchestration, RPC proxy, build-copy wiring").
+
+**Phase 3 — Confirmation:**
+
+Summary showing: pattern surface count, `tier_a_include` vs `include` distinction, notes. Prompt: "Does this reference-app scope look right? Adjust before continuing."
 
 ### Docs-Only Boundaries
 

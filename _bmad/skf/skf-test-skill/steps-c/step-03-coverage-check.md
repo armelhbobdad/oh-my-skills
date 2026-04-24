@@ -1,6 +1,6 @@
 ---
 nextStepFile: './step-04-coherence-check.md'
-outputFile: '{forge_version}/test-report-{skill_name}.md'
+outputFile: '{forge_version}/test-report-{skill_name}-{run_id}.md'
 scoringRulesFile: 'references/scoring-rules.md'
 sourceAccessProtocol: 'references/source-access-protocol.md'
 ---
@@ -72,6 +72,26 @@ Delegate reading of the skill under test to a subagent. The subagent receives th
 ```
 
 **Parent uses this JSON summary as the documented inventory.** Do not load SKILL.md or references file contents into parent context.
+
+#### 1a. Parent-Side Schema Validation + Spot-Check (MANDATORY)
+
+test-skill is a quality gate — it MUST NOT trust subagent output blindly. Before any downstream step consumes the inventory, the parent performs two checks and HALTs on any failure:
+
+**Schema validation (required keys + types):**
+
+1. Parse the subagent response as JSON. On parse failure → HALT "coverage-check: subagent response not valid JSON".
+2. Required keys present: `exports` (list), `cross_check_mismatches` (list — may be empty). Missing key or wrong type → HALT "coverage-check: subagent JSON schema invalid — missing/typo: {key}". Note: the parent already knows the skill name from workflow context (`{resolved_skill_package}` from step-01) — the subagent is not required to echo it back, and doing so introduces a contract-drift surface without improving verification.
+3. Each `exports[]` entry must be a dict with at minimum `name` (non-empty string) and `kind` (one of `function|class|type|constant|hook|interface|method`). Reject entries violating this; if >0 rejections, HALT "coverage-check: subagent returned malformed export entries — {count} entries do not match schema".
+4. `cross_check_mismatches[]` entries (when non-empty) must carry `export`, `skill_md_line`, `reference_file`, `reference_line`, `issue`. Missing fields → HALT.
+
+**Spot-check (ground-truth verification, zero-hallucination guard):**
+
+1. If `len(exports) == 0`: skip the spot-check (no names to verify). Zero-exports policy is handled in section 3 (B1 zero-exports guard).
+2. Otherwise, sample `min(3, len(exports))` exports deterministically — by default take indices `[0, len//2, len-1]` (first, middle, last) from the `exports` array after a stable sort by `name`.
+3. For each sampled export, run: `grep -n "{export.name}" {resolved_skill_package}/SKILL.md` in the parent context. The name MUST appear at least once.
+4. If ANY sampled name returns zero matches, HALT "coverage-check: subagent inventory failed ground-truth spot-check — `{name}` claimed as export but absent from SKILL.md".
+
+These checks catch two hallucination classes: schema-shape drift (subagent paraphrased or dropped the contract) and fabricated exports (subagent invented names not in the document). Both are disqualifying for a grader skill — do not downgrade to a warning.
 
 **Split-body traversal** is handled inside the subagent: if `references/` exists and `## Full` headings are absent or stubs in SKILL.md, the subagent extends its scan to all `references/*.md` files and includes them in the `exports` array. After split-body, Tier 2 content (Full API Reference, Full Type Definitions) lives in reference files — the inventory must reflect the full skill content regardless of where it resides.
 
@@ -148,6 +168,29 @@ If subprocess unavailable, perform ast-grep analysis in main thread per file.
 - Cross-check type definitions against their source declarations
 - Verify re-exported symbols trace to their original source
 
+### 2b. Zero-Exports Guard (B1)
+
+After the source-code analysis (§2) completes, compute `total_exports` — the count of exports discovered in the source / provenance-map / metadata.json, per the stratified-scope and State 2 rules resolved in §4.
+
+**If `total_exports == 0` AND `docs_only_mode == false`:** HALT with:
+
+```
+Error: indeterminate API surface — 0 exports discovered in source for {skill_name}.
+
+A source-based skill with zero exports cannot be meaningfully tested:
+Export Coverage is undefined (division by zero) and downstream scoring
+would yield a vacuous PASS.
+
+Fix one of:
+  - Set `scope.include` in the brief to point at the package's entry point(s)
+  - Add `[EXT:]` citations if this is actually a docs-only skill
+  - Verify the skill's source_path / source_ref resolve to the intended tree
+```
+
+Do not write the Coverage Analysis section. Do not proceed to scoring. This is a true indeterminate state, not a FAIL — no score should be attached.
+
+**If `docs_only_mode == true` and the documented inventory is empty:** HALT with the analogous docs-only message ("docs-only skill declares zero items — no API surface to test").
+
 ### 3. Build Coverage Results
 
 Aggregate findings across all source files:
@@ -181,6 +224,25 @@ Load `{scoringRulesFile}` to determine category scores:
 4. **Apply provenance-map canonicalization** before intersecting documented exports against the raw provenance-map entry list — see `{sourceAccessProtocol}` §Source API Surface Definition → "Provenance-map canonicalization" for the folding rules (`_def`/`_exact` suffix, `a11y_` prefix, renderer-prefix disambiguation). Skip folding when `metadata.json.stats.effective_denominator` is present and already equals the raw provenance-map entry count. Record the fold summary in the Coverage Analysis section so it's auditable.
 
 Record the denominator source in the Coverage Analysis section as `Denominator: stratified ({effective_denominator | tier_a_include union | scope.include union}, {N} files matched)`. When stratified scope does not apply, use the standard barrel-based denominator and omit the stratified annotation.
+
+**M2 — Record the two non-chosen candidate values alongside the chosen one.**
+Stratified-scope resolution picks ONE of three denominator candidates
+(`stats.effective_denominator`, `tier_a_include` union, `scope.include` union)
+per the priority above. To make the choice auditable, append a
+`Denominator Candidates` block immediately after the `Denominator:` line listing
+all three values — the chosen one explicitly marked and the other two recorded
+as-observed (or `absent` when the candidate was not present for this skill):
+
+```markdown
+**Denominator Candidates** (M2 — stratified-scope audit trail):
+- `stats.effective_denominator`: {N | absent}  {← chosen if priority (1) applied}
+- `scope.tier_a_include` union: {N | absent}    {← chosen if priority (2) applied}
+- `scope.include` union: {N | absent}           {← chosen if priority (3) applied}
+```
+
+Readers can then spot-check whether the chosen denominator is reasonable
+against the other two without re-running the extraction. A future reviewer who
+suspects denominator gaming has the evidence inline.
 
 **State 2 denominator validation:** When using provenance-map as the baseline (State 2), cross-reference the provenance-map entry count against `metadata.json`'s `exports[]` array before computing Export Coverage. If they diverge, use the union as the denominator per the source-access-protocol rules. Log the gap size if any. The stratified-scope rule above takes precedence when both conditions apply — compute the stratified denominator first, then validate the provenance-map entry count against it.
 

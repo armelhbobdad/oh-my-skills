@@ -222,6 +222,55 @@ When `scope.type: "component-library"`, add these fields to `stats`:
 
 These are in addition to the standard stats fields (exports_documented, etc.).
 
+### Reference-App Assembly Overrides
+
+When `scope.type: "reference-app"` in the brief, apply these overrides to the standard assembly. The skill's value is an integration pattern (wiring), not a library surface — the default library-export template would force assemblers to remap wiring onto export slots and produce fuzzy counts. These overrides give that value a first-class home.
+
+**Section 4 (Key API Summary) — Pattern Surface override:**
+
+Replace the per-function table with an ordered list of wiring steps. Each step names a file, a surface (decorator, build field, lifecycle hook, config key), and a one-line description of what the user does there — not a function signature. The goal is that a reader copying the pattern can follow the list in order.
+
+```markdown
+## Pattern Surface
+
+| # | File | Surface | Purpose |
+|---|------|---------|---------|
+| 1 | {src/main.py} | {@app.startup decorator} | {brief wiring purpose} |
+| 2 | {electron.vite.config.ts} | {build.copy field} | {brief wiring purpose} |
+| … | … | … | … |
+```
+
+Source: the authored pattern surface from extraction + brief `scope.tier_a_include` (when present) or the curated provenance-map entries (when absent). Provenance: cite the originating source files.
+
+**Section 3 (Common Workflows) — Adoption Steps override:**
+
+Replace the function-call-chain format with copy-this-wiring narrative. Prefer numbered imperative steps that the user can execute in order, not an API-call sequence. Keep each step's code snippet minimal (5–15 lines) — full wiring lives in Tier 2.
+
+```markdown
+## Adoption Steps
+
+1. **{Step name}** — {one-line description}
+   ```{language}
+   {minimal wiring snippet}
+   ```
+2. **{Step name}** — {one-line description}
+   …
+```
+
+**Tier 2 (Full API Reference) — pattern-oriented override:**
+
+Replace per-function subsections with `references/pattern-*.md` groupings: one reference file per coherent wiring concern (e.g. `pattern-lifecycle.md`, `pattern-build-config.md`, `pattern-ipc.md`). Each reference file covers every file/surface touched by that concern with full code snippets, gotchas, and provenance. Tier 1 (Pattern Surface) stays index-like; Tier 2 carries the copy-paste-able depth.
+
+**metadata.json — Reference-App stats semantics:**
+
+`stats.exports_documented` is a **library concept** and does not carry over cleanly. When `scope.type: "reference-app"`:
+
+- `stats.exports_documented` MAY be set to the Pattern Surface row count as a proxy, but its semantics change: it counts authored pattern surfaces, not public exports. Emit an adjacent `stats.pattern_surfaces_documented` with the same integer so downstream consumers (test-skill, feasibility, discovery) can discriminate.
+- `exports_public_api` / `exports_internal` / `exports_total` are not meaningful for a reference app — omit them, or set all three to the Pattern Surface count with a note in `stats.notes`: `"reference-app: export counts are pattern-surface proxies, not library exports"`.
+- Do NOT fabricate signature / type-coverage data from pattern surfaces. skf-test-skill will skip those categories when metadata flags a reference-app (same skip path as `stackSkill` once that flag is wired — see scoring-rules.md).
+
+**When this clause does NOT apply:** `full-library`, `specific-modules`, `public-api`, `component-library`, or `docs-only`. Those scope types have their own assembly semantics and export-count conventions — do not mix.
+
 ### Assembly Rules
 
 1. Assemble all Tier 1 sections first — these form the essential standalone body

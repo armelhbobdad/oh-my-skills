@@ -24,6 +24,7 @@ These rules apply to every step in this workflow:
 - If any instruction references a subprocess or tool you lack, achieve the outcome in your main context thread
 - Always communicate in `{communication_language}`
 - If `{headless_mode}` is true, auto-proceed through confirmation gates with their default action and log each auto-decision
+- **Workflow state contract — `workflow_warnings[]` accumulator (M4):** every step that emits a warning ("log a warning", "record in workflow state for the evidence report", "Warning: ...", etc.) MUST append a structured entry to a single in-memory list named `workflow_warnings[]`. Each entry has the shape `{step: "step-NN", severity: "info|warn|error", code: "<short-slug>", message: "<human text>", context: {<optional fields>}}`. Step-07 surfaces these in `evidence-report.md`; step-08 may add validation findings; step-09 §5 reads the accumulated list and renders the user-facing "Warnings" section. Do not invent a per-step warning channel — there is exactly one accumulator for the whole workflow.
 
 ## Stages
 
@@ -54,6 +55,10 @@ These rules apply to every step in this workflow:
 1. Load config from `{project-root}/_bmad/skf/config.yaml` and resolve:
    - `project_name`, `output_folder`, `user_name`, `communication_language`, `document_output_language`, `skills_output_folder`, `forge_data_folder`, `sidecar_path`
 
-2. **Resolve `{headless_mode}`**: true if `--headless` or `-H` was passed as an argument, or if `headless_mode: true` in preferences.yaml. Default: false.
+2. **Resolve `{headless_mode}`** with explicit precedence (B2):
+   1. **Explicit disable wins.** If `--headless=false` or `--no-headless` was passed, `{headless_mode}` is `false` regardless of any preference.
+   2. **Explicit enable next.** If `--headless` or `-H` was passed (without `=false`), `{headless_mode}` is `true`.
+   3. **Preferences fallback.** Otherwise, read `headless_mode` from `{sidecar_path}/preferences.yaml` (`true` or `false`).
+   4. **Default:** `false`.
 
 3. Load, read the full file, and then execute `./steps-c/step-01-init.md` to begin the workflow.

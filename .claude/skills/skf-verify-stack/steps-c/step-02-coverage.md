@@ -1,7 +1,10 @@
 ---
 nextStepFile: './step-03-integrations.md'
 coveragePatternsData: 'references/coverage-patterns.md'
-outputFile: '{forge_data_folder}/feasibility-report-{project_name}.md'
+feasibilitySchemaRef: 'src/shared/references/feasibility-report-schema.md'
+atomicWriteScript: '{project-root}/src/shared/scripts/skf-atomic-write.py'
+outputFile: '{forge_data_folder}/feasibility-report-{project_slug}-{timestamp}.md'
+outputFileLatest: '{forge_data_folder}/feasibility-report-{project_slug}-latest.md'
 ---
 
 # Step 2: Technology Coverage Analysis
@@ -52,7 +55,12 @@ For each referenced technology in the list:
 **Check if a matching skill exists** in the skill inventory from Step 01.
 - Match by skill name (case-insensitive)
 - Match by alias from {coveragePatternsData}
-- Match by `source_repo` or `source_root` field in metadata.json if skill name differs from technology name
+- Match by `source_repo` or `source_root` field in metadata.json if skill name differs from technology name, using this algorithm:
+  1. For `source_repo`: extract the basename (last URL segment after the final `/`), strip any trailing `.git` suffix, lowercase
+  2. For `source_root`: take the last path segment (after the final `/` or `\`), lowercase
+  3. Lowercase each architecture tech token
+  4. Compare the resulting basenames/segments against the tech tokens via case-insensitive equality (no substring/fuzzy matching)
+  5. A match on either `source_repo` basename or `source_root` last segment counts as a hit
 
 **Assign verdict:**
 - **Covered** — a matching skill exists in the inventory
@@ -64,11 +72,15 @@ Build the coverage matrix as a structured table.
 
 Check if any skills in the inventory are NOT referenced in the architecture document.
 
-**For each extra skill:**
-- Mark as **Extra** (informational — not an error)
-- Note: "Skill `{skill_name}` exists but is not referenced in the architecture document"
+**Subdivide into two categories (both informational — not errors):**
+- **Extra (unreferenced)** — The skill's `source_repo` / `source_root` resolves cleanly (both non-empty and well-formed), but no architecture document tech token matches it.
+- **Orphan (source_repo unresolvable)** — The skill's `source_repo` is empty, malformed (not a valid URL-like string), OR its basename cannot be deterministically extracted. Cross-reference against architecture tokens is not possible for this skill.
 
-Extra skills are informational only. They do not affect the coverage verdict.
+**For each extra skill:**
+- If `source_repo` resolves → mark as **Extra (unreferenced)**, note: "Skill `{skill_name}` exists and has a resolvable `source_repo`, but no architecture reference was found."
+- If `source_repo` does not resolve → mark as **Orphan (source_repo unresolvable)**, note: "Skill `{skill_name}` has no resolvable `source_repo` — cannot cross-reference against architecture. Re-run [CS] or update the skill's metadata."
+
+Extra and Orphan skills are informational only. They do not affect the coverage verdict.
 
 ### 5. Display Coverage Results
 
@@ -95,16 +107,17 @@ Extra skills are informational only. They do not affect the coverage verdict.
 
 ### 6. Append to Report
 
-Write the **Coverage Matrix** section to `{outputFile}`:
+Write the **Coverage Analysis** section to `{outputFile}` (see `{feasibilitySchemaRef}` — section headings are fixed and ordered: `## Executive Summary`, `## Coverage Analysis`, `## Integration Verdicts`, `## Recommendations`, `## Evidence Sources`):
 - Include the full coverage table
 - Include coverage percentage
 - Include missing skill recommendations
-- Include extra skills list
-- Update frontmatter: append `'step-02-coverage'` to `stepsCompleted`, set `coverage_percentage`
+- Include the Extra (unreferenced) and Orphan (source_repo unresolvable) subdivisions from section 4
+- Update frontmatter: append `'step-02-coverage'` to `stepsCompleted`; set `coveragePercentage` (integer 0..100)
+- Pipe the updated full content through `python3 {atomicWriteScript} write --target {outputFile}` and again with `--target {outputFileLatest}`
 
 ### 7. Auto-Proceed to Next Step
 
-{IF coverage_percentage is 0%:}
+{IF coveragePercentage is 0%:}
 "**⚠️ 0% coverage — no matching skills found for any referenced technology.** All subsequent analysis (integration, requirements) will be vacuous and produce empty tables.
 
 **Recommended:** Generate skills with [CS] or [QS] for your architecture technologies, then re-run [VS].
@@ -116,7 +129,7 @@ Write the **Coverage Matrix** section to `{outputFile}`:
 
   Load, read the full file and then execute `{nextStepFile}`.
 
-{IF coverage_percentage is NOT 0%:}
+{IF coveragePercentage is not 0:}
 "**Proceeding to integration analysis...**"
 
 Load, read the full file and then execute `{nextStepFile}`.

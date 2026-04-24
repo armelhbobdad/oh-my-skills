@@ -1,7 +1,11 @@
 ---
 nextStepFile: './step-04-requirements.md'
 integrationRulesData: 'references/integration-verification-rules.md'
-outputFile: '{forge_data_folder}/feasibility-report-{project_name}.md'
+coveragePatternsData: 'references/coverage-patterns.md'
+feasibilitySchemaRef: 'src/shared/references/feasibility-report-schema.md'
+atomicWriteScript: '{project-root}/src/shared/scripts/skf-atomic-write.py'
+outputFile: '{forge_data_folder}/feasibility-report-{project_slug}-{timestamp}.md'
+outputFileLatest: '{forge_data_folder}/feasibility-report-{project_slug}-latest.md'
 ---
 
 # Step 3: Integration Verification
@@ -28,15 +32,17 @@ Extract: verification checks (language boundary, protocol compatibility, type co
 
 ### 2. Extract Integration Claims
 
+**Source preference:** If a stack skill assembled by `skf-create-stack-skill` is present in the inventory and its manifest (`bmad-skill-manifest.yaml` or its `metadata.json`) declares `integration_patterns`, use THAT as the primary source of integration claims. Record `source: stack manifest` on each resulting pair. Fall back to prose co-mention (below) only when no such manifest is available, and record `source: prose co-mention` on those pairs.
+
 Parse the architecture document for statements describing two or more technologies working together.
 
-**Detection method — prose-based co-mention analysis:**
+**Detection method — prose-based co-mention analysis (fallback only):**
 - Identify sentences or paragraphs where two or more technology names appear together
 - Look for integration verbs: "connects to", "communicates with", "wraps", "extends", "consumes", "produces", "bridges", "integrates with", "sits between"
 - Look for data flow descriptions: "{A} sends data to {B}", "{A} results are consumed by {B}"
 - Look for layer boundary descriptions: "{A} at the API layer connects to {B} at the data layer"
 
-**CRITICAL:** Do NOT parse Mermaid diagram syntax. Use only prose text for co-mention detection.
+**CRITICAL — Mermaid Diagram Handling:** See `{coveragePatternsData}` → "Mermaid Diagram Handling" for the canonical rule (single source of truth). Summary: do NOT parse Mermaid diagram syntax for co-mention detection; use only prose text.
 
 **Build integration pairs list:**
 - Each pair: `{library_a, library_b, architectural_context}`
@@ -48,7 +54,7 @@ Parse the architecture document for statements describing two or more technologi
 
 <!-- Subagent delegation: read SKILL.md files in parallel, return compact JSON -->
 
-For each library in an integration pair, delegate SKILL.md reading to a parallel subagent. Launch up to **8 subagents concurrently** (batch if needed). Each subagent receives one skill's SKILL.md path and MUST:
+For each library in an integration pair, delegate SKILL.md reading to a parallel subagent. Launch up to **8 subagents concurrently** (batch if needed — same 8-way cap as step-01 §2; keeps aggregate token window manageable while still parallelizing typical stack sizes). Each subagent receives one skill's SKILL.md path and MUST:
 1. Read the SKILL.md file
 2. Extract the API surface
 3. ONLY return this compact JSON — no prose, no extra commentary:
@@ -56,27 +62,37 @@ For each library in an integration pair, delegate SKILL.md reading to a parallel
 ```json
 {
   "skill_name": "...",
+  "language": "...",
   "exports": ["functionName(params): ReturnType", "..."],
-  "protocols": ["HTTP", "gRPC", "WebSocket", "message queue", "file I/O", "IPC"],
-  "data_formats": ["JSON", "protobuf", "CSV", "binary", "streaming"]
+  "protocols_inferred": ["HTTP", "gRPC", "WebSocket", "message queue", "file I/O", "IPC"],
+  "data_formats_inferred": ["JSON", "protobuf", "CSV", "binary", "streaming"]
 }
 ```
 
 **Extraction rules for subagents:**
-- `exports`: exported functions with signatures, exported types/interfaces/classes
-- `protocols`: any protocol indicators found in the SKILL.md
-- `data_formats`: any data format indicators found in the SKILL.md
+- `skill_name`, `language`: mirror the skill's metadata fields
+- `exports`: exported functions with signatures, exported types/interfaces/classes (extracted from SKILL.md prose)
+- `protocols_inferred`: best-effort prose scan — protocol tokens mentioned in SKILL.md descriptions/examples. NOT a declared field in `metadata.json`
+- `data_formats_inferred`: best-effort prose scan — format tokens mentioned in SKILL.md descriptions/examples. NOT a declared field in `metadata.json`
 - If a field has no matches, return an empty array `[]`
+
+**CRITICAL — these fields are inferred, not declared.** `protocols` and `data_formats` do not exist in any skill's `metadata.json`. Treat them as weak evidence from prose scanning only. When either list is used to justify compatibility in Check 2, the per-pair verdict MUST be capped at `Plausible` (see the schema's producer obligations — `src/shared/references/feasibility-report-schema.md`).
+
+**Schema validation (parent):** Each subagent response must contain the required keys (`skill_name`, `language`, `exports`). Reject responses missing required keys and exclude that skill from pair evaluation; HALT if more than **20%** (same failure-budget threshold as step-01 §2; see the justification there) of subagent calls return malformed JSON.
 
 **Parent collects all subagent JSON summaries.** Do not load full SKILL.md content into parent context.
 
 **From metadata.json (read in parent — lightweight), also extract:**
-- `language` — primary programming language
+- `language` — primary programming language (authoritative — overrides subagent `language` if they disagree)
 - `exports` — export names array (populated for individual skills; empty for stack skills)
 - `stats.exports_documented` — export count
 - `confidence_tier` — extraction confidence level
 
+**mtime re-verification:** Re-stat each `metadata.json` and compare against the mtime captured in step-01. If any mtime moved during the run, abort any pair involving that skill with rationale "skill modified mid-run — re-run [VS]".
+
 Store collected API surface summaries for cross-referencing.
+
+**Integration-evidence source preference:** If the stack was assembled by `skf-create-stack-skill` and a stack manifest (e.g., `integration_patterns` block in the stack skill's `bmad-skill-manifest.yaml` or `metadata.json`) is present in the inventory, use that as the authoritative integration source and cite `source: stack manifest` in each verdict. Fall back to prose co-mention only when no manifest is available, and cite `source: prose co-mention`.
 
 ### 4. Cross-Reference Each Integration Pair
 
@@ -87,36 +103,45 @@ For each integration pair `{library_a, library_b}`, apply the verification proto
 - Different languages → check for FFI, IPC, or network protocol bridge
 - If no bridge mechanism documented → flag as risk
 
-**Check 2 — Protocol Compatibility:**
-- Both use same protocol (e.g., both HTTP) → compatible
-- Complementary protocols (e.g., HTTP client + HTTP server) → compatible
-- Incompatible protocols with no adapter → flag as risk
+**Check 2 — Protocol Compatibility (best-effort prose scan):**
+- Uses only the `protocols_inferred` / `data_formats_inferred` lists surfaced by the subagent prose scan — these are NOT declared metadata fields
+- Both prose-scanned lists share a protocol token → treat as inferred compatibility (cap verdict at `Plausible`)
+- Complementary tokens (e.g., "HTTP client" in one, "HTTP server" in the other) → inferred compatibility (cap at `Plausible`)
+- Neither skill surfaces any protocol token, or tokens appear to conflict with no adapter mentioned → flag as risk
+- Do NOT assert that protocols come from a declared schema field; when prose evidence is all that's available, the per-pair verdict MUST cap at `Plausible`
 
 **Check 3 — Type Compatibility:**
-- Shared types or compatible serialization formats → compatible
+- Shared types or compatible serialization formats (cited from `exports` signatures) → compatible
 - Incompatible type systems with no conversion layer → flag as risk
 
-**Check 4 — Documentation Cross-Reference:**
-- Skill A mentions skill B's library (or vice versa) → strong evidence
-- Neither skill mentions the other → weak evidence (plausible but unverified)
+**Check 4 — Documentation Cross-Reference (REQUIRED for `Verified`):**
+- Search Skill A's SKILL.md for a literal substring/name citation of Skill B's library name (or an explicit alias declared in that skill's metadata)
+- Search Skill B's SKILL.md for the reciprocal citation
+- If a literal citation is found in at least one direction → Check 4 PASSES; record the exact cited substring and its location as evidence
+- If neither skill literally cites the other → Check 4 FAILS (weak/missing evidence); per-pair verdict MUST be capped at `Plausible` regardless of Checks 1–3 outcomes
 
-**Assign verdict per pair:**
-- **Verified** — all checks pass with evidence from both skills
-- **Plausible** — checks pass but evidence is indirect or incomplete
-- **Risky** — one or more checks flag compatibility concerns
-- **Blocked** — fundamental incompatibility detected (language barrier with no bridge, incompatible protocols)
+**Assign verdict per pair (per `src/shared/references/feasibility-report-schema.md`):**
+- **Verified** — Checks 1, 3 pass with declared evidence AND Check 4 passes with a literal substring/name citation recorded in the evidence block. Check 2 is best-effort only; it cannot by itself promote a pair to `Verified`.
+- **Plausible** — Checks pass, but at least one relies on inferred evidence (e.g., Check 2 prose scan) OR Check 4 is weak/missing. This is the cap whenever Check 4 fails.
+- **Risky** — At least one check flags an incompatibility that a workaround may resolve (bridge layer, adapter, serialization shim).
+- **Blocked** — Fundamental incompatibility: language barrier with no bridge documented anywhere in the inventory, or type/protocol mismatch with no adapter mentioned.
 
 **Each verdict MUST include:**
 - Which checks passed and which flagged
-- Evidence citations: specific exports, types, or protocol references from the skills
+- Evidence citations: specific exports, types, or literal substrings from the skills
+- `source: stack manifest` or `source: prose co-mention` tag (per section 3)
+- For `Verified`: the exact Check 4 literal citation (e.g., `"see also: {lib_b}"` quoted from Skill A's SKILL.md, line N)
+- **Tier annotation:** For each contributing skill, append `(evidence from Tier {n} skill)` citing that skill's `confidence_tier` (e.g., `(evidence from Tier 1 skill)`). This lets reviewers weigh evidence strength by extraction confidence.
+
+**Cycle detection (after all pairs evaluated):** Build a directed pair graph where an edge `A → B` exists when A cites B via Check 4. Run cycle detection (DFS with visited + recursion stack). For each cycle found, append a synthetic row to the verdict table with verdict `Risky` and rationale "circular integration dependency detected: `{A → B → C → A}`". Do not otherwise modify the individual pair verdicts.
 
 ### 5. Display Integration Results
 
 "**Pass 2: Integration Verification**
 
-| Library A | Library B | Context | Verdict | Evidence |
-|-----------|-----------|---------|---------|----------|
-| {lib_a} | {lib_b} | {brief context} | {Verified/Plausible/Risky/Blocked} | {key evidence} |
+| Library A | Library B | Context | Source | Verdict | Evidence |
+|-----------|-----------|---------|--------|---------|----------|
+| {lib_a} | {lib_b} | {brief context} | {stack manifest / prose co-mention} | {Verified/Plausible/Risky/Blocked} | {key evidence, including Check 4 literal citation if Verified} |
 
 **Summary:** {verified_count} Verified, {plausible_count} Plausible, {risky_count} Risky, {blocked_count} Blocked
 
@@ -135,11 +160,12 @@ For each integration pair `{library_a, library_b}`, apply the verification proto
 
 ### 6. Append to Report
 
-Write the **Integration Verdicts** section to `{outputFile}`:
-- Include the full integration verdicts table with evidence
-- Include recommendations for Risky and Blocked pairs
-- Update frontmatter: append `'step-03-integrations'` to `stepsCompleted`
-- Set `integrations_verified`, `integrations_plausible`, `integrations_risky`, `integrations_blocked` counts
+Write the **Integration Verdicts** section to `{outputFile}` (heading is fixed — consumers grep for `## Integration Verdicts`; the table header MUST be the canonical `| lib_a | lib_b | verdict | rationale |` per `{feasibilitySchemaRef}`; the skill-local display table with the extra Context/Source/Evidence columns can be rendered beneath it for human readers):
+- Emit the canonical `| lib_a | lib_b | verdict | rationale |` table first (verdict tokens MUST be one of `Verified`, `Plausible`, `Risky`, `Blocked` — case-sensitive)
+- Include the extended table with Context, Source, and Evidence columns below it
+- Include recommendations for Risky and Blocked pairs (Blocked recommendations MUST cite a named candidate per step-05 H6, or the explicit no-candidate notice)
+- Update frontmatter: append `'step-03-integrations'` to `stepsCompleted`; set `pairsVerified`, `pairsPlausible`, `pairsRisky`, `pairsBlocked` counts
+- Pipe the updated full content through `python3 {atomicWriteScript} write --target {outputFile}` and again with `--target {outputFileLatest}`
 
 ### 7. Auto-Proceed to Next Step
 
