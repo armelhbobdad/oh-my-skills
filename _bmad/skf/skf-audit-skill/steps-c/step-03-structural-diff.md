@@ -29,9 +29,19 @@ Load both datasets:
 **Current (from Step 02 extraction):**
 - Export list with names, types, signatures, file paths, line numbers
 
+**Canonicalize extractor methodology differences before matching.** The extractor used by `skf-create-skill` at baseline time and the re-extractor used by step-02 can differ in cosmetic detail (quote style, module qualification, re-export resolution). Without normalization, those cosmetic differences surface as false-positive "Changed" and "Removed" entries even when the source commit has not moved. Apply these transforms to both sets symmetrically:
+
+- **Quote style on string defaults.** Normalize string-literal defaults in signatures to a single style — e.g., `kind: str = "Hnsw"` ↔ `kind: str = 'Hnsw'`. Pick one canonical form and apply to both sides.
+- **Module qualification of stdlib helpers.** Strip module prefixes on well-known stdlib helpers when the unqualified form is importable at the call site: `dataclasses.field(...)` → `field(...)`, `typing.Optional[...]` → `Optional[...]`, `typing.List[...]` → `List[...]`. Do not collapse user-defined namespaces.
+- **Public-API re-export resolution.** When `{source_root}/**/__init__.py` re-exports an internal symbol under a different public name (`from .internal import _Impl as Public`, or via `__all__`), resolve both sides to the public name before key-matching — otherwise a renamed re-export in the current scan shows up as "Removed `_Impl`" + "Added `Public`" instead of matching the baseline entry. Build the re-export map once per package by walking `__init__.py` files.
+
+Record the set of transforms actually applied in workflow context — step-06 surfaces them in the Provenance section so a reviewer can tell which differences the diff collapsed and which were real.
+
 Normalize both sets for comparison:
-- Match by export name (primary key)
+- Match by canonicalized export name (primary key)
 - Group by file for location-aware comparison
+
+> **Longer-term fix.** The principled remedy is to persist `skf-create-skill`'s ast-grep ruleset to `{forge_version}/extraction-rules.yaml` at create time and have step-02 replay that exact ruleset. When the file is present, step-02 extraction becomes reproducible against the baseline and the canonicalization pass above becomes a no-op. Until then, normalization is the salvage remediation for provenance maps that predate extractor pinning.
 
 ### 2. Detect Added Exports
 
@@ -105,6 +115,14 @@ If `{is_stack_skill}` is true:
 **Integration drift:** For each integration in `integrations[]`, verify that co-import files still contain the detected patterns (code-mode) or that constituent skills still document the integration (compose-mode).
 
 ### 5. Compile Structural Drift Section
+
+**Rollup for high-volume uniform findings.** When ≥ 10 findings in the same table share one root cause (deleted source file, renamed module, entire package tree removed), you MAY collapse them into one row per root cause. Rollup rows replace the per-symbol `Export`/`Signature` columns with `Count` and `Representative symbols` (up to 3 names, `…` if more). Rollup applies to **Added Exports**, **Removed Exports**, and **Script/Asset Drift** tables — **not** to Changed Exports, which are heterogeneous by construction (signature changes and cross-file changes are inspected per-finding). Record which groupings were collapsed in workflow context for reviewer traceability.
+
+**Rollup row form (Added / Removed Exports):**
+
+| Root Cause | Count | Representative symbols | Location | Confidence |
+|------------|-------|------------------------|----------|------------|
+| {deleted/renamed path or similar} | {N} | `{sym1}`, `{sym2}`, `{sym3}`, … | {root-cause path} | {T1/T1-low} |
 
 Append to {outputFile}:
 

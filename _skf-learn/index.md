@@ -1,51 +1,67 @@
 ---
 title: Skill Forge (SKF)
-description: Turn code and docs into instructions AI agents can actually follow
+description: Every instruction your AI reads cites a file, a line, and a commit SHA. Verify any claim in 60 seconds.
 template: splash
 hero:
-  title: Skill Forge (SKF)
-  tagline: Turn code and docs into instructions AI agents can actually follow.
+  title: Skill Forge
+  tagline: Every instruction your AI reads cites a file, a line, and a commit SHA.
   actions:
-    - text: Getting Started
-      link: ./getting-started/
+    - text: Why Skill Forge?
+      link: ./why-skf/
       icon: right-arrow
       variant: primary
-    - text: View on GitHub
-      link: https://github.com/armelhbobdad/bmad-module-skill-forge
-      icon: external
+    - text: Install
+      link: ./getting-started/#install
+      icon: right-arrow
+      variant: secondary
 ---
 
-## What does Skill Forge do?
+## The problem
 
-AI agents hallucinate API calls. They invent function names, guess parameter types, and produce code that doesn't compile. Skill Forge fixes this by analyzing code repositories, documentation, and developer discourse — extracting real signatures and patterns and compiling them into verified instruction files that any AI agent can follow. Every instruction traces back to where it came from. Generated skills can also include executable scripts and static assets extracted from the source repository, each with full provenance tracking.
+AI agents hallucinate API calls. They invent function names, guess parameter types, and produce code that doesn't compile.
 
-## Quick Install
+## The fix
 
-Requires [Node.js](https://nodejs.org/) >= 22, [Python](https://www.python.org/) >= 3.10, and [uv](https://docs.astral.sh/uv/) (Python package runner).
+Skill Forge reads the source and hands your agent the truth — with receipts. Every function signature, every parameter type, every usage pattern traces back to a file, a line, and a commit SHA in the upstream repository.
+
+<div class="receipt-sample">
+  <span class="receipt-sample__label">A receipt looks like</span>
+  <code class="receipt-sample__chip">[AST:cognee/api/v1/search/search.py:L26]</code>
+  <span class="receipt-sample__check" aria-label="verified">✓</span>
+</div>
+
+If SKF can't cite a source, it doesn't include the instruction.
+
+<p class="cta-pill"><a href="./verifying-a-skill/">Verify any claim in 60 seconds →</a></p>
+
+## How SKF compares
+
+<div class="comparison-table">
+
+| Approach | What it does well | Where it falls short |
+|----------|-------------------|----------------------|
+| Skill scaffolding (`npx skills init`) | Generates a spec-compliant skill file | The file is empty — you still have to write every instruction by hand |
+| LLM summarization | Understands context and intent | Generates plausible-sounding content that may not match the actual API |
+| RAG / context stuffing | Retrieves relevant code snippets | Returns fragments without synthesis — no coherent skill output |
+| Manual authoring | High initial accuracy | Drifts as the source code changes, doesn't scale across dependencies |
+| IDE built-in context (Copilot, Cursor) | Convenient, zero setup | Uses generic training data, not your project's specific integration patterns |
+| **Skill Forge** | **Every instruction cites upstream `file:line` at a pinned commit. Falsifiable in 60 seconds.** | **Coverage depends on which tools you've installed (Quick / Forge / Forge+ / Deep tiers).** |
+
+</div>
+
+## Quick install
+
+Requires [Node.js](https://nodejs.org/) >= 22, [Python](https://www.python.org/) >= 3.10, and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 npx bmad-module-skill-forge install
 ```
 
-Then set up your environment and generate your first skill:
+Then generate your first skill:
 
 ```
 @Ferris SF              # Set up your forge
 @Ferris QS <package>    # Generate a skill in under a minute
 ```
 
-See the [Getting Started](./getting-started/) guide for full installation and usage instructions.
-
-## Documentation
-
-- **[Getting Started](./getting-started/)** — Installation, prerequisites, and your first skill
-- **[Concepts](./concepts/)** — Key terms: provenance, tiers, drift, and more
-- **[How It Works](./how-it-works/)** — Architecture, capability model, output format, and design decisions
-- **[Workflows](./workflows/)** — All 14 workflows with commands and connection diagrams
-- **[Agents](./agents/)** — Ferris: the AI agent that runs all SKF workflows
-- **[Examples](./examples/)** — Real-world scenarios, tips, and troubleshooting
-- **[BMAD Synergy](./bmad-synergy/)** — How SKF workflows pair with BMAD CORE phases and optional modules
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/armelhbobdad/bmad-module-skill-forge/issues)
+See [Getting Started](./getting-started/) for platform support, tier selection, and troubleshooting.

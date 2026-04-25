@@ -30,7 +30,7 @@ Structural extraction via ast-grep — verified exports with line-level citation
 
 > **Note:** `ast_bridge.*`, `qmd_bridge.*`, and `ccc_bridge.*` references below are **conceptual interfaces**, not callable functions. Resolve them as follows:
 > - `ast_bridge.*` → ast-grep MCP tools (`mcp__ast-grep__find_code`, `mcp__ast-grep__find_code_by_rule`) or `ast-grep` CLI
-> - `qmd_bridge.*` → QMD MCP tools (`mcp__plugin_qmd-plugin_qmd__search`, `vector_search`) or `qmd` CLI
+> - `qmd_bridge.*` → QMD MCP `query` tool (`mcp__plugin_qmd-plugin_qmd__query`) taking `searches=[{type:'lex'|'vec'|'hyde', query, intent}]`, or `qmd` CLI (`qmd search` / `qmd vector-search`). The legacy `vector_search` MCP tool has been removed; if a client surfaces a tool-not-found error, degrade gracefully per the QMD step-04 tool-probe note — do not retry the stale name.
 > - `ccc_bridge.*` → `/ccc` skill (Claude Code), ccc MCP server (Cursor), or `ccc` CLI
 > - `gh_bridge.*` → `gh api` commands or direct file I/O for local sources
 >

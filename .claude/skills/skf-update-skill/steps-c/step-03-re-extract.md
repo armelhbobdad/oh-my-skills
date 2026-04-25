@@ -32,8 +32,8 @@ Source code has not drifted — the gap-derived manifest from step-02 contains e
 
 - Resolve `pinned_commit` from `metadata.source_commit` (loaded in step-01).
 - **If `pinned_commit` is null, empty, `"local"`, or a per-repo map (stack skills) with no single commit:** skip the guard and log `workspace_drift_check: skipped (no pinned commit)`. Continue to bullet 1.
-- **If `source_root` is not a git working tree** (e.g., bare checkout, tarball extract) — detect by running `git -C {source_root} rev-parse --is-inside-work-tree`; non-zero exit means skip: log `workspace_drift_check: skipped (not a git working tree)`. Continue to bullet 1.
-- **Otherwise** run `git -C {source_root} rev-parse HEAD` and compare to `pinned_commit`. Accept either a full SHA match or a short-SHA prefix match (the pinned commit is often stored as an 8-char short hash — see `src/knowledge/provenance-tracking.md`).
+- **If `source_root` is not a git working tree** (e.g., bare checkout, tarball extract) — detect by running `git -C "{source_root}" rev-parse --is-inside-work-tree`; non-zero exit means skip: log `workspace_drift_check: skipped (not a git working tree)`. Continue to bullet 1.
+- **Otherwise** run `git -C "{source_root}" rev-parse HEAD` and compare to `pinned_commit`. Accept either a full SHA match or a short-SHA prefix match (the pinned commit is often stored as an 8-char short hash — see `src/knowledge/provenance-tracking.md`).
   - **On match:** log `workspace_drift_check: ok ({short_sha})` and continue.
   - **On mismatch, AND the user did not pass `--allow-workspace-drift`:** HALT immediately with exit status `halted-for-workspace-drift`. Display:
 
@@ -48,7 +48,7 @@ Source code has not drifted — the gap-derived manifest from step-02 contains e
     against a drifted tree silently produces wrong results (symbols appear at
     unintended locations). Re-sync the workspace before re-running:
 
-      git -C {source_root} checkout {source_ref or pinned_commit}
+      git -C "{source_root}" checkout {source_ref or pinned_commit}
 
     Or, to intentionally proceed against the current workspace HEAD (accepting
     that spot-checks will read bytes that differ from the pinned commit),

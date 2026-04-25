@@ -17,6 +17,18 @@ Load forge tier configuration, validate prerequisites, and prepare the stack ski
 
 **CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise.
 
+### 0. Validate Project Config
+
+Before anything else, load `{project-root}/_bmad/skf/config.yaml`. If the file is missing OR fails YAML parse OR lacks the required top-level keys (`project_name`, `output_folder`, `skills_output_folder`, `forge_data_folder`, `sidecar_path`), HALT with:
+
+"**Cannot proceed.** SKF is not initialized for this project (config.yaml missing or malformed).
+
+**Required:** Run `skf init` first.
+
+**Halting workflow.**"
+
+STOP — do not proceed.
+
 ### 1. Load Forge Tier Configuration
 
 Load `{forgeTierFile}` from the Ferris sidecar.

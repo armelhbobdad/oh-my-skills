@@ -1,22 +1,25 @@
 ---
-# `shared/health-check.md` resolves relative to the SKF module root
-# (`_bmad/skf/` when installed, `src/` during development), NOT relative
-# to this step file.
-nextStepFile: 'shared/health-check.md'
+# `{nextStepFile}` is resolved by probing both candidate roots in order.
+# HALT if neither exists — step-06 §7 should have caught this already, but
+# this step re-asserts the invariant at dispatch time.
+nextStepFileProbeOrder:
+  - '{project-root}/_bmad/skf/shared/health-check.md'
+  - '{project-root}/src/shared/health-check.md'
 ---
 
 # Step 7: Workflow Health Check
 
 ## STEP GOAL:
 
-Chain to the shared workflow self-improvement health check at `{nextStepFile}`. This is the terminal step of test-skill — after the shared health check completes, the workflow is fully done.
+Chain to the shared workflow self-improvement health check. This is the terminal step of test-skill — after the shared health check completes, the workflow is fully done.
 
 ## Rules
 
 - No user-facing reports, file writes, or result contracts in this step — those belong in step-06
-- Delegate directly to `{nextStepFile}` with no additional commentary
-- Do not attempt any other action between loading this step and executing `{nextStepFile}`
+- Delegate directly to the resolved health-check path with no additional commentary
+- Do not attempt any other action between loading this step and executing the resolved file
 
 ## MANDATORY SEQUENCE
 
-Load `{nextStepFile}`, read it fully, then execute it.
+1. Probe `{nextStepFileProbeOrder}` in order. Use the FIRST path that exists as `{nextStepFile}`. HALT with the diagnostic from step-06 §7 if neither exists.
+2. Load `{nextStepFile}`, read it fully, then execute it.

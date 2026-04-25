@@ -152,7 +152,7 @@ if __name__ == "__main__":
         elif arg.startswith("["):
             data = json.loads(arg)
         else:
-            with open(arg) as f:
+            with open(arg, encoding="utf-8") as f:
                 data = json.load(f)
     except (json.JSONDecodeError, FileNotFoundError) as e:
         print(json.dumps({"status": "error", "error": str(e)}))

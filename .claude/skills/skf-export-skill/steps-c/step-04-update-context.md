@@ -15,6 +15,7 @@ To update the managed `<!-- SKF:BEGIN/END -->` section in the platform-appropria
 - Do not modify any content outside `<!-- SKF:BEGIN -->` and `<!-- SKF:END -->` markers
 - Do not write without user confirmation — this modifies shared project files
 - If `passive_context: false` was detected in step-01, skip this step entirely
+- **Multi-skill mode:** this step executes ONCE for the whole batch, not once per skill. §4b already builds the exported skill set from the manifest (plus current export targets), so a multi-skill run naturally appears as a single rebuild. The only batch adjustment is in §9b: update the manifest entry for every skill in `skill_batch` (not just one), and include all of them when computing `ides_written`. See step-01 §1c.
 
 ## MANDATORY SEQUENCE
 
@@ -293,7 +294,7 @@ After user confirms with 'C':
 1. Read `{skills_output_folder}/.export-manifest.json` (or start with `{"schema_version": "2", "exports": {}}` if it does not exist)
 2. Ensure `schema_version` is `"2"` (if v1 was migrated in section 4a, the migrated structure is already in context). If any version entry still has a legacy `platforms` key, rename it to `ides` in place (see §4a).
 3. Compute `ides_written` — the set of IDE identifiers from `config.yaml.ides` whose mapped context file was successfully written in section 9 (deduplicated, sorted). When `--context-file` was passed explicitly, `ides_written` contains only the IDEs that map to that single context file.
-4. Add or update the current skill's entry in v2 format:
+4. For each skill in `skill_batch` (multi-skill mode) — or the single current skill (single-skill mode) — add or update its entry in v2 format:
    ```json
    "{skill-name}": {
      "active_version": "{version}",
@@ -306,15 +307,15 @@ After user confirms with 'C':
      }
    }
    ```
-   - `{version}` is the version from `{resolved_skill_package}/metadata.json`
+   - `{version}` is the version from each skill's `{resolved_skill_package}/metadata.json`
    - If the skill already has a manifest entry:
      - Set `active_version` to the current version
      - If the version already exists in `versions`, union its existing `ides` with `ides_written` (deduplicate, keep sorted), refresh `last_exported`, and set `status: "active"`
      - If this is a new version, add it to `versions` with `status: "active"` and set any previously-active version's status to `"archived"`
      - Preserve all other version entries in `versions` (do not delete archived versions)
-5. Write the updated manifest to `{skills_output_folder}/.export-manifest.json`
+5. Write the updated manifest once to `{skills_output_folder}/.export-manifest.json` after all skills in the batch have been applied
 
-**Dry-run mode:** Do NOT update the manifest. Display: "**[DRY RUN] Export manifest would be updated for {skill-name} — ides: {ides_written}.**"
+**Dry-run mode:** Do NOT update the manifest. Display: "**[DRY RUN] Export manifest would be updated for {skill-name-list} — ides: {ides_written}.**" (list every skill in `skill_batch`)
 
 **Error handling:** If manifest write fails, warn but do not fail the workflow — the managed section was already written successfully.
 

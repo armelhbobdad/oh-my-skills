@@ -12,6 +12,7 @@ To calculate approximate token counts for all exported artifacts and present a c
 
 - Focus only on token counting and reporting — read-only measurement
 - Auto-proceed when complete
+- **Multi-skill mode:** when step-01 loaded more than one skill (`len(skill_batch) > 1`), compute token counts per skill, then present one aggregate table with one row per skill (context-snippet.md, SKILL.md, metadata.json, references/, package total). Measure the managed section once for the run — it is shared across the batch. See step-01 §1c.
 
 ## MANDATORY SEQUENCE
 

@@ -24,11 +24,24 @@ For each confirmed dependency, extract key exports, usage patterns, and API surf
 
 "**Extraction data already available from individual skills. Skipping extraction phase.**"
 
-For each confirmed skill, load SKILL.md from the version-aware path resolved in step-02. Use `skill_package_path` (stored in step-02) directly — this already points to the resolved `{skill_package}` or `{active_skill}` directory containing the skill's artifacts. If `skill_package_path` is not available, resolve via the `{active_skill}` template: `{skills_output_folder}/{skill_dir}/active/{skill_dir}/SKILL.md` (see `knowledge/version-paths.md`). Build a `per_library_extractions[]` entry for each skill with the following fields:
+For each confirmed skill, load SKILL.md from the version-aware path resolved in step-02.
+
+**Re-resolve at step-04 entry (S17):** Between step-02 manifest detection and step-04 extraction, a concurrent write could have advanced a skill's `active_version`. On entering this step, re-resolve `skill_package_path` for each confirmed skill via the export-manifest (or symlink fallback) and capture the freshly-read `version` and `metadata_hash` into workflow state. If the `metadata_hash` diverges from the value stored in step-02, log a warning `"constituent '{skill_name}' changed between step-02 and step-04 — using fresh values"` and replace the workflow-state entry (so step-07 provenance records the hash active at extraction time, with the drift logged for audit).
+
+Use `skill_package_path` (stored in step-02 and optionally refreshed above) directly — this already points to the resolved `{skill_package}` or `{active_skill}` directory containing the skill's artifacts. If `skill_package_path` is not available, resolve via the `{active_skill}` template: `{skills_output_folder}/{skill_dir}/active/{skill_dir}/SKILL.md` (see `knowledge/version-paths.md`).
+
+**Exports resolution order (H1):** For each confirmed skill, populate the `exports` field using the first source that returns a non-empty list:
+
+1. **Primary — `metadata.json.exports[]`:** Read the skill's `metadata.json` and use the `exports[]` array directly. This is the most structured and trustworthy source.
+2. **Fallback — `references/`:** If `metadata.json.exports[]` is empty or missing, scan the `references/` subdirectory of the skill package for per-export files and reconstruct the export list from filenames/headers. Log a warning: `"{skill_name}: metadata.json.exports[] empty — reconstructed from references/"` and record the warning in workflow state for the evidence report.
+3. **Last resort — SKILL.md prose parsing:** If both prior sources are unavailable, parse the SKILL.md "Exports" / "API" section prose. Log a stronger warning: `"{skill_name}: falling back to SKILL.md prose parsing — exports may be incomplete"` and record it in workflow state.
+
+Build a `per_library_extractions[]` entry for each skill with the following fields:
 - `library`: skill name from metadata.json
-- `exports`: exports list extracted from the SKILL.md exports section
+- `exports`: exports list resolved via the order above
+- `exports_source`: one of `metadata|references|prose` — capture which resolution path was used (so step-07 provenance can record it)
 - `usage_patterns`: usage patterns from the SKILL.md usage section
-- `confidence`: the skill's existing confidence tier (T1, T1-low, T2) — inherited directly
+- `confidence`: the skill's existing confidence tier (one of `T1|T1-low|T2|T3` per `confidence-tiers.md`) — inherited directly. Do not silently drop T3 evidence; carry whatever tier the source skill declared.
 
 Display an extraction summary:
 
@@ -106,7 +119,7 @@ Each subprocess:
   version: "from_manifest",
   exports_found: ["fn1", "fn2", "Type1"],
   usage_patterns: ["pattern description with file:line"],
-  confidence: "T1|T1-low|T2",
+  confidence: "T1|T1-low|T2|T3",
   files_analyzed: count,
   warnings: [],
   temporal: {
@@ -120,6 +133,8 @@ Each subprocess:
 
 **If parallel subprocess unavailable:** Process libraries sequentially in main thread. Report progress after each library.
 
+**Per-subprocess timeout (S6):** Apply a 60-second wall-clock timeout to each library's extraction subprocess. On timeout, mark the library as `partial-failure` with `warnings: ["extraction timeout after 60s"]`, store whatever partial data was returned (if any), and continue with the remaining libraries. Do NOT abort the batch on a single timeout.
+
 ### 3. Handle Extraction Failures
 
 For each library extraction:
@@ -132,7 +147,11 @@ For each library extraction:
 
 "**Warning:** Extraction failed for {library}: {reason}. Excluding from stack skill."
 
-**If ALL extractions fail:** HALT — cannot produce meaningful stack skill.
+**If ALL extractions fail:** HALT — cannot produce meaningful stack skill. Before halting (B7):
+
+1. Purge any in-flight staging artifacts under the forge workspace: remove `{forge_data_folder}/{project_name}-stack/{version}/*-tmp` and any `{forge_data_folder}/{project_name}-stack/{version}/*.skf-tmp` directories so partial state does not linger.
+2. Emit a structured error contract on stderr: `{"status":"error","skill":"skf-create-stack-skill","stage":"step-04","reason":"all extractions failed","libraries":[...]}`.
+3. Exit with a non-zero status so headless pipelines detect the failure.
 
 ### 4. Display Extraction Summary
 

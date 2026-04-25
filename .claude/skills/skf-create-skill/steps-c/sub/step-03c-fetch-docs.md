@@ -1,5 +1,11 @@
 ---
 nextStepFile: '../step-04-enrich.md'
+# Resolve `{atomicWriteHelper}` by probing `{atomicWriteProbeOrder}` in order
+# (installed SKF module path first, src/ dev-checkout fallback); first existing
+# path wins. HALT if neither resolves.
+atomicWriteProbeOrder:
+  - '{project-root}/_bmad/skf/shared/scripts/skf-atomic-write.py'
+  - '{project-root}/src/shared/scripts/skf-atomic-write.py'
 ---
 
 # Step 3c: Fetch Remote Documentation
@@ -76,7 +82,7 @@ If neither trigger fires, keep the page content as-is and do NOT trigger subpage
    - Crawl: if a crawl tool is available, use it with depth=1 on the root URL
    - If no discovery tool is available, keep the root page content as-is and continue
 
-2. **Filter discovered URLs by relevance:** From the discovered subpage list, select the most relevant pages by searching for API-related terms in the URL path or title (e.g., `api`, `reference`, `quickstart`, `setup`, `config`, `getting-started`, `guide`, `sdk`, `methods`, `functions`). Exclude pages that are clearly non-API content (e.g., `blog`, `changelog`, `pricing`, `about`, `careers`).
+2. **Filter discovered URLs by relevance and origin:** Restrict candidates to the same **registrable domain** as the root URL — strip the URL down to its eTLD+1 (e.g., for root `https://docs.example.com/intro`, accept any subdomain of `example.com` such as `api.example.com` or `docs.example.com`, but reject `example.org` or `cdn.partner.io`). Cross-origin links must be discarded before any fetch. The same-registrable-domain rule prevents Mintlify/Docusaurus link clouds from pulling in tracking pixels, doc-site CDNs, or third-party embeds as if they were canonical docs. From the surviving same-domain candidates, select the most relevant pages by searching for API-related terms in the URL path or title (e.g., `api`, `reference`, `quickstart`, `setup`, `config`, `getting-started`, `guide`, `sdk`, `methods`, `functions`). Exclude pages that are clearly non-API content (e.g., `blog`, `changelog`, `pricing`, `about`, `careers`).
 
 3. **Fetch top subpages:** Fetch up to **10** of the most relevant subpages. For each:
    - Use the same web fetching tool as the root URL
@@ -123,9 +129,9 @@ Parse the successfully fetched markdown for:
 **If tier is Deep and at least one URL was fetched successfully:**
 
 1. Write fetched markdown files to a staging directory: `_bmad-output/{skill-name}-docs/`
-2. Index into QMD: `qmd collection add {project-root}/_bmad-output/{skill-name}-docs/ --name {skill-name}-docs --mask "*.md"`
-3. Generate embeddings: `qmd embed` (required for `vector_search` and `deep_search`)
-4. Register in forge-tier.yaml `qmd_collections` array:
+2. Index into QMD with atomic replace + rollback: if a `{skill-name}-docs` collection already exists, run `qmd collection remove {skill-name}-docs` first, then `qmd collection add {project-root}/_bmad-output/{skill-name}-docs/ --name {skill-name}-docs --mask "*.md"`. **If `qmd collection add` fails after a successful `remove`:** remove any matching `{skill-name}-docs` entry from `forge-tier.yaml` → `qmd_collections[]` to keep the registry consistent with QMD's actual state, warn in evidence-report, and skip the embed — docs enrichment degrades gracefully.
+3. Generate embeddings scoped to this collection (only if step 2 `add` succeeded): `qmd embed --collection {skill-name}-docs` (required for semantic `type:'vec'` and HyDE `type:'hyde'` sub-queries within the QMD `query` tool). If the installed `qmd` CLI does not accept `--collection`, gate the embed behind a freshness check: skip re-embedding if the existing `{skill-name}-docs` registry entry is within 24 hours, and log the skip in the evidence report to prevent unbounded batch-mode re-embedding.
+4. Register in forge-tier.yaml `qmd_collections` array — **acquire an exclusive `flock` on `{sidecar_path}/forge-tier.yaml.lock` for the read-modify-write** (see the locking pattern documented in step-03b §4). Write via `python3 {atomicWriteHelper} write --target {sidecar_path}/forge-tier.yaml`. If `flock` is unavailable, fall back to read-CAS-by-mtime (capture `st_mtime` before, re-check after; refuse to clobber if a concurrent run wrote in between).
 
 ```yaml
 - name: "{skill-name}-docs"

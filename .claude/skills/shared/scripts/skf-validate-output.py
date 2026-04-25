@@ -182,7 +182,7 @@ def validate_skill_package(skill_dir, generated_by=None):
     # Validate SKILL.md
     skill_md_path = files["SKILL.md"]
     if skill_md_path.exists():
-        content = skill_md_path.read_text()
+        content = skill_md_path.read_text(encoding="utf-8")
         fm_issues = validate_frontmatter(content, skill_name)
         body_issues = validate_body_structure(content)
         result["validation"]["skill_md"] = {"frontmatter": fm_issues, "body": body_issues}
@@ -197,7 +197,7 @@ def validate_skill_package(skill_dir, generated_by=None):
     # Validate context-snippet.md
     snippet_path = files["context-snippet.md"]
     if snippet_path.exists():
-        content = snippet_path.read_text()
+        content = snippet_path.read_text(encoding="utf-8")
         snippet_issues = validate_context_snippet(content)
         result["validation"]["context_snippet"] = {"issues": snippet_issues}
         for issue in snippet_issues:
@@ -210,7 +210,7 @@ def validate_skill_package(skill_dir, generated_by=None):
     meta_path = files["metadata.json"]
     if meta_path.exists():
         try:
-            with open(meta_path) as f:
+            with open(meta_path, encoding="utf-8") as f:
                 meta = json.load(f)
             meta_issues = validate_metadata_json(meta, generated_by)
             result["validation"]["metadata"] = {"issues": meta_issues}

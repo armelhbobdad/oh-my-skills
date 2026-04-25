@@ -40,7 +40,7 @@ description: >
 
 **Frontmatter rules:**
 
-- `name`: lowercase alphanumeric + hyphens only, must match skill output directory name. Prefer gerund form (`processing-pdfs`) for clarity.
+- `name`: lowercase alphanumeric + hyphens only, must match skill output directory name. **Stack skills MUST end in `-stack`** (e.g., `{project_name}-stack`) — this is how consumers (skf-verify-stack, skf-test-skill) detect stack vs individual skills.
 - `description`: non-empty, max 1024 chars, trigger-optimized for agent discovery. MUST use third-person voice ("Processes..." not "I can..." or "You can...").
 - No other frontmatter fields — only `name`, `description`, `license`, `compatibility`, `metadata`, `allowed-tools` are permitted by spec
 

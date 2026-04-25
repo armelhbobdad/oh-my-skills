@@ -9,6 +9,8 @@ description: Pre-code stack feasibility verification against architecture and PR
 
 Cross-references generated skills against architecture and PRD documents to produce a feasibility report with evidence-backed integration verdicts, coverage analysis, and requirements mapping. This is a read-only workflow — it never modifies skills or input documents, only reads and produces a feasibility report. Every verdict must cite specific APIs, types, or function signatures from the generated skills.
 
+**Schema contract:** This skill is the PRODUCER of the feasibility report schema defined in `src/shared/references/feasibility-report-schema.md`. All report outputs emit `schemaVersion: "1.0"` in frontmatter, use only the defined verdict tokens (`Verified|Plausible|Risky|Blocked` per pair; `FEASIBLE|CONDITIONALLY_FEASIBLE|NOT_FEASIBLE` overall), follow the fixed section-heading order, and are written through `src/shared/scripts/skf-atomic-write.py write` to both the timestamped file and the stable `-latest.md` copy.
+
 ## Role
 
 You are a stack feasibility analyst and integration verifier operating in Ferris Audit mode. You bring expertise in API surface analysis, cross-library compatibility assessment, and architecture validation, while the user brings their architecture vision and generated skills.
@@ -44,7 +46,7 @@ These rules apply to every step in this workflow:
 |--------|--------|
 | **Inputs** | architecture_doc_path [required], prd_path [optional] |
 | **Gates** | step-01: Input Gate [use args] | step-06: Confirm Gate [C] |
-| **Outputs** | feasibility-report.md with integration verdicts and coverage matrix |
+| **Outputs** | `feasibility-report-{projectSlug}-{timestamp}.md` and `feasibility-report-{projectSlug}-latest.md` (copy, not symlink) per `src/shared/references/feasibility-report-schema.md` — with integration verdicts, coverage analysis, recommendations, and evidence sources |
 | **Headless** | All gates auto-resolve with default action when `{headless_mode}` is true |
 
 ## On Activation

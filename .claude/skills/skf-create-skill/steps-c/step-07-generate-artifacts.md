@@ -1,6 +1,13 @@
 ---
 nextStepFile: './step-08-report.md'
 forgeTierConfig: '{sidecar_path}/forge-tier.yaml'
+# Resolve `{atomicWriteHelper}` by probing `{atomicWriteProbeOrder}` in order
+# (installed SKF module path first, src/ dev-checkout fallback); first existing
+# path wins. HALT if neither resolves — the active-symlink flip and registry
+# writes below MUST go through the atomic helper for concurrency safety.
+atomicWriteProbeOrder:
+  - '{project-root}/_bmad/skf/shared/scripts/skf-atomic-write.py'
+  - '{project-root}/src/shared/scripts/skf-atomic-write.py'
 ---
 
 # Step 7: Generate Artifacts
@@ -82,15 +89,19 @@ Write these 3 files from the compiled content:
 - Language and ast-grep schema used for this extraction (for reproducibility)
 - Note: This file is generated here from extraction data collected during steps 3-4, not assembled in step-05
 
-### 4. Create Active Symlink
+### 4. Create Active Symlink (atomic flip)
 
-Create or update the `active` symlink at `{skill_group}/active` pointing to `{version}`:
+Create or update the `active` symlink at `{skill_group}/active` pointing to `{version}` using the shared atomic-flip helper. The helper holds an `flock` on `{skill_group}/active.skf-lock`, refuses to replace a non-symlink at `{skill_group}/active` (protecting against accidental rm-rf of a real directory), and uses a rename-over-symlink pattern so the update is atomic from a concurrent reader's perspective:
 
+```bash
+python3 {atomicWriteHelper} flip-link \
+  --link {skill_group}/active \
+  --target {version}
 ```
-{skill_group}/active -> {version}
-```
 
-If the symlink already exists, remove it first and recreate. This ensures `{skill_group}/active/{name}/` resolves to the just-written skill package.
+The helper returns non-zero (exit 2) if `{skill_group}/active` already exists as a real directory or file rather than a symlink — in that case, halt with: "Refusing to flip `{skill_group}/active` — existing path is not a symlink. Investigate manually; expected a symlink pointing at a version directory."
+
+**Never `rm` + `ln -s` the active link manually.** The bare-rm pattern has two failure modes: (1) a concurrent reader sees a missing `active` mid-flip, and (2) a bug or typo that replaces `{skill_group}/active` with a plain directory turns the next manual `rm -rf {skill_group}/active` into data loss. The helper encapsulates both guards.
 
 ### 5. Verify Write Completion
 
@@ -135,12 +146,12 @@ Index the generated skill artifacts into a QMD collection so that audit-skill an
 ```bash
 qmd collection remove {name}-extraction 2>/dev/null  # no-op if new
 qmd collection add {skill_package} --name {name}-extraction --mask "**/*"
-qmd embed  # generates vector embeddings for vector_search/deep_search
+qmd embed --collection {name}-extraction  # generates vector embeddings for semantic (vec) and HyDE query sub-types; scope to this collection to avoid re-embedding others. If the installed qmd CLI lacks --collection, gate the embed behind a per-skill freshness check (skip when the existing {name}-extraction entry is within 24 hours — rationale: an unscoped embed re-runs over every collection, which in a populated QMD store can cost minutes of GPU time per create-skill run; 24 hours is long enough to absorb rapid re-forges from the same brief without losing meaningful content freshness) and warn in evidence-report.
 ```
 
 **Registry update:**
 
-Read `{forgeTierConfig}` and update the `qmd_collections` array.
+Read `{forgeTierConfig}` and update the `qmd_collections` array **under an exclusive `flock` on `{sidecar_path}/forge-tier.yaml.lock`** (see step-03b §4 for the full pattern — acquire lock → read → modify → atomic write via `skf-atomic-write.py write` → release). If `flock` is unavailable, fall back to read-CAS-by-mtime.
 
 If an entry with `name: "{name}-extraction"` already exists, replace it. Otherwise, append:
 
@@ -172,7 +183,7 @@ Dispatch to ccc CLI (`ccc index {source_root}`) or ccc MCP tool — `ccc_bridge.
 
 **Registry update:**
 
-Read `{forgeTierConfig}` and update the `ccc_index_registry` array.
+Read `{forgeTierConfig}` and update the `ccc_index_registry` array **under an exclusive `flock` on `{sidecar_path}/forge-tier.yaml.lock`** (same pattern as §6 — acquire lock → read → modify → atomic write via `skf-atomic-write.py write` → release). If `flock` is unavailable, fall back to read-CAS-by-mtime.
 
 Deduplicate by `source_repo` + `skill_name` (NOT local `path`, which may be ephemeral). Replace existing match or append:
 

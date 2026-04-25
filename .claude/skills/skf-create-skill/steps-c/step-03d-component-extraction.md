@@ -42,7 +42,9 @@ Before extraction, identify and exclude demo/example files to avoid inflating ex
 
 Confirm exclusion? [Y/n] Or adjust patterns:"
 
-Wait for user response. Apply confirmed patterns to the exclude list. Record `demo_files_excluded: {count}` in context.
+**GATE [default: Y]** — if `{headless_mode}` is true: auto-confirm the auto-detected exclusion patterns, log "headless: auto-confirm demo/example exclusion ({N} files, {M} directories)", and append `{step: "step-03d-component-extraction", gate: "demo-exclusion", decision: "Y", value: "{N} files / {M} dirs", rationale: "headless mode — auto-detected demo patterns accepted", timestamp: {ISO}}` to `headless_decisions[]` for evidence-report assembly in step-05 §7. Then proceed without waiting.
+
+Wait for user response (interactive only). Apply confirmed patterns to the exclude list. Record `demo_files_excluded: {count}` in context.
 
 Update the filtered file list by removing excluded demo files before proceeding.
 
@@ -83,7 +85,9 @@ Sample entries:
 
 Is this the component registry? [Y/n] Or provide the correct path:"
 
-Wait for user response.
+**GATE [default: Y]** — if `{headless_mode}` is true AND `score >= 7` (high-confidence candidate): auto-confirm the registry candidate, log "headless: auto-confirm registry candidate `{path}` (score {score}/9)", and append `{step: "step-03d-component-extraction", gate: "registry-confirm", decision: "Y", value: "{path} score={score}/9", rationale: "headless mode — high-confidence registry candidate auto-accepted", timestamp: {ISO}}` to `headless_decisions[]`. If `score < 7` in headless mode, auto-reject the candidate (treat as "no registry found"), log "headless: auto-reject low-confidence registry candidate (score {score}/9) — below auto-accept threshold 7", record the decision, and fall through to the "no registry found" branch below. Confidence threshold 7 matches the minimum score the heuristic considers "probable enough to risk" without human eyes.
+
+Wait for user response (interactive only).
 
 **If no registry found and no `registry_path` in brief:**
 
@@ -91,7 +95,9 @@ Wait for user response.
 - **[P]** Provide the registry file path
 - **[S]** Skip registry — proceed with standard props-first extraction only"
 
-Wait for user response.
+**GATE [default: S]** — if `{headless_mode}` is true: auto-select [S] Skip (props-first extraction without registry), log "headless: no registry detected, auto-skip to props-first extraction (no path was provided in brief.scope.registry_path)", and append `{step: "step-03d-component-extraction", gate: "provide-or-skip-registry", decision: "S", rationale: "headless mode — no human to provide registry path", timestamp: {ISO}}` to `headless_decisions[]`. The default is `[S]` rather than `[P]` because providing a path requires user input that headless cannot supply; skipping degrades gracefully to a smaller but valid extraction.
+
+Wait for user response (interactive only).
 
 ### Phase 3: Parse Registry
 

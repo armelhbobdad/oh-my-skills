@@ -39,9 +39,10 @@ These rules apply to every step in this workflow:
 
 | Aspect | Detail |
 |--------|--------|
-| **Inputs** | skill_name [required], --all [optional] |
-| **Gates** | step-01: Confirm Gate [C] | step-04: Confirm Gate [C] |
-| **Outputs** | Updated .export-manifest.json, updated context files (CLAUDE.md/AGENTS.md/.cursorrules) |
+| **Inputs** | skill_name [one or more, required unless `--all`], `--all` [optional — exports every non-deprecated skill in `.export-manifest.json`] |
+| **Gates** | step-01: single Confirm Gate [C] for the whole batch | step-04: single Confirm Gate [C] for the whole batch |
+| **Outputs** | Updated .export-manifest.json (every skill in the batch), updated context files (CLAUDE.md/AGENTS.md/.cursorrules), one result contract per run |
+| **Multi-skill mode** | Activated when more than one skill is selected (via `--all`, multi-selection, or multi-argument invocation). See `steps-c/step-01-load-skill.md` §1c for the per-step iteration map. |
 | **Headless** | All gates auto-resolve with default action when `{headless_mode}` is true |
 
 ## On Activation

@@ -1,5 +1,8 @@
 ---
-outputFile: '{forge_data_folder}/feasibility-report-{project_name}.md'
+outputFile: '{forge_data_folder}/feasibility-report-{project_slug}-{timestamp}.md'
+outputFileLatest: '{forge_data_folder}/feasibility-report-{project_slug}-latest.md'
+feasibilitySchemaRef: 'src/shared/references/feasibility-report-schema.md'
+atomicWriteScript: '{project-root}/src/shared/scripts/skf-atomic-write.py'
 nextStepFile: './step-07-health-check.md'
 ---
 
@@ -22,9 +25,11 @@ Present the complete feasibility report to the user. Display the overall verdict
 
 Read the entire `{outputFile}` to have all data available for presentation.
 
-Verify all expected sections are present: Coverage Matrix, Integration Verdicts, Requirements Coverage (or skipped notation), Synthesis & Recommendations.
+Verify all expected sections are present in order per `{feasibilitySchemaRef}`: `## Executive Summary`, `## Coverage Analysis`, `## Integration Verdicts`, `## Recommendations`, `## Evidence Sources`. If any section is missing or out of order, HALT and report the schema violation — do not display partial results.
 
-**Extract metrics from frontmatter:** Read `skills_analyzed`, `coverage_percentage`, `integrations_verified` (as `verified_count`), `integrations_plausible` (as `plausible_count`), `integrations_risky` (as `risky_count`), `integrations_blocked` (as `blocked_count`), `requirements_fulfilled` (as `fulfilled_count`), `requirements_partial` (as `partial_count`), `requirements_not_addressed` (as `not_addressed_count`), `requirements_pass`, `overall_verdict`, and `recommendation_count`. Use these mapped display names in the summary table and next steps below.
+**Extract metrics from `{outputFile}` frontmatter** (per shared schema in `{feasibilitySchemaRef}`): `skillsAnalyzed`, `coveragePercentage`, `pairsVerified` (as `verified_count`), `pairsPlausible` (as `plausible_count`), `pairsRisky` (as `risky_count`), `pairsBlocked` (as `blocked_count`), `requirementsFulfilled` (as `fulfilled_count`), `requirementsPartial` (as `partial_count`), `requirementsNotAddressed` (as `not_addressed_count`), `requirementsPass`, `overallVerdict`, and `recommendationCount`. Use these mapped display names in the summary table and next steps below.
+
+**Schema guard:** Verify `schemaVersion == "1.0"` in the frontmatter. If mismatched, HALT with "Report frontmatter schemaVersion `{value}` does not match producer schema `1.0` — report was corrupted between steps. Re-run [VS]." (Producer never proceeds past a schema mismatch.)
 
 ### 2. Present Summary
 
@@ -32,12 +37,12 @@ Verify all expected sections are present: Coverage Matrix, Integration Verdicts,
 
 ---
 
-**Overall Verdict: {FEASIBLE / CONDITIONALLY FEASIBLE / NOT FEASIBLE}**
+**Overall Verdict: {FEASIBLE / CONDITIONALLY_FEASIBLE / NOT_FEASIBLE}** (tokens are case-sensitive and use underscores per `{feasibilitySchemaRef}`; for user-facing prose you may render them as "Feasible", "Conditionally feasible", or "Not feasible")
 
 | Metric | Value |
 |--------|-------|
-| **Skills Analyzed** | {skills_analyzed} |
-| **Coverage** | {coverage_percentage}% |
+| **Skills Analyzed** | {skillsAnalyzed} |
+| **Coverage** | {coveragePercentage}% |
 | **Integrations Verified** | {verified_count} |
 | **Integrations Plausible** | {plausible_count} |
 | **Integrations Risky** | {risky_count} |
@@ -46,12 +51,12 @@ Verify all expected sections are present: Coverage Matrix, Integration Verdicts,
 | **Requirements Partially Fulfilled** | {partial_count or 'N/A — no PRD'} |
 | **Requirements Not Addressed** | {not_addressed_count or 'N/A — no PRD'} |
 
-{IF delta_improved is not null (delta from previous run exists):}
+{IF deltaImproved is not null (delta from previous run exists):}
 **Delta from Previous Run:**
-- Improved: {delta_improved} items
-- Regressed: {delta_regressed} items
-- New: {delta_new} items
-- Unchanged: {delta_unchanged} items
+- Improved: {deltaImproved} items
+- Regressed: {deltaRegressed} items
+- New: {deltaNew} items
+- Unchanged: {deltaUnchanged} items
 
 ---"
 
@@ -91,7 +96,7 @@ Walk through each section briefly, focusing on items that need attention:
 
 Based on the overall verdict, present the appropriate recommendation:
 
-**IF FEASIBLE:**
+**IF `overallVerdict == "FEASIBLE"`:**
 "**Your stack is verified.** All technologies are covered, integrations are compatible, and requirements are all fulfilled (or requirements pass was skipped).
 
 **Recommended next steps:**
@@ -99,15 +104,15 @@ Based on the overall verdict, present the appropriate recommendation:
 2. **[SS] Create Stack Skill** — compose your individual skills into a unified stack skill, providing the refined architecture doc when prompted
 3. **[TS] Test Skill** → **[EX] Export Skill** — Verify completeness and package for distribution"
 
-**IF CONDITIONALLY FEASIBLE:**
-"**Your stack is conditionally feasible.** There are {recommendation_count} items to address before proceeding.
+**IF `overallVerdict == "CONDITIONALLY_FEASIBLE"`:**
+"**Your stack is conditionally feasible.** There are {recommendationCount} items to address before proceeding.
 
 **Required actions:**
 {List the specific recommendations from Step 05 synthesis}
 
 **After addressing these items:** Re-run **[VS] Verify Stack** to confirm resolution, then proceed to **[RA]**."
 
-**IF NOT FEASIBLE:**
+**IF `overallVerdict == "NOT_FEASIBLE"`:**
 "**Critical blockers must be resolved.** The stack cannot support the architecture as described.
 
 **Critical actions:**
@@ -117,7 +122,11 @@ Based on the overall verdict, present the appropriate recommendation:
 
 ### 4b. Result Contract
 
-Write the result contract per `shared/references/output-contract-schema.md`: the per-run record at `{forge_data_folder}/verify-stack-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{forge_data_folder}/verify-stack-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include the feasibility report path in `outputs`; include `overall_verdict` (FEASIBLE/CONDITIONALLY FEASIBLE/NOT FEASIBLE), `coverage_percentage`, and `recommendation_count` in `summary`.
+Write the result contract per `shared/references/output-contract-schema.md`: the per-run record at `{forge_data_folder}/verify-stack-result-{YYYYMMDD-HHmmss}.json` (UTC timestamp, resolution to seconds) and a copy at `{forge_data_folder}/verify-stack-result-latest.json` (stable path for pipeline consumers — copy, not symlink). Include the feasibility report path (both `{outputFile}` and `{outputFileLatest}`) in `outputs`; include `overallVerdict` (`FEASIBLE` / `CONDITIONALLY_FEASIBLE` / `NOT_FEASIBLE`), `coveragePercentage`, and `recommendationCount` in `summary` — use the case-sensitive schema tokens.
+
+Write both JSON files through `python3 {atomicWriteScript} write --target ...` to avoid partial-write corruption.
+
+**Result-contract ordering:** The result contract is written exactly once on the first entry to step-06 (the `[X] Exit verification` path). Re-walks of the report via the `[R] Review full report` menu option do NOT regenerate it — the contract captures the run, not the presentation loop. If the user selects `[R]` repeatedly before exiting, the single on-disk contract written on first entry remains authoritative.
 
 ### 5. Present Menu
 
@@ -143,5 +152,5 @@ Re-run **[VS] Verify Stack** anytime after making changes to your skills or arch
 
 ## CRITICAL STEP COMPLETION NOTE
 
-When the user selects X, this step chains to the local health-check step (`{nextStepFile}`), which in turn delegates to `shared/health-check.md`. After the health check completes, the verify-stack workflow is fully done. The feasibility report at `{outputFile}` contains the full analysis: Coverage Matrix, Integration Verdicts, Requirements Coverage, and Synthesis & Recommendations.
+When the user selects X, this step chains to the local health-check step (`{nextStepFile}`), which in turn delegates to `shared/health-check.md`. After the health check completes, the verify-stack workflow is fully done. The feasibility report at `{outputFile}` (and its stable `-latest.md` copy) contains the full analysis under the fixed headings: Executive Summary, Coverage Analysis, Integration Verdicts, Recommendations, Evidence Sources.
 

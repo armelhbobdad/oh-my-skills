@@ -343,6 +343,13 @@ When `file_type: "doc"`:
 ## evidence-report.md Structure
 
 ```markdown
+---
+skill_name: {skill-name}
+generated: {date}
+forge_tier: {tier}
+t2_future_count: {N}
+---
+
 # Evidence Report: {skill-name}
 
 **Generated:** {date}
@@ -382,5 +389,7 @@ When `file_type: "doc"`:
 ## Remaining Warnings
 - {any warnings from extraction or validation}
 ```
+
+**Frontmatter — pinned detection contract:** the `t2_future_count` field is the authoritative forward-looking-annotation count for downstream gate checks (e.g. skf-test-skill §2b migration-section rule). Emit **always**, even when 0 — omission is indistinguishable from "no T2-future data" and silently flips the gate into Case 2/3 for a Case-1 skill. `generated` and `forge_tier` mirror the narrative header for consumers that read only the frontmatter. Downstream gate rules MUST parse `t2_future_count` from frontmatter, not grep prose — prose drift (heading renames, alternate phrasings like "forward-looking annotations") silently breaks the detection.
 
 **Description Guard slot:** populated by step-06 §0 (create-skill) and §0 (update-skill) when the guard protocol fires. `Restored: true` indicates that an external tool (typically `skill-check --fix` or `split-body`) rewrote the frontmatter `description` and the guard restored the pre-tool value. When `Restored: false`, leave `Triggering tool`, `Original description preserved`, and `Notes` as `—`. When `Restored: true`, fill all four fields: tool name, whether the original was successfully written back, and a one-sentence note describing what the tool had changed (e.g., "replaced with generic summary", "truncated at 80 chars", "angle-bracket tokens re-introduced"). Downstream test-skill assertions can grep for `Restored: true` to detect unintended tool rewrites without parsing free-form warning prose.

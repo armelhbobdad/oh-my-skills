@@ -32,18 +32,33 @@ Discover skills in `{skills_output_folder}` using version-aware resolution — s
 **Version-aware skill enumeration:**
 
 1. **Primary: Export manifest** — Read `{skills_output_folder}/.export-manifest.json`. For each entry in `exports`, resolve the active version path: `{skills_output_folder}/{skill-name}/{active_version}/{skill-name}/` — this directory must contain both `SKILL.md` and `metadata.json`.
-2. **Fallback: `active` symlinks** — If the manifest does not exist, is empty, or a manifest entry lacks an `active_version`, scan for `{skills_output_folder}/*/active/*/SKILL.md`. Each match resolves to a skill package at `{skills_output_folder}/{skill-name}/active/{skill-name}/` (the `{active_skill}` template).
 
-**Filter:** Skip any skill named `{project_name}-stack` or any skill where `metadata.json` has `"skill_type": "stack"` — stack skills must not be loaded as source dependencies to avoid self-referencing loops.
+   **Stale manifest fallback (H6):** If a manifest entry resolves to a path that does not exist (broken `active_version`, deleted version dir, missing `SKILL.md` / `metadata.json`), do NOT HALT for that single entry. Instead:
+   a. Fall back to the symlink scan (rule 2) **for that one skill only**: probe `{skills_output_folder}/{skill-name}/active/{skill-name}/SKILL.md`.
+   b. If the symlink-based path resolves, use it and log a warning: `"export-manifest entry '{skill-name}' is stale — resolved via active symlink instead"`.
+   c. If BOTH the manifest path AND the symlink path fail, only then HALT with a manifest-corruption diagnostic naming the affected skill and pointing the user at `[SKF-update-skill]` to repair.
+
+   **Manifest JSON parse guard (B3):** Wrap the `.export-manifest.json` parse in try/except. If JSON parsing fails for any reason, fall through entirely to the `active` symlink scan (rule 2) across all skills; log a warning and validate each symlink target exists before including it.
+
+2. **Fallback: `active` symlinks** — If the manifest does not exist, is empty, JSON-parse fails, or an individual manifest entry fails to resolve, scan for `{skills_output_folder}/*/active/*/SKILL.md`. Each match resolves to a skill package at `{skills_output_folder}/{skill-name}/active/{skill-name}/` (the `{active_skill}` template). Verify the active symlink target actually exists and contains both `SKILL.md` and `metadata.json`.
+
+**Filter & cycle guard (B4):** Skip any skill where the filter below matches:
+
+- Skill name equals `{project_name}-stack`, OR
+- `metadata.json` has `"skill_type": "stack"`, OR
+- `metadata.json` is missing or unreadable (treat `skill_type: unknown` as non-loadable — exclude to avoid loading a partially-written or self-referential skill).
+
+Maintain a **visited set keyed by `skill_dir`** (the top-level dir under `{skills_output_folder}`) while resolving. If a skill would be revisited via a circular reference (e.g., a constituent that claims another stack as dependency), skip the duplicate and log a warning `"cycle detected at {skill_dir} — skipping"`. Stack skills must not be loaded as source dependencies to avoid self-referencing loops.
 
 **If zero skills remain after filtering:** HALT with: "**Cannot proceed in compose-mode.** No individual skills found in `{skills_output_folder}` (after filtering stack skills). Run [CS] Create Skill or [QS] Quick Skill to generate individual skills first, then re-run [SS]."
 
 For each skill found:
-1. Read `metadata.json` from the resolved version-aware path (`{skill_package}` or `{active_skill}`)
+1. Read `metadata.json` from the resolved version-aware path (`{skill_package}` or `{active_skill}`). **Skill-type gate (S1):** the sibling `metadata.json` MUST be present AND parseable AND contain a `skill_type` field whose value is one of the known set (`skill`, `stack`, or any future values explicitly recognised by this workflow). Directories lacking a qualifying `metadata.json`/`skill_type` are NOT treated as skills — log `"{dir_name}: not a skill (no valid metadata.json/skill_type) — excluding"` and skip.
 2. Extract: name, language, confidence_tier, source_repo, exports count, version
 3. Store the skill group directory name as `skill_dir` (the top-level name under `{skills_output_folder}`, distinct from `name` — the directory may differ from the metadata name)
 4. Store the resolved package path as `skill_package_path` for use in later steps
-5. Store as `raw_dependencies` with source: "existing_skill"
+5. **Hash the constituent metadata at read-time (S13):** compute `sha256` of the raw `metadata.json` bytes just read, and store it in workflow state as `metadata_hash` alongside `skill_package_path`. Step-07 uses this stored hash (not a re-read) for `constituents[].metadata_hash` in `provenance-map.json`, so drift between step-02 read and step-07 write is captured.
+6. Store as `raw_dependencies` with source: "existing_skill"
 
 Display:
 "**Loaded {N} existing skills as dependencies.**
@@ -82,6 +97,10 @@ Scan the project root (depth 0-1) for manifest files, **excluding directories li
 - Note any unusual structures (monorepo with multiple manifests, workspace configurations)
 
 **If no manifest files found:**
+
+**Headless auto-cancel (S2):** If `{headless_mode}` is true, do NOT wait for user input. Emit a structured error contract `{"status":"error","skill":"skf-create-stack-skill","stage":"step-02","reason":"no manifests found, headless cannot prompt"}` on stderr and exit non-zero. Headless mode cannot proceed without an explicit dependency list.
+
+**Interactive mode:**
 
 "**No dependency manifests detected** in the project root.
 

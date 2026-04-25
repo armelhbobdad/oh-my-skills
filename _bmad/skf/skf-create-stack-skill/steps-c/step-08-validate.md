@@ -40,10 +40,14 @@ Record any missing files as **ERROR** findings.
 
 ### 2. Check Tool Availability
 
-Run: `npx skill-check -h`
+Probe skill-check with `--no-install` to avoid cold-install hangs, wrap in a short timeout, and treat any hang or non-zero exit as unavailable (S14):
 
-- If succeeds: Use skill-check for automated validation in sections 3, 9
-- If fails: Use manual fallback paths in those sections
+```bash
+timeout 10s npx --no-install skill-check -h
+```
+
+- If exits 0: Use skill-check for automated validation in sections 3, 9.
+- If exits non-zero, times out, or returns "command not found": Use manual fallback paths. Mark `metadata.validation_status: "manual-only"` (do this in step-07 when appropriate) and record every skipped check in the evidence report.
 
 **Important:** Do not assume availability — empirical check required.
 
@@ -52,6 +56,8 @@ Run: `npx skill-check -h`
 **If available**, run: `npx skill-check check <skill-dir> --fix --format json --no-security-scan`
 
 This validates frontmatter, description, body limits, links, formatting — and auto-fixes deterministic issues. Parse JSON for `qualityScore`, `diagnostics[]`, `fixed[]`.
+
+**Post-fix provenance drift guard (S15):** If `fixed[]` is non-empty, `skill-check --fix` has modified `SKILL.md` after step-07 wrote it. The safe default for v1.0 is to emit a **WARNING** finding listing each auto-fix (`"skill-check --fix modified SKILL.md: {fix_description} — metadata.json hashes/provenance may be out of date"`). Do NOT silently accept the fixes without surfacing the drift. If the caller wants authoritative metadata, they should re-run the workflow.
 
 **If `body.max_lines` reported**, prefer selective split: extract only the largest Tier 2 section(s) to `references/`, keeping Tier 1 content inline (inline passive context achieves 100% task accuracy vs 79% for on-demand retrieval). Fall back to `npx skill-check split-body <skill-dir> --write` if not feasible. Verify `#quick-start` and `#key-types` anchors still resolve after split. Then re-validate.
 
@@ -82,7 +88,8 @@ Parse metadata.json and verify required fields:
 - [ ] `skill_type` equals "stack"
 - [ ] `name` matches `{project_name}-stack`
 - [ ] `version` and `generation_date` present
-- [ ] `confidence_tier` matches forge tier from step 01 (Quick/Forge/Forge+/Deep) — in both code-mode and compose-mode, this is the forge tier; per-library inherited confidence is tracked separately in `confidence_distribution`
+- [ ] `forge_tier` is present and matches the forge tier from step 01 (`Quick|Forge|Forge+|Deep`)
+- [ ] `confidence_tier` is present and is exactly one of `T1|T1-low|T2|T3` — the dominant T-code computed from `confidence_distribution` (pick the tier with the highest count; ties resolve to the weaker tier: T1-low > T1, T2 > T1-low, T3 > T2 for tie-break so the reported tier never overstates confidence)
 - [ ] `library_count` matches actual reference files; `integration_count` matches pair files
 - [ ] `libraries` array present and non-empty
 - [ ] `confidence_distribution` object present with `t1`, `t1_low`, `t2`, `t3` keys (lowercase, matching template definition)
@@ -113,7 +120,7 @@ Verify context-snippet.md follows Vercel-aligned indexed format:
 - [ ] First line matches: `[{project}-stack v{version}]|root: {prefix}{project}-stack/` where prefix is `skills/` (draft form) or any IDE skill root (`.{dir}/skills/`)
 - [ ] Second line starts with `|IMPORTANT:`
 - [ ] Stack and integrations lines present
-- [ ] Approximate token count is ~80-120 tokens
+- [ ] Approximate token count is ~80-120 tokens (use the `ceil(char_count / 4)` heuristic from step-07 §5; tolerate up to ~150 if the overflow strategy was applied and a workflow_warning was emitted)
 
 Record format violations as **WARNING** findings.
 

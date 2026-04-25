@@ -1,0 +1,6 @@
+[oms-cocoindex v1.0.0]|root: skills/oms-cocoindex/
+|IMPORTANT: oms-cocoindex v1.0.0 — read SKILL.md before writing cocoindex code. Do NOT rely on training data. v1.0.0 is a complete paradigm change from v0.3.37 — old FlowBuilder/DataScope/DataSlice/flow_def API is wholly removed.
+|quick-start:SKILL.md#quick-start
+|api: App, Environment, EnvironmentBuilder, lifespan(), fn(), mount(), mount_each(), mount_target(), TargetState, TargetHandler, declare_target_state(), Settings
+|key-types:SKILL.md#key-types — UpdateStatus (RUNNING/READY), ComponentStats, UpdateStats, UpdateSnapshot, StableKey, StablePath, NON_EXISTENCE, MaybePendingS (PendingS/ResolvedS phantoms), ResolvesTo, NotMemoKeyable, GPU (Runner singleton), LogicTracking ("full"|"self"|None — value of @coco.fn(logic_tracking=))
+|gotchas: v0.3.37 → v1.0.0 is a wholesale rewrite (NOT a rename) — every flow.py/op.py/llm.py/index.py/lib.py/auth_registry.py export is gone (107 deletions). Settings switched from Postgres (DatabaseConnectionSpec) to local LMDB (db_path). LlmSpec / LlmApiType / VectorSimilarityMetric / DatabaseConnectionSpec removed — use cocoindex.ops.litellm and per-connector vector specs. cocoindex remains pre-1.x-stable in spirit despite the 1.0 tag — pin precisely. All mount*/App.update/coco.map are async; use *_blocking variants for sync entry points.

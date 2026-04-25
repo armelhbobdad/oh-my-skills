@@ -1,0 +1,35 @@
+{
+  "skill": "skf-audit-skill",
+  "status": "success",
+  "timestamp": "2026-04-25T00:23:55Z",
+  "outputs": [
+    {"type": "report", "path": "forge-data/oms-cocoindex/0.3.37/drift-report-20260424-212355.md"},
+    {"type": "manifest", "path": "forge-data/oms-cocoindex/0.3.37/audit-snapshot-20260424-212355.json"}
+  ],
+  "summary": {
+    "audited_skill": "oms-cocoindex",
+    "audited_version": "0.3.37",
+    "baseline_ref": "v0.3.37",
+    "baseline_commit": "87c5dbf087bfccca83791861db0d33519ef09677",
+    "audit_ref": "v1.0.0",
+    "audit_commit": "5fe4f37a526e51516655832ec9814e7ca24ade9a",
+    "audit_ref_source": "checkout-latest",
+    "forge_tier": "Deep",
+    "qmd_mode": "direct-content-fallback",
+    "severity": "CRITICAL",
+    "drift_count": 130,
+    "by_severity": {
+      "CRITICAL": 109,
+      "HIGH": 5,
+      "MEDIUM": 16,
+      "LOW": 0
+    },
+    "recommendation": "update-skill",
+    "recommendation_reason": "0.3 → 1.0 major version rewrite: 107 of 114 baseline exports removed, 2 signature-broken, and a ~70-entry new public-API surface at python/cocoindex/_internal/api.py. update-skill handles this via side-by-side version preservation (fresh skills/oms-cocoindex/1.0.0/ directory, active symlink repoint, old 0.3.37 preserved as archived). Same pattern proven by oms-cognee 0.5.8→1.0.0. Brief's include patterns need updating to cover the new _internal/api.py, connectors/, and ops/ paths before running update-skill.",
+    "brief_scope_adjustments_needed": [
+      "python/cocoindex/_internal/api.py",
+      "python/cocoindex/connectors/**/*.py",
+      "python/cocoindex/ops/**/*.py"
+    ]
+  }
+}

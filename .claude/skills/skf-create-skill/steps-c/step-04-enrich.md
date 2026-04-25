@@ -56,15 +56,17 @@ For each function, derive the **module context** from the extraction inventory's
 
 **Primary searches (BM25 — always runs, no GPU/VRAM dependency):**
 
-1. **Issues/PRs:** `qmd_bridge.search("{module_context} {function_name}")` — find related discussions scoped by module context
-2. **Changelog entries:** `qmd_bridge.search("{function_name} changelog")` — find version history, breaking changes (kept generic — changelogs rarely use module paths)
-3. **Migration notes:** `qmd_bridge.search("{function_name} migration deprecated breaking")` — find deprecation or migration context using exact keyword matching
+1. **Issues/PRs:** `qmd_bridge.query(searches=[{type:'lex', query:'{module_context} {function_name}', intent:'issues-prs'}])` — find related discussions scoped by module context
+2. **Changelog entries:** `qmd_bridge.query(searches=[{type:'lex', query:'{function_name} changelog', intent:'changelog'}])` — find version history, breaking changes (kept generic — changelogs rarely use module paths)
+3. **Migration notes:** `qmd_bridge.query(searches=[{type:'lex', query:'{function_name} migration deprecated breaking', intent:'migration'}])` — find deprecation or migration context using exact keyword matching
 
 **Supplemental search (best-effort — requires GPU/VRAM, may fail):**
 
-4. **Semantic migration context:** `qmd_bridge.vector_search("{module_context} {function_name} migration deprecated")` — adds semantic matches (synonyms, paraphrases) that BM25 keyword search may miss. Merge results with search #3, deduplicating by document ID. If `vector_search` fails (VRAM, GPU driver, model loading), discard silently — the BM25 results from search #3 provide baseline coverage.
+4. **Semantic migration context:** `qmd_bridge.query(searches=[{type:'vec', query:'{module_context} {function_name} migration deprecated', intent:'semantic-migration'}])` — adds semantic matches (synonyms, paraphrases) that BM25 keyword search may miss. Merge results with search #3, deduplicating by document ID. If the `vec`-type search fails (VRAM, GPU driver, model loading), discard silently — the BM25 (`lex`) results from search #3 provide baseline coverage.
 
-**Tool resolution for qmd_bridge:** Use QMD MCP tools — `mcp__plugin_qmd-plugin_qmd__search` for BM25 search, `mcp__plugin_qmd-plugin_qmd__vector_search` for semantic search (Claude Code). Cursor: qmd MCP server. CLI: `qmd search "{query}"` / `qmd vector_search "{query}"`. See `knowledge/tool-resolution.md`.
+**Tool resolution for qmd_bridge:** QMD MCP exposes a single `query` tool that accepts a `searches[]` array. Each entry has a `type` field — `'lex'` for BM25 keyword search, `'vec'` for semantic vector search, `'hyde'` for hypothetical-document retrieval — plus `query` and `intent` fields. Claude Code: `mcp__plugin_qmd-plugin_qmd__query`. Cursor: qmd MCP server. CLI: `qmd search "{query}"` (BM25) / `qmd vector-search "{query}"` (semantic). See `knowledge/tool-resolution.md`.
+
+**Tool probe (graceful degradation):** If any tool-not-found error surfaces while invoking `query` (e.g., legacy `vector_search` still expected by an older client, or a bridge returns "tool not registered"), treat it as a non-fatal failure for that function's enrichment and continue with the remaining functions. Do NOT retry against the stale `vector_search` tool name — that name was removed from the QMD MCP server. Record the degradation in context for the evidence report.
 
 **For each QMD result:**
 

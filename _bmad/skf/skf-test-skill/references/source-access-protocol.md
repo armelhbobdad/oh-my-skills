@@ -23,7 +23,22 @@
 
   Leave `analysis_confidence` unchanged (still `full` or `provenance-map` per the waterfall) — stratified scope does not degrade confidence, only the denominator. Annotate the coverage report with: `Stratified scope — denominator: {effective_denominator | tier_a_include union | scope.include union} ({N} files matched, {M} exports union)`.
 
-  **When this clause does NOT apply:** `scope.type: "full-library"` skills, single-package repositories, or stratified briefs where the full monorepo is intentionally in scope. For those, use the standard barrel-based denominator.
+  **When this clause does NOT apply:** `scope.type: "full-library"` skills, single-package repositories, or stratified briefs where the full monorepo is intentionally in scope. For those, use the standard barrel-based denominator — **unless** the single-package repo is a pattern-reference app (see next bullet).
+
+- **Pattern-reference apps (non-library source):** If the source is a single-package repo whose purpose is demonstrating an integration pattern rather than distributing a library API — typical markers are `scope.type: "full-library"` **without** a barrel file at any recognized entry-point path (`__init__.py`, `index.ts`/`index.js`, `lib.rs`, `mod.rs`) AND without a monorepo layout — the skill's value lives in wiring patterns, not exports. None of the preceding three clauses fits: there is no barrel to count from, no empty-barrel `scope.include` to consult, and no monorepo stratification to re-derive.
+
+  **Trigger (either fires):**
+
+  1. `scope.notes` in `forge-data/{skill_name}/skill-brief.yaml` flags pattern-reference intent (phrases such as "Reference app, not a library", "pattern-reference", "embedded-pattern skill", or "skill value is the … pattern"). The `scope.notes` field is authoritative when the author wrote it.
+  2. Source tree lacks a barrel file at every recognized entry-point path AND the repo is not a monorepo (no `packages/`, `workspaces`, `lerna.json`, `rush.json`, `nx.json`, or Cargo `[workspace]`). Detected at test time by filesystem inspection of `{source_path}`.
+
+  **Denominator:** canonicalized provenance-map entry count (same canonicalization as the "Provenance-map canonicalization" section below). `skf-create-skill`'s extraction pass has already curated the provenance-map to the authored pattern surface; treat it as the authoritative enumeration of the skill's documented reach.
+
+  **Recommendation — prefer `tier_a_include`:** authors should add `scope.tier_a_include` to the brief listing the files that constitute the authored pattern surface, the same way stratified-scope briefs do. When `tier_a_include` is present, use its re-derived union (filtered by `scope.exclude`) as the denominator exactly as in the stratified-scope clause. When absent, fall back to the canonicalized provenance-map count — do not fabricate a denominator from arbitrary source-tree sweeps.
+
+  **Confidence:** leave `analysis_confidence` unchanged (still `full` or `provenance-map` per the waterfall). Pattern-reference does not degrade confidence — the surface is smaller than a library barrel, not lower quality. Annotate the coverage report with: `Pattern-reference — denominator: {tier_a_include union | canonicalized provenance-map count} ({N} pattern surfaces)`.
+
+  **When this clause does NOT apply:** any repo with a non-empty barrel file, any monorepo (use the stratified-scope clause), or any single-package repo whose `scope.type` is explicitly `public-api` / `specific-modules` / `component-library` / `docs-only` (those scope types have their own denominator semantics). Also does NOT apply if `scope.type: "reference-app"` exists in the enum (pending upgrade in `skf-create-skill/steps-c/step-03-extract.md`) — in that case the brief speaks for itself and this clause's filesystem trigger is moot.
 
 Internal module symbols are **excluded** from the coverage denominator unless they are explicitly documented in SKILL.md (in which case they count as documented extras, not missing coverage).
 

@@ -5,6 +5,12 @@ extractionPatternsData: 'references/extraction-patterns.md'
 extractionPatternsTracingData: 'references/extraction-patterns-tracing.md'
 tierDegradationRulesData: 'references/tier-degradation-rules.md'
 sourceResolutionData: 'references/source-resolution-protocols.md'
+# Probe installed SKF module path first, src/ dev-checkout fallback. At first
+# use below, resolve `{atomicWriteHelper}` to the first existing path; HALT if
+# neither candidate exists — losing atomic-write guarantees is not an option.
+atomicWriteProbeOrder:
+  - '{project-root}/_bmad/skf/shared/scripts/skf-atomic-write.py'
+  - '{project-root}/src/shared/scripts/skf-atomic-write.py'
 ---
 
 # Step 3: Extract
@@ -31,7 +37,7 @@ Load `{extractionPatternsData}` completely. Identify the strategy for the curren
 
 From the brief, apply scope and pattern filters:
 
-- `scope.type` — determines what to extract (e.g., `full-library`, `specific-modules`, `public-api`, `component-library`, `docs-only`)
+- `scope.type` — determines what to extract (e.g., `full-library`, `specific-modules`, `public-api`, `component-library`, `reference-app`, `docs-only`). Use `reference-app` when the source is a whole app and the skill's value is wiring patterns rather than public exports (embedded-sidecar reference apps, CLI-demo repos, integration-pattern demonstrators). `reference-app` triggers the compile-assembly overrides in `{compileAssemblyRules}` that replace "Key API Summary" with a "Pattern Surface" section and make `stats.exports_documented` semantics pattern-oriented. Do NOT pick `full-library` for reference apps — downstream assembly will remap wiring onto export slots, producing fuzzy counts and an awkward SKILL.md.
 - `scope.include` — file globs to include
 - `scope.exclude` — file globs to exclude
 
@@ -93,18 +99,32 @@ This protocol detects such files, prompts the user, and records the decision in 
      1. **Do NOT add the path to the filtered file list from §2.** Authoritative documentation files are not code — they must not go through the AST extraction pipeline in §4, which would silently produce no exports (ghost entries). Instead, add the path to a new in-context list `promoted_docs[]` with `{path, heuristic, size_bytes, line_count, content_hash}`. Compute the SHA-256 content hash of the file now.
      2. Append to `brief.scope.include`: add the exact `candidate.path` as a literal glob (no wildcards — the amendment targets this specific file). This write ensures that a re-run of `skf-create-skill` against the amended brief sees the path in scope and skips re-prompting.
      3. Append to `brief.scope.amendments[]` a new entry with `action: "promoted"`, `path: candidate.path`, `reason: {user-provided one-sentence reason or auto-generated "authoritative AI docs — matched heuristic {basename}"}`, `heuristic: {basename}`, `date: {today ISO}`, `workflow: "skf-create-skill"`.
-     4. **Write the amended brief back to disk immediately** at `{forge_data_folder}/{skill_name}/skill-brief.yaml`. Immediate write (not deferred to step-07) ensures a crashed run still leaves the amendment recorded. Preserve all other brief fields and formatting.
+     4. **Write the amended brief back to disk immediately** at `{forge_data_folder}/{skill_name}/skill-brief.yaml`. Immediate write (not deferred to step-07) ensures a crashed run still leaves the amendment recorded. Preserve all other brief fields and formatting. **Use atomic write + backup:** before writing, copy the original brief to `{forge_data_folder}/{skill_name}/skill-brief.yaml.bak` (overwriting any prior `.bak` — the most recent pre-amendment snapshot is the useful one). Then pipe the amended YAML through the shared atomic writer so a crash mid-write cannot corrupt the brief:
+
+        ```bash
+        # 1. Backup
+        cp {forge_data_folder}/{skill_name}/skill-brief.yaml \
+           {forge_data_folder}/{skill_name}/skill-brief.yaml.bak
+
+        # 2. Atomic write (stdin → tmp → fsync → rename)
+        cat <<'AMENDED_YAML' | python3 {atomicWriteHelper} write \
+            --target {forge_data_folder}/{skill_name}/skill-brief.yaml
+        {amended brief YAML}
+        AMENDED_YAML
+        ```
+
+        The helper stages into `{brief}.skf-tmp`, fsyncs, then `os.replace()`s — readers never see a half-written brief.
      5. Display: "**Promoted `{path}`** — tracked as documentation file, amendment recorded."
 
    - **[S] Skip:**
      1. Do NOT modify `scope.include` or `scope.exclude`.
      2. Append to `brief.scope.amendments[]` a new entry with `action: "skipped"`, `path: candidate.path`, `reason: {user-provided reason or auto-generated "user declined promotion at create-skill §2a"}`, `heuristic: {basename}`, `date: {today ISO}`, `workflow: "skf-create-skill"`.
-     3. **Write the amended brief back to disk** so future runs do not re-prompt.
+     3. **Write the amended brief back to disk** so future runs do not re-prompt. Use the same backup-then-atomic-write pattern as the [P] Promote path (copy to `skill-brief.yaml.bak` first, then pipe through `skf-atomic-write.py write --target {brief_path}`).
      4. Display: "**Skipped `{path}`** — decision recorded in amendments."
 
    - **[U] Update:**
      1. Halt the workflow immediately.
-     2. Display: "**Halting create-skill.** Re-run `skf-brief-skill` to refine the scope filters for `{skill_name}`, then re-run `skf-create-skill`. Your partial progress has been preserved in context — no files were written."
+     2. Display: "**Halting create-skill.** Re-run `skf-brief-skill` to refine the scope filters for `{skill_name}`, then re-run `skf-create-skill`. Decisions for previously prompted candidates were already persisted to the brief; the current candidate was not written."
      3. Exit with status `halted-for-brief-refinement`.
 
 8. **Summary.** After all candidates are resolved (or none were found), display a one-line summary:
@@ -132,6 +152,8 @@ Promoted docs do NOT flow through §4 code extraction. Instead:
 The brief is the single source of truth for authored scope intent. The provenance map is the single source of truth for extracted state. `scope.amendments[]` is the bridge that records when those two intentionally diverged. `promoted_docs[]` is the in-memory handoff from §2a to step-05 §6; it is not persisted — the persisted form is the `file_entries[]` list in provenance-map.json.
 
 ### 2b. Resolve Source Access
+
+**If `source_type: "docs-only"`:** skip §2b entirely — there is no source to resolve. Proceed directly to §2c (component library delegation, which is itself skipped for docs-only) and then §3 (Check for Docs-Only Mode). Tag resolution, remote/workspace cloning, source-commit capture, version reconciliation, and deferred CCC discovery all require a source tree and have nothing to do in docs-only mode.
 
 Load `{sourceResolutionData}` completely. Follow these protocols in order:
 1. **Tag Resolution** — run the explicit variant when `brief.target_version` is set, or the implicit variant when only `brief.version` is set (Forge/Deep remote sources only). This sets `source_ref` before any clone happens. Quick tier remote sources skip this.
@@ -161,7 +183,7 @@ Then run CCC indexing and discovery on the resolved clone (workspace or ephemera
    node_modules/, dist/, build/, .git/, vendor/, __pycache__/, .cache/, .next/, .nuxt/, target/, out/, .venv/, .tox/
    ```
 
-   Read `settings.yml`, append any patterns not already present to the `exclude_patterns` array, write back.
+   Read `settings.yml`, append any patterns not already present to the `exclude_patterns` array, write back. **Reuse check:** if an existing `.cocoindex_code/settings.yml` was already present (workspace hit), read its `exclude_patterns` first and diff against the standard-exclusion list above. If ANY standard entry is missing from the existing list, append only the missing entries (preserving any user-added patterns) AND force a re-index by running `ccc index --force` (or the equivalent rebuild flag). If every standard entry is already present, skip the write and skip the forced re-index — the existing index is valid. Record `ccc_exclusions_augmented: {count}` in context for the evidence report.
 
    **Note:** Brief-specific `include_patterns` and `exclude_patterns` are NOT written to `settings.yml`. The CCC index is general-purpose — it indexes everything (minus standard artifacts). Brief-specific filtering happens at search result time, not index time. This allows a single workspace CCC index to serve multiple briefs with different scope filters.
 
@@ -207,7 +229,7 @@ Load and execute `{componentExtractionStepFile}` completely. When that step comp
 
 "**Docs-only mode:** No source code to extract. Documentation content will be fetched from `doc_urls` in step-03c."
 
-Build an empty extraction inventory with zero exports. Set `extraction_mode: "docs-only"` in context. Auto-proceed through Gate 2 (section 6) — display the empty inventory and note that T3 content will be produced by the doc-fetcher step.
+Build an empty extraction inventory with zero exports. **Set `top_exports = []` explicitly in context** — downstream steps (notably §3b targeted searches and step-04 enrichment fan-out) must see an empty list rather than an undefined/missing field so they can short-circuit deterministically. Set `extraction_mode: "docs-only"` in context. Auto-proceed through Gate 2 (section 6) — display the empty inventory and note that T3 content will be produced by the doc-fetcher step.
 
 **If `source_type: "source"` (default):** Continue with extraction below.
 

@@ -1,5 +1,11 @@
 ---
 nextStepFile: './step-03c-fetch-docs.md'
+# Resolve `{atomicWriteHelper}` by probing `{atomicWriteProbeOrder}` in order
+# (installed SKF module path first, src/ dev-checkout fallback); first existing
+# path wins. HALT if neither resolves.
+atomicWriteProbeOrder:
+  - '{project-root}/_bmad/skf/shared/scripts/skf-atomic-write.py'
+  - '{project-root}/src/shared/scripts/skf-atomic-write.py'
 ---
 
 # Step 3b: Fetch Temporal Context
@@ -25,7 +31,7 @@ Evaluate the following conditions sequentially. **If ANY condition fails, skip s
 
 1. **Tier is Deep:** If tier is Quick, Forge, or Forge+, skip silently.
 2. **Source is GitHub:** Verify `source_repo` is a GitHub URL (`https://github.com/...`) or `owner/repo` format. If the source is a local path, a non-GitHub URL, or any other format, attempt GitHub remote detection (section 1b) before skipping.
-3. **`gh` CLI is available:** Run `gh auth status` to verify the CLI is installed and authenticated. If it fails, skip silently.
+3. **`gh` CLI is available:** Run `timeout 10s gh auth status` to verify the CLI is installed and authenticated (the short timeout protects against a misconfigured network or hung auth helper blocking the workflow). If it fails or times out, skip silently.
 
 All three conditions must pass to proceed to section 2.
 
@@ -35,9 +41,9 @@ All three conditions must pass to proceed to section 2.
 
 Local repositories that are clones of GitHub repos contain temporal context (issues, PRs, releases) accessible via `gh`. Detect this automatically:
 
-1. Check if the local path is a git repository: `git -C {source_repo} rev-parse --is-inside-work-tree`
+1. Check if the local path is a git repository: `git -C "{source_repo}" rev-parse --is-inside-work-tree`
 2. If not a git repo: skip silently to section 5 (current behavior).
-3. Extract the origin remote: `git -C {source_repo} remote get-url origin`
+3. Extract the origin remote: `git -C "{source_repo}" remote get-url origin`
 4. If the remote URL contains `github.com`:
    - Extract `owner/repo` from the remote URL (strip `.git` suffix, handle both HTTPS and SSH formats)
    - Log: "**Local source with GitHub remote detected:** {owner}/{repo} — fetching temporal context."
@@ -49,7 +55,7 @@ Local repositories that are clones of GitHub repos contain temporal context (iss
 Read `forge-tier.yaml` from the sidecar path.
 
 - Look for a `qmd_collections` entry where `skill_name` matches the current brief AND `type` is `"temporal"`.
-- If found AND `created_at` is within the last **7 days**: the temporal collection is fresh. Display:
+- If found AND `created_at` is within the last **7 days** (rationale: temporal context — issues, PRs, changelogs — rarely changes meaningfully on shorter horizons; a 7-day window balances freshness against re-fetch cost and GitHub rate limits): the temporal collection is fresh. Display:
 
 "**Temporal context: cached.** Collection `{skill-name}-temporal` is fresh ({days} days old). Skipping re-fetch."
 
@@ -65,7 +71,7 @@ Resolve the `owner` and `repo` from `source_repo` (e.g., `acme/toolkit` from `ht
 
 Execute the following fetches, writing output as markdown files to the staging directory. **If any individual fetch fails, log a warning and continue with the others:**
 
-1. **Issues (last 100):**
+1. **Issues (last 100):** (rationale: 100 is `gh issue list`'s default max-per-page; a single paginated call captures recent activity without extra round trips or rate-limit pressure)
 
    ```bash
    gh issue list -R {owner}/{repo} --state all --limit 100 --json number,title,state,labels,createdAt,closedAt,body | ...
@@ -73,7 +79,7 @@ Execute the following fetches, writing output as markdown files to the staging d
 
    Write to `{staging}/issues.md` — format as a markdown document with one section per issue (number, title, state, labels, body summary).
 
-2. **Merged PRs (last 100):**
+2. **Merged PRs (last 100):** (rationale: same 100-per-page convention as issues — captures the most recent merges in one API call)
 
    ```bash
    gh pr list -R {owner}/{repo} --state merged --limit 100 --json number,title,mergedAt,labels,body | ...
@@ -81,7 +87,7 @@ Execute the following fetches, writing output as markdown files to the staging d
 
    Write to `{staging}/prs.md` — format as a markdown document with one section per PR.
 
-3. **Releases (last 10):**
+3. **Releases (last 10):** (rationale: release notes accumulate slowly relative to issues/PRs; the most recent 10 tags cover roughly the last 6-18 months of changelog-relevant history for typical OSS projects, which is enough context for T2-past annotations without fanning out to dozens of `gh release view` calls)
 
    **Note:** `gh release list --json` does **not** support the `body` field. Use a two-step approach: list tags first, then fetch each release individually with `--json` (which IS supported on `gh release view`).
 
@@ -97,9 +103,13 @@ Execute the following fetches, writing output as markdown files to the staging d
    gh release view {tagName} -R {owner}/{repo} --json tagName,name,publishedAt,body
    ```
 
-   Iterate over every `tagName` from Step 1's JSON array. If `gh release view` fails for a specific tag, log a warning and skip that release — continue with remaining tags. If a rate limit (HTTP 429) is hit, stop the release loop, keep results collected so far, and log: "Release fetch stopped at tag {N}/{total} due to rate limiting."
+   Iterate over every `tagName` from Step 1's JSON array. **Append each release to `{staging}/releases.md` immediately after its `gh release view` call returns** — do not buffer the entire loop in memory and write once at the end. The append-per-release pattern guarantees that a mid-loop abort (rate limit, network drop, user interrupt) leaves a partial but well-formed `releases.md` with every release fetched so far, rather than discarding all of them because the loop didn't reach its final write.
 
-   Write to `{staging}/releases.md` — format as a markdown document with one section per release (tag, name, date, body).
+   Write an empty `{staging}/releases.md` with a header (`# Releases (partial if interrupted)`) before the loop, then append one `## {tagName} — {name} ({publishedAt})` section per successful fetch. Failed individual fetches get a one-line placeholder: `## {tagName} — fetch failed: {error}`.
+
+   If `gh release view` fails for a specific tag, log a warning and skip that release — continue with remaining tags. If a rate limit (HTTP 429) is hit, stop the release loop, keep the partial `releases.md` file in place (do NOT delete it), and log: "Release fetch stopped at tag {N}/{total} due to rate limiting — partial releases.md retained."
+
+   Format each section as a markdown block with tag, name, date, and body.
 
 4. **Changelog (if exists):**
 
@@ -115,12 +125,18 @@ Execute the following fetches, writing output as markdown files to the staging d
 
 After the generic fetches above, perform **targeted searches** using the top-level public API function names from `extraction_inventory.top_exports[]`. This produces high-signal results that generic list fetches miss.
 
-**Limit:** Search the top **10 function names** maximum to control API call volume and avoid `gh` rate limiting.
+**Short-circuit on empty `top_exports`:** If `extraction_inventory.top_exports` is missing or `== []` (docs-only mode, or a source extraction that produced zero public exports), skip this sub-section entirely with a one-line log: "No exports in inventory — skipping targeted function searches." The generic fetches from §3 remain in place and continue to provide baseline temporal context.
 
-For each function name in `top_exports[]` (up to 10):
+**Limit:** Search the top **10 function names** maximum to control API call volume and avoid `gh` rate limiting. (rationale: 10 targeted searches + generic fetches from §3 stays well under GitHub's unauthenticated search rate limit of 10 requests/minute and authenticated 30/minute; matches the `top_exports[]` size emitted by step-03 §5 so every tracked export gets one search.)
+
+For each function name in `top_exports[]` (up to 10), **sanitize first**: strip every character that is not in `[A-Za-z0-9_]` from `function_name` to produce `safe_name`. This prevents shell injection and `gh` query parser errors when an export name contains punctuation (e.g., `<T>`, `.method`, `::namespace`, quotes). If `safe_name` is empty after sanitization (the original was entirely punctuation — rare but possible for symbol exports), fall back to piping the original name through stdin via `--query-from-file -`-style indirection if your `gh` version supports it; otherwise skip that one entry with a log line — never substitute the unsanitized name back into the shell command.
 
 ```bash
-gh search issues --repo {owner}/{repo} "{function_name}" --limit 5 --json number,title,state,body
+# safe_name = re.sub(r'[^A-Za-z0-9_]', '', function_name); skip if empty
+# --limit 5: top-5 issues per function keeps signal-to-noise high (most matches
+# below rank 5 are typically keyword coincidences, not targeted discussions) and
+# caps the total response size across 10 function fan-outs at 50 issues.
+gh search issues --repo {owner}/{repo} "{safe_name}" --limit 5 --json number,title,state,body
 ```
 
 Aggregate all targeted search results into a single file: `{staging}/targeted-issues.md`. Format as a markdown document with one section per function name, listing the matching issues/PRs found.
@@ -135,17 +151,36 @@ Aggregate all targeted search results into a single file: `{staging}/targeted-is
 
 **Index the staging directory:**
 
-If a `{skill-name}-temporal` collection already exists, remove and recreate for atomic replace:
+If a `{skill-name}-temporal` collection already exists, remove and recreate for atomic replace. **Wrap the remove + add pair with rollback on `add` failure** — a `remove` that succeeds followed by an `add` that fails must not leave the registry claiming a collection that no longer exists in QMD:
 
 ```bash
 qmd collection remove {skill-name}-temporal
-qmd collection add {project-root}/_bmad-output/{skill-name}-temporal/ --name {skill-name}-temporal --mask "*.md"
-qmd embed
+if ! qmd collection add {project-root}/_bmad-output/{skill-name}-temporal/ --name {skill-name}-temporal --mask "*.md"; then
+  # add failed after remove succeeded — the collection is gone from QMD. Clean the registry too.
+  # Remove any {skill-name}-temporal entry from forge-tier.yaml qmd_collections[].
+  # Warn the user, do not fail the workflow (temporal enrichment degrades gracefully).
+  echo "WARN: qmd add failed after remove — registry entry for {skill-name}-temporal removed to keep forge-tier.yaml consistent with QMD state."
+  # [skip the embed step]
+else
+  qmd embed --collection {skill-name}-temporal
+fi
 ```
 
-**Note:** `qmd embed` generates vector embeddings required for `vector_search` and `deep_search`. Without it, only BM25 keyword `search` works. Run it after every `qmd collection add`.
+**Rollback rule:** if the `qmd collection add` step fails (non-zero exit, network error, parse error) AND the prior `remove` succeeded, the canonical registry entry in `forge-tier.yaml` MUST be removed to match QMD's actual state. A dangling registry entry that points at a non-existent QMD collection poisons subsequent cache-hit checks in §2. Emit a warning in evidence-report and skip the embed — enrichment degrades to no-QMD for this run.
 
-**Update the registry** in `forge-tier.yaml`:
+**Scope the embed:** Always pass `--collection {skill-name}-temporal` to `qmd embed`. An unscoped `qmd embed` re-embeds every collection in the QMD store, which can take minutes per run in batch mode and generates wasteful GPU/API cost. If the installed `qmd` CLI does not accept `--collection` (older upstream versions), gate the embed behind a per-skill check: if a previous `{skill-name}-temporal` entry already exists in `qmd_collections` and its `created_at` is within 24 hours, skip the embed entirely and warn "qmd embed skipped — upstream qmd lacks --collection scope; re-embedding all collections would be wasteful in batch mode". Log the skip in the evidence report.
+
+**Note:** `qmd embed` generates vector embeddings required for semantic (`type:'vec'`) and HyDE (`type:'hyde'`) sub-queries inside the QMD `query` tool. Without embeddings, only BM25 (`type:'lex'`) keyword search works. Run `qmd embed` after every `qmd collection add`.
+
+**Update the registry** in `forge-tier.yaml` under a file lock to prevent concurrent batch runs from clobbering each other's entries:
+
+1. Acquire an exclusive `flock` on `{sidecar_path}/forge-tier.yaml.lock` (create the lock file if absent). Use `flock -x {lockfile} -c "..."` or an equivalent `fcntl.flock(LOCK_EX)` guard.
+2. Read the current `forge-tier.yaml`, capturing its `st_mtime` as `mtime_before`.
+3. Perform the read-modify-write below.
+4. Write via `python3 {atomicWriteHelper} write --target {sidecar_path}/forge-tier.yaml`.
+5. Release the flock.
+
+**Fallback when `flock` is unavailable:** re-stat the file after the write; if the on-disk `st_mtime` is newer than `mtime_before` by more than this run's own write timestamp, halt with "forge-tier.yaml modified mid-update by another process — refusing to clobber. Re-run after the other run completes." This read-CAS-by-mtime is the belt-and-braces safety net for environments without `flock`.
 
 If an entry with `name: "{skill-name}-temporal"` already exists in `qmd_collections`, replace it. Otherwise, append:
 

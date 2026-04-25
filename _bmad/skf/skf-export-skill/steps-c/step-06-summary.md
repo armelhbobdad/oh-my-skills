@@ -12,6 +12,7 @@ To present a complete export summary showing all files written, token counts, an
 
 - Focus only on summarizing what was done and providing next steps — no additional file writes
 - Chains to the local health-check step via `{nextStepFile}` after completion — the user-facing summary is NOT the terminal step
+- **Multi-skill mode:** emit ONE consolidated summary and ONE result contract for the whole batch. The files-written table lists every skill in `skill_batch` (one row per skill's `context-snippet.md` + one row per target managed-section file, shared across the batch). The result contract's `outputs` enumerates every context-snippet file plus every target context file. Distribution instructions (§2) key off `source_authority` per skill — present one block per distinct authority value observed in the batch, listing the skills it applies to. See step-01 §1c.
 
 ## MANDATORY SEQUENCE
 

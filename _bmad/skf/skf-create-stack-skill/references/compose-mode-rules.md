@@ -17,6 +17,16 @@ Skills use version-nested directories — see `knowledge/version-paths.md` for t
 7. Store the resolved package path as `skill_package_path` for use in later steps (extraction, integration detection)
 8. Store loaded skills as `raw_dependencies` with `source: "existing_skill"`
 
+## Compose-mode Co-mention Precision
+
+Prose co-mention detection is heuristic — it can only provide `Plausible`-class evidence (compared to code-mode's co-imports, which are literal). To reduce false positives the matcher in step-05 §2 applies three guards:
+
+1. **Word-boundary matching** (`\b{skill_name}\b`, case-insensitive). Substring matches are rejected (no `react` inside `reactive`).
+2. **Section filtering.** Paragraphs under H1/H2 headers that normalise to `introduction`, `overview`, `glossary`, `table of contents`, `references`, `appendix`, or `index` are excluded — they typically enumerate all libraries without describing integration. Headings themselves are also excluded as co-mention sources.
+3. **Two-paragraph minimum.** A pair `(A, B)` requires at least two distinct body paragraphs co-mentioning both names. A single paragraph can be coincidental.
+
+**Known limitations:** even with these guards, a co-mention only witnesses that two libraries are discussed together; it does not prove an integration exists. Downstream consumers should prefer stack manifests (`skf-create-stack-skill` output) to prose-derived evidence when both are available.
+
 ## Architecture Integration Mapping
 
 **If `{architecture_doc_path}` is null or the file does not exist:** Skip this section and proceed to [Inferred Integrations (No Architecture Document)](#inferred-integrations-no-architecture-document) below.
@@ -57,10 +67,14 @@ Each integration entry must cite both source skills by name with function signat
 
 ## Feasibility Report Integration
 
-If a feasibility report (`feasibility-report-{project_name}.md`) exists in `{forge_data_folder}/`:
-- Load the VS overall verdict from the report's YAML frontmatter `overall_verdict` field (`FEASIBLE`, `CONDITIONALLY FEASIBLE`, or `NOT FEASIBLE`) and parse per-pair verdicts from the `## Integration Verdicts` markdown table (`Verified`, `Plausible`, `Risky`, or `Blocked`)
-- Include the verdict in the integration evidence: `VS overall: {FEASIBLE|CONDITIONALLY FEASIBLE|NOT FEASIBLE}`, `VS pair: {Verified|Plausible|Risky|Blocked}`
-- Flag any pairs where VS reported `Risky` or `Blocked` verdicts
+The feasibility report contract is defined by the shared schema at `src/shared/references/feasibility-report-schema.md` (single source of truth — `skf-verify-stack` is the producer, this skill is the consumer). Consumers MUST follow the schema verbatim:
+
+- **Filename pattern:** `{forge_data_folder}/feasibility-report-{project_slug}-{YYYYMMDD-HHmmss}.md`, with a stable `feasibility-report-{project_slug}-latest.md` copy at the same location. Use `{project_slug}` (slugified `project_name`), not raw `{project_name}`.
+- **Schema version guard:** Parse frontmatter and confirm `schemaVersion == "1.0"`. On mismatch, HALT with an explicit error; never silently proceed with an unknown version.
+- **Overall verdict tokens** (frontmatter `overallVerdict`, case-sensitive): exactly one of `FEASIBLE | CONDITIONALLY_FEASIBLE | NOT_FEASIBLE`.
+- **Per-pair verdict tokens** (in the `## Integration Verdicts` table, case-sensitive): exactly one of `Verified | Plausible | Risky | Blocked`. Any unknown token is a hard error.
+- Include the verdict in the integration evidence: `VS overall: {overallVerdict}`, `VS pair: {verdict}`.
+- Flag pairs where VS reported `Risky` or `Blocked`.
 
 ## Inferred Integrations (No Architecture Document)
 

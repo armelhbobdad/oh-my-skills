@@ -1,6 +1,13 @@
 ---
 nextStepFile: './step-07-generate-artifacts.md'
 tesslDismissalData: 'assets/tessl-dismissal-rules.md'
+# Resolve `{atomicWriteHelper}` by probing `{atomicWriteProbeOrder}` in order
+# (installed SKF module path first, src/ dev-checkout fallback); first existing
+# path wins. HALT if neither resolves — losing atomic-write guarantees is not
+# an option for the staging-directory artifacts this step produces.
+atomicWriteProbeOrder:
+  - '{project-root}/_bmad/skf/shared/scripts/skf-atomic-write.py'
+  - '{project-root}/src/shared/scripts/skf-atomic-write.py'
 ---
 
 # Step 6: Validate
@@ -31,8 +38,9 @@ To prevent this, any tool invocation that may touch SKILL.md must run inside the
 
 1. **Capture.** Before invoking the tool, read the current SKILL.md frontmatter and snapshot the exact `description` value into a local variable (e.g., `guarded_description`). Capture the in-context copy as well.
 2. **Execute.** Run the tool as specified in its section.
-3. **Verify.** After the tool completes, re-read the on-disk SKILL.md and compare its frontmatter `description` against `guarded_description`. Normalize whitespace for comparison (trim leading/trailing whitespace, collapse internal runs) but do not ignore content differences.
+3. **Verify.** After the tool completes, re-read the on-disk SKILL.md and compare its frontmatter `description` against `guarded_description` as **token streams**: split each string on whitespace (`str.split()` — any run of spaces/tabs/newlines collapses) and compare the resulting lists element-by-element. This catches content divergence (missing words, replaced phrases, truncation, angle-bracket re-introduction) while ignoring cosmetic whitespace changes that a tool may apply (trailing newline, re-wrapped quoted strings). Do NOT use a normalized-string equality — a tool that rewrites `"foo  bar"` to `"foo bar"` (collapsed inner run) would trip a naive normalization even though no semantic content changed, and a tool that swapped one word would slip past a looser fuzzy match. Token-stream comparison is the sweet spot.
 4. **Restore on divergence.** If the post-tool description differs from `guarded_description` in any way other than whitespace normalization, write `guarded_description` back to the on-disk SKILL.md frontmatter and update the in-context copy to match. Record `description_guard_restored: true` with the tool name in context for the evidence report.
+5. **Re-validate restored description.** After a restore, run `python3 {project-root}/src/shared/scripts/skf-validate-frontmatter.py <staging-skill-dir>/SKILL.md` against the on-disk file to confirm the restored description still satisfies the frontmatter contract (length limits, forbidden tokens, required fields). Capture `schema_revalidation_result` in context. If the validator exits non-zero OR reports failure for the `description` field: flip the Schema result back to `FAIL` in the evidence report (overriding any prior PASS/WARN from §2), record `description_guard_revalidation: FAIL` with the validator's diagnostic message, and continue — do not halt (step-09 health-check and result contract still need to run so the failure is surfaced through the normal artifact path).
 
 **What counts as divergence:**
 
@@ -47,19 +55,31 @@ To prevent this, any tool invocation that may touch SKILL.md must run inside the
 
 ### 1. Check Tool Availability
 
-Run: `npx skill-check -h`
+Run: `timeout 30s npx skill-check -h` — the short timeout protects against a cold `npx` download blocking the workflow indefinitely on a slow network.
 
 - If succeeds: Continue to automated validation (section 2)
-- If fails: Perform manual fallback (section 3); add note to evidence-report: "Spec validation performed manually — skill-check tool unavailable"
+- If fails or times out: Perform manual fallback (section 3); add note to evidence-report: "Spec validation performed manually — skill-check tool unavailable". Also set `metadata.validation_status: 'manual-only'` in `metadata.json` (write via `python3 {atomicWriteHelper} write --target <staging-skill-dir>/metadata.json`), and in the evidence-report's `Validation Results` section mark Security, Body, and Content Quality (tessl) rows explicitly as `skipped — skill-check unavailable`. Downstream consumers (pipeline, forger, test-skill) check `validation_status` to decide how much weight to put on the artifact; leaving it unset would make a manual-only run look equivalent to a fully automated PASS.
 
 **Important:** Do not assume availability — empirical check required.
 
 ### 2. Validate & Auto-Fix (skill-check check --fix)
 
-Run the external skill-check tool against the compiled skill staging directory:
+Run the external skill-check tool against the compiled skill staging directory.
+
+**Flag probe (run once, cache the result for §4 and §5 re-invocations):**
 
 ```bash
-npx skill-check check <staging-skill-dir> --fix --format json --no-security-scan
+npx skill-check --help 2>/dev/null | grep -- --no-security-scan
+```
+
+- If the probe matches `--no-security-scan`: set `{security_scan_flag} = "--no-security-scan"`.
+- Else run a second probe — `npx skill-check --help 2>/dev/null | grep -- --skip-security` — and if it matches, set `{security_scan_flag} = "--skip-security"`.
+- If neither flag exists: set `{security_scan_flag} = ""` (empty) AND set `{skill_check_flag_fallback} = true`. Skip §2 and §4 automated flows entirely — fall through to §3 manual frontmatter validation. Record in evidence-report: `skill_check_flag_probe: neither --no-security-scan nor --skip-security supported by installed skill-check; validation performed manually`.
+
+**If a security-scan-disable flag was resolved (probe succeeded):**
+
+```bash
+npx skill-check check <staging-skill-dir> --fix --format json {security_scan_flag}
 ```
 
 This performs frontmatter validation, description quality checks, body limit enforcement, local link resolution, file formatting, auto-fix of deterministic issues, and quality scoring (0-100) across five weighted categories.
@@ -103,9 +123,11 @@ If fails: auto-fix (deterministic), re-validate once, record result. If passes: 
 
 **Tier 1 preservation check:** After ANY split operation, verify that ALL of the following sections remain inline in SKILL.md (not moved to references/): Overview, Quick Start, Common Workflows, Key API Summary, Migration & Deprecation Warnings (if present), Key Types, Architecture at a Glance, CLI (if present), Scripts & Assets (if present), Manual Sections. If any Tier 1 section was moved to references/, restore it immediately and re-split targeting only Tier 2 sections.
 
+**Post-split Tier-1 count check (mandatory):** before invoking the splitter, count the Tier-1 `##`-level section headings present in SKILL.md (any heading whose title matches one of the Tier-1 names listed above) and store as `tier1_count_pre`. After the split completes, recount as `tier1_count_post`. **HALT** if `tier1_count_post < tier1_count_pre` with: "Split reduced Tier-1 section count from {pre} to {post}. Tier-1 sections must remain inline. Restoring from staging backup and aborting body split — manual review required." Do not proceed past §4 — Tier-1 preservation is a hard invariant and a count drop indicates the splitter pulled an inline section into references/ regardless of the section-list check above (e.g., heading-text variation, capitalization, or the splitter's own heuristics).
+
 **Anchor validation and remediation:** After any split, verify that context-snippet section anchors (`#quick-start`, `#key-types`) still resolve to headings in SKILL.md. If an anchor no longer resolves (section was split out), restore that section to SKILL.md inline content — the context-snippet must always reference sections that exist in the main file.
 
-Then re-validate: `npx skill-check check <staging-skill-dir> --format json --no-security-scan`
+Then re-validate: `npx skill-check check <staging-skill-dir> --format json {security_scan_flag}` — use the flag cached from §2's probe. If `{skill_check_flag_fallback}` is true, skip re-validation and rely on the §3 manual check.
 
 **If skill-check unavailable or no body size issue:** Skip.
 
@@ -131,7 +153,7 @@ Record: "Security scan skipped — SNYK_TOKEN not configured"
 
 ### 6. Content Quality Review (tessl)
 
-**If tessl available**, run: `npx -y tessl skill review <staging-skill-dir>`
+**If tessl available**, run: `timeout 120s npx -y tessl skill review <staging-skill-dir>` — the 120s cap matches skf-test-skill's tessl invocation guard and prevents a stalled LLM call in tessl from blocking compilation. On timeout, treat the step as unavailable and record `tessl: timeout — content quality review skipped` in the evidence report.
 
 Parse output for: `description_score`, `content_score`, `review_score`, `validation_result`, `judge_suggestions[]`.
 
@@ -140,7 +162,7 @@ Parse output for: `description_score`, `content_score`, `review_score`, `validat
 **Apply dismissal rules** in this order:
 
 1. **Check score thresholds** against the "Score Thresholds" table in `{tesslDismissalData}`. Most importantly:
-   - If `description_score < 100`: follow the **recover-then-halt** path defined by the `description-xml-tags-guarded-upstream` rule in `{tesslDismissalData}`. Re-apply step-05 §2a's `<`/`>` → `{`/`}` substitution in place on the staging SKILL.md frontmatter `description`, re-sync the in-context copy, and re-run `npx -y tessl skill review <staging-skill-dir>` once. If the re-run produces `description_score == 100`, log `description-recovery: applied ({count} substitutions)` in the evidence report under "Dismissed tessl suggestions" and continue suggestion iteration against the rerun's `judge_suggestions[]`. If recovery fails, halt with the rule's failure message and do NOT proceed to §6b.
+   - If `description_score < 100`: follow the **recover-then-halt** path defined by the `description-xml-tags-guarded-upstream` rule in `{tesslDismissalData}`. Re-apply step-05 §2a's `<`/`>` → `{`/`}` substitution in place on the staging SKILL.md frontmatter `description`, re-sync the in-context copy, and re-run `npx -y tessl skill review <staging-skill-dir>` once. **Re-run gate:** treat `description_score == 100` on the re-run as the only successful recovery outcome. ANY value strictly less than 100 on the re-run — including 99, intermediate-but-improved scores like 95 (formerly tolerated as "close enough"), or 0 — counts as recovery failure: halt with the original `description-xml-tags-guarded-upstream` failure message from `{tesslDismissalData}`, do NOT proceed to §6b, and do NOT downgrade the recovery to a warning. If the re-run produces `description_score == 100`, log `description-recovery: applied ({count} substitutions)` in the evidence report under "Dismissed tessl suggestions" and continue suggestion iteration against the rerun's `judge_suggestions[]`.
    - If `review_score < 60` or `content_score < 60`: record warnings in the evidence report, continue.
 2. **Iterate `judge_suggestions[]`.** For each suggestion:
    - Cross-reference against the rules in `{tesslDismissalData}` in order.
