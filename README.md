@@ -60,7 +60,7 @@ No hallucinations. No guesswork. Just a parser reading real code.
 
 | If you're writing... | Version | Test score | Upstream source | Pinned at |
 |---|---|---|---|---|
-| [**cocoindex**](skills/oms-cocoindex/0.3.37/oms-cocoindex/SKILL.md) (Python) | 0.3.37 | [**99.0%**](forge-data/oms-cocoindex/0.3.37/test-report-oms-cocoindex.md) | [`cocoindex-io/cocoindex`](https://github.com/cocoindex-io/cocoindex) | [`87c5dbf0`](https://github.com/cocoindex-io/cocoindex/commit/87c5dbf087bfccca83791861db0d33519ef09677) · 2026-03-31 |
+| [**cocoindex**](skills/oms-cocoindex/1.0.0/oms-cocoindex/SKILL.md) (Python) | 1.0.0 | [**99.0%**](forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20260424T235130Z-281688-535f.md) | [`cocoindex-io/cocoindex`](https://github.com/cocoindex-io/cocoindex) | [`5fe4f37a`](https://github.com/cocoindex-io/cocoindex/commit/5fe4f37a526e51516655832ec9814e7ca24ade9a) · 2026-04-22 |
 | [**cognee**](skills/oms-cognee/1.0.0/oms-cognee/SKILL.md) (Python) | 1.0.0 | [**99.0%**](forge-data/oms-cognee/1.0.0/test-report-oms-cognee.md) | [`topoteretes/cognee`](https://github.com/topoteretes/cognee) | [`3c048aa4`](https://github.com/topoteretes/cognee/commit/3c048aa4147776f14d4546704f986242554a9ef3) · 2026-04-11 |
 | [**Storybook**](skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/SKILL.md) (React + Vite, TS) | 10.3.5 | [**99.49%**](forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite.md) | [`storybookjs/storybook`](https://github.com/storybookjs/storybook) | [`e486d382`](https://github.com/storybookjs/storybook/commit/e486d3826bcd40c52db1c766966d1c8ec16df6cb) · 2026-04-07 |
 | [**uitripled**](skills/oms-uitripled/0.1.0/oms-uitripled/SKILL.md) (TS) | 0.1.0 | [**99.45%**](forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled.md) | [`moumen-soliman/uitripled`](https://github.com/moumen-soliman/uitripled) | [`a5ffb45b`](https://github.com/moumen-soliman/uitripled/commit/a5ffb45be05335d2c547436664cfbfb8c22d04df) · 2026-03-22 |
@@ -83,7 +83,7 @@ Replace `<SKILL>` with the path for the skill you want:
 
 | Skill                    | `<SKILL>` path                                           |
 | ------------------------ | -------------------------------------------------------- |
-| oms-cocoindex            | `oms-cocoindex/0.3.37/oms-cocoindex`                     |
+| oms-cocoindex            | `oms-cocoindex/1.0.0/oms-cocoindex`                      |
 | oms-cognee               | `oms-cognee/1.0.0/oms-cognee`                            |
 | oms-storybook-react-vite | `oms-storybook-react-vite/10.3.5/oms-storybook-react-vite` |
 | oms-uitripled            | `oms-uitripled/0.1.0/oms-uitripled`                      |
@@ -99,7 +99,7 @@ This dual-output strategy isn't a style choice — it closes a measured performa
 **Manual install** (for monorepo vendoring):
 
 ```bash
-cp -r skills/oms-cocoindex/0.3.37/oms-cocoindex .claude/skills/oms-cocoindex
+cp -r skills/oms-cocoindex/1.0.0/oms-cocoindex .claude/skills/oms-cocoindex
 ```
 
 > **Upstream shipped a new version?** Your existing install never changes itself — see [What happens when the library ships a new version?](#what-happens-when-the-library-ships-a-new-version) below.
@@ -128,15 +128,15 @@ The others aren't bad. They solve different problems. This repo solves exactly o
 Pick any symbol in any skill. You can trace it to the exact line of upstream source in under 60 seconds. **We are not asking for your trust. We are handing you the tools to withdraw it.**
 
 1. **Open `skills/<name>/<version>/<name>/metadata.json`** — note `source_commit` and `source_repo`. This is the anchor.
-2. **Open `forge-data/<name>/<version>/provenance-map.json`** — find your symbol. This is a real entry from `oms-cocoindex`; the line number is not rounded, the commit SHA is not illustrative:
+2. **Open `forge-data/<name>/<version>/provenance-map.json`** — find your symbol. This is a real entry from `oms-cocoindex` v1.0.0; the line number is not rounded, the commit SHA is not illustrative:
    ```json
    {
-     "export_name": "open_flow",
+     "export_name": "lifespan",
      "export_type": "function",
-     "params": ["name: str", "fl_def: Callable[[FlowBuilder, DataScope], None]"],
-     "return_type": "Flow",
-     "source_file": "python/cocoindex/flow.py",
-     "source_line": 986,
+     "params": ["fn: LifespanFn | None = None"],
+     "return_type": "Any",
+     "source_file": "python/cocoindex/_internal/environment.py",
+     "source_line": 452,
      "confidence": "T1",
      "extraction_method": "ast-grep"
    }
