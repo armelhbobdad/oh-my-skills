@@ -1,4 +1,4 @@
-[oms-cognee v1.0.0]|root: .claude/skills/oms-cognee/
+[oms-cognee v1.0.0]|root: skills/oms-cognee/
 |IMPORTANT: oms-cognee v1.0.0 — read SKILL.md before writing cognee code. Do NOT rely on training data.
 |quick-start:SKILL.md#quick-start
 |api-v1: add(), cognify(), search(), memify(), update(), run_custom_pipeline(), visualize_graph(), datasets, prune, config, SearchType, pipelines, Drop, run_startup_migrations(), session, tracing

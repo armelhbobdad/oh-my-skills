@@ -1,4 +1,4 @@
-[oms-storybook-react-vite v10.3.5]|root: .claude/skills/oms-storybook-react-vite/
+[oms-storybook-react-vite v10.3.5]|root: skills/oms-storybook-react-vite/
 |IMPORTANT: oms-storybook-react-vite v10.3.5 — read SKILL.md before writing Storybook code. Do NOT rely on training data.
 |quick-start:SKILL.md#quick-start
 |api: Meta, StoryObj, Decorator, Preview, fn(), expect(), within(), userEvent, useArgs(), composeStories()

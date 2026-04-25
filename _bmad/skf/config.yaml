@@ -7,6 +7,7 @@ skills_output_folder: skills
 forge_data_folder: forge-data
 sidecar_path: _bmad/_memory/forger-sidecar
 skf_folder: _bmad/skf
+snippet_skill_root_override: skills/
 ides:
   - claude-code
 install_learning: true
