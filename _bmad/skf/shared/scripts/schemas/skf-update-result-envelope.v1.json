@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/armelhbobdad/bmad-module-skill-forge/src/shared/scripts/schemas/skf-update-result-envelope.v1.json",
+  "title": "SKF_UPDATE_RESULT_JSON envelope (v1)",
+  "description": "Single-line JSON document skf-update-skill emits when {headless_mode} is true, prefixed with the literal 'SKF_UPDATE_RESULT_JSON: ': once at the end of a run (step 6, report) and once at every halt. Every line, a halt's included, carries the skf_update wrapper, so pipelines branch on skf_update.status without parsing the human-readable report. The headless_decisions[] array surfaces every auto-resolved gate so non-interactive runs can be audited post-hoc.",
+  "$defs": {
+    "skf-envelope": {
+      "description": "The shared emitter's settings for this workflow, read by skf-emit-result-envelope.py: the workflow, the line's prefix, the wrapper, the status a halt carries and the result file stem. Nothing in the schema references this entry, so it constrains no envelope.",
+      "const": {
+        "workflow": "skf-update-skill",
+        "prefix": "SKF_UPDATE_RESULT_JSON",
+        "wrapper": "skf_update",
+        "halt_status": "blocked",
+        "result_file": "update-skill-result"
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["skf_update"],
+  "properties": {
+    "skf_update": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "skill_name",
+        "version",
+        "previous_version",
+        "update_mode",
+        "files_written",
+        "headless_decisions",
+        "warnings",
+        "error"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "success",
+            "no-changes",
+            "detect-only",
+            "dry-run",
+            "halted-for-workspace-drift",
+            "halted-for-brief-refinement",
+            "halted-for-audit",
+            "halted-for-remediation-path",
+            "halted-for-manual-mismatch",
+            "halted-for-write-failure",
+            "halted-for-concurrent-run",
+            "blocked"
+          ],
+          "description": "Single-field outcome for pipeline branching. 'success' when the run completed and wrote the updated artifacts. 'no-changes' when detect-changes found nothing to update. 'detect-only' when the workflow was invoked with --detect-only and exited after step 2 without modifying any artifact. 'dry-run' when the workflow was invoked with --dry-run and exited after step 3 (re-extract) without merging or writing: the envelope describes what merge+write WOULD have done. Each 'halted-for-*' value corresponds to a documented halt in the stage prose (workspace-drift from gap-driven.md §3, brief-refinement from detect-changes.md §1c [U] / §2.2 [B], audit from §2.2 [A], remediation-path from gap-driven.md §4a, manual-mismatch from write.md §1, after write.md §6's provenance fixes and after write.md §7's skill-check edits (all error.phase 'write:verify-manual-integrity'), from merge.md §6b's check of the merged SKILL.md before it is published (error.phase 'merge:verify-manual-integrity') and from a headless merge that meets a [MANUAL] conflict (error.phase 'merge:conflict-resolution'), write-failure for a merge.md §6b version-folder or SKILL.md write failure (among them error.phase 'merge:new-version-folder' when the version folder already exists or the next version cannot be computed), a failed write in write.md §2 to §5 (error.phase 'write:artifact-write') and a write.md §8/§8a active-link failure, concurrent-run when init.md §1b's acquire finds another run's fresh run lock (error.phase 'init:concurrency-guard'), or when this run no longer holds its lock at the renewal before merge.md §6b or write.md §2 writes (error.phase 'merge:run-lock' or 'write:run-lock'; error.reason 'run-lock-lost: ...' when the lock lapsed while the run waited). error.reason names the run that holds a lock, never a PID). 'blocked' is the catch-all for halts that don't map to a documented status code, among them a headless run given no skill name (error.phase 'init:skill-name', error.reason starting 'input-missing'), a stack skill (error.phase 'init:stack-skill-guard'), init.md §6b (error.phase 'init:source-tree') when no commit to read could be obtained, a helper that failed (each its own '<step>:<section>' phase), and a private source tree that disappeared mid-run (error.phase '<step>:source-tree-missing'). A halt after merge.md §6b's first write, until write.md §10 closes the rollback window, first undoes it: a gap-driven repair's package is restored from the snapshot it took, and a new version's folders are removed, unless the active link already names the new version, which the halt keeps. write.md §8 points the active link at the new version only after §6 and §7, the last checks that can halt, so a [MANUAL] halt never leaves a live version behind. NOTE: detect-only and dry-run are successful exits: pipelines treating non-success as failure must include them in the success set."
+        },
+        "skill_name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Name of the skill being updated, read from metadata.json at workflow start."
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Version written this run. In gap-driven mode this equals previous_version (gap-driven runs do not bump). In normal mode this is either the detected source version or an incremented patch, and names the new version folder the run created beside the previous one."
+        },
+        "previous_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Version read from metadata.json at workflow start, before any write."
+        },
+        "update_mode": {
+          "type": "string",
+          "enum": ["normal", "gap-driven", "degraded"],
+          "description": "Which detect-changes path ran. 'normal' = provenance map present and source-drift detection ran. 'gap-driven' = --from-test-report path. 'degraded' = no provenance baseline (every export looks modified)."
+        },
+        "files_written": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["SKILL.md", "metadata.json", "provenance-map.json", "evidence-report.md", "context-snippet.md", "active-symlink"]
+          },
+          "uniqueItems": true,
+          "description": "Artifacts actually written or updated this run. Empty array when a halt fired before any write completed."
+        },
+        "headless_decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["gate", "default_action", "taken_action", "reason"],
+            "properties": {
+              "gate": {
+                "type": "string",
+                "enum": [
+                  "init.update-confirmation",
+                  "init.degraded-rebuild",
+                  "detect-changes.promoted-doc-prompt",
+                  "detect-changes.scope-expansion",
+                  "detect-changes.deletion-ratio",
+                  "gap-driven.rescope",
+                  "merge.clean-merge-gate"
+                ],
+                "description": "Identifier for the gate. Matches the labels in stage prose so post-hoc audits can grep both directions."
+              },
+              "default_action": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The action documented as the default for this gate (e.g. 'C' for [C] Continue, 'S' for [S] Skip)."
+              },
+              "taken_action": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The action actually taken. It differs from default_action where headless resolves a gate its own way: 'D' at init.degraded-rebuild under --allow-degraded, 'R' at gap-driven.rescope when gap-driven.md's rule R1 rescopes the export (one entry per gap, evidence.gap_id), and 'deferred-headless' at detect-changes.promoted-doc-prompt and detect-changes.scope-expansion, where a headless run decides nothing and leaves the path, recorded in the brief's scope.amendments[] as deferred-headless, for the next interactive run. One entry per path at those two gates (evidence.path)."
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Human-readable rationale (e.g. 'headless: no user to prompt')."
+              },
+              "evidence": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Optional gate-specific data — for deletion-ratio, the ratio value and counts; for promoted-doc, the candidate path; etc. Pipelines that want the audit trail richer than reason can read this."
+              }
+            }
+          },
+          "description": "One entry per gate that auto-resolved during this run. Empty when no gates fired (no-changes path, or interactive run where the user resolved gates manually). The merge.clean-merge-gate entry never appears with taken_action=continue when the gate halted on conflicts — conflict halts produce a halted-for-* status instead."
+        },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Non-fatal anomalies surfaced during the run. May include workspace_drift_overridden, scope_reconciliation_post entries, qmd indexing failures, source-tree:, source-not-fetched, source-version-lower, file-diff-unavailable, no-baseline-time, moved-check-skipped and unknown-language (detect-changes.md §2.1 Category A), workspace-clone-not-updated, target-ref-not-recorded, source-tree-not-removed, run-lock-replaced (init.md §1b took over a stale run lock) and run-lock-not-released entries, unconsumed-test-report (init.md §4b: a failing test report newer than the skill that this normal run did not apply), interrupted-run-cleaned and interrupted-run-not-cleaned (init.md §1b undid what an update whose stale lock it replaced had written), proposed-amendment: entries (a --detect-only or --dry-run run's skill brief decisions, not written), doc-fetch-failed, doc-not-hashed and doc-drift-not-checked (a docs-only skill's documents), rollback-incomplete (a halt could not undo all of this run's writes), run-state-not-finished, customization_resolver_unavailable, test-report: entries (what the test report helpers could not read, and test-report: not routed: for each gap a gap-driven run does not repair), etc. Empty when none."
+        },
+        "error": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["phase", "reason"],
+              "properties": {
+                "phase": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Step or operation that failed (e.g. 'write:active-symlink', 'init:provenance-load')."
+                },
+                "path": {
+                  "type": "string",
+                  "description": "Optional path the failed operation targeted (when applicable)."
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Human-readable error message."
+                }
+              }
+            }
+          ],
+          "description": "Null on success or no-changes. Object describing the failure when a halt or write error fired. Pipelines branch on error !== null for non-zero exit semantics."
+        }
+      }
+    }
+  }
+}

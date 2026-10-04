@@ -1,0 +1,47 @@
+# DO NOT EDIT -- overwritten on every update.
+#
+# Workflow customization surface for skf-setup.
+# Team overrides:     {project-root}/_bmad/custom/skf-setup.toml
+# Personal overrides: {project-root}/_bmad/custom/skf-setup.user.toml
+
+[workflow]
+
+# --- Configurable below. Overrides merge per BMad structural rules: ---
+#   scalars: override wins • arrays (persistent_facts, activation_steps_*): append
+#   arrays-of-tables with `code`/`id`: replace matching items, append new ones.
+
+# Steps run at activation after flag parsing, the config check, the uv
+# probe and the config load (SKILL.md On Activation items 1-5), and
+# before tool detection (step 1). Overrides append. Use for org-wide
+# pre-flight checks (auth, network, compliance) that must precede any
+# forge setup work. A prepend step cannot install uv or create
+# config.yaml: those halts fire before it runs.
+
+activation_steps_prepend = []
+
+# Steps to run after activation but before the first stage executes.
+# Overrides append. Use for context loads or banner customization that
+# should run once activation completes successfully.
+
+activation_steps_append = []
+
+# Persistent facts the workflow keeps in mind for the whole run
+# (standards, compliance constraints, stylistic guardrails). Overrides
+# append.
+#
+# Each entry is either:
+#   - a literal sentence, e.g. "Forge writes must be reproducible in CI."
+#   - a file reference prefixed with `file:`, e.g.
+#     "file:{project-root}/docs/forge-policy.md" (globs supported; file
+#     contents are loaded and treated as facts).
+
+persistent_facts = []
+
+# An instruction the agent carries out (not a shell command run with
+# --result-path, as in most other SKF workflows) once the forge is fully
+# configured: after the status report (step 4), before chaining to the
+# shared health check, and never on a required-tier miss. Override wins. Use
+# for a post-setup action an org wants, such as notifying an onboarding
+# channel. Empty string = no terminal hook.
+
+on_complete = ""

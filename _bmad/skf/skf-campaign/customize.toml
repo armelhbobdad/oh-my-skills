@@ -1,0 +1,106 @@
+# DO NOT EDIT -- overwritten on every update.
+#
+# Workflow customization surface for skf-campaign.
+# Team overrides:     {project-root}/_bmad/custom/skf-campaign.toml
+# Personal overrides: {project-root}/_bmad/custom/skf-campaign.user.toml
+
+[workflow]
+
+# --- Configurable below. Overrides merge per BMad structural rules: ---
+#   scalars: override wins • arrays (persistent_facts, activation_steps_*): append
+#   arrays-of-tables with `code`/`id`: replace matching items, append new ones.
+
+# Steps to run right after the customization resolve (On Activation step 3).
+# Config and preferences are already loaded by then, so a step here can read
+# them but cannot run before them. Overrides append. Use for org-wide
+# pre-flight checks (auth, network, compliance) that must precede any
+# orchestration work.
+
+activation_steps_prepend = []
+
+# Steps to run once activation is complete, the CLI overrides included (so
+# headless mode already reflects --brief and --manifest), just before the
+# first stage executes. Overrides append. Use for context loads or banner
+# customization.
+
+activation_steps_append = []
+
+# Persistent facts the workflow keeps in mind for the whole campaign
+# (house style, naming conventions, quality guardrails). These are injected
+# into every per-skill kickoff, so project-scoped house facts propagate to
+# the whole campaign. Overrides append.
+#
+# Each entry is one of:
+#   - a literal sentence, e.g. "All skills must cite their upstream source."
+#   - a file reference prefixed with `file:`, e.g.
+#     "file:{project-root}/docs/skill-style.md" (globs supported; file
+#     contents are loaded and treated as facts).
+#   - an entry prefixed with `!`, which loads nothing and drops each earlier
+#     entry it names.
+#
+# The kickoff script expands each `file:` entry when it renders a Tier A
+# kickoff (a `**` glob recursively, so the default below takes every
+# project-context.md under {project-root}) and inlines each matching file in
+# full into every kickoff. Overrides append, and the script drops a `!`
+# entry and each earlier entry it names, so to keep those files out of every
+# Tier A kickoff, set in {project-root}/_bmad/custom/skf-campaign.toml:
+#   persistent_facts = ["!file:{project-root}/**/project-context.md"]
+
+persistent_facts = [
+  "file:{project-root}/**/project-context.md",
+]
+
+# --- Workspace path ---
+#
+# Where the campaign keeps its state, backup, brief, batch input, archive,
+# and decision log. Empty string = use the bundled default
+# `{forge_data_folder}/_campaign`. Override to relocate campaign artifacts
+# (e.g. a shared volume) without editing every step file. Resolved once in
+# On Activation as {campaignWorkspacePath}.
+
+campaign_workspace_path = ""
+
+# --- Quality gate ---
+#
+# Campaign-wide quality bar, enforced on every skill. Precedence, highest
+# first: the directive's `## Quality Overrides` (while the campaign runs),
+# then the `quality_gate` of the campaign-brief.yaml Setup reads (from
+# --brief or its opening question, field by field), then these values.
+# Override here to change the org-wide default without forking the skill.
+#
+# quality_gate_hard: `zero-critical-high` is the only accepted value (Setup
+# halts on any other). It passes a skill only when its test-skill run finds
+# no Critical or High gap. A missing export is a Medium gap: it lowers the
+# coverage score and no longer counts against this gate.
+#
+# quality_gate_soft_target: every Tier A test run gets it as `--threshold`,
+# and a completed skill scoring at or above it exports as `pass`.
+# quality_gate_soft_fallback: a completed skill scoring below the target but
+# at or above this exports as `fallback`; one below it, or with no score, is
+# listed at Export and not exported. test-skill fails a Tier A skill below
+# its threshold unless it scores at least 80 (its threshold fallback), so a
+# soft_fallback below 80 only matters for Tier B skills, checked by their
+# quick-skill (skill-check) score, or for a soft_target below 80.
+
+quality_gate_hard = "zero-critical-high"
+quality_gate_soft_target = 90
+quality_gate_soft_fallback = 80
+
+# --- Optional template overrides ---
+#
+# Lift the canonical template paths so orgs can substitute house-style copies
+# without forking the skill. Empty string = use the bundled default under
+# `templates/`.
+
+report_template_path = ""
+kickoff_template_path = ""
+brief_template_path = ""
+
+# Optional post-completion hook. When non-empty, step-11 invokes it once
+# the campaign is finished: after the report and the final state write
+# (current_stage 10), before the headless result envelope:
+#   <on_complete> --report-path=<path-to-campaign-report.md>
+# --report-path is passed only when the report was written; a report that
+# could not be generated leaves the hook called without it. Failures are
+# logged to the decision log but never fail the campaign. Empty = no-op.
+on_complete = ""

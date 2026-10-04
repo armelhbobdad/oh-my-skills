@@ -5,6 +5,7 @@ skillDir: ''
 runId: ''
 testMode: ''
 forgeTier: ''
+hardGate: ''
 testResult: ''
 score: ''
 threshold: ''
@@ -20,39 +21,45 @@ nextWorkflow: ''
 # Test Report: {{skillName}}
 
 <!--
-Section order is LOAD-BEARING: step-05 §5 enforces it, step-06 §5 verifies
-stepsCompleted against the canonical chain. Do not reorder or delete anchors.
+Each stage writes its section in place of the heading below that it owns and
+the placeholder comment under that heading, so every heading occurs once.
+Before the result files are written, report.md §4c checks that each heading
+occurs exactly once and that no placeholder comment is left: a stage that
+skipped its section stops the run there. Do not reorder or delete the
+headings or their placeholder comments.
 
-Anchor / Step mapping:
-  Test Summary       → step-02-detect-mode
-  Coverage Analysis  → step-03-coverage-check
-  Coherence Analysis → step-04-coherence-check
-  External Validation→ step-04b-external-validators
-  Completeness Score → step-05-score
-  Gap Report         → step-06-report (includes Discovery Quality subsection)
+Heading / owning step:
+  Test Summary        → detect-mode §2
+  Coverage Analysis   → coverage-check §5
+  Coherence Analysis  → coherence-check §6
+  External Validation → external-validators §5
+  (hard gate)         → step-hard-gate reads the gap ledger; it writes the
+                        Completeness Score section only when it blocks the run
+  Completeness Score  → score §6, or step-hard-gate §3 on a blocked run
+  Gap Report          → report §4c, rendered from the gap ledger (with the
+                        Discovery Quality subsection)
 -->
 
 ## Test Summary
 
-<!-- Populated by step-02-detect-mode §3 -->
+<!-- Populated by detect-mode §2 -->
 
 ## Coverage Analysis
 
-<!-- Populated by step-03-coverage-check §5 -->
+<!-- Populated by coverage-check §5 -->
 
 ## Coherence Analysis
 
-<!-- Populated by step-04-coherence-check §6 (naive or contextual variant) -->
+<!-- Populated by coherence-check §6 (naive or contextual variant) -->
 
 ## External Validation
 
-<!-- Populated by step-04b-external-validators §5 -->
+<!-- Populated by external-validators §5 -->
 
 ## Completeness Score
 
-<!-- Populated by step-05-score §6 -->
+<!-- Populated by score §6, or by step-hard-gate §3 when the hard gate blocks the run -->
 
 ## Gap Report
 
-<!-- Populated by step-06-report §3-§4b (includes Discovery Quality subsection) -->
-
+<!-- Populated by report §4c from the gap ledger (includes the Discovery Quality subsection) -->

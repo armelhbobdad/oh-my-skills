@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.9"
+# requires-python = ">=3.11"
 # dependencies = ["pyyaml"]
 # ///
 """SKF Validate Frontmatter — agentskills.io frontmatter compliance checker.
@@ -11,21 +11,57 @@ agentskills/agentskills/skills-ref/src/skills_ref/validator.py.
 Designed for pre-check use in test-skill, create-skill, update-skill, and
 export-skill workflows. Returns structured JSON for deterministic integration.
 
-CLI:
-  python3 skf-validate-frontmatter.py <skill-md-path>
-  python3 skf-validate-frontmatter.py <skill-md-path> --skill-dir-name <name>
+CLI — invoke via `uv run` so the PEP 723 PyYAML dependency declared
+above is auto-resolved on first call and cached. `docs/getting-started.md`
+documents uv as the runtime prerequisite for exactly this. Bare
+`python3` will fail with `ModuleNotFoundError: No module named 'yaml'`
+on a fresh interpreter where pyyaml has not been pip-installed
+system-wide:
+
+  uv run skf-validate-frontmatter.py <skill-md-path>
+  uv run skf-validate-frontmatter.py <skill-md-path> --skill-dir-name <name>
+  uv run skf-validate-frontmatter.py <skill-md-path> --max-body-lines 500
+  uv run skf-validate-frontmatter.py <skill-md-path> --max-body-lines 500 --max-body-tokens 5000
+  uv run skf-validate-frontmatter.py <skill-md-path> --forbid-angle-brackets
+  uv run skf-validate-frontmatter.py --check-name <name>
 
 Input:
   Path to a SKILL.md file.
   Optional --skill-dir-name: expected directory name for name-match check.
   If omitted, derived from the parent directory of the SKILL.md path.
+  Optional --max-body-lines N: when set, emit a high-severity `body` issue
+  if the SKILL.md body (lines after the closing frontmatter delimiter)
+  exceeds N lines. Opt-in — when omitted, body size is never checked and
+  the verdict is unchanged. Callers pass the skill-check `body.max_lines`
+  default (500) to pre-catch that hard reject before commit.
+  Optional --max-body-tokens N: when set, emit a low-severity (advisory)
+  `body` issue if the estimated body token count exceeds N. Token count is
+  estimated as ceil(character_count / 4). skill-check treats
+  `body.max_tokens` as a non-blocking warning, so this is advisory — the
+  hard body pre-check is --max-body-lines.
+  Optional --forbid-angle-brackets: when set, count the `<` and `>` in the
+  description and emit a high-severity `description` issue when there are
+  any. Opt-in — create-skill passes it; other callers keep today's verdict.
+  The Claude platform does not accept a skill description that contains XML
+  tags; the agentskills.io specification has no such rule.
+  --check-name NAME, in place of the SKILL.md path: check NAME alone
+  against the name rule below (at most 64 characters, lower case, letters,
+  digits and single hyphens, no hyphen at either end), before any SKILL.md
+  exists. create-stack-skill checks a requested stack name with it, so a
+  name the pre-commit check would refuse halts before the run starts.
 
 Output:
   JSON object:
     status:     "pass" | "fail" | "warn"
     issues:     list of { severity, field, message }
     frontmatter: parsed frontmatter dict (if parseable)
+    body_lines: int body-line count, or null when delimiters are absent
+    description_angle_brackets: int count of `<` and `>` in the description,
+                or null unless --forbid-angle-brackets is set and the
+                description is a non-blank string
     summary:    { total, high, medium, low }
+  With --check-name: { status, name, issues, summary }, every issue on the
+  `name` field.
 
 Exit codes:
   0  — pass (no high-severity issues)
@@ -50,6 +86,13 @@ ALLOWED_FIELDS = frozenset({
 MAX_SKILL_NAME_LENGTH = 64
 MAX_DESCRIPTION_LENGTH = 1024
 MAX_COMPATIBILITY_LENGTH = 500
+
+
+def count_angle_brackets(desc) -> int | None:
+    """Count `<` and `>` in a description; None when it is not a non-blank string."""
+    if not isinstance(desc, str) or not desc.strip():
+        return None
+    return desc.count("<") + desc.count(">")
 
 
 def parse_frontmatter(content: str) -> tuple[dict | None, list[dict]]:
@@ -116,6 +159,53 @@ def parse_frontmatter(content: str) -> tuple[dict | None, list[dict]]:
     return fm, issues
 
 
+def body_line_count(content: str) -> int | None:
+    """Count the SKILL.md body lines — every line after the closing
+    frontmatter delimiter.
+
+    Mirrors skill-check's `body.max_lines` definition (body = content past
+    the frontmatter block) so a pre-commit gate keyed on this count agrees
+    with the post-commit `npx skill-check` verdict. Returns None when the
+    frontmatter delimiters are absent or unclosed — the body boundary is
+    then undefined and size cannot be assessed. Uses splitlines() to match
+    the line-counting convention used elsewhere in the SKF scripts (handles
+    LF/CRLF, no trailing-newline phantom line).
+    """
+    if not content.startswith("---\n") and not content.startswith("---\r\n"):
+        return None
+    lines = content.splitlines()
+    closing = -1
+    for i in range(1, len(lines)):
+        if lines[i] == "---":
+            closing = i
+            break
+    if closing == -1:
+        return None
+    return len(lines) - (closing + 1)
+
+
+def body_token_estimate(content: str) -> int | None:
+    """Estimate the SKILL.md body token count as ceil(char_count / 4).
+
+    Returns None when the frontmatter delimiters are absent or unclosed
+    (same boundary condition as body_line_count). The heuristic matches
+    the agentskills.io spec's token estimation convention.
+    """
+    if not content.startswith("---\n") and not content.startswith("---\r\n"):
+        return None
+    lines = content.splitlines()
+    closing = -1
+    for i in range(1, len(lines)):
+        if lines[i] == "---":
+            closing = i
+            break
+    if closing == -1:
+        return None
+    body = "\n".join(lines[closing + 1:])
+    char_count = len(body)
+    return -(-char_count // 4)  # ceil division
+
+
 def _validate_name(name: str, skill_dir_name: str | None) -> list[dict]:
     """Validate skill name format. Aligned with canonical validator.py."""
     issues: list[dict] = []
@@ -178,15 +268,69 @@ def _validate_name(name: str, skill_dir_name: str | None) -> list[dict]:
     return issues
 
 
+def _summary(issues: list[dict]) -> tuple[str, dict]:
+    """The status and the summary counts of a list of issues."""
+    severity_counts = {"high": 0, "medium": 0, "low": 0}
+    for issue in issues:
+        severity_counts[issue["severity"]] += 1
+    if severity_counts["high"] > 0:
+        status = "fail"
+    elif severity_counts["medium"] > 0 or severity_counts["low"] > 0:
+        status = "warn"
+    else:
+        status = "pass"
+    return status, {"total": len(issues), **severity_counts}
+
+
+def check_name(name: str) -> dict:
+    """Check a skill name alone against the name rule (no SKILL.md, no directory match)."""
+    issues = _validate_name(name, None)
+    status, summary = _summary(issues)
+    return {"status": status, "name": name, "issues": issues, "summary": summary}
+
+
 def validate_frontmatter(
     content: str,
     skill_dir_name: str | None = None,
+    max_body_lines: int | None = None,
+    max_body_tokens: int | None = None,
+    forbid_angle_brackets: bool = False,
 ) -> dict:
     """Validate SKILL.md frontmatter against agentskills.io spec.
 
-    Returns a result dict with status, issues, frontmatter, and summary.
+    When `max_body_lines` is set, additionally emit a high-severity `body`
+    issue if the body exceeds that many lines. When `max_body_tokens` is
+    set, emit a low-severity (advisory) `body` issue if the estimated token
+    count exceeds that limit — skill-check treats body.max_tokens as a
+    non-blocking warning. When `forbid_angle_brackets` is true, count the
+    `<` and `>` in the description as `description_angle_brackets` and emit
+    a high-severity `description` issue when there are any. All three are
+    opt-in — the verdict is unchanged when they are unset. Returns a result
+    dict with status, issues, frontmatter, body_lines, body_tokens,
+    description_angle_brackets, and summary.
     """
     fm, issues = parse_frontmatter(content)
+    angle_brackets = None
+
+    body_lines = body_line_count(content)
+    if max_body_lines is not None and body_lines is not None and body_lines > max_body_lines:
+        issues.append({
+            "severity": "high",
+            "field": "body",
+            "message": f"body lines {body_lines} exceeds max {max_body_lines}",
+        })
+
+    body_tokens = body_token_estimate(content)
+    if max_body_tokens is not None and body_tokens is not None and body_tokens > max_body_tokens:
+        issues.append({
+            # skill-check treats body.max_tokens as a non-blocking warning, so
+            # this is advisory (low), not a hard reject; --max-body-lines is the
+            # hard body pre-check. The char/4 estimate also runs high versus
+            # skill-check's own whitespace-split count, so keep it soft.
+            "severity": "low",
+            "field": "body",
+            "message": f"body token estimate {body_tokens} exceeds max {max_body_tokens}",
+        })
 
     if fm is not None:
         # Name validation
@@ -207,6 +351,17 @@ def validate_frontmatter(
                 "field": "description",
                 "message": f"description exceeds {MAX_DESCRIPTION_LENGTH} chars ({len(desc)} chars)",
             })
+        if forbid_angle_brackets:
+            angle_brackets = count_angle_brackets(desc)
+            if angle_brackets:
+                issues.append({
+                    "severity": "high",
+                    "field": "description",
+                    "message": (
+                        f"description contains {angle_brackets} angle bracket(s) ('<' or '>'); "
+                        "the Claude platform does not accept XML tags in a skill description"
+                    ),
+                })
 
         # Compatibility: optional, max 500 chars
         compat = fm.get("compatibility")
@@ -233,26 +388,15 @@ def validate_frontmatter(
                     "message": f"Unknown frontmatter field: '{key}'",
                 })
 
-    # Build summary
-    severity_counts = {"high": 0, "medium": 0, "low": 0}
-    for issue in issues:
-        severity_counts[issue["severity"]] += 1
-
-    if severity_counts["high"] > 0:
-        status = "fail"
-    elif severity_counts["medium"] > 0 or severity_counts["low"] > 0:
-        status = "warn"
-    else:
-        status = "pass"
-
+    status, summary = _summary(issues)
     return {
         "status": status,
         "issues": issues,
         "frontmatter": fm,
-        "summary": {
-            "total": len(issues),
-            **severity_counts,
-        },
+        "body_lines": body_lines,
+        "body_tokens": body_tokens,
+        "description_angle_brackets": angle_brackets,
+        "summary": summary,
     }
 
 
@@ -264,7 +408,8 @@ def main() -> int:
             "\n"
             "Checks: frontmatter delimiters, name format (Unicode letters + digits +\n"
             "hyphens, no consecutive/trailing hyphens), name-directory match,\n"
-            "description presence and length, compatibility length, and unknown fields.\n"
+            "description presence and length, compatibility length, unknown fields,\n"
+            "and (with --forbid-angle-brackets) angle brackets in the description.\n"
             "\n"
             "Exit code 0 means pass (no high-severity issues).\n"
             "Exit code 1 means fail (high-severity issues found)."
@@ -274,7 +419,17 @@ def main() -> int:
     parser.add_argument(
         "skill_md",
         metavar="SKILL.md",
-        help="path to the SKILL.md file to validate",
+        nargs="?",
+        help="path to the SKILL.md file to validate (omitted with --check-name)",
+    )
+    parser.add_argument(
+        "--check-name",
+        metavar="NAME",
+        default=None,
+        help=(
+            "check NAME alone against the skill-name rule, in place of a "
+            "SKILL.md: exit 1 when a high-severity name issue is found"
+        ),
     )
     parser.add_argument(
         "--skill-dir-name",
@@ -283,25 +438,67 @@ def main() -> int:
         help="expected skill directory name (default: derived from parent directory)",
     )
     parser.add_argument(
+        "--max-body-lines",
+        metavar="N",
+        type=int,
+        default=None,
+        help=(
+            "when set, emit a high-severity 'body' issue if the SKILL.md body "
+            "exceeds N lines (opt-in; omitted = body size not checked). Pass "
+            "the skill-check body.max_lines default (500) to pre-catch that reject."
+        ),
+    )
+    parser.add_argument(
+        "--max-body-tokens",
+        metavar="N",
+        type=int,
+        default=None,
+        help=(
+            "when set, emit a low-severity (advisory) 'body' issue if the "
+            "estimated body token count exceeds N (opt-in; omitted = body "
+            "tokens not checked). Token estimate uses ceil(char_count / 4). "
+            "skill-check treats body.max_tokens as a non-blocking warning."
+        ),
+    )
+    parser.add_argument(
+        "--forbid-angle-brackets",
+        action="store_true",
+        help=(
+            "count the '<' and '>' in the description and emit a high-severity "
+            "'description' issue when there are any (opt-in). The Claude platform "
+            "does not accept XML tags in a skill description."
+        ),
+    )
+    parser.add_argument(
         "-o", "--output",
         metavar="FILE",
         help="write JSON output to FILE instead of stdout",
     )
 
     args = parser.parse_args()
-    skill_md_path = Path(args.skill_md)
-
-    if not skill_md_path.exists():
+    if args.check_name is not None:
+        if args.skill_md is not None:
+            parser.error("--check-name takes no SKILL.md path")
+        result = check_name(args.check_name)
+    elif args.skill_md is None:
+        parser.error("the SKILL.md path is required (or pass --check-name NAME)")
+    elif not Path(args.skill_md).exists():
+        skill_md_path = Path(args.skill_md)
         result = {
             "status": "fail",
             "issues": [{"severity": "high", "field": "file", "message": f"File not found: {skill_md_path}"}],
             "frontmatter": None,
+            "body_lines": None,
+            "description_angle_brackets": None,
             "summary": {"total": 1, "high": 1, "medium": 0, "low": 0},
         }
     else:
+        skill_md_path = Path(args.skill_md)
         content = skill_md_path.read_text(encoding="utf-8")
         skill_dir_name = args.skill_dir_name or skill_md_path.parent.name
-        result = validate_frontmatter(content, skill_dir_name)
+        result = validate_frontmatter(
+            content, skill_dir_name, args.max_body_lines, args.max_body_tokens, args.forbid_angle_brackets
+        )
 
     output_text = json.dumps(result, indent=2)
 

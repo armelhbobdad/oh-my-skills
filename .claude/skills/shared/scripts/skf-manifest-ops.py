@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.10"
+# requires-python = ">=3.11"
 # dependencies = []
 # ///
 """SKF Manifest Ops — CRUD operations on the export manifest.
@@ -12,10 +12,19 @@ CLI: python3 skf-manifest-ops.py <skills-folder> <command> [args]
 Commands:
   read                          — Read entire manifest
   get <skill-name>              — Get a single skill entry
-  set <skill-name> <version>    — Add/update skill with active version
+  set <skill-name> <version> [--ides a,b]
+                                — Add/update skill with active version;
+                                  --ides unions a comma-separated IDE list
+                                  into the version entry (deduped, sorted)
   remove <skill-name>           — Remove skill from manifest
   deprecate <skill-name> [ver]  — Mark skill or version as deprecated
   rename <old-name> <new-name>  — Rename a skill entry
+  affected-versions <name>      — List every version of <name> that a rename must
+                                  touch: the union of manifest
+                                  exports.<name>.versions keys and on-disk
+                                  version dirs under <skills-folder>/<name>/
+                                  (excluding the `active` symlink), deduped and
+                                  sorted semver-descending (newest first)
 """
 
 from __future__ import annotations
@@ -124,7 +133,7 @@ def cmd_get(manifest_path, skill_name):
     return {"status": "ok", "skill": skill_name, "entry": exports[skill_name]}
 
 
-def cmd_set(manifest_path, skill_name, version):
+def cmd_set(manifest_path, skill_name, version, ides=None):
     data, err = read_manifest(manifest_path)
     if err:
         return {"status": "error", "error": err}
@@ -132,18 +141,30 @@ def cmd_set(manifest_path, skill_name, version):
     existing = exports.get(skill_name, {})
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    # Preserve existing versions dict, archive the previously-active version
+    # Preserve existing versions dict, archive every *other* still-active version.
+    # Archiving by status (rather than only the entry matching the prior
+    # active_version) keeps a single active version even when active_version was
+    # advanced to this version before set() ran — otherwise the genuine prior
+    # version would stay active, breaking the single-active invariant. Idempotent.
     versions = existing.get("versions", {})
     if isinstance(versions, list):
         versions = {}  # Safety: handle any residual v1 data
-    old_active = existing.get("active_version")
-    if old_active and old_active in versions and old_active != version:
-        versions[old_active]["status"] = "archived"
+    for other_version, other_entry in versions.items():
+        if other_version != version and other_entry.get("status") == "active":
+            other_entry["status"] = "archived"
 
-    # Add or update the new active version
+    # Add or update the new active version. Absent --ides preserves the
+    # existing ides/platforms list verbatim (backward-compatible). When
+    # --ides is supplied, union it in (dedupe, keep sorted).
     existing_version = versions.get(version, {})
+    merged_ides = list(existing_version.get("ides", existing_version.get("platforms", [])))
+    if ides:
+        for ide in ides:
+            if ide not in merged_ides:
+                merged_ides.append(ide)
+        merged_ides = sorted(merged_ides)
     versions[version] = {
-        "ides": existing_version.get("ides", existing_version.get("platforms", [])),
+        "ides": merged_ides,
         "last_exported": today,
         "status": "active",
     }
@@ -202,10 +223,68 @@ def cmd_rename(manifest_path, old_name, new_name):
     return {"status": "ok", "action": "renamed", "from": old_name, "to": new_name}
 
 
+def _version_sort_key(version):
+    """Semver-descending sort key (used with reverse=True → newest first).
+
+    Splits `X.Y.Z[-prerelease][+build]` into numeric release components so
+    0.10.0 sorts above 0.9.0 (a known LLM-unreliable numeric-vs-lexical case).
+    A non-numeric component sorts below any numeric one at the same position;
+    per semver, a version WITHOUT a prerelease outranks the same version WITH
+    one (1.0.0 > 1.0.0-rc1).
+    """
+    core = str(version).split("+", 1)[0]
+    main_part, _, pre = core.partition("-")
+    release = []
+    for part in main_part.split("."):
+        if part.isdigit():
+            release.append((1, int(part), ""))
+        else:
+            release.append((0, 0, part))
+    # pre == "" (no prerelease) must sort ABOVE a prerelease, i.e. compare higher.
+    return (release, pre == "", pre)
+
+
+def cmd_affected_versions(manifest_path, skills_folder, skill_name):
+    data, err = read_manifest(manifest_path)
+    if err:
+        return {"status": "error", "error": err}
+
+    manifest_versions = []
+    entry = data.get("exports", {}).get(skill_name)
+    if entry:
+        versions = entry.get("versions", {})
+        if isinstance(versions, dict):
+            manifest_versions = list(versions.keys())
+        elif isinstance(versions, list):  # residual v1 safety
+            manifest_versions = list(versions)
+
+    on_disk_versions = []
+    skill_dir = Path(skills_folder) / skill_name
+    if skill_dir.is_dir():
+        for child in skill_dir.iterdir():
+            if child.name == "active":
+                continue  # the active symlink is not a version
+            if child.is_dir():
+                on_disk_versions.append(child.name)
+
+    union = sorted(set(manifest_versions) | set(on_disk_versions), key=_version_sort_key, reverse=True)
+
+    return {
+        "status": "ok",
+        "skill": skill_name,
+        "affected_versions": union,
+        "count": len(union),
+        "sources": {
+            "manifest": sorted(set(manifest_versions), key=_version_sort_key, reverse=True),
+            "on_disk": sorted(set(on_disk_versions), key=_version_sort_key, reverse=True),
+        },
+    }
+
+
 def main():
     if len(sys.argv) < 3:
         print("Usage: python3 skf-manifest-ops.py <skills-folder> <command> [args]", file=sys.stderr)
-        print("Commands: read, get <name>, set <name> <version>, remove <name>, deprecate <name> [version], rename <old> <new>", file=sys.stderr)
+        print("Commands: read, get <name>, set <name> <version> [--ides a,b], remove <name>, deprecate <name> [version], rename <old> <new>, affected-versions <name>", file=sys.stderr)
         sys.exit(1)
 
     skills_folder = Path(sys.argv[1])
@@ -217,7 +296,12 @@ def main():
     elif command == "get" and len(sys.argv) >= 4:
         result = cmd_get(manifest_path, sys.argv[3])
     elif command == "set" and len(sys.argv) >= 5:
-        result = cmd_set(manifest_path, sys.argv[3], sys.argv[4])
+        ides_arg = None
+        if "--ides" in sys.argv:
+            idx = sys.argv.index("--ides")
+            if idx + 1 < len(sys.argv):
+                ides_arg = [s for s in sys.argv[idx + 1].split(",") if s]
+        result = cmd_set(manifest_path, sys.argv[3], sys.argv[4], ides_arg)
     elif command == "remove" and len(sys.argv) >= 4:
         result = cmd_remove(manifest_path, sys.argv[3])
     elif command == "deprecate" and len(sys.argv) >= 4:
@@ -225,6 +309,8 @@ def main():
         result = cmd_deprecate(manifest_path, sys.argv[3], ver)
     elif command == "rename" and len(sys.argv) >= 5:
         result = cmd_rename(manifest_path, sys.argv[3], sys.argv[4])
+    elif command == "affected-versions" and len(sys.argv) >= 4:
+        result = cmd_affected_versions(manifest_path, skills_folder, sys.argv[3])
     else:
         result = {"status": "error", "error": f"Unknown command or missing args: {command}"}
 

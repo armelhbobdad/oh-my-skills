@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/armelhbobdad/bmad-module-skill-forge/src/shared/scripts/schemas/skf-setup-result-envelope.v1.json",
+  "title": "SKF_SETUP_RESULT_JSON envelope (v1)",
+  "description": "Single-line JSON document skf-setup displays when {headless_mode} or {quiet_mode} is true, prefixed with the literal 'SKF_SETUP_RESULT_JSON: '. Step 4 builds it at the end of a run (status success or tier_failure); a halt that names a phase builds a blocked one with the helper's emit-blocked subcommand. Pipelines grep one line out of the workflow log without parsing ASCII-art and without racing the forge-tier.yaml writer.",
+  "$defs": {
+    "skf-envelope": {
+      "description": "The shared emitter's settings for this workflow, read by skf-emit-result-envelope.py: the workflow, the line's prefix, the wrapper, the status a halt carries and the result file stem. Nothing in the schema references this entry, so it constrains no envelope.",
+      "const": {
+        "workflow": "skf-setup",
+        "prefix": "SKF_SETUP_RESULT_JSON",
+        "wrapper": "skf_setup",
+        "halt_status": "blocked",
+        "result_file": null
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["skf_setup"],
+  "properties": {
+    "skf_setup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "tier",
+        "previous_tier",
+        "tier_changed",
+        "tools",
+        "tools_added",
+        "tools_removed",
+        "config_path",
+        "ccc_index",
+        "files_written",
+        "tier_override_active",
+        "tier_override_invalid",
+        "require_tier_satisfied",
+        "warnings",
+        "error"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["success", "tier_failure", "blocked"],
+          "description": "Single-field outcome for pipeline branching. 'success' when the run finished with no error and any required tier is satisfied. 'tier_failure' when --require-tier was set and is not satisfied. 'blocked' for any halt that still produced an envelope; error.phase names it, for example 'step 2:write-tools' or 'step 2:forge-data-dir' when forge-tier.yaml or the forge data folder could not be written."
+        },
+        "tier": {
+          "type": "string",
+          "enum": ["Quick", "Forge", "Forge+", "Deep"],
+          "description": "Active capability tier this run. A blocked envelope carries 'Quick' as a placeholder."
+        },
+        "previous_tier": {
+          "type": ["string", "null"],
+          "enum": ["Quick", "Forge", "Forge+", "Deep", null],
+          "description": "Tier read from the existing forge-tier.yaml at workflow start. Null on first runs."
+        },
+        "tier_changed": {
+          "type": "boolean",
+          "description": "True when previous_tier is non-null AND differs from tier. False on first runs and same-tier re-runs. Lets pipelines react to upgrades without re-reading forge-tier.yaml."
+        },
+        "tools": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ast_grep", "gh_cli", "qmd", "ccc"],
+          "properties": {
+            "ast_grep": { "type": "boolean" },
+            "gh_cli": { "type": "boolean" },
+            "qmd": { "type": "boolean" },
+            "ccc": { "type": "boolean" }
+          }
+        },
+        "tools_added": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["ast_grep", "gh_cli", "qmd", "ccc"] },
+          "uniqueItems": true,
+          "description": "Tool keys with available=true that were NOT available in previous_tools. On first runs, equals the currently-detected tools."
+        },
+        "tools_removed": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["ast_grep", "gh_cli", "qmd", "ccc"] },
+          "uniqueItems": true,
+          "description": "Tool keys that were available in previous_tools but are NOT available now."
+        },
+        "config_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Absolute path to the forge-tier.yaml this run wrote. A blocked envelope carries error.path here, or '<unknown — halt before config_path resolved>' when the halt has no path."
+        },
+        "ccc_index": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "indexed_path", "file_count"],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["fresh", "created", "failed", "none", "skipped"]
+            },
+            "indexed_path": { "type": ["string", "null"] },
+            "file_count": { "type": ["integer", "null"], "minimum": 0 }
+          }
+        },
+        "files_written": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["forge-tier.yaml", "settings.yml", "ccc_index"]
+          },
+          "uniqueItems": true,
+          "description": "Files written this run, as step 4 reports them. Setup never writes preferences.yaml: the installer creates it. A blocked envelope always carries an empty array, even when an earlier step had already written a file."
+        },
+        "tier_override_active": {
+          "type": "boolean",
+          "description": "True when a valid tier_override from preferences.yaml was applied."
+        },
+        "tier_override_invalid": {
+          "type": "boolean",
+          "description": "True when tier_override was set but did not match Quick|Forge|Forge+|Deep (case-sensitive). Detected tier was used as fallback."
+        },
+        "require_tier_satisfied": {
+          "type": ["boolean", "null"],
+          "description": "Null when --require-tier was not set. Otherwise true if the tool prerequisites of the requested tier are met (Deep does NOT subsume Forge+)."
+        },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Non-fatal anomalies surfaced during the run. May include customization_resolver_unavailable, tier_override_invalid, tier_override_unsafe, ccc_exclusion_warnings entries, ccc_registry_stale_removed entries, qmd_daemon_stopped, tool_below_minimum entries (one per tool below its minimum version: '<tool> <version> (minimum <minimum>)'; a tier tool among them reads false under tools), ccc_indexing_failed, etc. Empty when none."
+        },
+        "error": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["phase", "path", "reason"],
+              "properties": {
+                "phase": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "The halt that produced the envelope, as <step>:<cause> (e.g. 'step 2:write-tools', 'on-activation:uv-missing')."
+                },
+                "path": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Absolute path of the file or folder the halt concerns, or '<n/a>' when it has none."
+                },
+                "reason": { "type": "string", "minLength": 1, "description": "Human-readable error message." }
+              }
+            }
+          ],
+          "description": "Null unless a halt produced the envelope; then the halt's phase, path and diagnostic. status is 'blocked' exactly when error is non-null, and the other fields of a blocked envelope are placeholders."
+        }
+      }
+    }
+  }
+}

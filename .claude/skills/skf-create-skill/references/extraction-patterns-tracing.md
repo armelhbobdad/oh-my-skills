@@ -13,12 +13,12 @@ After initial AST extraction, some top-level exports may resolve to **module imp
 **Tracing protocol:**
 
 1. Read the entry point file (e.g., `{package}/__init__.py`) and extract all `from .X import Y` statements
-2. For each import where Y was NOT found by the initial AST scan:
+2. For each import where Y was not found by the initial AST scan:
    - Check if the import path resolves to a directory (e.g., `{package}/api/v1/delete/` exists with `__init__.py`)
    - If directory: read its `__init__.py` to find the actual re-exported symbol
    - **Handle aliases:** Check for `from .module import A as B` patterns in the intermediate `__init__.py`. If the parent imports `B`, trace through to `A` in `.module`. If the parent imports `A` but the `__init__.py` only exports it as `B` (via `from .module import A as B`), match by original name `A` and note the alias
    - Trace the symbol to its definition file and run AST extraction on that file
-3. Cite the actual definition location: `[AST:{definition_file}:L{line}]`
+3. Cite the actual definition location by the tool that found it: `[AST:{definition_file}:L{line}]` (T1, `extraction_method: ast-grep`, and as `ast_node_type` the `kind` its recipe declares in `extraction-patterns.md`, or the kind the ast-grep Patterns table in `extraction-patterns-by-hand.md` gives a `find_code` pattern) when an ast-grep rule matched the definition, or `[SRC:{definition_file}:L{line}]` (T1-low, `extraction_method: source-read`, `ast_node_type: null`) when you read it by eye
 
 **Examples:**
 
@@ -89,7 +89,7 @@ Scripts and assets are file-level artifacts, not code exports. They follow the *
 Each extracted file receives:
 - Citation: `[SRC:{source_path}:L1]` (T1-low — file verified to exist but content not AST-analyzed)
 - Content hash: SHA-256 of file content (for drift detection in audit-skill)
-- Extraction method: `"file-copy"` (distinct from `"ast_bridge"` for code exports)
+- Extraction method: `"file-copy"` (distinct from `"ast-grep"` and `"source-read"`, the values code exports carry)
 
 ### Inventory Structure
 

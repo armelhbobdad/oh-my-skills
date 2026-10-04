@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/armelhbobdad/bmad-module-skill-forge/src/shared/scripts/schemas/skf-brief-result-envelope.v1.json",
+  "title": "SKF_BRIEF_RESULT_JSON envelope (v1)",
+  "description": "Single-line JSON document skf-brief-skill prints when {headless_mode} is true or the run is in [auto] mode, at the end of a successful run and at every HARD HALT, prefixed with the literal 'SKF_BRIEF_RESULT_JSON: '. Pipelines grep one line out of the workflow log to branch on the brief outcome without parsing prose. Schema mirrors the contract in src/skf-brief-skill/references/invocation-contract.md (Result Contract).",
+  "$defs": {
+    "skf-envelope": {
+      "description": "The shared emitter's settings for this workflow, read by skf-emit-result-envelope.py: the workflow, the line's prefix, the wrapper, the status a halt carries, the exit code of each halt_reason and the result file stem. Nothing in the schema references this entry, so it constrains no envelope.",
+      "const": {
+        "workflow": "skf-brief-skill",
+        "prefix": "SKF_BRIEF_RESULT_JSON",
+        "wrapper": null,
+        "halt_status": "error",
+        "exit_codes": {
+          "input-missing": 2,
+          "input-invalid": 2,
+          "forge-tier-missing": 3,
+          "target-inaccessible": 3,
+          "gh-auth-failed": 3,
+          "write-failed": 4,
+          "overwrite-cancelled": 5,
+          "user-cancelled": 6
+        },
+        "success_exit_code": 0,
+        "result_file": null
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "brief_path", "skill_name", "version", "language", "scope_type", "exit_code", "halt_reason", "mode"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error"],
+      "description": "'success' once the run has written the brief (step 5) or, in [auto] mode, the user or a headless run approved it (step 1b). 'error' on any HARD HALT."
+    },
+    "brief_path": {
+      "type": ["string", "null"],
+      "description": "Absolute path to the written skill-brief.yaml on success. Null when the run errored before any file was written (or when overwrite-cancelled aborted before write)."
+    },
+    "skill_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Brief's skill_name field, present in every envelope (success and error): the literal 'unknown' on a halt that fires before step 1 resolves the name."
+    },
+    "version": {
+      "type": ["string", "null"],
+      "description": "Resolved brief version (target_version if set, else auto-detected, else '1.0.0'). Null when the run errored before step 5's version-resolution ran."
+    },
+    "language": {
+      "type": ["string", "null"],
+      "description": "Detected or user-confirmed primary language. Null when the run errored before step 2's language-detection ran."
+    },
+    "scope_type": {
+      "type": ["string", "null"],
+      "enum": ["full-library", "specific-modules", "public-api", "component-library", "reference-app", "docs-only", null],
+      "description": "Confirmed scope.type from step 3. Null when the run errored before scope was confirmed."
+    },
+    "exit_code": {
+      "type": "integer",
+      "enum": [0, 2, 3, 4, 5, 6],
+      "description": "Process exit code matching the Exit Codes table in src/skf-brief-skill/references/invocation-contract.md. Derived deterministically from halt_reason: null→0, input-missing/input-invalid→2, forge-tier-missing/target-inaccessible/gh-auth-failed→3, write-failed→4, overwrite-cancelled→5, user-cancelled→6."
+    },
+    "halt_reason": {
+      "type": ["string", "null"],
+      "enum": [
+        null,
+        "input-missing",
+        "input-invalid",
+        "forge-tier-missing",
+        "target-inaccessible",
+        "gh-auth-failed",
+        "write-failed",
+        "overwrite-cancelled",
+        "user-cancelled"
+      ],
+      "description": "Null on success. One of the documented HALT classes on error. Pipelines branch on this to surface the right operator message without grepping the prose error."
+    },
+    "mode": {
+      "type": ["string", "null"],
+      "enum": ["auto", null],
+      "description": "'auto' when BS was invoked with the [auto] bracket modifier (pipeline auto-brief generation). Null otherwise (interactive or headless-without-auto)."
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Optional. Non-fatal anomalies surfaced during the run, one string each, such as customization_resolver_unavailable when the customization resolver could not apply the _bmad/custom/ overrides. Present only when the run recorded at least one, so an envelope without warnings is unchanged."
+    }
+  }
+}

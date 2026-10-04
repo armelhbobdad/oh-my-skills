@@ -1,10 +1,10 @@
 # /// script
-# requires-python = ">=3.10"
+# requires-python = ">=3.11"
 # dependencies = []
 # ///
 """SKF Atomic Write — Crash-safe artifact writing for skill workflows.
 
-Provides three CLI subcommands skills can invoke via bash to avoid
+Provides four CLI subcommands skills can invoke via bash to avoid
 partial-write corruption and active-symlink races.
 
 Subcommands:
@@ -21,19 +21,31 @@ Subcommands:
              restore. Supports rollback via --rollback to undo the most recent
              commit by restoring the rollback dir if still present.
 
-  flip-link  Atomically update symlink <link> to point at <target> using
-             the `ln -sfn tmp && mv -Tf tmp link` pattern (or equivalent via
-             os.replace on the link path). Holds an flock on <link>.lock.
+  flip-link  Point the link <link> at <target>: create the new link as
+             <link>.skf-tmp-link, then os.replace it over <link>, holding an
+             exclusive lock on <link>.skf-lock (removed afterwards). Refuses
+             to replace a <link> that is a real directory or file.
 
 Cross-platform: locking branches between fcntl (POSIX) and msvcrt
-(Windows). Symlink semantics on Windows require dev mode or admin —
-flip-link surfaces a clear error rather than silently falling back.
-Native Windows is untested in CI; the supported path is WSL2.
+(Windows). On Windows os.symlink needs Developer Mode or admin; when it
+fails for lack of privilege, flip-link creates a directory junction
+(mklink /J) instead, which needs neither but requires <target> to be an
+existing directory. A junction cannot be renamed over an existing link,
+so on that path flip-link removes the old link first and the flip is not
+atomic. No test exercises the junction path: CI's Windows runner holds
+symlink privilege.
 
 Exit codes:
-  0 on success
-  1 on user error (bad args, missing input)
-  2 on operation failure (disk full, permission, race-detected)
+  0 on success (JSON on stdout)
+  1 when commit-dir has no staging or rollback directory to use (JSON
+    error on stderr), and on any unexpected error (a Python traceback on
+    stderr); for flip-link that includes Windows refusing both a symlink
+    and a junction
+  2 on a refused or failed operation, with {"status": "error", "message":
+    ...} on stderr: write failed, stage-dir could not clear a stale entry,
+    commit-dir found a non-directory target or could not swap, flip-link
+    found a non-link at <link> or another process holding its lock; and
+    on bad arguments (argparse usage on stderr, no JSON)
 
 CLI examples:
   cat metadata.json | python3 skf-atomic-write.py write --target /path/to/metadata.json
@@ -144,8 +156,11 @@ def cmd_write(target: Path) -> None:
     data = sys.stdin.buffer.read()
     target.parent.mkdir(parents=True, exist_ok=True)
     tmp = target.with_name(target.name + ".skf-tmp")
+    # O_BINARY (Windows only; 0 elsewhere) suppresses the text-mode \n -> \r\n
+    # translation that would otherwise corrupt verbatim writes on Windows.
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_BINARY", 0)
     try:
-        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
+        fd = os.open(tmp, flags, 0o644)
         try:
             os.write(fd, data)
             os.fsync(fd)
@@ -244,13 +259,17 @@ def cmd_commit_dir(target: Path, rollback: bool = False) -> None:
     _ok({"committed": str(target)})
 
 
+# Keep identical to _is_link_or_junction in skf-skill-inventory.py
+# (test/test-skf-skill-inventory.py pins the copies).
 def _is_link_or_junction(p: Path) -> bool:
     """True for POSIX symlinks AND Windows junctions/symlinks.
 
     `Path.is_symlink()` is False for Windows junctions; os.readlink succeeds
     for both symlinks and junctions (since CPython 3.8 on Windows). A regular
     directory raises OSError on readlink, which is the signal we want to
-    refuse replacement.
+    refuse replacement. On Windows, any other reparse point (a cloud-sync
+    placeholder, a deduplicated file, an app execution alias) raises
+    ValueError: it does not redirect to another path, so it is not a link.
     """
     if p.is_symlink():
         return True
@@ -259,7 +278,7 @@ def _is_link_or_junction(p: Path) -> bool:
     try:
         os.readlink(p)
         return True
-    except OSError:
+    except (OSError, ValueError):
         return False
 
 
@@ -267,7 +286,7 @@ def cmd_flip_link(link: Path, target: str) -> None:
     """Atomically point <link> at <target> using rename-over-symlink pattern.
 
     target is the value of the symlink (may be relative, as is convention
-    for `active -> 1.0.0`). Held lock on <link>.lock prevents concurrent flips.
+    for `active -> 1.0.0`). A lock on <link>.skf-lock prevents concurrent flips.
 
     On Windows, os.symlink requires Developer Mode or admin. When that fails
     with PRIVILEGE_NOT_HELD/ACCESS_DENIED the helper falls back to a directory

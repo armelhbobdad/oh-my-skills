@@ -1,0 +1,69 @@
+# DO NOT EDIT -- overwritten on every update.
+#
+# Workflow customization surface for skf-analyze-source.
+# Team overrides:     {project-root}/_bmad/custom/skf-analyze-source.toml
+# Personal overrides: {project-root}/_bmad/custom/skf-analyze-source.user.toml
+
+[workflow]
+
+# --- Configurable below. Overrides merge per BMad structural rules: ---
+#   scalars: override wins • arrays (persistent_facts, activation_steps_*): append
+#   arrays-of-tables with `code`/`id`: replace matching items, append new ones.
+
+# Steps to run right after the customization resolve (On Activation step 4).
+# Config and preferences are already loaded by then, so a step here can read
+# them but cannot run before them. Overrides append. Use for org-wide
+# pre-flight checks (auth, network, compliance) that must precede any
+# source-analysis work.
+
+activation_steps_prepend = []
+
+# Steps to run once activation is complete (the run folder exists), just
+# before the first stage executes. Overrides append. Use for context loads
+# or banner customization.
+
+activation_steps_append = []
+
+# Persistent facts the workflow keeps in mind for the whole run
+# (house style, naming conventions, scope guardrails).
+# Overrides append.
+#
+# Each entry is one of:
+#   - a literal sentence, e.g. "Recommended skills must align with our agent stack."
+#   - a file reference prefixed with `file:`, e.g.
+#     "file:{project-root}/docs/analysis-style.md" (globs supported; file
+#     contents are loaded and treated as facts).
+#   - an entry prefixed with `!`, which loads nothing and drops each earlier
+#     entry it names.
+#
+# The default below loads every project-context.md under {project-root}.
+# Overrides append, so they cannot delete it; to stop loading those files,
+# set in {project-root}/_bmad/custom/skf-analyze-source.toml:
+#   persistent_facts = ["!file:{project-root}/**/project-context.md"]
+
+persistent_facts = [
+  "file:{project-root}/**/project-context.md",
+]
+
+# --- Optional asset override ---
+#
+# The analysis report skeleton init copies to
+# {forge_data_folder}/analyze-source-report-<project>.md: a path from the
+# skill root, or a {project-root}/... path. A house-style copy keeps the
+# frontmatter keys and the six `## ...` sections with their
+# `[Appended by <step>]` placeholders, since each step replaces its own.
+
+analysis_report_template_path = "templates/analysis-report-template.md"
+
+# Pipeline hook: a shell command the run calls once the shared emitter has
+# written the result files, at the end of every run that writes them
+# (generate-briefs.md, step-auto-scope.md and auto-docs-only.md), as:
+#   <on_complete> --result-path=<forge_data_folder>/analyze-source-result-latest.json
+# A run whose result file could not be written (result_path null in the
+# envelope) and a HALT call no hook. Useful for Slack notifications,
+# dashboard ingest, CI hooks, or chaining into a brief linter. A hook
+# failure is displayed and never fails the run.
+#
+# Empty string = no hook (default).
+
+on_complete = ""

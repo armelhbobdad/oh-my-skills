@@ -11,3 +11,4 @@ snippet_skill_root_override: skills/
 ides:
   - claude-code
 install_learning: true
+health_check_repo: armelhbobdad/bmad-module-skill-forge

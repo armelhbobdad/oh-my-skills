@@ -2,25 +2,9 @@
 
 ## agentskills.io Compliant Format
 
-### Frontmatter (Required — agentskills.io Compliance)
+### Frontmatter
 
-```yaml
----
-name: {skill-name}
-description: >
-  {Trigger-optimized description of what the skill does and when to use it.
-  Include specific keywords for agent discovery.
-  Mention what NOT to use it for if applicable.
-  1-1024 characters.}
----
-```
-
-**Frontmatter rules (agentskills.io specification):**
-
-- `name`: 1-64 characters, lowercase alphanumeric + hyphens only, must match parent directory name. Prefer gerund form (`processing-pdfs`, `analyzing-spreadsheets`) for clarity; noun phrases and action-oriented forms are acceptable alternatives.
-- `description`: 1-1024 characters, trigger-optimized for agent matching. MUST use third-person voice ("Processes..." not "I can..." or "You can...").
-- Only 6 fields permitted: `name`, `description`, `license`, `compatibility`, `metadata`, `allowed-tools`
-- `version` and `author` belong in metadata.json, NOT in frontmatter
+The authoritative frontmatter contract — permitted fields, the `name`/`description` rules, the trigger-phrase/voice requirements, and the no-angle-brackets rule — is owned by `assets/compile-assembly-rules.md` (## Frontmatter). This catalog does not restate it (both files load together at compile.md §1).
 
 ### Two-Tier Section Structure
 
@@ -49,91 +33,16 @@ SKILL.md uses a two-tier structure to ensure actionable content survives `split-
 | 10 | **Full Type Definitions** | All types, interfaces, enums with full field details |
 | 11 | **Full Integration Patterns** | Co-import patterns, adapter details, pipeline internals (Forge/Deep only) |
 
-#### Assembly Rules
+#### Section Conditionality
 
-- Tier 1 sections are assembled first — they form the standalone body
-- Tier 2 sections are assembled after — they are progressive disclosure detail
-- Tier 1 sections are kept short enough that `split-body` targets the larger Tier 2 sections (`## Full` headings) into `references/`
-- After split-body, SKILL.md retains all Tier 1 content — actionable without loading references
-- An agent loading only SKILL.md (no references) must get enough to act
 - **Section 4b (Migration & Deprecation Warnings)** is conditional: only emitted for Deep tier when T2-future annotations exist. Quick/Forge/Forge+ tiers and Deep tiers without T2-future annotations omit it entirely (no empty section). Parsers and validators must treat this section as optional.
 - **Section 7b (Scripts & Assets)** is conditional: only emitted when `scripts_inventory` or `assets_inventory` is non-empty. Omitted entirely when no scripts or assets are detected. Parsers and validators must treat this section as optional.
 
+Assembly ordering, the under-300-line Tier-1 budget, and split-body targeting are owned by `assets/compile-assembly-rules.md` (### Assembly Rules).
+
 ### Component Library Section Overrides
 
-When `scope.type: "component-library"`, these section formats replace their standard counterparts. All other sections (Overview, Common Workflows, Architecture, CLI, Manual Sections, etc.) use the standard format.
-
-#### Section 4 — Component Catalog (replaces Key API Summary)
-
-```markdown
-## Component Catalog
-
-| Category | Count | Key Components |
-|----------|-------|---------------|
-| {category} | {count} | {ComponentA}, {ComponentB}, {ComponentC}, ... |
-
-**Design system variants:** {primary} (primary), {variant2}, {variant3}
-**Total components:** {unique_count} | **With {variant1}:** {count1} | **With {variant2}:** {count2}
-```
-
-- Source: `component_catalog[]` from step-03d extraction
-- Group by `category` field from registry
-- Show top 3-5 component names per category
-- Cite registry file: `[SRC:{registry_file}:L1]`
-- Budget: ~20 lines (same as standard Section 4)
-
-#### Section 5 — Key Props (replaces Key Types)
-
-```markdown
-## Key Types
-
-### {ComponentName}Props
-
-| Prop | Type | Default | Required |
-|------|------|---------|----------|
-| {propName} | {type} | {default or —} | {yes/no} |
-
-{Repeat for top 5 Props interfaces}
-```
-
-- Show only the 5 most-used Props interfaces (by component count or documentation prominence)
-- Full Props details for all components go in Tier 2 reference
-- Budget: ~20 lines (same as standard Section 5)
-
-#### Tier 2 — Props Reference (replaces Full API Reference)
-
-```markdown
-## Full API Reference
-
-### {ComponentName}
-
-**Install:** `npx {cli} add {component-id}`
-**Available in:** {variant list}
-**Props:** `{ComponentName}Props`
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| {prop} | {type} | {default} | {description from JSDoc or —} |
-
-**Provenance:** `[AST:{file}:L{line}]`
-```
-
-- Organize by component, not by function
-- Each component shows: install command, variant availability, full props table
-- Include JSDoc descriptions for props when available
-- Standard provenance citations apply
-
-#### context-snippet.md — Component Library Format
-
-```markdown
-[{name} v{version}]|root: skills/{name}/
-|IMPORTANT: {name} v{version} — read SKILL.md before writing {name} code. Do NOT rely on training data.
-|install: npx {cli} add <component-id>
-|catalog:{SKILL.md#component-catalog} — {N} components: {category(count), ...}
-|variants: {variant list} — {provider wrapping note if applicable}
-|key-props:{SKILL.md#key-types} — {top props interfaces with key fields}
-|gotchas: {detected gotchas}
-```
+The `component-library` section formats — Component Catalog (§4), Key Props (§5), the Props Reference Tier 2 layout, and the component-library `context-snippet.md` format — are owned by `assets/compile-assembly-rules.md` (### Component Library Assembly Overrides), alongside the `reference-app` and whole-language override sets. This catalog does not restate them (both files load together at compile.md §1).
 
 ### Provenance Citation Format
 
@@ -181,7 +90,7 @@ Indexed pipe-delimited format for CLAUDE.md managed section (~80-120 tokens per 
 - **Token budget:** ~80-120 tokens per skill (justified by Vercel's finding that indexed format maintains performance at 80% compression)
 - **T1-now content only** — no T2 annotations in the snippet
 - **Section anchors** (`#quick-start`, `#key-types`) must match actual SKILL.md heading slugs
-- **Version** comes from source detection (per issue #32), not brief default
+- **Version** comes from source detection, not brief default
 
 ---
 
@@ -192,6 +101,7 @@ Indexed pipe-delimited format for CLAUDE.md managed section (~80-120 tokens per 
   "name": "{skill-name}",
   "version": "{source-version}",
   "skill_type": "single",
+  "scope_type": "{full-library|specific-modules|public-api|component-library|reference-app|docs-only}",
   "source_authority": "{official|community|internal}",
   "source_repo": "{github-url}",
   "source_root": "{resolved-source-path}",
@@ -224,11 +134,14 @@ Indexed pipe-delimited format for CLAUDE.md managed section (~80-120 tokens per 
     "total_coverage": 0.0,
     "scripts_count": 0,
     "assets_count": 0
-    // "effective_denominator": 0  // optional — emitted for stratified-scope monorepo packages; test-skill uses this as the coverage denominator when present. See step-05-compile.md §4 emit rules.
+    // "effective_denominator": 0  // optional — emitted for the curated-subset shapes in compile.md §4 condition 1; test-skill uses this as the coverage denominator when present. See compile.md §4 emit rules.
   },
   // scripts[] and assets[] — include ONLY when inventories are non-empty; omit entirely otherwise
   // "scripts": [{ "file": "scripts/{name}", "purpose": "{description}", "source_file": "{source-path}", "confidence": "T1-low" }],
   // "assets": [{ "file": "assets/{name}", "purpose": "{description}", "source_file": "{source-path}", "confidence": "T1-low" }],
+  // doc_sources[] — include ONLY when doc detection ran; omit if detection was skipped entirely
+  // "doc_sources": [{ "url": "https://...", "detected_via": "homepageUrl|readme_link|pages_api|docs_folder|readme_always|brief_doc_urls", "content_hash": "sha256:{hex}|null", "recorded_at": "ISO-8601" }],
+  // detected_via "brief_doc_urls" = docs-only skills: the brief's doc_urls (plus subpages step 3c fetched), hashed by `skf-detect-docs.py hash-urls`
   "generated_by": "{quick-skill|create-skill}",
   "dependencies": [],
   "compatibility": "{semver-range}"
@@ -281,7 +194,7 @@ Each reference file includes:
       "source_line": 42,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function_declaration",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     }
   ],
@@ -290,7 +203,7 @@ Each reference file includes:
       "libraries": ["lib-a", "lib-b"],
       "pattern_type": "provider-consumer",
       "detection_method": "co-import grep|architecture_co_mention|inferred_from_shared_domain",
-      "co_import_files": [{"file": "src/app.ts", "line": 5}],
+      "co_import_files": [{"path": "src/app.ts", "line_a": 5, "line_b": 7}],
       "confidence": "T1|T2|T3"
     }
   ],
@@ -318,7 +231,7 @@ Each reference file includes:
 
 - `provenance_version`: Schema version. `"2.0"` enables unified single/stack support. Audit reads both v1 (no version field) and v2.
 - `source_library`: Identifies which library an export belongs to. For single skills, defaults to the skill/package name. For stack skills, identifies the constituent library.
-- `integrations`: Stack-only. Describes cross-library integration patterns with their own schema — NOT shoehorned into entries.
+- `integrations`: Stack-only. Describes cross-library integration patterns with their own schema — not shoehorned into entries.
 - `constituents`: Stack-only (compose-mode). Tracks the compose-time snapshot of each source skill for staleness detection. `metadata_hash` enables audit to detect constituent drift without re-reading all constituent files.
 - `file_entries` remains optional — omit when no scripts, assets, or promoted docs exist.
 - Single skills omit `integrations` and `constituents` arrays entirely (not empty arrays).
@@ -329,12 +242,12 @@ Each reference file includes:
 |---|---|---|---|---|
 | `"script"` | `scripts_inventory` | yes → `scripts/` | `"file-copy"` | Runnable scripts (CLI tools, validation scripts, etc.) bundled into the skill for execution. |
 | `"asset"` | `assets_inventory` | yes → `assets/` | `"file-copy"` | Data files (templates, JSON schemas, config fixtures) bundled for reference. |
-| `"doc"` | `promoted_docs` (from step-03 §2a) | **no** | `"promoted-authoritative"` | Authoritative AI documentation files (`llms.txt`, `AGENTS.md`, etc.) promoted into scope by the Discovered Authoritative Files Protocol. The source file is tracked for drift detection but not bundled into the skill — its content influences compile-time decisions (description, Quick Start) and is watched for upstream changes. |
+| `"doc"` | `promoted_docs` (from step 3 §2a) | **no** | `"promoted-authoritative"` | Authoritative AI documentation files (`llms.txt`, `AGENTS.md`, etc.) promoted into scope by the Discovered Authoritative Files Protocol. The source file is tracked for drift detection but not bundled into the skill — its content influences compile-time decisions (description, Quick Start) and is watched for upstream changes. |
 
 When `file_type: "doc"`:
 
 - `source_file` is the relative path from the source root to the authoritative doc.
-- `content_hash` is computed at promotion time (step-03 §2a) and persisted here so update-skill Category D can detect drift via hash comparison.
+- `content_hash` is computed at promotion time (step 3 §2a) and persisted here so update-skill Category D can detect drift via hash comparison.
 - `file_name` convention: use the source-relative path prefixed with `docs/authoritative/` to namespace doc entries away from script/asset filenames in tools that iterate `file_entries[]` by `file_name`. Example: `docs/authoritative/apps/docs/public/llms.txt`. Step-07 does not write this path — it is a synthetic namespace used only within the provenance map.
 - `confidence` is `"T1-low"` (the promotion decision is source-level but the content was not AST-parsed).
 
@@ -369,10 +282,13 @@ t2_future_count: {N}
 ## Validation Results
 - Schema: {pass/fail} (quality score: {score}/100)
 - Frontmatter: {pass/fail}
-- Body: {pass/fail} {split-body applied if applicable}
+- Body: {pass/fail} {body split applied if applicable}
 - Security: {pass/warn/skipped}
-- Content Quality (tessl): {pass/warn/skipped} (score: {score}%)
+- Description angle brackets: {none | re-sanitized ({count} substitutions) | not checked — no description}
+- Tessl Review: {tessl_summary}
 - Metadata: {pass/fail}
+- Provenance labels: {pass | relabeled {N} to match extraction_method: {export names}}{; WARN, no node kind found: {export names}}
+- Provenance lines: {pass | findings | fixed {N} source lines, {M} citation prefixes and {K} node kinds | not run: verifier missing | not run: verifier error}{; second run: verifier error}{; unverified, no definition line found: {export names}}{; WARN: {each line, citation or node-kind warning §7a lists}}{; source lines not checked: no local source tree}{; node kinds not checked: no ast-grep CLI | unrecognized ast-grep}{; node kinds unchecked: {export name (reason) for each node_kinds_unchecked item}}{; node kinds skipped: {N} in files ast-grep has no language for}
 
 ## Quality Score Breakdown
 - Frontmatter (30%): {score} | Description (30%): {score} | Body (20%): {score} | Links (10%): {score} | File (10%): {score}
@@ -388,8 +304,15 @@ t2_future_count: {N}
 
 ## Remaining Warnings
 - {any warnings from extraction or validation}
+
+## Tessl Review
+- Result: {tessl_summary}
+- Workspace: {tessl_workspace or —} · tessl {tessl_version or —} · Run: {tessl_run_id or —}
+- Validation findings: {each {tessl_validation} finding as `name (status): message`, or "none"}
+- Description suggestions (to act on one, edit the description in the brief and re-run create-skill): {each of {tessl_description_suggestions}, or "none"}
+- Content suggestions (advisory, not applied): {each of {tessl_content_suggestions} with its `(not applicable: <rule-id>)` mark, or "none"}
 ```
 
-**Frontmatter — pinned detection contract:** the `t2_future_count` field is the authoritative forward-looking-annotation count for downstream gate checks (e.g. skf-test-skill §2b migration-section rule). Emit **always**, even when 0 — omission is indistinguishable from "no T2-future data" and silently flips the gate into Case 2/3 for a Case-1 skill. `generated` and `forge_tier` mirror the narrative header for consumers that read only the frontmatter. Downstream gate rules MUST parse `t2_future_count` from frontmatter, not grep prose — prose drift (heading renames, alternate phrasings like "forward-looking annotations") silently breaks the detection.
+**Frontmatter — pinned detection contract:** the `t2_future_count` field is the authoritative forward-looking-annotation count for downstream gate checks (e.g. skf-test-skill §2b migration-section rule). Emit **always**, even when 0 — omission is indistinguishable from "no T2-future data" and silently flips the gate into Case 2/3 for a Case-1 skill. `generated` and `forge_tier` mirror the narrative header for consumers that read only the frontmatter. Downstream gate rules parse `t2_future_count` from frontmatter, not prose — prose drift (heading renames, alternate phrasings like "forward-looking annotations") silently breaks grep-based detection.
 
-**Description Guard slot:** populated by step-06 §0 (create-skill) and §0 (update-skill) when the guard protocol fires. `Restored: true` indicates that an external tool (typically `skill-check --fix` or `split-body`) rewrote the frontmatter `description` and the guard restored the pre-tool value. When `Restored: false`, leave `Triggering tool`, `Original description preserved`, and `Notes` as `—`. When `Restored: true`, fill all four fields: tool name, whether the original was successfully written back, and a one-sentence note describing what the tool had changed (e.g., "replaced with generic summary", "truncated at 80 chars", "angle-bracket tokens re-introduced"). Downstream test-skill assertions can grep for `Restored: true` to detect unintended tool rewrites without parsing free-form warning prose.
+**Description Guard slot:** populated by step 6 §0 (create-skill) and §0 (update-skill) when the guard protocol fires. `Restored: true` indicates that an external tool (typically `skill-check --fix`, create-skill's `skf-shard-body.py` body split or update-skill's `split-body`) rewrote the frontmatter `description` and the guard restored the pre-tool value. When `Restored: false`, leave `Triggering tool`, `Original description preserved`, and `Notes` as the no-fire dash the template above shows. When `Restored: true`, fill all four fields: tool name, whether the original was successfully written back, and a one-sentence note describing what the tool had changed (e.g., "replaced with generic summary", "truncated at 80 chars", "angle-bracket tokens re-introduced"). Downstream test-skill assertions can grep for `Restored: true` to detect unintended tool rewrites without parsing free-form warning prose.

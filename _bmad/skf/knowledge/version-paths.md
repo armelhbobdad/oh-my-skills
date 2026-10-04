@@ -94,10 +94,26 @@ The inner `{skill-name}/` directory IS the agentskills.io-compliant skill packag
       provenance-map.json
       evidence-report.md
       extraction-rules.yaml
-      test-report-{skill-name}.md
+      evidence-report-fallback.md
+      extraction-snapshot.json
+      .test-skill.lock
+      .skf-test-report-{skill-name}-{run_id}.md
+      test-report-{skill-name}-{run_id}.md
+      test-findings-{run_id}.json
+      drift-report-{timestamp}.md
+      .skf-audit/{timestamp}/
+      manual-backup/SKILL-{timestamp}.md
+      {workflow}-result-{timestamp}.json
+      {workflow}-result-latest.json
+  _campaign/
+  improvement-queue/
 ```
 
 `skill-brief.yaml` stays at `{forge_group}` level — the brief is a workflow input that defines extraction scope, not a versioned output.
+
+`test-findings-{run_id}.json` is test-skill's gap ledger, beside the test report of the same run. test-skill writes that report as `.skf-test-report-{skill-name}-{run_id}.md` while it runs and renames it to `test-report-{skill-name}-{run_id}.md` once its checks pass, so a halted run leaves only the hidden name, which no consumer reads. `.skf-audit/{timestamp}/` holds audit-skill's stage data for the drift report of the same timestamp: the scan list, the recipe runner's extraction and the exports read by eye (`scan-files.json`, `extraction.json`, one `export-details-{n}.json` per worker), `structural-diff.json`, the relocation check's candidates and finds (`relocation-candidates.json`, `relocations.json`), `file-drift.json`, `semantic-findings.json` or, for a compose-mode stack, `constituent-freshness.json`, then `findings.json` and `severity.json`. `manual-backup/` holds an earlier `SKILL.md` that create-skill's promotion kept (`skf-promote-staged.py --carry-manual`) because a re-run of the version lacked one of its hand-written `[MANUAL]` blocks, one file per run that needed it.
+
+The brief's `.bak` copy and `.brief-draft.json` sit beside it, and a stack group also holds `create-stack-skill-result-latest.json`. Names holding `.skf-` (locks such as `.skf-update.lock`, update-skill's `.skf-update-manual-inventory.json` beside it, and staging) and a stack's `*-tmp` staging folders are SKF's too; while a rename runs, its lock is `{forge_data_folder}/.skf-rename-{skill-name}.lock`. `_campaign/` and `improvement-queue/` are SKF's own folders, never a skill's. Older skills may still hold the provenance map, evidence report, extraction rules and test reports directly in `{skill-name}/` (the flat layout — see Migration), and a `.manual-inventory.json` in a version folder, where update-skill once kept the [MANUAL] inventory it now keeps beside its lock.
 
 ## Version Resolution
 
@@ -105,6 +121,7 @@ The inner `{skill-name}/` directory IS the agentskills.io-compliant skill packag
 
 When writing artifacts, resolve `{version}` from the skill brief's `version` field (CS, SS), the extraction inventory (QS), or the updated metadata (US). Then:
 
+0. **Ownership check (CS, QS, SS).** Before creating anything, run `uv run skf-skill-inventory.py {skills_output_folder} --skill {skill-name} --write-check --write-version {version} --forge-data-folder {forge_data_folder}` and continue only when `write_check.verdict` is `"ok"`; otherwise stop with that verdict as the halt reason (`not-skf-output` or `flat-layout`). Without the helper, write only when nothing exists at `{skill_group}`. See Ownership below.
 1. Create `{skill_group}` if it does not exist
 2. Create `{skill_package}` (including all parent directories)
 3. Write all deliverables to `{skill_package}`
@@ -112,16 +129,23 @@ When writing artifacts, resolve `{version}` from the skill brief's `version` fie
 5. Write all workspace artifacts to `{forge_version}`
 6. Create or update the `active` symlink at `{skill_group}/active` pointing to `{version}`
 
-### Reading Workflows (EX, AS, TS, VS, RA)
+**Update-skill (US)** writes each new version into a folder of its own and never into the previous one. Before it writes the merged `SKILL.md`, it stages a copy of the current package with `skf-atomic-write.py stage-dir`, renames it into `{skill_group}/{new_version}/{skill-name}/` with `commit-dir`, creates `{forge_data_folder}/{skill-name}/{new_version}/` with copies of the provenance map, evidence report and extraction rules, and writes every artifact of the update there. It stops (`halted-for-write-failure`) rather than overwrite a version folder that already exists. `{new_version}` is the source's version when the update detected a higher one, else the next patch version. It updates the version the `active` link names when the manifest lags it (the Manifest-lag guard under Reading Workflows), so a second update before an export builds on the first. A gap-driven repair (`--from-test-report`) keeps its version and writes in place; `--detect-only` and `--dry-run` create nothing.
+
+### Reading Workflows (EX, AS, TS)
 
 When reading artifacts, resolve the skill path using the export manifest:
 
 1. Read `{skills_output_folder}/.export-manifest.json`
 2. Look up the skill name in `exports`
 3. Read `active_version` to get the target version
-4. Resolve to `{skill_package}` using the active version
-5. If manifest does not contain the skill: check for `active` symlink at `{skill_group}/active`
-6. If neither manifest nor symlink: fall back to flat-path resolution (migration — see below)
+4. **Manifest-lag guard.** If the `active` symlink at `{skill_group}/active` resolves to a *different* version than the manifest's `active_version`, prefer the **symlink target** and emit an Info note. The manifest `active_version` only advances when `export-skill` runs, but the `active` symlink is flipped forward by every writing workflow (CS/QS/SS/US) the instant it commits a new version. So in the canonical SS→TS→EX order the manifest lags the just-forged version in the window between forge and export: a manifest-first read would otherwise resolve the *previously exported* version. Preferring the symlink target closes this gap (and, for `export-skill`, makes that export publish the forged version and reconcile the manifest). This guard never overrides legitimate state: `drop-skill`, the only workflow that switches the active version, repoints the symlink to the manifest's `active_version` (it never leaves them diverged), and no workflow flips the symlink *backward*. So the only other divergence is a backward flip the user makes by hand to keep an older version, as the drop guard's recovery asks (see Drop below): the next `export-skill` run then publishes that version, which is what the user asked for.
+5. Resolve to `{skill_package}` using the chosen version — the symlink target when it diverges per step 4, otherwise `active_version`
+6. If manifest does not contain the skill: check for `active` symlink at `{skill_group}/active`
+7. If neither manifest nor symlink: fall back to flat-path resolution, only behind the ownership gate (see Ownership and Migration below)
+
+**The resolve command.** A workflow never applies these steps by hand: `uv run skf-skill-inventory.py resolve {skills_output_folder} --skill {skill-name} --forge-data-folder {forge_data_folder}` applies them in one call (audit-skill, test-skill and export-skill choose their version with it, and drop-skill and rename-skill read their version lists from it). It returns the manifest's `active_version`, the `active` link's target (`symlink_target`), the `chosen_version` and its `reason` (`manifest-and-link`, `manifest`, `link`, `manifest-lags-link` for the guard in step 4, `flat-layout` for step 7, `newest-on-disk`, which a reading workflow does not audit or test, or `missing`), the `candidates` it compared (each version's package and provenance map, with the map's `generated_at`), `forge_version`, the `metadata.json`, `provenance-map.json` and `evidence-report.md` paths (`paths`, each the versioned file when it exists, else the flat one, else null), and every version newest first with its manifest status (`versions`, `counts`, `newest_non_deprecated`). `--version <version>` names the version instead, for an operator's choice (its `reason` is `requested`). It reads and never writes, and does not decide ownership (see Ownership).
+
+**Stack rosters (VS, RA, SS compose-mode)** read through `skf-enumerate-stack-skills.py` instead: for each skill folder it takes the version the `active` link names, else the highest version, else a flat root `SKILL.md`. Only a package whose `metadata.json` carries an SKF marker counts (see Ownership). Its `enumerate` command never reads the export manifest; `candidates`, which picks create-stack-skill's compose-mode constituents, reads the manifest only to pick them, and the package of each one it keeps still comes from the roster.
 
 ### Manifest-Driven Snippet Scanning (EX Step-04)
 
@@ -168,6 +192,53 @@ The export manifest gains version awareness:
 
 **Only one version per skill can have `status: "active"` at any time.**
 
+## Ownership
+
+The skills folder can hold skills SKF did not generate, such as a BMad module's own skills or skills installed from elsewhere. Before a workflow writes a new version into, moves or deletes a skill's folders, it asks `skf-skill-inventory.py` whether SKF generated them; it never decides by hand.
+
+**Marker rules.** Only a `metadata.json` that carries an SKF marker proves that SKF generated a skill. Any one of these is a marker:
+
+1. `generated_by` is `quick-skill`, `create-skill` or `create-stack-skill`
+2. `tool_versions` is an object with an `skf` key
+3. `skill_type` is `single`, `individual` or `stack`, together with `forge_tier` or `confidence_tier`
+
+Every SKF writer has written at least one of them since the first release. The marker counts at the group root (flat layout) or at `{skill_group}/{version}/{skill-name}/metadata.json` (versioned layout). The versioned layout, an `active` link, a manifest key or a result file do not count on their own. Setup's ccc exclusions use the same rule, so ccc leaves out exactly the skill folders the workflows treat as SKF output.
+
+**Verdicts.** The inventory adds these fields to each skill:
+
+| Field | Meaning |
+|---|---|
+| `ownership` | `"skf"`: SKF evidence and nothing else in the folder or its marked version folders. `"mixed"`: SKF evidence plus entries SKF did not generate. `"foreign"`: no SKF evidence, or the folder is a link |
+| `skf_skill` | A marked version, or a flat skill with a marked root `metadata.json` |
+| `flat_skf` | A root `SKILL.md` beside a marked root `metadata.json` |
+| `foreign_entries` | The entries SKF did not generate; directories end in `/`, a link is listed by its bare name, and an entry inside a marked version folder is listed as `{version}/<entry>` |
+
+SKF evidence is a marked version, a marked root `metadata.json`, the `_batch` folder, or `.skf-` in the folder name. A version folder that is a link, or that holds its package through a link, is never SKF output: SKF only creates the `active` link. A marked version folder holds only the `{skill-name}/` package and `.skf-` staging names; anything else in it is an entry SKF did not generate. The top-level `not_skf_output` names the folders that hold a skill SKF did not generate. `not_skf_output` never lists `_batch` or a `.skf-` name.
+
+A folder that holds no file (only neutral clutter, `.skf-` names or empty folders), which is what an interrupted run leaves before it writes `metadata.json`, is never an entry SKF did not generate.
+
+**Forge folders.** With `--forge-data-folder`, the inventory also classifies `{forge_data_folder}/{skill-name}` for each skill it scans, in the top-level `forge_groups[]` (`name`, `path`, `ownership`, `foreign_entries`, `errors`). The forge folder has no marker file, so SKF evidence there is its own files: a brief (`skill-brief.yaml*`, `.brief-draft.json`) or a `*-result*.json` directly in the folder, or a provenance map, evidence report, extraction rules or `*-result*.json` file in a folder directly inside it; a linked folder never holds any. The other names SKF writes (the forge tree above) count only beside that evidence. Setup's ccc exclusions use the same evidence rule for the forge folder.
+
+| `ownership` | Meaning |
+|---|---|
+| `"absent"` | Nothing at the path |
+| `"skf"` | SKF evidence and nothing else |
+| `"mixed"` | SKF evidence plus entries SKF did not write, in `foreign_entries` (a folder SKF wrote nothing in as `{version}/`, an entry inside a marked one as `{version}/<entry>`) |
+| `"empty"` | No evidence and nothing SKF did not write: an empty folder, or only locks and staging |
+| `"foreign"` | Entries SKF did not write and no evidence, or the path is a link, is not a folder, or SKF cannot list it (`errors` says which) |
+| `"reserved"` | `improvement-queue` or `_campaign`: SKF's own folder, never a skill's |
+
+When both settings name one folder, the result has `same_folder: true` and an empty `forge_groups`: each skill folder is classified once, and an entry either rule accepts is SKF output, as setup's ccc exclusions do; only the skill's own `{version}/{skill-name}/` package still needs its SKF marker.
+
+**How workflows use it:**
+
+- US, AS, TS and EX migrate a flat skill only when `flat_skf` is true; otherwise they stop with `not-skf-output` before anything moves (see Migration below).
+- CS, QS and SS write a version only after `--write-check` returns `"ok"`: nothing is at the skill folder yet, it holds only what an interrupted run leaves, or SKF generated it and the target version folder is new or SKF's own. They stop with `not-skf-output` for a folder SKF did not generate (a link included) or a version folder SKF did not generate, and with `flat-layout` for an SKF skill still only in the flat layout. The name `improvement-queue` is refused.
+- RS renames only an `"skf"` folder in the versioned layout; it refuses others with `not-skf-output` or `flat-layout`. It moves the forge folder only when it is `"skf"` or `"empty"`, refuses (`not-skf-output`) one that is `"mixed"`, or `"foreign"` with `errors` because it is a link, is not a folder, or cannot be listed, and leaves any other `"foreign"` or `"reserved"` one under the old name.
+- DS offers a folder SKF did not generate only when the manifest lists it, and then only for deprecate. It purges a whole skill folder only when its `ownership` is `"skf"` (or nothing is on disk). Its forge folder is purged when `"skf"` or `"empty"`, refused when `"mixed"`, and left in place when `"foreign"` or `"reserved"`; a single-version purge applies the same test to `{version}/` in the forge folder.
+- VS, RA and SS compose-mode read only the skills SKF generated: `skf-enumerate-stack-skills.py` applies the same marker rule, lists the other skill folders once in `not_skf_output`, and never counts them as warnings or pairs; a folder whose `metadata.json` it cannot read is named in one warning instead, because it cannot tell whether SKF generated it. TS's discovery catalog counts the folders that hold a skill.
+- Without the inventory helper, none of them moves or deletes a folder, and a writer writes only into a skill folder that does not exist yet.
+
 ## Skill Management Operations
 
 Two workflows operate on the version-aware structure for skill lifecycle management:
@@ -178,14 +249,14 @@ Renames a skill across all versions. Because the agentskills.io spec requires `n
 1. Outer `{skill_group}` directory: `{skills_output_folder}/{old-name}/` → `{skills_output_folder}/{new-name}/`
 2. Inner `{skill-name}/` directories inside each version: `{version}/{old-name}/` → `{version}/{new-name}/`
 3. `SKILL.md` frontmatter `name:` field (in every version)
-4. `metadata.json` `name` field (in every version)
-5. `context-snippet.md` root paths and display name (in every version)
-6. `provenance-map.json` `skill_name` field (in every version under `{forge_group}`)
-7. `{forge_group}` directory: `{forge_data_folder}/{old-name}/` → `{forge_data_folder}/{new-name}/`
+4. `metadata.json` `name` field, and any path value into a moved folder, such as a recorded test report path (in every version)
+5. The name where the snippet template writes it in `context-snippet.md`: display header, first word and `writing {name} code` on the `|IMPORTANT:` line, and root paths (in every version). A field label, a fixed template word or library content that is the old name stays, and the no-trace check then rolls the rename back
+6. `provenance-map.json` `skill_name` field, and any path value into a moved folder (in every version under `{forge_group}`)
+7. `{forge_group}` directory: `{forge_data_folder}/{old-name}/` → `{forge_data_folder}/{new-name}/`, only when SKF generated it (see Ownership; a forge folder SKF did not generate keeps the old name)
 8. Export manifest: remove old key, add new key with same version data
 9. Platform context files (CLAUDE.md, AGENTS.md, .cursorrules): rebuild managed sections
 
-Rename is transactional — copy-verify-delete pattern. If any step fails, old skill remains intact. See `skf-rename-skill/`.
+Rename is transactional — copy-verify-delete pattern. If any step fails, old skill remains intact. The verify step is the no-trace check: before anything is deleted, it looks for the old name as a whole name in each version's `SKILL.md` frontmatter, `metadata.json`, `context-snippet.md` and `provenance-map.json`, and rolls the rename back on a match. In the two JSON files it skips the values of the keys that name the upstream source, `source_repo`, `source_root`, `source_commit`, `source_ref`, `source_package` and `source_library`: they describe the source the skill was made from, not the skill, and a rename leaves them unchanged. Because it moves the whole `{skill_group}`, rename refuses a folder SKF did not generate or one that also holds entries SKF did not generate (`not-skf-output`), and a skill still in the flat layout (`flat-layout`) — see Ownership. It also refuses a forge folder that holds entries SKF did not write, or that is a link, is not a folder, or cannot be listed. See `skf-rename-skill/`.
 
 ### Drop (DS - Drop Skill)
 
@@ -193,11 +264,13 @@ Drops a specific version or the entire skill with two modes:
 
 **Soft drop (default):** Sets version status to `"deprecated"` in the export manifest. Files remain on disk. Export-skill excludes deprecated versions from all platform context files. Reversible by manually editing manifest back to `"active"`/`"archived"`.
 
-**Hard drop (`--purge`):** Same as soft drop, plus deletes the version directory (`{skill_package}`) and forge data directory (`{forge_version}`). Irreversible.
+**Hard drop (`--purge`):** Same as soft drop, plus deletes the version directory (`{skill_package}`) and forge data directory (`{forge_version}`, only when SKF generated it). Irreversible.
 
-**Active version guard:** Cannot drop the active version when other versions exist. The user must either switch active to another version first, or drop all versions at once.
+**Active version guard:** Cannot drop the active version while other non-deprecated versions exist. The user must either make the version they keep active first (point the `active` link at it with `ln -sfn <version to keep> {skill_group}/active`, then run export-skill: the Manifest-lag guard makes it export that version, and its manifest update archives the old one), or drop all versions at once.
 
-**Skill-level drop:** Removes the entire `{skill_group}` from the manifest. If purge, also deletes `{skill_group}` and `{forge_group}` directories.
+**Skill-level drop:** Removes the entire `{skill_group}` from the manifest. If purge, also deletes `{skill_group}` and `{forge_group}` directories (the forge one only when SKF generated it).
+
+**Ownership guard:** A purge deletes only SKF output. A whole-skill purge needs `ownership` `"skf"` (or nothing on disk); a `"mixed"` folder allows only a single-version purge of a marked version that is not a link and holds nothing SKF did not generate, and a `"foreign"` folder no purge at all (`not-skf-output`). A folder SKF did not generate is offered only when the manifest lists it, and then only for deprecate. The forge folder follows the same test: a whole-skill purge is refused when it is `"mixed"` and leaves it in place when SKF did not generate it; a single-version purge leaves a forge `{version}/` SKF did not generate in place and refuses one that holds entries SKF did not write.
 
 See `skf-drop-skill/`.
 
@@ -214,13 +287,26 @@ Directory names use the semver version with `+{build}` metadata stripped:
 
 Build metadata does not affect version precedence per the semver specification and is stripped to avoid filesystem issues with the `+` character.
 
+### Version Commands
+
+Comparing, bumping and naming versions has one answer, so no workflow does it by eye: `skf-skill-inventory.py version` does.
+
+| Command | Answer | Used by |
+|---------|--------|---------|
+| `version normalize <version>` | the folder name of a version or a range by the rules above (`^18.2.0` gives `18.2.0`, build metadata stripped) | the other commands, on what they return; call it alone for a version string from elsewhere |
+| `version order <a> <b>` | which of two versions is higher (`1.10.0` above `1.9.0`) | update-skill, whether the source's version is above the skill's |
+| `version next-patch <version>` | the next patch version (a pre-release gives its release) | update-skill's new version folder |
+| `version bump --prior <v> --prior-libraries <a,b> --libraries <a,c>` | a compose-mode stack's next version: major when a library was removed, else minor, refused (`NOT_INCREASING`) when not above the prior one | create-stack-skill |
+| `version primary <candidates.json or ->` | a code-mode stack's primary library and the version it gives, ties broken by a fixed rule | create-stack-skill |
+
 ## Migration: Flat to Versioned
 
-When a reading workflow encounters a skill at the flat path (`{skills_output_folder}/{skill-name}/SKILL.md` exists directly — no version subdirectory), it auto-migrates:
+When US, AS, TS or EX encounters a skill at the flat path (`{skills_output_folder}/{skill-name}/SKILL.md` exists directly — no version subdirectory), it auto-migrates:
 
-1. Read `metadata.json` from the flat path to get the `version` field
+0. **Ownership gate.** Run `uv run skf-skill-inventory.py {skills_output_folder} --skill {skill-name}` and migrate only when `skills[0].flat_skf` is true: the root `metadata.json` carries an SKF marker (`generated_by`, `tool_versions.skf`, or `skill_type` with `forge_tier` or `confidence_tier` — see Ownership). Otherwise, or when the helper is missing, stop with `not-skf-output` before anything moves. The message says a shared skills folder is supported and SKF leaves the skills it did not generate alone, so the user manages that skill; it points to `skills_output_folder` in `{project-root}/_bmad/skf/config.yaml` only for a folder that holds a module's own source. Read-only modes never migrate. Export-skill `--dry-run` reads the flat package in place. Update-skill `--dry-run` and `--detect-only` stop instead (`blocked`, phase `init:read-only-flat-layout`), because its later steps need the versioned forge workspace: run US, AS, TS or EX once without a read-only flag to migrate, then re-run.
+1. Read `metadata.json` from the flat path to get the `version` field. If it has none, use `1.0.0`. Either way, name the directory by the Version Sanitization rules above
 2. Create the versioned directory: `{skill_group}/{version}/{skill-name}/`
-3. Move all package files (SKILL.md, metadata.json, context-snippet.md, references/, scripts/, assets/) into the versioned location
+3. Move the package files (SKILL.md, metadata.json, context-snippet.md, references/, scripts/, assets/) into the versioned location. Any other entry in the folder stays where it is
 4. Create the `active` symlink: `{skill_group}/active -> {version}`
 5. If `{forge_data_folder}/{skill-name}/` contains provenance artifacts at the flat level (not in a version subdirectory):
    - Create `{forge_version}`
@@ -240,6 +326,7 @@ When a reading workflow encounters a skill at the flat path (`{skills_output_fol
 - Versioning platform root paths — platform paths stay flat, version lives in the forge workspace
 - Using glob patterns to discover snippets across all versions — use the export manifest to resolve the active version
 - Creating version directories with `+` in the name — strip build metadata
+- Writing into, migrating, renaming or purging a skill folder without the ownership check — a folder in `{skills_output_folder}` is SKF output only when a `metadata.json` in it carries an SKF marker, and a folder in `{forge_data_folder}` only when it holds SKF's brief, a result file, or a version folder with a provenance map, evidence report or extraction rules file
 
 ## Related Fragments
 
