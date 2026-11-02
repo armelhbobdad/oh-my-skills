@@ -29,6 +29,8 @@ description: >
 
 **Two-tier assembly.** SKILL.md must retain actionable inline content that survives `split-body` extraction. Assemble Tier 1 sections first (always inline), then Tier 2 sections (reference-eligible, may be extracted by split-body).
 
+**Public surface (`public-api` scope).** An export the extraction inventory marks `public: false` is off the package's public surface: no section of SKILL.md or `references/` names or documents it, as the provenance map and `metadata.json`'s `exports[]` hold no entry for it. Every other export, and every export of any other scope type, is assembled as below.
+
 ### Tier 1 — Always Inline (must survive split-body)
 
 These sections form the essential standalone body. Target: **under 300 lines total** for Tier 1. An agent loading only SKILL.md (without references) must get enough to act.
@@ -57,7 +59,7 @@ These sections form the essential standalone body. Target: **under 300 lines tot
   ```
 
 **Section 4 — Key API Summary (~20 lines):**
-- Table of top 10-15 functions: name, purpose, key parameters
+- Table of top 10-15 functions: name, purpose, key parameters, none marked `public: false`
 - One row per function — no full signatures, just enough for discovery
 - Provenance citation per function
 
@@ -104,7 +106,7 @@ These sections form the essential standalone body. Target: **under 300 lines tot
 
 ### Tier 2 — Reference-Eligible (can be extracted by split-body)
 
-Assemble Sections 9-11 (Full API Reference, Full Type Definitions, Full Integration Patterns) as defined in the skill-sections data file. These contain full detail and are split into `references/` when the body exceeds 500 lines. Include T2 annotations from enrichment in the Full API Reference (Deep tier only).
+Assemble Sections 9-11 (Full API Reference, Full Type Definitions, Full Integration Patterns) as defined in the skill-sections data file, for the exports the provenance map holds (never one marked `public: false`). These contain full detail and are split into `references/` when the body exceeds 500 lines. Include T2 annotations from enrichment in the Full API Reference (Deep tier only).
 
 **Tier 2 differentiation from Tier 1:** Tier 2 Full API Reference must contain content that is not present in Tier 1's Key API Summary. Specifically:
 
@@ -270,7 +272,7 @@ Replace per-function subsections with `references/pattern-*.md` groupings: one r
 - `stats.exports_documented` MAY be set to the Pattern Surface row count as a proxy, but its semantics change: it counts authored pattern surfaces, not public exports. Emit an adjacent `stats.pattern_surfaces_documented` with the same integer so downstream consumers (test-skill, feasibility, discovery) can discriminate.
 - `exports_public_api` / `exports_internal` / `exports_total` are not meaningful for a reference app — omit them, or set all three to the Pattern Surface count with a note in `stats.notes`: `"reference-app: export counts are pattern-surface proxies, not library exports"`.
 - Do not fabricate signature / type-coverage data from pattern surfaces. skf-test-skill skips those categories when metadata flags a reference-app (`referenceApp`, the same skip path as `stackSkill`; its `scripts/compute-score.py` redistributes their weights).
-- Do not emit `effective_denominator` for reference-app scope, even when the source is a monorepo. `effective_denominator` counts public exports from the authoring-surface barrel — a library concept that `pattern_surfaces_documented` already replaces here. A reference-app-in-monorepo literally satisfies `compile.md` §4's emit-conditions (condition 1 arm (a) + non-`full-library` + stratified `scope.notes`), so this carve-out takes precedence: pattern-surface coverage is the reference-app basis, and skf-test-skill skips library-export coverage for it.
+- Do not emit `effective_denominator` for reference-app scope (its `effective_denominator_decision` never stores one): `effective_denominator` counts public exports from the authoring-surface barrel, a library concept that `pattern_surfaces_documented` already replaces here: pattern-surface coverage is the reference-app basis, and skf-test-skill skips library-export coverage for it.
 
 **Language / spec-reference sub-shape:** A reference app that documents an engine- or spec-versioned **language** — a query language, grammar, or DSL (e.g. SurrealQL @ SurrealDB) whose value is construct idioms rather than wiring or exports — is a recognized reference-app sub-shape. Keep `scope.type: "reference-app"` (there is no separate enum value), so every carve-out above applies unchanged (`pattern_surfaces_documented` proxy, no `effective_denominator`, test-skill signature/type skip). Adapt the three overrides to the language's surface instead of app wiring:
 

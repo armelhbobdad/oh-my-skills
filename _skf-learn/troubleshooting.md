@@ -49,6 +49,12 @@ Install [cocoindex-code](https://github.com/cocoindex-io/cocoindex-code) (the `c
 
 When ccc is available (Forge+, or Deep with ccc), create-skill indexes the skill's source with it. A local source folder inside your project or inside another git checkout (a subfolder such as `./packages/lib`, a linked worktree or a submodule) becomes a ccc project of its own, and ccc does not gitignore an index there. create-skill keeps it out of git by writing a `.gitignore` holding `*` inside that `.cocoindex_code/` folder, and says so in one line; it never edits your own `.gitignore`. For a folder an earlier SKF release left untracked, run create-skill for that source again, or create `<source>/.cocoindex_code/.gitignore` holding the single line `*`. If you already committed the index, `git rm -r --cached <source>/.cocoindex_code` stops tracking it.
 
+### Setup says the CCC index failed
+
+Surfaced by `@Ferris SF` when ccc is available and `ccc index` exits with an error: the forge status shows `indexing failed, semantic discovery unavailable this session` with ccc's own message. Setup still finishes at your tier; only semantic discovery is off until the index builds. One cause is an index that an older ccc wrote and the installed ccc cannot read, with a message such as `Failed to deserialize pickle payload`.
+
+**Fix:** from the project root, run `ccc reset`, then `ccc daemon restart`, then re-run `@Ferris SF`. `ccc reset` deletes only the index databases and keeps `.cocoindex_code/settings.yml` with SKF's exclusions. Restart the daemon before indexing again: it still holds the databases `ccc reset` deleted, so an index built right after the reset can fail with `environment already open in this program`.
+
 ### `@Ferris deepwiki` shows a deprecation notice
 
 The auto pipeline was briefly named `deepwiki`; it's now [`forge-auto`](/docs/forge-auto.md). It was renamed to avoid confusion with the DeepWiki MCP server, since the pipeline compiles a verified skill from source and does **not** call that server. `deepwiki` still works (it resolves to `forge-auto`) but prints a one-time notice. Switch your commands to `@Ferris forge-auto <repo-or-doc-url>`.
@@ -144,6 +150,8 @@ Surfaced by `@Ferris US` when another update of the same skill holds its run loc
 **Fix:** wait until the other update ends, then re-run. If no update of that skill is running (a session that crashed or was closed leaves its lock behind), delete the lock file the message names, or wait until the time it gives. An update that finds a stale lock takes it over and undoes what the interrupted update left half written.
 
 **`run-lock-lost`:** the same status with this reason means the update waited at a question past the stale time, so another update may have changed the skill (`error.phase` is `merge:run-lock` or `write:run-lock`). It stops before it writes `metadata.json`, and the halt undoes anything the update already wrote: it removes the new version folders, or, for a repair from a test report, restores the files it edited in place from the copy it took first, and the message says which. Re-run the update once no other update of that skill runs; if a version folder the message names is still on disk, delete it first.
+
+**`busy`:** the same status with this reason means another run's flip of the skill's `active` link (Create Skill, Quick Skill or Drop Skill) held the link's lock for 5 seconds while the update was pointing the link at its version (`error.phase` is `write:active-symlink`). The update did not change the link, and the halt undid what the update wrote. Re-run the update once that run ends.
 
 ### A report says `Tessl Review: off`, `not run`, `no result` or `failed`
 

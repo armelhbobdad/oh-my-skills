@@ -55,7 +55,7 @@ uv run {coverageInputsScript} census --skill-dir "{resolved_skill_package}" --ou
 
 Bind `{docs_only_mode}` ← `docsOnly`. Exit 1 printed its error on stderr: HALT with it (`halt_reason: "helper-failed"`, phase `coverage-check:census`). §0b sets `{docs_only_mode}` too when source access reaches State 5.
 
-**A docs-only run** measures documentation completeness as its Export Coverage, with `analysis_confidence` `docs-only`. It runs only §1, §1a and §1b, the docs-only guard of §2b, §2c's `docsOnly` branch, §4's Export Coverage line and its `Denominator: docs-only completeness` annotation, §5, §5b and §6. Step 5 passes `docsOnly: true` to the scoring script, which skips Signature Accuracy and Type Coverage at any tier.
+**A docs-only run** measures documentation completeness as its Export Coverage, with `analysis_confidence` `docs-only`. It runs only §1, §1a and §1b, the docs-only guard of §2b, §2c's `docsOnly` branch, §4's `Denominator: docs-only completeness` annotation, §5, §5b and §6. Step 5 passes `docsOnly: true` to the scoring script, which skips Signature Accuracy and Type Coverage at any tier.
 
 "**Docs-only skill detected.** Coverage check evaluates documentation completeness rather than source code coverage."
 
@@ -72,6 +72,8 @@ uv run {stageHelperPayloadScript} detect-workspaces --source-root "{source_path}
 ```
 
 Bind `{source_is_monorepo}` ← `is_monorepo` and `{source_workspace_kind}` ← `manifest_kind`. At States 2 to 5, or when the helper does not resolve or the command exits non-zero, the layout is unknown: bind `{source_is_monorepo}` ← false. §5 records the layout.
+
+**Clause flags.** Every `surface` command in §2 takes `--monorepo` when `{source_is_monorepo}` is true, and the flags the Source API Surface Definition leaves to you.
 
 ### 1. Extract Documented Exports from SKILL.md
 
@@ -118,7 +120,7 @@ Identify the public API surface from the package entry points (see 0b), at the d
 
 **Exits.** Every `{coverageInputsScript}` and `{scoreSignaturesScript}` command in §2 and §2b exits 0, or exits 1 with its error on stderr: HALT with it (`halt_reason: "helper-failed"`, phase `coverage-check:surface`). `surface` with a `--per-file`, and `score`, also exit 2 when a subagent response breaks the schema: re-dispatch that subagent once with its `violations[]` appended (or correct a result the main thread wrote), save the new response over the old one and run the command again; a second failure HALTs the same way.
 
-**Quick Tier (no AST tools):** load `{coverageTiersFile}` and follow its **Quick Tier** section. Signatures cannot be verified at this tier: note them as "unverified" in the report.
+**Quick Tier (no AST tools):** load `{coverageTiersFile}` and follow its **Quick Tier** section. Signatures cannot be verified at this tier (§5's render marks them unverified).
 
 **Forge Tier (ast-grep available):**
 
@@ -128,15 +130,17 @@ At State 1, run the recipe runner once over the source. Resolve `{extractPublicA
 uv run {extractPublicApiHelper} --mode full --source-root "{source_path}" --brief "{forge_data_folder}/{skill_name}/skill-brief.yaml" --tier {detected_tier} --head-cap 0 --output "{run_dir}/extract-full.json"
 ```
 
-Build the surface from it, with the metadata and, when init.md §2 bound one, the provenance map (the baselines of the §2b candidates and guards; they add no name):
+Exit 2 is an input error (a brief the runner cannot read, say) or a failure the runner did not foresee, named in one line on stderr with no JSON: HALT with that line (`halt_reason: "helper-failed"`, phase `coverage-check:surface`). No Fallback Per-File Scan stands in for it: every flag here is fixed, so the error is a defect to surface.
+
+Build the surface from it, with the metadata, the brief when the skill has one and, when init.md §2 bound one, the provenance map (the baselines of the §2b candidates and guards; they add no name):
 
 ```bash
-uv run {coverageInputsScript} surface --extraction "{run_dir}/extract-full.json" --metadata "{resolved_skill_package}/metadata.json" [--provenance "{forge_provenance_map}"] --output "{run_dir}/surface.json"
+uv run {coverageInputsScript} surface --extraction "{run_dir}/extract-full.json" --metadata "{resolved_skill_package}/metadata.json" [--provenance "{forge_provenance_map}"] [--brief "{forge_data_folder}/{skill_name}/skill-brief.yaml"] [--monorepo] [--pattern-reference-intent] [--curated-subset] --output "{run_dir}/surface.json"
 ```
 
-The surface holds the names the entry points export, less those defined in a file the brief scopes out (`excluded.outsideScope`, listed in the report); the recipes' internal matches are never part of it. Decide what to do from the JSON, not from the exit code:
+The surface holds the names the entry points export, less those defined in a file the brief scopes out (`excluded.outsideScope`); the recipes' internal matches are never part of it. A Python `__init__.py` nested in the folder of another package that exports a name is no barrel: its names (`excluded.nestedEntries`) leave only the `all` and `root` sets and the umbrella ratio, and `plan` still compares their signatures. When a `scope.include` glob matches no file (`guards.staleScope.fires`), the root exports defined in a file no glob covers and the brief does not exclude are back in it (`guards.staleScope.restored`). A stale `scope.tier_a_include` glob fires the guard too (`guards.staleScope.unmatchedTierAInclude`) and counts no name. §5's render lists `excluded.outsideScope`, `excluded.nestedEntries` and the restored names. Decide what to do from the JSON, not from the exit code:
 
-- `extraction.fallback.needed` is true, the runner exited 2, or it printed no JSON: load `{coverageTiersFile}` and run its **Fallback Per-File Scan** in place of the rest of this tier.
+- `extraction.fallback.needed` is true, or the runner printed no JSON on an exit other than 2: load `{coverageTiersFile}` and run its **Fallback Per-File Scan** in place of the rest of this tier.
 - `extraction.status` is `incomplete` (exit 1): keep the surface, read by eye only the files `extraction.readByEye` names, save a per-file result for each, and run `surface` again with them.
 - `extractionGaps[]` names exports no recipe found: they are on the surface, and their signature is read by eye at their `file` and `line`.
 
@@ -160,12 +164,12 @@ Save each response to `{run_dir}/signatures-<n>.txt` with the Write tool. Withou
 - **State 2** (`{forge_provenance_map}`, the provenance map init.md §2 bound): the union of its named exports and the `metadata.json` `exports[]` names, with `--fold`, `--keep` and `--fold-prefix` as the Source API Surface Definition's canonicalization says:
 
   ```bash
-  uv run {coverageInputsScript} surface --provenance "{forge_provenance_map}" --metadata "{resolved_skill_package}/metadata.json" [--brief "{forge_data_folder}/{skill_name}/skill-brief.yaml"] [--fold] [--keep <variant>] [--fold-prefix <prefix>] --output "{run_dir}/surface.json"
+  uv run {coverageInputsScript} surface --provenance "{forge_provenance_map}" --metadata "{resolved_skill_package}/metadata.json" [--brief "{forge_data_folder}/{skill_name}/skill-brief.yaml"] [--fold] [--keep <variant>] [--fold-prefix <prefix>] [--monorepo] [--pattern-reference-intent] [--curated-subset] --output "{run_dir}/surface.json"
   ```
 
   Step 5's scoring script reads its `state2` counts, and the report records its fold summary, `canonical.summary`.
-- **State 3**: the `metadata.json` `exports[]` names: `surface --metadata "{resolved_skill_package}/metadata.json" --output "{run_dir}/surface.json"`.
-- **State 4**: the names read remotely by eye, as per-file results: `surface --per-file "{run_dir}/per-file-<n>.json" [--brief "{forge_data_folder}/{skill_name}/skill-brief.yaml"] --metadata "{resolved_skill_package}/metadata.json" --output "{run_dir}/surface.json"`.
+- **State 3**: the `metadata.json` `exports[]` names: `surface --metadata "{resolved_skill_package}/metadata.json" [--monorepo] [--pattern-reference-intent] [--curated-subset] --output "{run_dir}/surface.json"`.
+- **State 4**: the names read remotely by eye, as per-file results: `surface --per-file "{run_dir}/per-file-<n>.json" [--brief "{forge_data_folder}/{skill_name}/skill-brief.yaml"] --metadata "{resolved_skill_package}/metadata.json" [--monorepo] [--pattern-reference-intent] [--curated-subset] [--barrel <state>] --output "{run_dir}/surface.json"`.
 
 ### 2b. Resolve the Denominator and Guard Zero Exports
 
@@ -175,11 +179,9 @@ Load the metadata and provenance-map counts once, for §2c, §4b and the numerat
 uv run {coverageInputsScript} metadata --metadata "{resolved_skill_package}/metadata.json" [--provenance "{forge_provenance_map}"] --output "{run_dir}/coverage-inputs.json"
 ```
 
-**Pick the denominator.** Which clause of the Source API Surface Definition (§0b) matches this skill is a judgment; the counts each clause names are in `surface.json` `candidates` and `guards`. The clause gives §2c its branch:
+**Pick the denominator.** `surface.json` `denominator` holds the Source API Surface Definition clause (§0b) `surface` picked: its §2c `branch` (`barrel`, `scalar` or `stack`), `surfaceSet` (the set the barrel branch counts and the signature score reads) and `ladderStep`. When `absentSet` names a set the surface lacks (the scope sets need the brief's globs and names that carry their files, `subpaths` and `root` an extraction), `surfaceSet` is `all` and the `Denominator:` line (§4) adds `({absentSet} set absent: all set used)`. When `rebuild` is `provenance-fold`, rerun State 2's command with no `--metadata`, with `--fold` and `--pattern-reference-intent`, and read its `denominator`.
 
-- **Standard barrel**, **multi-entry**, **specific-modules**, **pattern-reference**, State 2 or a priority-2/3 **stratified-scope** denominator: the barrel branch, over the `surface.json` set the clause names (`all`, `subpaths`, `tier_a_include` or `scope.include`). The scope sets need the brief's globs and names that carry their files (State 3's metadata names carry none), and `subpaths` and `root` an extraction. When the set is absent, the denominator is the `all` set, and the `Denominator:` line (§4) adds `({set} set absent: all set used)`.
-- **Stratified-scope priority 1**: the scalar branch over `stats.effective_denominator` (`candidates.statsEffectiveDenominator`), unless `guards.deflation.fires`: then the barrel branch over the `scope.include` set (`all` when the brief has no `scope.include`).
-- **A stack skill** (`metadata.json.skill_type == "stack"`): the stack branch, over `coverage-inputs.json` `stack.denominator`. Its own barrel is empty by design, and its `[from skill: …]` citations never make it docs-only. **If `stack.denominator` is 0**: HALT (`halt_reason: "indeterminate-surface"`, phase `coverage-check:denominator`) with `Error: stack composition surface empty: {skill_name} cites no contracts, libraries, or integration pairs, so Export Coverage is undefined. Verify the stack was compiled from at least one constituent skill.` Do not write the Coverage Analysis section; this is an indeterminate state, not a FAIL.
+- **A stack skill** (`branch` `stack`): `coverage-inputs.json` `stack.denominator`. Its own barrel is empty by design, and its `[from skill: …]` citations never make it docs-only. **If `stack.denominator` is 0**: HALT (`halt_reason: "indeterminate-surface"`, phase `coverage-check:denominator`) with `Error: stack composition surface empty: {skill_name} cites no contracts, libraries, or integration pairs, so Export Coverage is undefined. Verify the stack was compiled from at least one constituent skill.` Do not write the Coverage Analysis section; this is an indeterminate state, not a FAIL.
 - **A docs-only skill**: the `docsOnly` branch, over the inventory.
 
 **Numerator ground truth.** A declared count equal to the denominator (`stats.exports_documented == stats.effective_denominator`, the inflation signature) may be padded to a tautological 100%. Run the check on every source-based skill; without the signature (a stack and a reference app carry none) it reports `skipped`:
@@ -198,18 +200,18 @@ Error: indeterminate API surface: 0 exports discovered in source for {skill_name
 Export Coverage is undefined, and scoring would yield a vacuous PASS. Fix one of:
   - Set `scope.include` in the brief to point at the package's entry point(s)
   - Add `[EXT:]` citations if this is actually a docs-only skill
-  - Verify the skill's source_path / source_ref resolve to the intended tree
+  - Verify the skill's source_root / source_ref resolve to the intended tree
 ```
 
 Do not write the Coverage Analysis section or attach a score: this is an indeterminate state, not a FAIL. **If `docs_only_mode == true` and the validated inventory documents no item:** HALT the same way with "docs-only skill declares zero items: no API surface to test".
 
-**Score the signatures** (Forge, Forge+ and Deep tier at State 1, once §2 compared them). Give `{scoreSignaturesScript}` the set the denominator counts as `--surface-set`: the set §2c's barrel branch reads, or for the scalar branch `tier_a_include` when `surface.json` has it, else `scope.include`, else `all`. Type Coverage then counts that set's types alone, so a type the clause leaves out (a stratified skill's deferred Tier B) lowers neither Export Coverage nor Type Coverage. Give it one `--results` per saved response (the fallback scan's `per-file-<n>.txt`, else the `signatures-<n>.txt`):
+**Score the signatures** (Forge, Forge+ and Deep tier at State 1, once §2 compared them). Give `{scoreSignaturesScript}` `denominator.surfaceSet` as `--surface-set`. Type Coverage then counts that set's types alone, so a type the clause leaves out (a stratified skill's deferred Tier B) lowers neither Export Coverage nor Type Coverage. Give it one `--results` per saved response (the fallback scan's `per-file-<n>.txt`, else the `signatures-<n>.txt`):
 
 ```bash
 uv run {scoreSignaturesScript} score --inventory "{run_dir}/inventory.json" --surface "{run_dir}/surface.json" --surface-set <set> --results "{run_dir}/signatures-<n>.txt" --output "{run_dir}/signatures.json" --gaps-output "{run_dir}/signature-gaps.json"
 ```
 
-It writes each mismatch of a compared name to `signature-gaps.json` as a Critical `signature-mismatch` gap titled `Signature mismatch: {name}`, with `export` `{name}`, its Source at `{file}:{line}` and both signatures in its Issue; §5b appends that file to the ledger. Its `warnings` (a mismatch for a name never compared, a category with nothing to compare) go in the Coverage Analysis section.
+It writes each mismatch of a compared name to `signature-gaps.json` as a Critical `signature-mismatch` gap titled `Signature mismatch: {name}`, with `export` `{name}`, its Source at `{file}:{line}` and both signatures in its Issue; §5b appends that file to the ledger. §5's render lists its `warnings` (a mismatch for a name never compared, a category with nothing to compare).
 
 ### 2c. Reconcile Documented vs Source Surface (Deterministic Intersection)
 
@@ -241,7 +243,7 @@ It writes each mismatch of a compared name to `signature-gaps.json` as a Critica
 
 Exit 2 printed an `INVALID_INPUT` envelope: correct the input it names and run it again. Exit 1: HALT with its stderr (`halt_reason: "helper-failed"`, phase `coverage-check:reconcile`).
 
-**A surplus is a signal, not a pass.** The scalar and stack branches count the numerator and the denominator from independent sets, so `documented` can exceed `denominator`: the script then reports `numeratorSurplus` above 0 and `coverageCapped: true`, holds `exportCoverage` at 100 and keeps the raw ratio in `coverageUncapped`. State the surplus beside both counts in the Coverage Analysis section. On a skill whose brief carries no `scope.tier_a_include`, a large surplus is the deflated-denominator signature: check `guards.deflation` before accepting the 100.
+**A surplus is a signal, not a pass.** The scalar and stack branches count the numerator and the denominator from independent sets, so `documented` can exceed `denominator`: the script then reports `numeratorSurplus` above 0 and `coverageCapped: true`, holds `exportCoverage` at 100 and keeps the raw ratio in `coverageUncapped`, and §5's render states the surplus beside both counts. On a skill with no `scope.tier_a_include` glob that matches a file, a large surplus is the deflated-denominator signature: check `guards.deflation` before accepting the 100.
 
 **Classify what the script found.** §5b records each of these gaps from the run files:
 
@@ -250,31 +252,25 @@ Exit 2 printed an `INVALID_INPUT` envelope: correct the input it names and run i
 - **Stale names** (barrel branch: `stale`): each is a documented name the enumerated source surface lacks. Where ast-grep read the source at the pinned commit (Forge, Forge+ or Deep tier, `analysis_confidence` `full`, `workspaceDrift` not `overridden` in the `{outputFile}` frontmatter) and init.md §2 bound `{forge_provenance_map}`, check the lines the skill cites for them: resolve `{verifyProvenanceCompletenessHelper}` ← first existing path in `{verifyProvenanceCompletenessProbeOrder}` and run once:
 
   ```bash
-  uv run {verifyProvenanceCompletenessHelper} classify-stale --names "{run_dir}/coverage.json" --provenance "{forge_provenance_map}" --source-root "{source_path}" -o "{run_dir}/stale.json"
+  uv run {verifyProvenanceCompletenessHelper} classify-stale --names "{run_dir}/coverage.json" --provenance "{forge_provenance_map}" --source-root "{source_path}" --inventory "{run_dir}/inventory.json" -o "{run_dir}/stale.json"
   ```
 
-  A name it marks `fabricated: true` (every map entry of the name cites a missing file or one that does not define it) is a Critical `fabricated-signature` gap at its `source`. Any other stale name (no entry, the conditions above not met, a helper that does not resolve or exits non-zero) is a Medium `stale-documentation` gap.
+  A name it marks `fabricated: true` (every map entry of the name cites a missing file or one that does not define it) is a Critical `fabricated-signature` gap at its `source`. A name with a `defined_at` (the source still declares it there, an import never counting, a module so named counting unless the name's inventory kind rules it out), or whose `declared_in` lists several files of which the skill's `[AST:]`/`[SRC:]` citations on lines naming it cite exactly one, is a documented extra: an Info `observation` gap at that declaration, when `surface.json` has an `extraction` and its `excluded.outsideScope` does not list the name (a brief scoped its file out). Any other stale name (no `defined_at` and no single cited declaring file, one scoped out, no `extraction`, a dotted name, the conditions above not met, a helper that does not resolve or exits non-zero) is a Medium `stale-documentation` gap.
 
-### 4. Category Scores and the Denominator Record
+### 4. The Denominator Record
 
-Each category score is read from its script's file, the file step 5 hands to the scoring script:
-
-- **Export Coverage:** `coverage.json` `exportCoverage`
-- **Signature Accuracy:** `signatures.json` `signatureAccuracy` (Forge, Forge+ and Deep tier at State 1; "N/A" otherwise)
-- **Type Coverage:** `signatures.json` `typeCoverage`, over the types of the set §2b scored; "N/A" where Signature Accuracy is
-
-Record the denominator source in the Coverage Analysis section with the annotation the matching clause of `{sourceAccessProtocol}` specifies: `Denominator: {barrel | stratified (…) | multi-entry (…) | specific-modules (…) | pattern-reference (…) | stack composition (…) | pattern-surface (…) | docs-only completeness}`, and the `canonical.summary` line when `surface.json` has a fold. When stratified-scope or multi-entry resolution picked the denominator, append this block right after the `Denominator:` line, with every count from `surface.json` `candidates` (`absent` for a null one):
+Record the denominator source in the Coverage Analysis section with the annotation `{sourceAccessProtocol}` gives `denominator.clause` (§4b gives a stack's and a reference app's): `Denominator: {barrel | empty barrel (…) | stratified (…) | multi-entry (…) | specific-modules (…) | pattern-reference (…) | stack composition (…) | pattern-surface (…) | docs-only completeness}`, and the `canonical.summary` line when `surface.json` has a fold. When `denominator.clause` is `stratified-scope` or `multi-entry`, append this block after the `Denominator:` line, with every count from `surface.json` `candidates` (`absent` for a null one):
 
 ```markdown
 **Denominator Candidates** (stratified-scope audit trail):
-- `stats.effective_denominator`: {statsEffectiveDenominator | absent}  {← chosen if priority (1) applied}
-- `scope.tier_a_include` union: {tierAIncludeUnion | absent}    {← chosen if priority (2) applied}
-- `scope.include` union: {scopeIncludeUnion | absent}           {← chosen if priority (3) applied}
-- exports-map subpath union: {subpathUnion | absent}        {← chosen if the multi-entry clause applied}
+- `stats.effective_denominator`: {statsEffectiveDenominator | absent}  {← chosen on the scalar branch}
+- `scope.tier_a_include` union: {tierAIncludeUnion | absent}    {← chosen if the barrel branch's set}
+- `scope.include` union: {scopeIncludeUnion | absent}           {← chosen if the barrel branch's set}
+- exports-map subpath union: {subpathUnion | absent}        {← chosen if the barrel branch's set}
 - root barrel: {rootBarrel | absent}                               {secondary candidate: root-barrel-vs-subpath-union audit}
 ```
 
-The guards raise coverage gaps too, which §5b records from `surface.json`: `guards.deflation.fires` is a Medium `metadata-drift` gap and `guards.inflation.fires` a Medium `denominator-inflation` gap.
+The guards raise coverage gaps too, which §5b records from `surface.json`: `guards.deflation.fires` is a Medium `metadata-drift` gap, `guards.inflation.fires` a Medium `denominator-inflation` gap and `guards.staleScope.fires` a Medium `brief-scope-stale` gap at the brief.
 
 ### 4b. Metadata Export-Count Coherence Cross-Check
 
@@ -308,7 +304,13 @@ This section reports none of the helper's other findings, and neither gap blocks
 
 ### 5. Write the Coverage Analysis Section
 
-Write the **Coverage Analysis** section in place of the template's `## Coverage Analysis` heading and the placeholder comment under it, in `{outputFile}`. The counts come from `{run_dir}/coverage.json` and `{run_dir}/signatures.json`:
+Write the **Coverage Analysis** section in place of the template's `## Coverage Analysis` heading and the placeholder comment under it, in `{outputFile}`. `{reconcileScript}` renders its counts, per-export table and category scores from the run files (leave out `--surface` on a docs-only run and `--signatures` when §2b scored none):
+
+```bash
+uv run {reconcileScript} render --coverage "{run_dir}/coverage.json" [--surface "{run_dir}/surface.json"] [--signatures "{run_dir}/signatures.json"]
+```
+
+Exit 0: write its output unchanged where the section below places it. Exit 2 is a usage error: correct the command and run it again. Exit 1 printed its error on stderr: HALT with it (`halt_reason: "helper-failed"`, phase `coverage-check:render`).
 
 ```markdown
 ## Coverage Analysis
@@ -317,32 +319,12 @@ Write the **Coverage Analysis** section in place of the template's `## Coverage 
 **Source Access:** {analysis_confidence} (full | provenance-map | metadata-only | remote-only | docs-only)
 **Source Path:** {source_path}
 **Workspace Layout:** {source_workspace_kind | single package | unknown (no local source, or the §0b helper failed)}
-**Files Analyzed:** {count}
 **Denominator:** {the §4 annotation}
+{the Denominator Candidates block, when §4 adds one}
 
-### Export Coverage
+{the render output}
 
-| Export | Type | Documented | Signature | Source Location | Status |
-|--------|------|-----------|-----------|-----------------|--------|
-| {name} | {kind} | yes/no | yes/no/unverified | {file}:{line} | PASS/FAIL/WARN |
-
-### Coverage Summary
-
-- **Exports Found:** {`denominator`; docs-only: the documented items}
-- **Documented:** {`documented`} ({`exportCoverage`}%)
-- **Missing Documentation:** {`missingCount`; docs-only: the incomplete items, each with the fields it lacks}
-- **Signature Mismatches:** {the length of `signatures.json` `mismatches`}
-- **Stale Documentation:** {`staleCount`}
-- **Scoring Warnings:** each entry of `signatures.json` `warnings`; omit this row when there is none
-- **Numerator Surplus:** {`numeratorSurplus`}, uncapped coverage {`coverageUncapped`}%; only when `coverageCapped: true` (then `Missing Documentation: 0` is a floored residual)
-
-### Category Scores
-
-| Category | Score |
-|----------|-------|
-| Export Coverage | {N}% |
-| Signature Accuracy | {N}% or N/A |
-| Type Coverage | {N}% or N/A |
+{the notes §2 to §4b add to this section}
 ```
 
 ### 5b. Record the Coverage Gaps
@@ -374,6 +356,6 @@ Rely on the JSON of each command:
 
 ### 6. Report Coverage Results
 
-Report the coverage result to the user: the {forge_tier}-tier analysis of {file_count} source files, the documented ratios for exports / signatures / types (signatures and types are N/A for Quick tier), and the issue count. Full details are in the Coverage Analysis section.
+Report the coverage result to the user from §5's render: the {forge_tier} tier, its **Files Analyzed** count, the three category scores and the issue count. Full details are in the Coverage Analysis section.
 
 Append `'coverage-check'` to `stepsCompleted` in the `{outputFile}` frontmatter, then load and execute {nextStepFile}.

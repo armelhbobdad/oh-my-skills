@@ -5,11 +5,10 @@
 Source reading via gh_bridge — infer exports from file structure and content.
 
 ### Strategy
-1. `gh_bridge.list_tree(owner, repo, branch)` — map source structure
-2. Identify entry points: index files, main exports, public modules
-3. `gh_bridge.read_file(owner, repo, path)` — read each entry point
-4. Extract: exported function names, parameter lists, return types (from signatures)
-5. Infer types from JSDoc, docstrings, type annotations in source
+1. Files, entry points: step 3 §2's `files_in_scope_list`, `files_without_recipes_list`, `entry_points.files`
+2. Read each file that defines public API, locally or with `gh_bridge.read_file(owner, repo, path)`
+3. Extract: exported function names, parameter lists, return types (from signatures)
+4. Infer types from JSDoc, docstrings, type annotations in source
 
 ### Confidence
 - Every export is read by eye, so every entry is T1-low (source reading without structural verification): a `[SRC:...]` citation, `extraction_method: source-read` and `ast_node_type: null`
@@ -111,14 +110,14 @@ When AST tools are available (Forge, Forge+ and Deep tiers) and the step that ru
 - **Head cap:** each recipe keeps at most 200 matches, or at Forge+ and Deep 500 for `scope.type: "full-library"` and 300 for `scope.type: "component-library"`, in file and line order. `truncated` is true, and so is that recipe's `truncated` in `recipes[]`, when a recipe matched more: the matches past the cap are missing, so warn about them.
 - **Each export** is one name in one file, and gives `export_name`, `source_file`, `source_line` (`$NAME`'s line), `signature_line` (the source line holding it), `citation` (`[AST:{file}:L{line}]`), `ast_recipe`, `ast_node_type` (the `kind` its recipe declares), `export_type`, `from` (a re-export's module), `signature` (the declaration on one line), `params`, `return_type`, `confidence: T1` and `extraction_method: ast-grep`. Record them as they are.
 - **Signatures:** a function's `params` lists each parameter (its name, type, default and whether it is optional), and is null for any other export and for a declaration the runner does not parse; `return_type` is null when the declaration states none.
-- **Entry points:** `entry_point_diff` diffs the names the package's entry points export with the recipe matches (`public`, `internal`, `extraction_gaps`, `outside_scope`), `counts` gives `exports_public_api`, `exports_internal` and `effective_denominator`, and `arms` the monorepo, specific-modules and multi-subpath `exports` flags.
-- **Read by eye (T1-low)** only what it leaves: each file in `file_issues` (a syntax error where a recipe can miss an export, or a file that is not UTF-8, unreadable or missing), the files `files_without_recipes` counts that hold public API (by the Quick tier Strategy), the forms Known Limitation #11 below lists, and the `extraction_gaps` names.
+- **Entry points:** `entry_point_diff` diffs the names the package's entry points export with the recipe matches (`public`, `internal`, `extraction_gaps`, `outside_scope`; a `namespace` item's `members` stand in for it), `counts` gives `exports_public_api`, `exports_internal` and `effective_denominator`, and `arms` the monorepo, specific-modules and multi-subpath `exports` flags.
+- **Read by eye (T1-low)** only what it leaves: each file in `file_issues` (a syntax error where a recipe can miss an export, or a file that is not UTF-8, unreadable or missing), the files `files_without_recipes` counts that hold public API (by the Quick tier Strategy), the forms Known Limitation #11 below lists, the `unread` files of a rerun, and the `extraction_gaps` names.
 
-Act on its `status`, not its exit code: `ok`, every file in scope was read; `incomplete`, an ast-grep run failed or timed out: keep its exports and warn that the files of each `errors[]` item (how many, and the first) may be unread; `no-ast-grep`, no ast-grep it can run, so no recipe ran.
+Act on its `status`, not its exit code: `ok`, every file in scope was read; `incomplete`, an ast-grep run failed or timed out: run the step's command once more, and when it is still incomplete keep its exports and read by eye each file an `errors[]` item lists in `unread`; `no-ast-grep`, no ast-grep it can run, so no recipe ran.
 
 ### When the Runner Cannot Run
 
-There is no runner result when the step gives no runner command, no runner path resolves, or no JSON is at the `-o` path after the call (`uv` missing or failing, an input error, which prints one line on stderr, a crash, or a shell timeout that stopped it). Then, and when its `status` is `no-ast-grep`, run the recipes as **Running the Recipes Without the Runner** below says, on the filtered file list: read this file on from that heading (a run the runner serves stops there), and first load `extraction-patterns-by-hand.md`, beside this file, completely: it holds each recipe's notes and the limitations of patterns run by hand. When no ast-grep can run them either (no `ast-grep` CLI and no ast-grep MCP tool), extraction degrades to source reading: see `tier-degradation-rules.md` "AST Tool Unavailable". When the runner's `scope.languages` is empty, whatever its `status`, no recipe reads the brief's language (the runner warns `no recipe reads {language} files` and reads no file): extract by the Quick tier Strategy (source reading, T1-low).
+There is no runner result when the step gives no runner command, no runner path resolves, or no JSON is at the `-o` path after the call (`uv` missing or failing, an input error, which prints one line on stderr, a crash, or a shell timeout that stopped it). Then, and when its `status` is `no-ast-grep`, run the recipes as **Running the Recipes Without the Runner** below says, on the filtered file list: read this file on from that heading (a run the runner serves stops there), and first load `extraction-patterns-by-hand.md`, beside this file, completely: it holds each recipe's notes and the limitations of patterns run by hand. When no JSON is there and a stderr line holds `error:` (the runner's input error or crash, or `uv` failing; a shell timeout prints none), warn "**Recipe runner failed:** {that line}. Extraction ran without it." and keep the warning with the step's other warnings. When no ast-grep can run them either (no `ast-grep` CLI and no ast-grep MCP tool), extraction degrades to source reading: see `tier-degradation-rules.md` "AST Tool Unavailable". When the runner's `scope.languages` is empty, whatever its `status`, no recipe reads the brief's language (the runner warns `no recipe reads {language} files` and reads no file): extract by the Quick tier Strategy (source reading, T1-low).
 
 **"Files in scope"** are the files the brief's include and exclude globs keep, filtered by the language's extensions, never the repository's whole file count: use the filtered count from step 3 section 2 as the decision tree input.
 

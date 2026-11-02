@@ -33,8 +33,9 @@ entries are per-citation, so the two sets measure different surfaces:
 Four more subcommands act on the same rules: `fix` applies the citation
 prefix and source-line fixes a `verify` result has one answer for,
 `definition-lines` gives the lines that define one export,
-`classify-stale` decides which stale names are fabricated signatures, and
-`kind-at` gives the node kind of the recipe that matches a source line.
+`classify-stale` decides which stale names are fabricated signatures and
+where the source declares the others, and `kind-at` gives the node kind
+of the recipe that matches a source line.
 
 An LLM set-diff can silently pass a dropped or orphaned entry, and eyeballing
 whether a cited line still exists is not something the model can do reliably.
@@ -389,20 +390,26 @@ Subcommands:
     rule dropped joins `definition_lines`, as in `verify`.
 
   classify-stale --names <coverage.json> --provenance <provenance-map.json>
-                 --source-root <path> [-o <out.json>]
+                 --source-root <path> [--inventory <inventory.json>]
+                 [-o <out.json>]
 
     test-skill's fabricated-signature test, for each stale name (a
     documented name the enumerated source surface lacks): the
     definition-lines rules above, run for every provenance entry whose raw
     `export_name` is the name, at its `source_file` and `source_line`, with
     its `export_type`. `--names` holds reconcile-coverage.py's result (its
-    `stale` names) or a JSON array of names.
+    `stale` names) or a JSON array of names. `--inventory` holds the
+    documented inventory, validate-inventory.py's `--output` file or its
+    whole result: the `kind` it gives each name decides the module rule
+    below.
 
     Emit JSON, one item per name, in the order given (a repeated name once):
       [
         {"name": "<as given>",
          "fabricated": <bool>,
          "source": "<source_file>:<source_line>" | "<source_file>" | null,
+         "defined_at": "<path>:<line>" | null,
+         "declared_in": ["<path>:<line>", ...] | null,
          "reason": "not-defined" | "defined" | "unchecked" | "no-entry",
          "entries": [{"source_file": "<as recorded>",
                       "source_line": <as recorded>,
@@ -427,6 +434,80 @@ Subcommands:
     unless another entry defines it. `source` is the citation of the first
     entry with a `source_file` (the file alone when its line is not a
     number), null when no entry has one.
+
+    `defined_at` is where the source declares a name that is not
+    fabricated, so test-skill can tell a documented extra (a name outside
+    the surface that the source still declares) from stale documentation;
+    a fabricated name is not looked up (null). A declaration is a line at
+    column 0 that the definition-line rules match with imports left out:
+    a `def`, `class`, assignment, annotation, type alias, TS/JS
+    declaration, `exports.NAME =`, or an alias that renames
+    (`import X as NAME`, `from X import Y as NAME`,
+    `export { Y as NAME }`, `export * as NAME from`), or a
+    `module.exports` key with a value or a method. A plain or star import,
+    an `as` that keeps the imported name (`from m import NAME as NAME`,
+    `export { NAME as NAME }`), `export import NAME =`,
+    `export default NAME`, an export-list item without `as`, a
+    `module.exports` shorthand key, a binding whose value is an import
+    (`require(...)` or `(await) import(...)`, on its line or the next:
+    `const NAME = require(...)`, `exports.NAME = require(...)`,
+    `{ NAME: require(...) }`), an indented line and any line of a Python
+    file that does not tokenize never count. A module or package named
+    NAME (`NAME.py`, `NAME/__init__.py`, a TS/JS `NAME.<ext>` or
+    `NAME/index.<ext>`) declares NAME too: at its line 1 when no line of it
+    declares NAME, unless `--inventory` gives NAME a `function`, `hook`,
+    `class`, `interface`, `enum` or `type` kind (any of its kinds, when it
+    gives several; a `method` kind is not read), no entry of NAME is a
+    `module` or `package` one, and the file is not a TS/JS one that is
+    itself the export (a column-0 `export default` or `module.exports =`),
+    so that a removed function named after its file is no declaration
+    (the inventory has no `module` kind). `declared_line` gives this
+    answer for one file, the module rule optional, to a script that loads
+    this one, and
+    `baseline_gaps` applies it to the map's entries an extraction left
+    out (skf-extraction-snapshot.py's baseline gaps and
+    skf-build-change-manifest.py's `baseline-gaps`, which apply the module
+    rule only to a `module` or `package` entry).
+
+    The files: when a file the name's entries cite declares it,
+    `defined_at` is that file's first declaration (the files in entry
+    order), and `declared_in` is null. Otherwise `declared_in` lists, as
+    sorted `<path>:<line>`, every file of the walk that declares the name,
+    at its first declaration (a type stub, `NAME.pyi` or `NAME.d.ts`,
+    beside its implementation is one file with it: the implementation),
+    and `defined_at` is the one item when the list has exactly one and no
+    walked Python file that does not tokenize holds the name (a homonym,
+    two files or more, gives null: test-skill decides it by the files the
+    skill cites). The walk reads, sorted by path, every file below the
+    walk root: the deepest folder that the files of the map's entries
+    share, widened to its package root (Python: the nearest folder at or
+    above it that holds `__init__.py`, then up while the parent holds
+    one, never the source root itself; TS/JS: the nearest folder at or
+    above it that holds `package.json`), leaving out the entries whose
+    file lies outside every package; the source root when none lies in
+    one. Only the rule families (Python, TS/JS) the map's entries cite are
+    read (both when no entry cites a file). The walk skips symlinks, hidden folders, test
+    files and test configuration files (`conftest.py`, `jest.config.*`),
+    `*.min.js`, and the folders generated, built, installed, vendored or
+    test output lives in (`node_modules`, `dist`, `build`, `vendor`,
+    `_vendor`, `tests`, `testing`, `fixtures`, `__mocks__`,
+    `site-packages`, `env`, `bower_components`, `esm`, `cjs`, `umd` and
+    the like), `docs`, `examples` and `benchmarks`, each judged on the
+    path below the walk root, the end-to-end test folders `e2e` and
+    `__fixtures__` wherever they lie, and, as the first folder below the
+    walk root or below a package root inside it (a folder that holds
+    `package.json`, the top of an `__init__.py` chain), `example`, `demo`,
+    `demos`, `sample`, `samples`, `scripts`, `playground`, `bench`,
+    `benchmark` and `migrations` unless it holds a file an entry cites
+    (deeper in a package such a folder can be package code). A cited file
+    is read only inside the source root (a path that is absolute or climbs
+    out of it is not read), with no symlink on its path and under the same
+    skips, those walk-only ones aside. The path is relative to the source
+    root. A dotted name, or a map whose entries cite files
+    but no Python or TS/JS one, is not looked up (`defined_at` and
+    `declared_in` null, as for a fabricated name), and a filesystem error
+    during the lookup gives every name null in both (the exit code stays
+    0).
 
   kind-at --file <path> --line <n> --recipes <recipes>
           [--language <lang>] [--name <export_name>]
@@ -483,7 +564,8 @@ CLI examples:
   uv run skf-verify-provenance-completeness.py classify-stale \\
       --names {run_dir}/coverage.json \\
       --provenance {forge_version}/provenance-map.json \\
-      --source-root {source_root} -o {run_dir}/stale.json
+      --source-root {source_root} --inventory {run_dir}/inventory.json \\
+      -o {run_dir}/stale.json
   uv run skf-verify-provenance-completeness.py kind-at \\
       --source-root {source_root} --file src/api.ts --line 12 --name Store \\
       --recipes {extractionPatternsData}
@@ -507,11 +589,11 @@ Exit codes:
   2  error, for every subcommand (an input file or folder not found,
      --skill-dir without a SKILL.md, malformed JSON or YAML, a verify
      result without stale[] and citations[], --names without a list of
-     names, no recipe in --recipes, no PyYAML for kind-at, an atomic
-     write that failed, an -o file that cannot be written, or any
-     unexpected failure, such as an unreadable
-     file; once fix has started writing, stderr names the files already
-     written); one line on stderr and no JSON
+     names, --inventory without an `exports` list, no recipe in
+     --recipes, no PyYAML for kind-at, an atomic write that failed, an -o
+     file that cannot be written, or any unexpected failure, such as an
+     unreadable file; once fix has started writing, stderr names the files
+     already written); one line on stderr and no JSON
 """
 
 from __future__ import annotations
@@ -828,6 +910,9 @@ _PY_TARGET_LIST_RE = re.compile(
 )
 # `def \` or `class \`: the name is on the next line.
 _PY_SPLIT_DECL_RE = re.compile(r"^\s*(?:async\s+def|def|class)\s*\\$")
+# A line that can matter to a name it does not hold: an import (which may go
+# on over the next lines) or a `def \` / `class \` whose name is on the next.
+_PY_NAMELESS_MATCH_RE = re.compile(r"^\s*(?:from|import|async|def|class)\b")
 # Tokens that never begin a statement.
 _PY_LAYOUT_TOKENS = frozenset(
     {
@@ -861,6 +946,15 @@ _JS_EXPORT_ITEM_RE = re.compile(
     rf"^(?:type\s+)?({_JS_NAME_OR_STRING})(?:\s+as\s+({_JS_NAME_OR_STRING}))?$"
 )
 _JS_MODULE_EXPORTS_OBJECT_RE = re.compile(r"^\s*module\.exports\s*=\s*\{(.*)$")
+# A bound value that is an import: `require(...)`, `import(...)`, awaited, in
+# parentheses (`(await import("./m")).X`) or in one helper call
+# (`__importDefault(require("./m"))`).
+_JS_IMPORT_VALUE_RE = re.compile(
+    r"^[\s(]*(?:await\s+)?(?:[\w$.]+\s*\(\s*)?(?:await\s+)?(?:require|import)\s*\("
+)
+# The start of such a value that goes on on the next line: nothing yet, a
+# parenthesis, or a helper call's name and parenthesis.
+_JS_IMPORT_VALUE_OPEN_RE = re.compile(r"^[\s(]*(?:await\s+)?(?:[\w$.]+\s*\(\s*)?$")
 # A `const`, `let` or `var` statement: its declarator list.
 _JS_VAR_DECL_RE = re.compile(
     rf"^\s*{_JS_MODIFIERS}(?:const|let|var)\s+(?!enum(?![\w$]))(.*)$"
@@ -870,6 +964,18 @@ _JS_SPLIT_DECL_RE = re.compile(
     rf"^\s*{_JS_MODIFIERS}(?P<kind>function(?:\s*\*)?|class|interface|type"
     r"|enum|namespace|let|var|const(?:\s+enum)?)$"
 )
+# The keywords every line that opens a statement going on below holds (a
+# `const` / `let` / `var` list, a split declaration, `export {`,
+# `module.exports = {`): a line with none of them, and not the name, can
+# match no rule while no statement is open.
+_JS_OPENING_WORDS = ("const", "let", "var", "function", "class", "interface", "type", "enum", "namespace",
+                     "export", "module")
+
+
+def _js_quiet_lines(code_lines: list[str]) -> list[bool]:
+    """For each comment-free line, True when it holds none of
+    `_JS_OPENING_WORDS`."""
+    return [not any(word in code for word in _JS_OPENING_WORDS) for code in code_lines]
 _JS_VAR_KEYWORDS = frozenset({"const", "let", "var"})
 # How a `const` / `let` / `var` list that did not end on its line goes on
 # (`_js_declarators`): the next line begins a declarator (this one ended
@@ -907,6 +1013,21 @@ def _read_lines(path: Path) -> list[str] | None:
             return [ln.rstrip("\n") for ln in fh]
     except OSError:
         return None
+
+
+def _read_source(path: Path) -> str:
+    """A text file's content, decoded as `_read_lines` decodes it. Raises
+    OSError when the file cannot be read."""
+    with path.open("r", encoding="utf-8-sig", errors="replace") as fh:
+        return fh.read()
+
+
+def _text_lines(text: str) -> list[str]:
+    """`_read_source`'s text as the lines `_read_lines` gives for the file."""
+    lines = text.split("\n")
+    if lines[-1] == "":
+        lines.pop()
+    return lines
 
 
 def _is_column_0(text: str) -> bool:
@@ -992,6 +1113,7 @@ class _SourceCache:
         self._lines: dict[Path, list[str] | None] = {}
         self._starts: dict[Path, set[int] | None] = {}
         self._js_code: dict[Path, list[str]] = {}
+        self._js_quiet: dict[Path, list[bool]] = {}
         self._js_decl: dict[tuple[str, str, bool], _DeclSplit] = {}
 
     def lines(self, path: Path) -> list[str] | None:
@@ -1009,6 +1131,11 @@ class _SourceCache:
             self._js_code[path] = _js_code_lines(lines)
         return self._js_code[path]
 
+    def js_quiet_lines(self, path: Path, code_lines: list[str]) -> list[bool]:
+        if path not in self._js_quiet:
+            self._js_quiet[path] = _js_quiet_lines(code_lines)
+        return self._js_quiet[path]
+
     def js_declarators(
         self, text: str, opened: str = "", fresh: bool = True
     ) -> _DeclSplit:
@@ -1018,8 +1145,12 @@ class _SourceCache:
         return self._js_decl[key]
 
 
-def _py_import_binds(items: str, name: str, from_import: bool) -> bool:
-    """True when an import item list binds `name`."""
+def _py_import_binds(
+    items: str, name: str, from_import: bool, alias_only: bool = False
+) -> bool:
+    """True when an import item list binds `name` (with `alias_only`, only
+    through an explicit `as name` that renames: `from m import name as
+    name` and `import a.name as name` keep the imported name)."""
     items = items.split("#", 1)[0]
     for raw in items.replace("(", " ").replace(")", " ").replace("\\", " ").split(","):
         m = _PY_IMPORT_ITEM_RE.match(raw.strip())
@@ -1027,7 +1158,11 @@ def _py_import_binds(items: str, name: str, from_import: bool) -> bool:
             continue
         target, alias = m.group(1), m.group(2)
         if alias is not None:
+            if alias_only and alias == target.rsplit(".", 1)[-1]:
+                continue
             bound = alias
+        elif alias_only:
+            continue
         elif from_import:
             bound = target
         else:
@@ -1050,7 +1185,10 @@ def _py_assigned_names(code: str) -> set[str]:
 
 
 def _python_definition_lines(
-    lines: list[str], name: str, starts: set[int] | None
+    lines: list[str],
+    name: str,
+    starts: set[int] | None,
+    declarations_only: bool = False,
 ) -> list[tuple[int, bool]]:
     """(line, at column 0) for every line that defines `name`.
 
@@ -1059,7 +1197,9 @@ def _python_definition_lines(
     line of a `def \\` or `class \\` whose name is on the next line. A
     `from X import *` line counts only when no other line defines `name` (a
     re-export the extraction could not trace further is cited at its star
-    import).
+    import). With `declarations_only`, an import counts only when it binds
+    `name` through an explicit `as name` that renames (`_py_import_binds`),
+    and a star import never does.
     """
     esc = re.escape(name)
     decl = re.compile(rf"^\s*(?:async\s+def|def|class)\s+{esc}(?!\w)")
@@ -1085,11 +1225,13 @@ def _python_definition_lines(
                     code = stripped[:-1]
                 else:
                     cont = None
-            if _py_import_binds(code, name, from_import):
+            if _py_import_binds(code, name, from_import, declarations_only):
                 found.append((number, top))
             continue
         if starts is not None and number not in starts:
             continue
+        if name not in code and not _PY_NAMELESS_MATCH_RE.match(code):
+            continue  # no rule below can match it: spares a scan per name
         top = _is_column_0(text)
         if (
             decl.match(code)
@@ -1114,27 +1256,33 @@ def _python_definition_lines(
             continue
         rest = m.group(1)
         if from_import and rest.strip() == "*":
-            star_imports.append((number, top))
+            if not declarations_only:
+                star_imports.append((number, top))
             continue
         if from_import and rest.lstrip().startswith("(") and ")" not in rest:
             cont = ("paren", top, True)
         elif rest.rstrip().endswith("\\"):
             cont = ("backslash", top, from_import)
             rest = rest.rstrip()[:-1]
-        if _py_import_binds(rest, name, from_import):
+        if _py_import_binds(rest, name, from_import, declarations_only):
             found.append((number, top))
     return found or star_imports
 
 
-def _js_export_item_binds(item: str, name: str) -> bool:
+def _js_export_item_binds(item: str, name: str, alias_only: bool = False) -> bool:
     """True when one `export { ... }` item exposes `name`: the name after
-    `as`, else the item's own name, an identifier or a string."""
+    `as`, else (unless `alias_only`) the item's own name, an identifier or
+    a string. With `alias_only`, an `as` that keeps the item's own name
+    (`NAME as NAME`) does not count either."""
     m = _JS_EXPORT_ITEM_RE.match(item.strip())
-    if not m:
+    if not m or (alias_only and m.group(2) is None):
         return False
-    exposed = m.group(2) or m.group(1)
-    if exposed[:1] in ("'", '"'):
-        exposed = exposed[1:-1]
+    own, exposed = (
+        s[1:-1] if s[:1] in ("'", '"') else s
+        for s in (m.group(1), m.group(2) or m.group(1))
+    )
+    if alias_only and exposed == own:
+        return False
     return exposed == name
 
 
@@ -1327,10 +1475,14 @@ def _tsjs_definition_lines(
     name: str,
     dotted: bool,
     declarators: Callable[..., _DeclSplit] = _js_declarators,
+    declarations_only: bool = False,
+    quiet: list[bool] | None = None,
 ) -> list[tuple[int, bool]]:
     """(line, at column 0) for every line that defines `name`.
 
-    `code_lines` are `lines` with comments removed (`_js_code_lines`), so a
+    `quiet` is `_js_quiet_lines(code_lines)` when the caller has it (it does
+    not depend on the name): a quiet line without the name is passed over
+    while no statement is open. `code_lines` are `lines` with comments removed (`_js_code_lines`), so a
     JSDoc line or a commented-out declaration never matches. A line inside
     a multi-line `export { ... }` list or `module.exports = { ... }` object
     takes the column of the line the statement starts on, and so do the
@@ -1338,29 +1490,90 @@ def _tsjs_definition_lines(
     later declarator on a line of its own. Class members count only for a
     dotted export name. `declarators` splits a declarator list
     (`_js_declarators`, or `_SourceCache.js_declarators`, which splits each
-    line once for every export looked up).
+    line once for every export looked up). With `declarations_only`,
+    `export import NAME =`, `export default NAME`, an export-list item
+    without an `as` that renames, a `module.exports` shorthand key and an
+    import-valued binding (a declarator, `exports.NAME =` or a
+    `module.exports` key whose value starts with `require(` or an
+    `(await) import(`, on its line or the next one) never count, nor does
+    a class member.
     """
     esc = re.escape(name)
     end = r"(?![\w$])"
-    statements = (
+    statements = [
         re.compile(rf"^\s*{_JS_MODIFIERS}{_JS_KINDS}{esc}{end}"),
-        re.compile(rf"^\s*export\s+import\s+(?:type\s+)?{esc}\s*=(?![=>])"),
         re.compile(
             rf"^\s*export\s+(?:type\s+)?\*\s+as\s+"
             rf"(?:{esc}\s+|([\"']){esc}\1\s*)from{end}"
         ),
-        re.compile(rf"^\s*export\s+default\s+{esc}\s*;?\s*$"),
         re.compile(rf"^\s*(?:module\.)?exports\.{esc}\s*=(?![=>])"),
-    )
+    ]
+    if not declarations_only:
+        statements += [
+            re.compile(rf"^\s*export\s+import\s+(?:type\s+)?{esc}\s*=(?![=>])"),
+            re.compile(rf"^\s*export\s+default\s+{esc}\s*;?\s*$"),
+        ]
     # One declarator of a `const` / `let` / `var` list: `NAME = v`,
     # `NAME: T = v`, `NAME!: T`, or a bare `NAME`. A destructuring pattern
     # starts with `{` or `[` and never matches.
     declarator = re.compile(rf"^\s*{esc}{end}\s*(?:!?\s*:|=|$)")
+    # With declarations_only, the value bound to NAME (the rest of a
+    # declarator, of `exports.NAME =` or of a `module.exports` key), to
+    # test for an import.
+    # (A type annotation holds no `=` but in `=>`: `NAME: () => T = v`.)
+    declarator_value = re.compile(
+        rf"^\s*{esc}{end}\s*(?:!?\s*:(?:[^=]|=>)*)?=(?![=>])(.*)$"
+    )
+    var_statement = re.compile(rf"^\s*{_JS_MODIFIERS}(?:const|let|var)\s+(.*)$")
+    exports_value = re.compile(rf"^\s*(?:module\.)?exports\.{esc}\s*=(?![=>])(.*)$")
+    key_value = re.compile(rf"^\s*(?:(['\"]){esc}\1|{esc}{end})\s*:(.*)$")
+
+    def imported(value: str, number: int) -> bool:
+        """True when a bound value is an import: `require(...)`, or an
+        `import(...)` awaited or not, alone or in one helper call. A value
+        that goes on on the next line (`NAME =`, `NAME = (` or
+        `NAME = helper(` ends line `number`) is read there too."""
+        if _JS_IMPORT_VALUE_OPEN_RE.match(value):
+            value += next((c for c in code_lines[number:] if c.strip()), "")
+        return _JS_IMPORT_VALUE_RE.match(value) is not None
+
+    def declares(piece: str, number: int) -> bool:
+        if declarator.match(piece) is None:
+            return False
+        if not declarations_only:
+            return True
+        m = declarator_value.match(piece)
+        return m is None or not imported(m.group(1), number)
+
+    def is_statement(code: str, number: int) -> bool:
+        if not any(p.match(code) for p in statements):
+            return False
+        if not declarations_only:
+            return True
+        m = var_statement.match(code)
+        if m is not None:
+            m = declarator_value.match(m.group(1))
+        else:
+            m = exports_value.match(code)
+        return m is None or not imported(m.group(1), number)
+
     leading_name = re.compile(rf"^\s*{esc}{end}")
+    # A key with a value, a method, or (unless declarations_only) a shorthand.
+    key_end = r"[:(]" if declarations_only else r"[:(]|$"
     object_key = re.compile(
         rf"^\s*(?:(?:async|get|set)\s+|\*\s*)*(?:(['\"]){esc}\1|{esc}{end})"
-        rf"\s*(?:[:(]|$)"
+        rf"\s*(?:{key_end})"
     )
+
+    def binds_key(piece: str, number: int) -> bool:
+        if object_key.match(piece) is None:
+            return False
+        if not declarations_only:
+            return True
+        m = key_value.match(piece)
+        return m is None or not imported(m.group(2), number)
+
+    dotted = dotted and not declarations_only
     member = re.compile(
         rf"^\s+(?P<mods>{_JS_MEMBER_MODIFIERS})(?:\*\s*)?{esc}{end}\s*[?!]?\s*"
         rf"(?:<[^>]*>\s*)?(?P<tail>[(:=;]|$)"
@@ -1375,7 +1588,11 @@ def _tsjs_definition_lines(
     # nested in another's initializer included: (column 0, brackets left
     # open, how, as `_js_declarators` gives them).
     decls: list[tuple[bool, str, str]] = []
+    if quiet is None:
+        quiet = _js_quiet_lines(code_lines)
     for number, (text, code) in enumerate(zip(lines, code_lines), start=1):
+        if quiet[number - 1] and not (decls or split or cont) and name not in code:
+            continue  # no rule below can match it: spares a scan per name
         # A line of a list carried from above still goes through the rules
         # below: it may hold a class member or a local of an arrow function.
         if decls and code.strip():
@@ -1387,7 +1604,7 @@ def _tsjs_definition_lines(
                 carry, pieces = declarators(code, opened, how == _DECL_NEXT)
                 if carry is not None:
                     carried.append((decl_top, *carry))
-                if any(declarator.match(p) for p in pieces):
+                if any(declares(p, number) for p in pieces):
                     # a later declarator on a line of its own, as Prettier
                     # writes it: `export const a = 1,` then `  NAME = 2;`
                     found.append((number, decl_top))
@@ -1399,7 +1616,7 @@ def _tsjs_definition_lines(
                 carry, pieces = declarators(code)
                 if carry is not None:
                     decls.append((top, *carry))
-                hit = any(declarator.match(p) for p in pieces)
+                hit = any(declares(p, number) for p in pieces)
             else:
                 hit = leading_name.match(code) is not None
             if hit:
@@ -1411,14 +1628,18 @@ def _tsjs_definition_lines(
             depth, pieces = _js_depth1_pieces(code, depth)
             cont = (kind, top, depth) if depth > 0 else None
             if kind == "list":
-                hit = any(_js_export_item_binds(p, name) for p in pieces)
+                hit = any(
+                    _js_export_item_binds(p, name, declarations_only) for p in pieces
+                )
             else:
-                hit = any(object_key.match(p) for p in pieces)
+                hit = any(binds_key(p, number) for p in pieces)
             if hit:
                 found.append((number, top))
             continue
         top = _is_column_0(text)
-        if any(p.match(code) for p in statements):
+        # every rule that matches a line needs the name in it
+        named = name in code
+        if named and is_statement(code, number):
             found.append((number, top))
             continue
         m = _JS_VAR_DECL_RE.match(code)
@@ -1426,7 +1647,7 @@ def _tsjs_definition_lines(
             carry, pieces = declarators(m.group(1))
             if carry is not None:
                 decls.append((top, *carry))
-            if any(declarator.match(p) for p in pieces):
+            if named and any(declares(p, number) for p in pieces):
                 # a later declarator: `export const a = 1, NAME = 2;`
                 found.append((number, top))
                 continue
@@ -1439,7 +1660,7 @@ def _tsjs_definition_lines(
             depth, pieces = _js_depth1_pieces(m.group(1), 1)
             if depth > 0:
                 cont = ("list", top, depth)
-            if any(_js_export_item_binds(p, name) for p in pieces):
+            if any(_js_export_item_binds(p, name, declarations_only) for p in pieces):
                 found.append((number, top))
             continue
         m = _JS_MODULE_EXPORTS_OBJECT_RE.match(code)
@@ -1447,7 +1668,7 @@ def _tsjs_definition_lines(
             depth, pieces = _js_depth1_pieces(m.group(1), 1)
             if depth > 0:
                 cont = ("object", top, depth)
-            if any(object_key.match(p) for p in pieces):
+            if any(binds_key(p, number) for p in pieces):
                 found.append((number, top))
             continue
         if not dotted:
@@ -1494,12 +1715,19 @@ def _definition_matches(
     export_name: str,
     source_root: Path,
     cache: _SourceCache | None = None,
+    declarations_only: bool = False,
 ) -> tuple[list[int], set[int]] | None:
     """(definition lines to report, every matching line) for an export.
 
     The first item applies the column-0 rule; the second keeps the indented
     matches that rule dropped. None when the file's extension has no
     definition rule or the file cannot be read.
+
+    `declarations_only` (classify-stale's `defined_at` lookup) keeps the
+    lines that declare the name at column 0, both items alike: no plain
+    import, star import or re-export (`_python_definition_lines` and
+    `_tsjs_definition_lines` say which), and nothing in a Python file that
+    does not tokenize.
     """
     rel = source_file.strip().replace("\\", "/")
     suffix = Path(rel).suffix.lower()
@@ -1510,18 +1738,39 @@ def _definition_matches(
     lines = cache.lines(path)
     if lines is None:
         return None
+    return _line_matches(suffix, path, lines, export_name, cache, declarations_only)
+
+
+def _line_matches(
+    suffix: str,
+    path: Path,
+    lines: list[str],
+    export_name: str,
+    cache: _SourceCache,
+    declarations_only: bool = False,
+) -> tuple[list[int], set[int]]:
+    """`_definition_matches` over the lines of a Python or TS/JS file already
+    read: `suffix`, the cited file's extension, picks the rules, and `path`
+    keys `cache`."""
     name = definition_name(export_name)
     if not name:
         return [], set()
     dotted = "." in export_name
     if suffix in PYTHON_EXTENSIONS:
         starts = cache.py_statement_starts(path, lines)
-        found = _python_definition_lines(lines, name, starts)
+        if declarations_only and starts is None:
+            # every line would be a candidate, a docstring line included
+            return [], set()
+        found = _python_definition_lines(lines, name, starts, declarations_only)
     else:
         code_lines = cache.js_code_lines(path, lines)
         found = _tsjs_definition_lines(
-            lines, code_lines, name, dotted, cache.js_declarators
+            lines, code_lines, name, dotted, cache.js_declarators, declarations_only,
+            cache.js_quiet_lines(path, code_lines),
         )
+    if declarations_only:
+        top = {n for n, at_column_0 in found if at_column_0}
+        return sorted(top), top
     return _prefer_module_level(found, dotted), {n for n, _ in found}
 
 
@@ -1647,14 +1896,657 @@ def _stale_line_check(
     return report["line_check"], report["definition_lines"]
 
 
-def classify_stale(names: list[str], prov: dict, source_root: Path) -> list[dict]:
+# The folders and files the `defined_at` walk leaves out, judged
+# case-insensitively on the path below its walk root: generated, built and
+# installed output, a vendored copy of another package, tests and their
+# configuration, docs, examples and benchmarks.
+# Keep identical to EXCLUDED_DIR_NAMES in skf-resolve-authoritative-files.py.
+EXCLUDED_DIR_NAMES = {
+    "node_modules", "__pycache__", "dist", "build", ".webpack",
+    "target", ".next", ".nuxt", "out", "coverage", ".git",
+    ".venv", "venv", ".tox", ".mypy_cache", ".pytest_cache",
+    ".ruff_cache", ".gradle", ".idea", ".vscode",
+}
+# Keep identical to _VENDORED_SEGMENTS in skf-detect-language.py.
+_VENDORED_SEGMENTS = frozenset(
+    {"vendor", "vendored", "third_party", "third-party", "thirdparty"}
+)
+# Keep identical to TEST_FOLDERS in skf-disqualify-candidates.py.
+TEST_FOLDERS = frozenset({"test", "tests", "__tests__", "spec", "specs"})
+# Keep identical to TEST_CONFIG_NAMES in skf-disqualify-candidates.py.
+TEST_CONFIG_NAMES = frozenset({
+    "conftest.py", "pytest.ini", "phpunit.xml", "phpunit.xml.dist", ".rspec",
+})
+# Keep identical to TEST_CONFIG_PREFIXES in skf-disqualify-candidates.py.
+TEST_CONFIG_PREFIXES = (
+    "jest.config.", "vitest.config.", "karma.conf.", "playwright.config.",
+    "cypress.config.",
+)
+# Keep identical to TEST_FILE_RE in skf-disqualify-candidates.py.
+TEST_FILE_RE = re.compile(
+    r"(\.(test|spec)\.[^./]+$)|(_test\.[^./]+$)|(^test_.+\.py$)|(_spec\.rb$)"
+)
+# Keep identical to PY_NON_CORE_TOPS in skf-extract-public-api.py.
+PY_NON_CORE_TOPS = frozenset({"docs", "examples", "benchmarks"})
+# The walk's own additions: pip's and setuptools' `_vendor`, test helpers
+# (`testing`, `fixtures`, `__mocks__`), installed packages (`site-packages`,
+# a virtualenv named `env`, `bower_components`) and the ESM, CommonJS and
+# UMD builds a JS package commits.
+LOOKUP_EXTRA_FOLDERS = frozenset({
+    "_vendor", "testing", "fixtures", "__mocks__", "site-packages", "env",
+    "bower_components", "esm", "cjs", "umd",
+})
+LOOKUP_SKIPPED_FOLDERS = frozenset(
+    EXCLUDED_DIR_NAMES | _VENDORED_SEGMENTS | TEST_FOLDERS | PY_NON_CORE_TOPS
+    | LOOKUP_EXTRA_FOLDERS
+)
+# The test folders the walk alone skips wherever they lie (end-to-end tests,
+# Jest's `__fixtures__` beside the code): a file the map cites in one is
+# still read.
+LOOKUP_WALK_FOLDERS = frozenset({"e2e", "__fixtures__"})
+# The folders the walk alone skips as the first folder below its walk root
+# or below a package root it passes through (`_package_root`'s roots):
+# examples and demos, samples, scripts, playgrounds, benchmarks and
+# migrations, which hold code that uses or changes the package rather than
+# its API. Deeper in a package such a folder can be live package code
+# (cognee's `cognee/modules/migrations/`), so it is walked there; one that
+# holds a file the map cites is walked too, and that file is still read.
+LOOKUP_TOP_FOLDERS = frozenset({
+    "example", "demo", "demos", "sample", "samples", "scripts", "playground",
+    "bench", "benchmark", "migrations",
+})
+# The kinds of a documented inventory (validate-inventory.py's `kind`) that a
+# module cannot be: such a name takes no line 1 from a module so named. A
+# `method` is left out: reconcile-coverage.py never lists a method as stale,
+# and a module may share a method's name.
+NO_MODULE_KINDS = frozenset({"function", "hook", "class", "interface", "enum", "type"})
+# A TS/JS file that is itself the export: its module so named declares the
+# name whatever its kind.
+_SELF_EXPORT_RE = re.compile(r"^(?:export\s+default\b|module\.exports\s*=(?!=))", re.M)
+# A minified bundle: built output, whatever folder holds it.
+LOOKUP_SKIPPED_SUFFIXES = (".min.js",)
+# The errors a lookup gives up on: every `defined_at` is then null.
+_LOOKUP_ERRORS = (OSError, ValueError, RuntimeError)
+
+
+def _rule_family(path: str) -> str | None:
+    """The definition rules a file's extension picks: `python`, `tsjs` or
+    None."""
+    suffix = posixpath.splitext(path)[1].lower()
+    if suffix in PYTHON_EXTENSIONS:
+        return "python"
+    return "tsjs" if suffix in TSJS_EXTENSIONS else None
+
+
+def _lookup_skips_folder(segment: str) -> bool:
+    """True when the `defined_at` walk never goes into this folder."""
+    segment = segment.lower()
+    return segment.startswith(".") or segment in LOOKUP_SKIPPED_FOLDERS
+
+
+def _lookup_skips_file(filename: str) -> bool:
+    """True when the `defined_at` lookup never reads this file: a test file,
+    as skf-disqualify-candidates.py's `_is_test_file` judges its name (a
+    test configuration file included), or a minified bundle."""
+    name = filename.lower()
+    return (
+        name in TEST_CONFIG_NAMES
+        or name.startswith(TEST_CONFIG_PREFIXES)
+        or TEST_FILE_RE.search(name) is not None
+        or name.endswith(LOOKUP_SKIPPED_SUFFIXES)
+    )
+
+
+def _symlinked(root: Path, parts: tuple[str, ...]) -> bool:
+    """True when a path below `root` goes through a symlink, itself
+    included."""
+    return any(root.joinpath(*parts[:i]).is_symlink() for i in range(1, len(parts) + 1))
+
+
+def _readable_below(root: Path, parts: tuple[str, ...], real_root: Path | None = None) -> bool:
+    """True when the `defined_at` lookup may read the file at `parts` below
+    `root`: not a file it skips (`_lookup_skips_file`), no symlink on its
+    path, and its real path a file inside the root (`real_root`, the root
+    resolved)."""
+    if _lookup_skips_file(parts[-1]) or _symlinked(root, parts):
+        return False
+    real = root.joinpath(*parts).resolve()
+    return real.is_relative_to(real_root or root.resolve()) and real.is_file()
+
+
+def _cited_parts(source_file: str) -> tuple[str, ...] | None:
+    """A recorded `source_file` as path segments below the source root, None
+    when it is absolute or climbs out of the root."""
+    path = normalize_path(source_file)
+    if not path or path == "." or posixpath.isabs(path):
+        return None
+    parts = tuple(path.split("/"))
+    return None if parts[0] == ".." or ":" in parts[0] else parts
+
+
+# The file whose folder is a package, by rule family.
+_PACKAGE_MARKERS = {"python": "__init__.py", "tsjs": "package.json"}
+# Type stubs: a declaration file beside the module it types.
+_STUB_SUFFIXES = {".pyi": "python", ".d.ts": "tsjs", ".d.mts": "tsjs", ".d.cts": "tsjs"}
+
+
+def _stub_of(path: str) -> tuple[str, str] | None:
+    """(the path without its suffix, family) of a type stub (`NAME.pyi`,
+    `NAME.d.ts`), None for any other file."""
+    lower = path.lower()
+    for suffix, family in _STUB_SUFFIXES.items():
+        if lower.endswith(suffix):
+            return path[: -len(suffix)], family
+    return None
+
+
+def _without_stubs(hits: list[str]) -> list[str]:
+    """`file:line` items less each stub whose implementation (`NAME.py`
+    beside `NAME.pyi`, a TS/JS `NAME.<ext>` beside `NAME.d.ts`) is an item
+    too: the two are one declaring file, the implementation."""
+    files = [h.rsplit(":", 1)[0] for h in hits]
+    implementations = {
+        (posixpath.splitext(f)[0], _rule_family(f))
+        for f in files
+        if _stub_of(f) is None and _rule_family(f) is not None
+    }
+    return [h for h, f in zip(hits, files) if _stub_of(f) not in implementations]
+
+
+def _module_name(parts: tuple[str, ...]) -> str | None:
+    """The name a file is the module or package of, which it declares at
+    its line 1: `NAME.py`, `NAME/__init__.py`, a TS/JS `NAME.<ext>` or
+    `NAME/index.<ext>`. None for any other file, and for a package file
+    with no folder above it below the source root."""
+    stem, ext = posixpath.splitext(parts[-1])
+    ext = ext.lower()
+    if ext == ".py":
+        package = "__init__"
+    elif ext in TSJS_EXTENSIONS:
+        package = "index"
+    else:
+        return None
+    if stem != package:
+        return stem
+    return parts[-2] if len(parts) > 1 else None
+
+
+def _exports_itself(parts: tuple[str, ...], text: str) -> bool:
+    """True for a TS/JS file that is itself the export, with a column-0
+    `export default` or `module.exports =`: its module so named declares
+    the name whatever kind the inventory gives it."""
+    return _rule_family(parts[-1]) == "tsjs" and _SELF_EXPORT_RE.search(text) is not None
+
+
+def declared_line(
+    source_file: str | tuple[str, ...],
+    name: str,
+    source_root: Path | None = None,
+    *,
+    lines: list[str] | None = None,
+    cache: _SourceCache | None = None,
+    module_fallback: bool = True,
+) -> int | None:
+    """The line at which one file declares `name`, by classify-stale's
+    `defined_at` rule (see the module docstring): its first line at column
+    0 that the definition-line rules match with imports left out (a `def`,
+    `class`, assignment, annotation, type alias, TS/JS declaration, or an
+    alias that renames, such as `from X import Y as NAME`; a plain or star
+    import, an `as` that keeps the imported name, a re-export and an
+    import-valued binding never count), else, with `module_fallback`, its
+    line 1 when it is the module or package so named (`_module_name`).
+
+    `source_file` is the file's path below the source root, as recorded
+    (one that is absolute or climbs out of the root gives None) or as its
+    segments. `lines` are its lines when the caller read them already;
+    otherwise the file is read below `source_root` under the lookup's
+    guards (`_readable_below`: no symlink on its path, its real path
+    inside the root, not a file the lookup skips). Pass one `cache` for
+    the names of one source root, and each file is read and parsed once.
+    None when no line declares the name, the name is empty or dotted, the
+    file is not a Python or TS/JS one, or it cannot be read.
+    """
+    parts = _cited_parts(source_file) if isinstance(source_file, str) else tuple(source_file)
+    if not name or "." in name or not parts or _rule_family(parts[-1]) is None:
+        return None
+    cache = cache if cache is not None else _SourceCache()
+    if lines is None:
+        if source_root is None:
+            raise ValueError("declared_line reads the file below source_root when no lines are given")
+        if not _readable_below(source_root, parts):
+            return None
+        lines = cache.lines(source_root.joinpath(*parts))
+        if lines is None:
+            return None
+    path = Path(*parts)
+    top, _ = _line_matches(path.suffix.lower(), path, lines, name, cache, True)
+    if top:
+        return top[0]
+    return 1 if module_fallback and _module_name(parts) == name else None
+
+
+# declared_line's `cache`, public for a script that loads this one.
+SourceCache = _SourceCache
+
+
+def _baseline_path(path: str) -> str:
+    """A cited path as an extraction writes it: forward slashes, no
+    leading `./`."""
+    rel = path.strip().replace("\\", "/")
+    while rel.startswith("./"):
+        rel = rel[2:]
+    return rel
+
+
+def _declaration_refused(source_root: Path, file: str) -> bool:
+    """True when `declared_line` would not read a file that is there: a
+    path outside the source root, a file the lookup skips (a test file, a
+    minified bundle) or one with a symlink on its path. A file that is gone
+    is not refused: its entries are deleted."""
+    parts = _cited_parts(file)
+    if parts is None:
+        return True
+    path = source_root.joinpath(*parts)
+    return os.path.lexists(path) and not _readable_below(source_root, parts)
+
+
+def baseline_gaps(
+    provenance: dict,
+    source_root: Path,
+    held: set[tuple[str, str]],
+    files: set[str],
+    listed: set[tuple] | frozenset = frozenset(),
+    *,
+    cache: _SourceCache | None = None,
+) -> tuple[list[dict], list[dict]]:
+    """The provenance entries an extraction left out whose cited file still
+    declares them: the recipe runner never reports a module, an alias that
+    renames, a dunder such as `__version__` or another underscore name, so
+    a diff would read each as removed.
+
+    `held` holds the (name, file) of every export the extraction found,
+    `files` the files whose entries are checked (the ones read), and
+    `listed` the (name, file) of the gaps already listed elsewhere (the
+    runner's own extraction gaps), each path with forward slashes. An
+    entry is left out when its name is dotted (a member) and it is no
+    `module` or `package` entry, when its file is not in `files`, when the
+    extraction holds the name or its re-export target (`reexport_map`,
+    else the entry's `reexported_as`) at that file, or when it is listed
+    already. Each name and file is taken once.
+
+    Returns (gaps, unchecked). A gap is {"name", "file", "line", "entry":
+    null}, plus the entry's `export_type` when it has one, at the line
+    `declared_line` gives (only a `module` or `package` entry takes the
+    module rule); an entry whose file declares it no more is no gap.
+    `unchecked` holds {"name", "file", "export_type"} for each entry no
+    rule can check, to read by eye: one whose file is neither Python nor
+    TS/JS, one whose file the lookup will not read (outside the source
+    root, a test file or a minified bundle, a symlink on its path), and a
+    dotted `module` or `package` entry (`api.v1`). The entries are read
+    file by file over one cache, so each file is read and parsed once."""
+    checkable = PYTHON_EXTENSIONS | TSJS_EXTENSIONS
+    renamed = extract_reexport_map(provenance)
+    seen = set(listed)
+    by_file: dict[str, list[tuple[str, object]]] = {}
+    unchecked: list[dict] = []
+    entries = provenance.get("entries")
+    for entry in entries if isinstance(entries, list) else []:
+        if not isinstance(entry, dict):
+            continue
+        name, cited = entry.get("export_name"), entry.get("source_file")
+        if not isinstance(name, str) or not isinstance(cited, str):
+            continue
+        name, file, kind = name.strip(), _baseline_path(cited), entry.get("export_type")
+        module = isinstance(kind, str) and kind.strip().lower() in NO_DEFINITION_EXPORT_TYPES
+        if not name or ("." in name and not module) or (name, file) in seen:
+            continue
+        if cited.replace("\\", "/") not in files and file not in files:
+            continue
+        if (name, file) in held or (renamed.get(name), file) in held:
+            continue
+        seen.add((name, file))
+        if "." in name or Path(file).suffix.lower() not in checkable or _declaration_refused(source_root, file):
+            unchecked.append({"name": name, "file": file, "export_type": kind})
+            continue
+        by_file.setdefault(file, []).append((name, kind))
+    cache = cache if cache is not None else _SourceCache()
+    gaps = []
+    for file, named in by_file.items():
+        for name, kind in named:
+            module = isinstance(kind, str) and kind.strip().lower() in NO_DEFINITION_EXPORT_TYPES
+            line = declared_line(file, name, source_root, cache=cache, module_fallback=module)
+            if line is None:
+                continue
+            gap = {"name": name, "file": file, "line": line, "entry": None}
+            if kind is not None:
+                gap["export_type"] = kind
+            gaps.append(gap)
+    return gaps, unchecked
+
+
+class _DeclarationLookup:
+    """Where the source declares the stale names (classify-stale's
+    `defined_at`): a column-0 declaration, an alias that renames included, a
+    plain or star import and a re-export never counting.
+
+    A module or package named after the name (`_module_name`) declares it,
+    at its line 1 when no line of it does, unless `find` takes the name as
+    `strict` and the file is not a TS/JS one that is itself the export
+    (`_exports_itself`). A file the name's entries cite that declares it
+    gives its first such line. Otherwise the walk lists every file that
+    declares it (`declared_in`), and exactly one must: the walk reads,
+    sorted, the files below the walk root (`_walk_root`), leaving out the
+    folders `_lookup_skips_folder` names, the `LOOKUP_WALK_FOLDERS`, the
+    `LOOKUP_TOP_FOLDERS` right below the walk root and a package root
+    (`_is_package_root`) that hold no cited file, the files
+    `_lookup_skips_file` names and every symlink. Only the rule families
+    (Python, TS/JS) the entries cite are read (both when no entry cites a
+    file). A cited file is read inside the source root only, with no symlink
+    on its path and the same skips but the walk-only ones, judged below the
+    walk root when it lies there. The walk runs once for all the names no
+    cited file settles: each file is read once, and only a file whose text
+    holds a name goes through the rules. Any error of the filesystem raises
+    (`_LOOKUP_ERRORS`)."""
+
+    def __init__(self, entries: list[dict], source_root: Path) -> None:
+        self.root = source_root
+        self.real_root = source_root.resolve()
+        recorded = [f for f in map(_entry_file, entries) if f is not None]
+        # a map that cites no file names no language: both families
+        families = {_rule_family(f) for f in recorded}
+        self.families = families - {None} if recorded else {"python", "tsjs"}
+        self.folder = self._walk_root(recorded)
+        # the folders that hold a cited file: a LOOKUP_TOP_FOLDERS one is walked
+        self._cited_folders = {
+            parts[:i]
+            for parts in filter(None, map(_cited_parts, recorded))
+            for i in range(1, len(parts))
+        }
+        # the cited files read, kept for the walk: a few files at most
+        self._cited: dict[tuple[str, ...], list[str] | None] = {}
+        self._cited_cache = _SourceCache()
+
+    # -- the walk root ------------------------------------------------------
+
+    def _symlinked(self, parts: tuple[str, ...]) -> bool:
+        """True when a path below the source root goes through a symlink,
+        itself included."""
+        return _symlinked(self.root, parts)
+
+    def _real_folder(self, parts: tuple[str, ...]) -> tuple[str, ...]:
+        """The deepest folder of a path below the source root that is one,
+        with no symlink on its path."""
+        while parts and (
+            self._symlinked(parts) or not self.root.joinpath(*parts).is_dir()
+        ):
+            parts = parts[:-1]
+        return parts
+
+    def _holds(self, folder: tuple[str, ...], filename: str) -> bool:
+        return (self.root.joinpath(*folder) / filename).is_file()
+
+    def _package_root(
+        self, folder: tuple[str, ...], family: str
+    ) -> tuple[str, ...] | None:
+        """The root of the package a folder below the source root lies in,
+        None when it lies in none. Python: the nearest folder at or above it
+        that holds `__init__.py`, then up while the parent holds one, never
+        the source root itself (a stray `__init__.py` there would make the
+        whole tree one package). TS/JS: the nearest folder at or above it
+        that holds `package.json`."""
+        marker = _PACKAGE_MARKERS[family]
+        python = family == "python"
+        here = folder
+        while not (self._holds(here, marker) and (here or not python)):
+            if not here:
+                return None
+            here = here[:-1]
+        if python:
+            while len(here) > 1 and self._holds(here[:-1], marker):
+                here = here[:-1]
+        return here
+
+    def _walk_root(self, recorded: list[str]) -> tuple[str, ...]:
+        """The folder the walk reads: the deepest folder the entries' files
+        share, widened to its package root, leaving out an entry outside
+        every package (the source root when no entry lies in one)."""
+        folders: list[tuple[str, ...]] = []
+        widen: set[str] = set()
+        for source_file in recorded:
+            parts = _cited_parts(source_file)
+            family = _rule_family(source_file) if parts else None
+            if family is None:
+                continue
+            if self._package_root(self._real_folder(parts[:-1]), family) is None:
+                continue  # outside every package: a script, a docs page
+            folders.append(parts[:-1])
+            widen.add(family)
+        if not folders:
+            return ()
+        shared = self._real_folder(tuple(os.path.commonprefix(folders)))
+        roots = [self._package_root(shared, family) for family in sorted(widen)]
+        return min((r for r in roots if r is not None), key=len, default=shared)
+
+    # -- reading ------------------------------------------------------------
+
+    def _below_walk_root(self, parts: tuple[str, ...]) -> tuple[str, ...]:
+        depth = len(self.folder)
+        return parts[depth:] if parts[:depth] == self.folder else parts
+
+    def _reads_cited(self, parts: tuple[str, ...]) -> bool:
+        """True when the lookup reads a cited file: one of a family the
+        entries cite, in no skipped place, with no symlink on its path and
+        inside the source root."""
+        if _rule_family(parts[-1]) not in self.families:
+            return False
+        below = self._below_walk_root(parts)
+        if any(_lookup_skips_folder(s) for s in below[:-1]):
+            return False
+        return _readable_below(self.root, parts, self.real_root)
+
+    def _cited_lines(self, parts: tuple[str, ...]) -> list[str] | None:
+        if parts not in self._cited:
+            readable = self._reads_cited(parts)
+            path = self.root.joinpath(*parts)
+            self._cited[parts] = _text_lines(_read_source(path)) if readable else None
+        return self._cited[parts]
+
+    def _is_package_root(self, folder: tuple[str, ...], filenames: list[str]) -> bool:
+        """True when a walked folder (its `filenames`) is a package root of a
+        family the walk reads, as `_package_root` finds one: TS/JS, a folder
+        that holds `package.json`; Python, the top of an `__init__.py`
+        chain, never the source root."""
+        if "tsjs" in self.families and "package.json" in filenames:
+            return True
+        return (
+            "python" in self.families and bool(folder) and "__init__.py" in filenames
+            and (len(folder) == 1 or not self._holds(folder[:-1], "__init__.py"))
+        )
+
+    def _tree(self) -> list[tuple[str, ...]]:
+        """The files the walk reads, as segments below the source root,
+        sorted."""
+        top = self.root.joinpath(*self.folder)
+        found: list[tuple[str, ...]] = []
+
+        def fail(exc: OSError) -> None:
+            raise exc
+
+        for dirpath, dirnames, filenames in os.walk(top, onerror=fail):
+            here = Path(dirpath)
+            inner = here.relative_to(top).parts
+            below = self.folder + inner
+            # a LOOKUP_TOP_FOLDERS name is skipped right below the walk root
+            # and a package root, unless it holds a cited file
+            root = not inner or self._is_package_root(below, filenames)
+            dirnames[:] = [
+                d for d in dirnames
+                if not _lookup_skips_folder(d)
+                and d.lower() not in LOOKUP_WALK_FOLDERS
+                and not (
+                    root and d.lower() in LOOKUP_TOP_FOLDERS
+                    and (*below, d) not in self._cited_folders
+                )
+                and not (here / d).is_symlink()
+            ]
+            for filename in filenames:
+                path = here / filename
+                if (
+                    _rule_family(filename) in self.families
+                    and not _lookup_skips_file(filename)
+                    and not path.is_symlink()
+                    and path.is_file()
+                ):
+                    found.append((*below, filename))
+        return sorted(found)
+
+    @staticmethod
+    def _first(
+        parts: tuple[str, ...],
+        lines: list[str],
+        name: str,
+        cache: _SourceCache,
+        module_fallback: bool = True,
+    ) -> str | None:
+        """`file:line` of the first line of a file that declares `name`, else,
+        with `module_fallback`, its line 1 when it is the module or package
+        so named (`declared_line`)."""
+        line = declared_line(
+            parts, name, lines=lines, cache=cache, module_fallback=module_fallback
+        )
+        return f"{'/'.join(parts)}:{line}" if line is not None else None
+
+    # -- the answer ---------------------------------------------------------
+
+    def find(
+        self, cited: dict[str, list[str]], strict: frozenset[str] = frozenset()
+    ) -> tuple[dict[str, str], dict[str, list[str]]]:
+        """For the names of `cited` (name -> the source_file values its
+        entries record): name -> `file:line` for each one the source
+        declares, and name -> the sorted `file:line` of every walked file
+        that declares it, for each name the walk looked for (the names no
+        cited file settles). A dotted name is never looked up, and a name of
+        `strict` takes no line 1 from a module or package so named that is
+        not itself the export (`_exports_itself`), in a cited file or in
+        the walk."""
+        found: dict[str, str] = {}
+        if not self.families:
+            return found, {}
+        pending: list[str] = []
+        for name, files in cited.items():
+            if not name or "." in name:
+                continue
+            for parts in dict.fromkeys(filter(None, map(_cited_parts, files))):
+                lines = self._cited_lines(parts)
+                hit = None if lines is None else self._first(
+                    parts, lines, name, self._cited_cache,
+                    name not in strict or _exports_itself(parts, "\n".join(lines)),
+                )
+                if hit is not None:
+                    found[name] = hit
+                    break
+            else:
+                pending.append(name)
+        declared, unsure = self._walk(pending, strict) if pending else ({}, set())
+        # exactly one walked file must declare a name, and none it holds
+        # in an untokenizable Python file may
+        found.update({
+            name: h[0] for name, h in declared.items()
+            if len(h) == 1 and name not in unsure
+        })
+        return found, declared
+
+    def _walk(
+        self, names: list[str], strict: frozenset[str] = frozenset()
+    ) -> tuple[dict[str, list[str]], set[str]]:
+        """name -> the sorted `file:line` of each walked file that declares
+        it, at the file's first declaration (a stub beside its
+        implementation left out: `_without_stubs`; a module so named
+        declaring no name of `strict` unless it is the export), and the
+        names a Python file that
+        does not tokenize holds, which it may declare."""
+        hits: dict[str, list[str]] = {name: [] for name in names}
+        unsure: set[str] = set()
+        for parts in self._tree():
+            module = _module_name(parts)
+            lines = self._cited.get(parts)
+            text = (
+                _read_source(self.root.joinpath(*parts))
+                if lines is None
+                else "\n".join(lines)  # a cited file, read already
+            )
+            # a strict name's module so named counts when it is the export
+            fallback = module not in strict or _exports_itself(parts, text)
+            # the substring test spares the rules most files and names
+            here = sorted(
+                n for n in names if n in text or (n == module and fallback)
+            )
+            if not here:
+                continue
+            if lines is None:
+                lines = _text_lines(text)
+            cache = _SourceCache()  # this file's rules only: nothing kept
+            path = Path(*parts)
+            if path.suffix.lower() in PYTHON_EXTENSIONS and (
+                cache.py_statement_starts(path, lines) is None
+            ):
+                unsure.update(n for n in here if n in text)
+            for name in here:
+                hit = self._first(parts, lines, name, cache, fallback)
+                if hit is not None:
+                    hits[name].append(hit)
+        return {name: sorted(_without_stubs(h)) for name, h in hits.items()}, unsure
+
+
+def inventory_kinds(data: object, path: str) -> dict[str, frozenset[str]]:
+    """name -> the kinds a documented inventory gives it (`--inventory`):
+    validate-inventory.py's `--output` file, `{"exports": [...]}`, or its
+    whole result, the inventory under `inventory`. An item without a string
+    `name` and `kind` is left out, and a kind is kept in lower case. Raises
+    ValueError when no `exports` list is there."""
+    if isinstance(data, dict) and isinstance(data.get("inventory"), dict):
+        data = data["inventory"]  # validate-inventory.py's whole result
+    if not isinstance(data, dict) or not isinstance(data.get("exports"), list):
+        raise ValueError(f"--inventory {path} holds no `exports` list")
+    kinds: dict[str, set[str]] = {}
+    for item in data["exports"]:
+        if not isinstance(item, dict):
+            continue
+        name, kind = item.get("name"), item.get("kind")
+        if isinstance(name, str) and isinstance(kind, str):
+            kinds.setdefault(name, set()).add(kind.strip().lower())
+    return {name: frozenset(k) for name, k in kinds.items()}
+
+
+def _module_entry(entry: dict) -> bool:
+    """True for a `module` or `package` entry."""
+    kind = entry.get("export_type")
+    return isinstance(kind, str) and kind.strip().lower() in NO_DEFINITION_EXPORT_TYPES
+
+
+def classify_stale(
+    names: list[str],
+    prov: dict,
+    source_root: Path,
+    kinds: dict[str, frozenset[str]] | None = None,
+) -> list[dict]:
     """The fabricated-signature test for each stale name: the definition-lines
-    rules at every provenance entry whose raw `export_name` is the name. The
-    classify-stale section of the module docstring gives each reason, what a
-    `no-file` entry means and which entry gives `source`.
+    rules at every provenance entry whose raw `export_name` is the name, and
+    for a name that is not fabricated, where the source declares it
+    (`defined_at`, and `declared_in` when the walk looked for it). The
+    classify-stale section of the module docstring gives each reason, what
+    a `no-file` entry means, which entry gives `source` and how
+    `defined_at` and `declared_in` are found. `kinds` (`inventory_kinds`,
+    None without `--inventory`) keeps a name of a `NO_MODULE_KINDS` kind
+    from a module or package so named, unless an entry of the name is a
+    `module` or `package` one.
     """
     entries = [e for e in prov.get("entries") or [] if isinstance(e, dict)]
     results: list[dict] = []
+    # the names to look up (never a fabricated one): name -> its cited files
+    cited: dict[str, list[str]] = {}
+    # the names a module so named does not declare
+    strict: set[str] = set()
     for name in names:
         mine = [e for e in entries if e.get("export_name") == name]
         checks: list[dict] = []
@@ -1683,15 +2575,33 @@ def classify_stale(names: list[str], prov: dict, source_root: Path) -> list[dict
         else:
             reason = STALE_UNCHECKED
         source = next(filter(None, map(_entry_citation, mine)), None)
+        fabricated = reason == STALE_NOT_DEFINED
+        if not fabricated:
+            cited[name] = [f for f in map(_entry_file, mine) if f is not None]
+            documented = (kinds or {}).get(name, frozenset())
+            if documented & NO_MODULE_KINDS and not any(map(_module_entry, mine)):
+                strict.add(name)
         results.append(
             {
                 "name": name,
-                "fabricated": reason == STALE_NOT_DEFINED,
+                "fabricated": fabricated,
                 "source": source,
+                "defined_at": None,
+                "declared_in": None,
                 "reason": reason,
                 "entries": checks,
             }
         )
+    try:
+        found, declared = _DeclarationLookup(entries, source_root).find(
+            cited, frozenset(strict)
+        )
+    except _LOOKUP_ERRORS:
+        # a lookup that fails proves nothing: every name stays null
+        found, declared = {}, {}
+    for item in results:
+        item["defined_at"] = found.get(item["name"])
+        item["declared_in"] = declared.get(item["name"])
     return results
 
 
@@ -2898,8 +3808,12 @@ def _cmd_definition_lines(args: argparse.Namespace) -> int:
 
 def _cmd_classify_stale(args: argparse.Namespace) -> int:
     names_path, prov_path = Path(args.names), Path(args.provenance)
+    inv_path = Path(args.inventory) if args.inventory is not None else None
     root = Path(args.source_root)
-    for label, path in (("names", names_path), ("provenance map", prov_path)):
+    inputs = [("names", names_path), ("provenance map", prov_path)]
+    if inv_path is not None:
+        inputs.append(("inventory", inv_path))
+    for label, path in inputs:
         if not path.is_file():
             print(f"error: {label} not found: {path}", file=sys.stderr)
             return 2
@@ -2919,11 +3833,14 @@ def _cmd_classify_stale(args: argparse.Namespace) -> int:
     try:
         names = stale_names(data)
         prov = load_json_object(prov_path, "provenance map")
+        kinds = None if inv_path is None else inventory_kinds(
+            load_json_object(inv_path, "inventory"), args.inventory
+        )
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
     try:
-        result = classify_stale(names, prov, root)
+        result = classify_stale(names, prov, root, kinds)
     except Exception as exc:  # noqa: BLE001 - exit 2, never read as an answer
         return _unexpected("stale-name classification", exc)
     return 0 if _emit(result, args.output) else 2
@@ -3225,8 +4142,8 @@ def _build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser(
         "classify-stale",
         help=(
-            "decide which stale names are fabricated signatures: no cited "
-            "file defines them"
+            "decide which stale names are fabricated signatures (no cited "
+            "file defines them) and where the source declares the others"
         ),
     )
     p.add_argument(
@@ -3244,6 +4161,17 @@ def _build_parser() -> argparse.ArgumentParser:
         "--source-root",
         required=True,
         help="source tree root the entries' source_file paths are under",
+    )
+    p.add_argument(
+        "--inventory",
+        default=None,
+        help=(
+            "validate-inventory.py's documented inventory: a name it gives a "
+            "function, hook, class, interface, enum or type kind takes no "
+            "line 1 from a module so named, unless a provenance map entry of "
+            "the name is a module or package one or the module is a TS/JS "
+            "file that is itself the export"
+        ),
     )
     p.add_argument(
         "-o",

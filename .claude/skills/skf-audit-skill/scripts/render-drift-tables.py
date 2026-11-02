@@ -31,6 +31,11 @@ structural DIFF [--file-drift FILE]
                                 **Total Drift Items**, their sum
     **Signatures not compared:** (only when summary.signature_unverified
                                 is above 0)
+    **Off the public surface:** (only when summary.not_public is above 0:
+                                the exports of a public-api skill the
+                                diff left out of Added Exports, which are
+                                not drift; the first ten of not_public[]
+                                as `name` (`file`), then `and N more`)
     ### By Library              a stack diff (--group-by source_library):
                                 each groups[] entry's counts
     ### Script/Asset Drift (added N, removed N, changed N)
@@ -40,7 +45,11 @@ structural DIFF [--file-drift FILE]
                                 given and exists; when FILE cannot be read
                                 or is not such a result, the heading reads
                                 `### Script/Asset Drift: skipped (<reason>)`
-                                and the other tables still print)
+                                and the other tables still print). When
+                                FILE's `added_not_checked` names a reason
+                                (no brief, or one the comparison could not
+                                read), a **New files not checked:** line
+                                follows the table
     ### Provenance label differences (not drift) (N)
                                 Export | Baseline label | Current label
                                 (only when label_changes[] is non-empty)
@@ -121,6 +130,8 @@ from pathlib import Path
 ROLLUP_MIN = 10
 # Representative names a rollup row shows.
 REP_COUNT = 3
+# The exports the Off the public surface note names, as update-skill's not_public warning does.
+NOT_PUBLIC_NAMED = 10
 SEVERITIES = ("CRITICAL", "HIGH", "MEDIUM", "LOW")
 NONE = "(none)"
 NA = "n/a"
@@ -400,7 +411,12 @@ def _file_drift_section(data) -> str:
                      text(details[0]) if len(details) == 1 else NA])
     heading = (f"### Script/Asset Drift (added {_count(stats, 'added')}, removed {_count(stats, 'removed')}, "
                f"changed {_count(stats, 'changed')})")
-    return heading + "\n\n" + _table(("File", "Change", "Detail"), rows)
+    section = heading + "\n\n" + _table(("File", "Change", "Detail"), rows)
+    reason = data.get("added_not_checked")
+    if isinstance(reason, str) and reason.strip():
+        section += (f"\n\n**New files not checked:** {text(reason.strip())}. The tracked files were compared, but "
+                    "no new script, asset or document was looked for, so `added` lists none.")
+    return section
 
 
 def render_structural(diff, file_drift=None, file_drift_skipped=None) -> str:
@@ -455,6 +471,17 @@ def render_structural(diff, file_drift=None, file_drift_skipped=None) -> str:
     if unverified:
         block += (f"\n\n**Signatures not compared:** {unverified} matched exports hold their signature in "
                   "different fields on the two sides, so a change there cannot be seen.")
+    not_public = _count(summary, "not_public")
+    if not_public:
+        one = not_public == 1
+        named = [f"{export_cell(r)} ({where(r.get('file'))})"
+                 for r in _records(diff, "not_public")[:NOT_PUBLIC_NAMED]]
+        more = f" and {not_public - len(named)} more" if named and not_public > len(named) else ""
+        listed = f": {', '.join(named)}{more}" if named else ""
+        block += (f"\n\n**Off the public surface:** {not_public} {'export' if one else 'exports'} the provenance "
+                  f"map does not hold {'is' if one else 'are'} off this public-api skill's public surface "
+                  f"(`not_public[]` in the saved diff), so {'it is' if one else 'they are'} not reported as added "
+                  f"and {'is' if one else 'are'} excluded from Total Drift Items{listed}.")
     parts.append(block)
 
     groups = _records(diff, "groups")

@@ -8,6 +8,10 @@ skillInventoryProbeOrder:
   - '{project-root}/src/shared/scripts/skf-skill-inventory.py'
 # {dirSizesHelper}: the §9b size of the folders in scope.
 dirSizesHelper: 'scripts/dir-sizes.py'
+# {atomicWriteHelper}: the §7 recovery that points `active` at the version to keep.
+atomicWriteProbeOrder:
+  - '{project-root}/_bmad/skf/shared/scripts/skf-atomic-write.py'
+  - '{project-root}/src/shared/scripts/skf-atomic-write.py'
 ---
 
 <!-- Config: communicate in {communication_language}. -->
@@ -167,11 +171,11 @@ Set `target_versions = "all"` and `is_skill_level = true`.
       "**Cannot drop the active version `{version}`.**
       Other non-deprecated versions of `{target_skill}` still exist. To proceed, either:
 
-      **(a)** Make the version you keep active first: point the `active` link at it (`ln -sfn <version to keep> {skills_output_folder}/{target_skill}/active`), run `[EX] Export Skill` for `{target_skill}`, which exports that version and archives `{version}`, then return here to drop `{version}`, OR
+      **(a)** Make the version you keep active first: point the `active` link at it (`uv run {atomicWriteHelper} flip-link --link "{skills_output_folder}/{target_skill}/active" --target <version to keep>`), run `[EX] Export Skill` for `{target_skill}`, which exports that version and archives `{version}`, then return here to drop `{version}`, OR
 
       **(b)** Use the `[A] All versions` option to drop every version of `{target_skill}` at once."
 
-      In (a), `<version to keep>` is the first `{version_rows}` entry other than `{version}` whose `in_manifest` and `on_disk` are true and whose `status` is not `"deprecated"` (the rows are newest first); with no such entry, show `<version to keep>` as written.
+      In (a), `<version to keep>` is the first `{version_rows}` entry other than `{version}` whose `in_manifest` and `on_disk` are true and whose `status` is not `"deprecated"` (the rows are newest first); with no such entry, show `<version to keep>` as written. `{atomicWriteHelper}` is the first existing path in `{atomicWriteProbeOrder}`, or its first entry when neither exists.
 
       HALT (exit code 5, `halt_reason: "active-version-guard-refused"`, phase `select:active-version-guard`), with `skill: "{target_skill}"` and `versions_affected: ["{version}"]` in the §1 halt envelope. Do not proceed.
 
@@ -305,7 +309,7 @@ When `{headless_mode}` is true, stage the preview as `{run_dir}/result-context.j
 uv run {emitEnvelopeHelper} emit --workflow skf-drop-skill --run-dir "{run_dir}" < "{run_dir}/result-context.json"
 ```
 
-Display the line it prints verbatim (the `message` of its stderr JSON when it exits non-zero). A dry run passes no `--result-dir`, so it writes no result file. Then, in either mode, delete the run folder (`rm -rf "{run_dir}"`) and HALT (exit code 0). The manifest, filesystem, and context files are untouched.
+A dry run passes no `--result-dir`, so it writes no result file. Then, in either mode, delete the run folder (`rm -rf "{run_dir}"`) and HALT (exit code 0). In a headless run, display the line the emitter printed verbatim (the `message` of its stderr JSON when it exits non-zero) after the delete and before the HALT, with nothing after it, so a `claude -p` caller reads it as the final message. The manifest, filesystem, and context files are untouched.
 
 **Otherwise (not a dry-run), GATE [default: Y]:** If `{headless_mode}`: auto-proceed with [Y], record `confirm_source = "headless-auto"`, stage `{run_dir}/decision.json` as `{"gate": "select.confirm", "default_action": "Y", "taken_action": "Y", "reason": "headless auto-confirm"}` and run the §8 `record` command, and log: "headless: auto-confirmed drop of {target_skill}"
 

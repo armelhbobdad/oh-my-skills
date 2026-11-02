@@ -18,7 +18,8 @@ CLI:
   uv run skf-extraction-snapshot.py build --source-root <dir> --tier <tier> \\
       --date <timestamp> [--source-path <recorded root>] \\
       [--provenance-map <map>] [--extraction <runner.json>] \\
-      [--details <by-eye.json>]... -o <extraction-snapshot.json>
+      [--details <by-eye.json>]... [--scope-type <type>] \\
+      -o <extraction-snapshot.json>
   uv run skf-extraction-snapshot.py relocate <extraction-snapshot.json> \\
       --diff <structural-diff.json> --extraction <runner.json>
 
@@ -66,6 +67,24 @@ build
   map gives a library (`source_library_by_file`) carries it as
   `source_library`, which step 3's `--group-by source_library` diff reads.
 
+  Public surface (--scope-type public-api, in any case). Each export of a
+  language family whose entry points are a barrel is marked `public`, true
+  or false, by skf-extraction-inventory.py's public-surface rule
+  (`public_surface` over the runner's JSON, with the scope type this flag
+  gives, and `public(name, file, language)`, the language of the runner's
+  export of that name and file, else the file's extension): the rule
+  create-skill keeps a public-api skill's provenance map to, and
+  update-skill's change manifest too. Every export stays in the snapshot,
+  so a map entry off the surface is never reported removed; step 3's diff
+  lists an export marked false that pairs with no map entry under
+  `not_public[]`, not `added[]`. With no surface the rule can read (no
+  runner JSON, as at Quick tier, a runner that could not run, an
+  incomplete run, one with errors, or an entry point the runner could not
+  trace) nothing is marked, and `public_surface.problem` says why. Any
+  other scope type, and no flag, mark nothing and give `public_surface`
+  null; only --scope-type public-api loads skf-extraction-inventory.py,
+  from beside this script.
+
   Details file: {"files": [paths read by eye], "exports": [export objects]}
   (either key may be absent). Give --details once per file: one per worker.
 
@@ -87,7 +106,8 @@ build
                           "hash-tracked": N, "missing": N,
                           "parse-failed": N, "unread": N},
       "ast_fallback_files": ["<file>", ...],
-      "extraction_gaps": [{"name", "file", "line", "entry"}, ...],
+      "extraction_gaps": [{"name", "file", "line", "entry",
+                           "export_type"?}, ...],
       "truncated": bool,               # a recipe hit the runner's head cap
       "cap_hits": ["<recipe id>", ...],
       "outside_scope": [{"path": "<file>", "names": [...],
@@ -96,7 +116,9 @@ build
                  "t1": N, "t1_low": N},
       "exports": [{"name", "type", "signature", "file", "line",
                    "confidence", "extraction_method", "ast_node_type",
-                   "source_library"?}, ...],
+                   "source_library"?, "public"?}, ...],
+      "public_surface": {"problem": "<why no surface was read>" | null,
+                         "marked_not_public": N} | null,
       "relocations": [{"name", "file", "line"}, ...],   # relocate's
       "warnings": ["..."]
     }
@@ -106,7 +128,27 @@ build
   ["all files (ast-grep unavailable)"], and [] at the Quick tier.
   `extraction_gaps` lists the names a package entry point exports that no
   recipe found (the runner's `entry_point_diff.extraction_gaps`), less the
-  ones an export of the snapshot now holds: read them by eye.
+  ones an export of the snapshot now holds, then, with --provenance-map,
+  the baseline gaps: each entry of the map the snapshot lacks whose file
+  still declares it (the runner leaves out an underscore name such as
+  `__version__`, and a module), which would otherwise read as removed. A
+  baseline gap gives the line that declares the name, `entry` null and,
+  when the entry has one, its `export_type`. It is checked only for an
+  entry whose file is `extracted` or `read-by-eye`, whose name is not
+  dotted, and that the snapshot holds neither under its name nor under
+  its `reexported_as` target at that file. The selection and the
+  declaration are skf-verify-provenance-completeness.py's (`baseline_gaps`,
+  by `declared_line`), loaded from beside this script, the rule
+  update-skill's Category B applies through skf-build-change-manifest.py
+  baseline-gaps: a line at column 0 of a Python or TS/JS file that the
+  definition-line rules match with imports left out (an alias that
+  renames counts; a plain or star import and a re-export never do),
+  and for a `module` or `package` entry the module or package so named
+  (at its line 1). An entry no rule can check (its file neither Python
+  nor TS/JS, a file the lookup does not read, such as a test file or one
+  with a symlink on its path, or a dotted `module` or `package` name) is
+  named in one warning, as `name (file)`. Each name and file is listed
+  once, and each file is read once. Read them by eye.
   `outside_scope` groups the runner's `entry_point_diff.outside_scope` by
   the file that defines each name: public API a package entry point exports
   from a file the skill does not cover, which the drift report lists under
@@ -115,8 +157,8 @@ build
   Prints {"status": "ok", "output", "runner_status", "complete",
   "to_read": [{"file", "status", "issue"}, ...] (the `parse-failed` and
   `unread` files), "extraction_gaps", "ast_fallback_files",
-  "files_by_status", "counts"} on stdout: what step 2 acts on, so it never
-  opens the runner's JSON.
+  "files_by_status", "counts", "public_surface"} on stdout: what step 2
+  acts on, so it never opens the runner's JSON.
 
 relocate
 
@@ -130,9 +172,9 @@ relocate
   "names": [...]}; added 0 changes nothing.
 
 Exit codes: 0 the file was written (or relocate found nothing to add); 2
-an input that cannot be read or parsed, or an output that cannot be
-written ({"status": "error", "error"} on stdout), or a usage error
-(argparse, on stderr).
+an input that cannot be read or parsed, a helper beside this script that
+cannot be loaded, or an output that cannot be written ({"status":
+"error", "error"} on stdout), or a usage error (argparse, on stderr).
 """
 
 from __future__ import annotations
@@ -147,7 +189,11 @@ from pathlib import Path
 STATUSES = ("extracted", "read-by-eye", "hash-tracked", "missing", "parse-failed", "unread")
 TO_READ = ("parse-failed", "unread")
 RUNNER_READ = frozenset({"ok", "incomplete"})
+# The files whose provenance entries a baseline gap checks: the ones read.
+BASELINE_GAP_STATUSES = ("extracted", "read-by-eye")
 AST_GREP_UNAVAILABLE = "all files (ast-grep unavailable)"
+# The scope type whose exports are marked by the public-surface rule.
+PUBLIC_API = "public-api"
 EXIT_ERROR = 2
 
 
@@ -155,24 +201,72 @@ class SnapshotError(Exception):
     """An input or output the helper cannot use (exit 2)."""
 
 
-_PROVENANCE = None
+_SIBLINGS: dict[str, object] = {}
+
+
+def _sibling(filename: str, *needs: str):
+    """A script installed beside this one, loaded once. Any failure to load
+    it, or a script without each name `needs` lists, is a SnapshotError
+    (exit 2)."""
+    if filename not in _SIBLINGS:
+        path = Path(__file__).resolve().parent / filename
+        try:
+            spec = importlib.util.spec_from_file_location(filename[:-3].replace("-", "_"), path)
+            if spec is None or spec.loader is None:
+                raise ImportError(f"no loader for {path}")
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+        except Exception as exc:  # whatever the script raises, the build reports it
+            raise SnapshotError(f"cannot load {filename} beside {Path(__file__).name}: {exc}") from exc
+        missing = [need for need in needs if getattr(module, need, None) is None]
+        if missing:
+            raise SnapshotError(f"cannot load {filename} beside {Path(__file__).name}: "
+                                f"it has no {', '.join(missing)}")
+        _SIBLINGS[filename] = module
+    return _SIBLINGS[filename]
 
 
 def _provenance():
-    """skf-load-provenance.py, installed beside this script, loaded once."""
-    global _PROVENANCE
-    if _PROVENANCE is None:
-        path = Path(__file__).resolve().parent / "skf-load-provenance.py"
-        spec = importlib.util.spec_from_file_location("skf_load_provenance", path)
-        if spec is None or spec.loader is None:
-            raise SnapshotError(f"cannot load skf-load-provenance.py beside {Path(__file__).name}")
-        module = importlib.util.module_from_spec(spec)
-        try:
-            spec.loader.exec_module(module)
-        except (OSError, ImportError, SyntaxError) as exc:
-            raise SnapshotError(f"cannot load skf-load-provenance.py: {exc}") from exc
-        _PROVENANCE = module
-    return _PROVENANCE
+    """skf-load-provenance.py, for the scan list and the libraries (the
+    verifier's `baseline_gaps` reads the re-export map itself)."""
+    return _sibling("skf-load-provenance.py", "bounded_scan_files", "source_library_by_file")
+
+
+def _verifier():
+    """skf-verify-provenance-completeness.py, for its baseline gaps
+    (`baseline_gaps`, by its declaration rule `declared_line`)."""
+    return _sibling("skf-verify-provenance-completeness.py", "baseline_gaps", "declared_line")
+
+
+def _public_api(scope_type: str | None) -> bool:
+    return isinstance(scope_type, str) and scope_type.strip().lower() == PUBLIC_API
+
+
+def _public_surface(runner: dict, scope_type: str):
+    """(surface, problem) by skf-extraction-inventory.py's `public_surface` over the runner's JSON with the scope
+    type --scope-type gives (an empty one when no runner ran, so the rule names its own problem)."""
+    scope = runner.get("scope") if isinstance(runner.get("scope"), dict) else {}
+    extraction = {**runner, "scope": {**scope, "type": scope_type}}
+    return _sibling("skf-extraction-inventory.py", "public_surface").public_surface(extraction)
+
+
+def _mark_public(exports: list[dict], runner: dict, scope_type: str | None) -> dict | None:
+    """Mark each export `public` by the public-surface rule for a public-api scope type; the snapshot's
+    `public_surface` (None for any other scope type)."""
+    if not _public_api(scope_type):
+        return None
+    surface, problem = _public_surface(runner, scope_type)
+    marked_not_public = 0
+    if surface is not None:
+        languages = {(e.get("export_name"), _posix(str(e.get("source_file") or ""))): e.get("language")
+                     for e in runner.get("exports") or [] if isinstance(e, dict)}
+        for record in exports:
+            mark = surface.public(record["name"], record["file"], languages.get((record["name"], record["file"])))
+            if mark is not None:
+                record["public"] = mark
+                if mark is False:
+                    marked_not_public += 1
+    return {"problem": problem, "marked_not_public": marked_not_public}
 
 
 def _posix(path: str) -> str:
@@ -278,20 +372,33 @@ def _outside_scope(runner: dict) -> list[dict]:
 
 
 def _extraction_gaps(runner: dict, exports: list[dict]) -> list[dict]:
-    """The runner's extraction gaps no export of the snapshot holds yet."""
+    """The runner's extraction gaps no export of the snapshot holds yet, one
+    per name and file."""
     held = {(e["name"], e["file"]) for e in exports}
     names = {e["name"] for e in exports}
-    gaps = []
+    gaps: dict[tuple, dict] = {}
     for item in _entry_point_diff(runner).get("extraction_gaps") or []:
         if not isinstance(item, dict) or not isinstance(item.get("name"), str) or not item["name"]:
             continue
         file = _posix(item["file"]) if isinstance(item.get("file"), str) else None
         if (item["name"], file) in held or (file is None and item["name"] in names):
             continue
-        gap = {"name": item["name"], "file": file, "line": item.get("line"), "entry": item.get("entry")}
-        if gap not in gaps:
-            gaps.append(gap)
-    return gaps
+        gaps.setdefault((item["name"], file),
+                        {"name": item["name"], "file": file, "line": item.get("line"), "entry": item.get("entry")})
+    return list(gaps.values())
+
+
+def _baseline_gaps(provenance: dict, source_root: Path, statuses: dict[str, str], exports: list[dict],
+                   listed: set[tuple]) -> tuple[list[dict], list[str]]:
+    """The provenance entries the snapshot lacks whose cited file still
+    declares them, and the entries no rule can check, by the verifier's
+    `baseline_gaps` (the selection and the declaration rule both live
+    there, beside `declared_line`, for update-skill's `baseline-gaps` too):
+    the entries of the files `extracted` or `read-by-eye`, against the
+    snapshot's exports, less the gaps `listed` already holds."""
+    files = {file for file, status in statuses.items() if status in BASELINE_GAP_STATUSES}
+    held = {(e["name"], e["file"]) for e in exports}
+    return _verifier().baseline_gaps(provenance, source_root, held, files, listed)
 
 
 def _ordered(exports) -> list[dict]:
@@ -306,7 +413,8 @@ def _counts(exports: list[dict]) -> dict:
 
 
 def build(source_root: Path, tier: str, date: str, provenance: dict | None, runner: dict | None,
-          details_files: list[str], details_exports: list[dict], root_text: str | None = None) -> dict:
+          details_files: list[str], details_exports: list[dict], root_text: str | None = None,
+          scope_type: str | None = None) -> dict:
     """The snapshot (see the module docstring)."""
     warnings: list[str] = []
     runner = runner or {}
@@ -378,6 +486,7 @@ def build(source_root: Path, tier: str, date: str, provenance: dict | None, runn
                       "fallback": ran and runner_said in TO_READ, "exports": per_file[rel]})
 
     ordered = _ordered(exports.values())
+    surface_state = _mark_public(ordered, runner, scope_type)
     for record in ordered:
         library = libraries.get(record["file"])
         if library is not None:
@@ -389,6 +498,17 @@ def build(source_root: Path, tier: str, date: str, provenance: dict | None, runn
         fallback_files = [f["file"] for f in files if f["fallback"]]
     else:
         fallback_files = [] if tier.strip().lower() == "quick" else [AST_GREP_UNAVAILABLE]
+    gaps = _extraction_gaps(runner, ordered) if ran else []
+    if provenance is not None:
+        baseline, unchecked = _baseline_gaps(provenance, source_root, {f["file"]: f["status"] for f in files},
+                                             ordered, {(g["name"], g["file"]) for g in gaps})
+        gaps += baseline
+        if unchecked:
+            warnings.append(f"{len(unchecked)} map entr{'y' if len(unchecked) == 1 else 'ies'} the snapshot "
+                            f"lacks that no rule can check (in a file neither Python nor TS/JS, a file the "
+                            f"declaration lookup does not read, or a dotted module name), so step 3 may report "
+                            f"{'it' if len(unchecked) == 1 else 'them'} removed: "
+                            + ", ".join(f"{u['name']} ({u['file']})" for u in unchecked))
     return {
         "extraction_date": date,
         "confidence_tier": tier,
@@ -402,12 +522,13 @@ def build(source_root: Path, tier: str, date: str, provenance: dict | None, runn
         "files": files,
         "files_by_status": {status: by_status[status] for status in STATUSES},
         "ast_fallback_files": fallback_files,
-        "extraction_gaps": _extraction_gaps(runner, ordered) if ran else [],
+        "extraction_gaps": gaps,
         "truncated": bool(runner.get("truncated")) or bool(cap_hits),
         "cap_hits": cap_hits,
         "outside_scope": _outside_scope(runner) if ran else [],
         "counts": _counts(ordered),
         "exports": ordered,
+        "public_surface": surface_state,
         "relocations": [],
         "warnings": warnings,
     }
@@ -471,14 +592,15 @@ def _cmd_build(args: argparse.Namespace) -> dict:
         details_files += files
         details_exports += exports
     snapshot = build(root, args.tier, args.date, provenance, runner, details_files, details_exports,
-                     root_text=args.source_path or args.source_root)
+                     root_text=args.source_path or args.source_root, scope_type=args.scope_type)
     _write(Path(args.output), snapshot)
     return {"status": "ok", "output": args.output, "runner_status": snapshot["runner_status"],
             "complete": snapshot["complete"],
             "to_read": [{"file": f["file"], "status": f["status"], "issue": f["issue"]}
                         for f in snapshot["files"] if f["status"] in TO_READ],
             "extraction_gaps": snapshot["extraction_gaps"], "ast_fallback_files": snapshot["ast_fallback_files"],
-            "files_by_status": snapshot["files_by_status"], "counts": snapshot["counts"]}
+            "files_by_status": snapshot["files_by_status"], "counts": snapshot["counts"],
+            "public_surface": snapshot["public_surface"]}
 
 
 def _cmd_relocate(args: argparse.Namespace) -> dict:
@@ -514,6 +636,9 @@ def _build_parser() -> argparse.ArgumentParser:
     snap.add_argument("--extraction", help="the JSON skf-extract-public-api.py --mode full wrote")
     snap.add_argument("--details", action="append",
                       help="the exports read by eye: {\"files\": [...], \"exports\": [...]}; repeat per file")
+    snap.add_argument("--scope-type",
+                      help="the skill's scope type: public-api marks each export `public` by the public-surface "
+                           "rule; any other marks nothing")
     snap.add_argument("-o", "--output", required=True, help="the snapshot to write")
     snap.set_defaults(func=_cmd_build)
     move = sub.add_parser("relocate", help="add the exports the runner found under removed names elsewhere")

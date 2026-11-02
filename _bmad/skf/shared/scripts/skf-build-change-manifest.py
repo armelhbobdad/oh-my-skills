@@ -55,16 +55,28 @@ Subcommands:
   apply --update-type incremental|gap-driven|full --skill-name <name>
         --generation-date <iso> --confidence-tier <tier>
         --manual-sections-preserved <n> -o <file> [inputs...]
+        [--not-public-out <file>] [--metadata-in <file> --lists-out <file>]
       The provenance map an update writes (see "Apply" below): the old
       map with this run's changes, written to -o through a temporary file
-      and a rename. Prints a summary with the warnings for a person.
+      and a rename, the summary's not_public list to --not-public-out and
+      metadata.json's exports[], scripts[] and assets[] to --lists-out
+      when given. Prints a summary with the warnings for a person.
+
+  metadata --metadata <metadata.json> --lists <file> --stats <file>
+           --version <version> --generation-date <iso>
+           [--source-commit <sha>] [--source-ref <ref>]
+      The skill's metadata.json an update leaves (see "Metadata" below),
+      written over --metadata through a temporary file and a rename.
+      Prints {"status": "written", "metadata": <path>, "version",
+      "exports": N, "scripts": N, "assets": N}.
 
   records [--extraction <file>] [--export-details <file>]
           [--files-from <file>] [--patches <dir>] -o <file>
       Step 3's re-extraction records (see "Records" below), written to -o
       through a temporary file and a rename. Prints {"status": "written",
       "output", "files_extracted", "exports_extracted",
-      "confidence_breakdown": {"T1", "T1-low", "T2"}, "warnings"}.
+      "confidence_breakdown": {"T1", "T1-low", "T2"}, "marked_not_public"
+      (the exports marked public: false), "warnings"}.
 
   gap-records --manifest <file> --provenance-map <file> [--source-root <dir>]
               [--drift-status ok|skipped|overridden] [--judgments <file>]
@@ -74,6 +86,14 @@ Subcommands:
       (see "Gap records" below): --plan prints what to answer and which
       files targeted re-extraction scans; without it, the records are
       written to -o through a temporary file and a rename.
+
+  baseline-gaps --provenance-map <file> --extraction <file> --files <file>
+                --source-root <dir> -o <file>
+      Category B's baseline gaps (see "Baseline gaps" below): each map
+      entry of the files --files lists that the runner did not report and
+      its file still declares, written to -o through a temporary file and
+      a rename. Prints {"status": "written", "output": <-o>, "gaps": N,
+      "unchecked": N}.
 
 Helper files in place of typed slices (update-skill detect-changes §2.1):
 
@@ -94,9 +114,13 @@ Helper files in place of typed slices (update-skill detect-changes §2.1):
                                             changed); moved_exports for an
                                             export whose only field is `line`
                               moved[]    -> moved_exports {name, file:
-                                            current_file, old_line:
+                                            current_file, old_file:
+                                            previous_file (only when it
+                                            differs), old_line:
                                             previous_line, new_line: line},
-                                            unless it is a modified export
+                                            unless it is a modified export,
+                                            which then takes old_file and
+                                            old_line: previous_line
                             label_changes[] is not drift, and a name
                             ambiguous_names[] lists stays removed and added
   --category-c <file>       the output of rename-candidates: its category_c
@@ -136,10 +160,10 @@ Input JSON shape (object on stdin or in --input file):
       "deleted":  ["path3", ...]
     },
     "category_b": {
-      "modified_exports": [{name, file, old_line, new_line}, ...],
+      "modified_exports": [{name, file, old_line, new_line, old_file?}, ...],
       "new_exports":      [{name, file, line}, ...],
       "deleted_exports":  [{name, file, old_line}, ...],
-      "moved_exports":    [{name, file, old_line, new_line}, ...]
+      "moved_exports":    [{name, file, old_line, new_line, old_file?}, ...]
     },
     "category_c": {
       "renamed_files":   [{old_path, new_path}, ...],
@@ -163,6 +187,10 @@ Manifest (build's output):
               category_d list},
    "total_export_changes": N, "per_file": [...],
    "category_d": {the eight category_d lists, each path once}}
+
+  Each per_file item's exports_affected holds {name, change_type,
+  old_line, new_line}, and old_file for an export that moved across files
+  (a MOVED_EXPORT, or a MODIFIED_EXPORT that also changed).
 
   A tracked document (a doc row of file_entries[]) has no other detector:
   update-skill's Category A never lists it, so a document-only change still
@@ -233,14 +261,36 @@ Apply (update-skill write.md §3):
   details, then step 3's record (the runner's in the map's typed form).
   Per file of the manifest:
     MODIFIED  NEW_EXPORT adds an entry, MODIFIED_EXPORT rewrites the
-              export's fields from its fresh record, MOVED_EXPORT sets
-              its line (and file), DELETED_EXPORT removes it
+              export's fields (file included) from its fresh record,
+              MOVED_EXPORT moves the entry to the file and the fresh
+              record's line, else new_line, DELETED_EXPORT removes it;
+              a change with an old_file finds its entry in that file
     ADDED     every fresh record of the file becomes an entry
     DELETED   every entry of the file is removed
     MOVED     the old path's entries are replaced by the new path's
               fresh records, each keeping the keys of the entry of its
               name it replaces
-  and each renamed export takes its new name and fresh fields. A docs-only
+  and each renamed export takes its new name and fresh fields. A
+  MOVED_EXPORT whose fresh record is the runner's (ast-grep) also takes
+  its confidence, extraction_method and ast_node_type (the entry's when
+  the record's is null), and its signature_source when the record holds
+  each of params and return_type the entry holds (else the entry's),
+  never its export_type, params or return_type; one read by eye moves
+  the line and file only.
+
+  Public-api skills (incremental only): a NEW_EXPORT or MODIFIED_EXPORT
+  the map does not hold, an ADDED file's record and a MOVED file's record
+  whose name no old entry carries become entries only when on the public
+  surface: the record's `public` mark (see "Records"), else, for a record
+  --reextract-records does not mark, the same rule over --extraction (its
+  scope.type). A name whose entry this run removes (a DELETED_EXPORT, a
+  DELETED file's or a MOVED file's old path's entry) is added whatever
+  its mark. Each one left out is listed in the summary's not_public,
+  {name, file}, with one warning for them all; an entry the map holds is
+  updated whatever its mark, and no entry is removed for it. A public-api
+  --extraction the rule cannot read (no entry_point_diff, an incomplete
+  run or one with errors, an unresolved entry point) adds every name, with
+  one warning. A docs-only
   run's records ({"mode": "docs-only", "changed_urls": [...], "exports":
   [{name, type, params, return_type, url}]}) replace the entries of each
   changed URL (source_file is the URL; confidence and signature_source
@@ -295,9 +345,50 @@ Apply (update-skill write.md §3):
   manual_sections_preserved. An older update-history key
   (update_operations, update_metadata) stays as it is.
 
+  Lists. With --metadata-in (the skill's metadata.json as the update
+  found it) and --lists-out, it also writes the lists metadata.json takes,
+  {"exports": [...], "scripts": [...], "assets": [...]}. exports: the
+  --metadata-in exports[] less each name whose entry this run removed (a
+  DELETED_EXPORT, a DELETED file's or a MOVED file's old path's, a
+  rescoped one, a changed URL's) or renamed, unless an entry of the new
+  map still holds it, then each name it added an entry for or renamed an
+  entry to, each once; a renamed name takes its old name's place. A name
+  left out as off the public surface (the summary's not_public) has no
+  entry, so it is not added. A full update, which rebuilds the map, also
+  drops each name the new map does not hold, and a reference app
+  (scope_type reference-app) gets []. scripts and assets: one row per
+  file_entries[] row of the new map whose file_type is script or asset
+  (a row with none takes the type its file_name's folder names), in the
+  map's order: the --metadata-in scripts[] or assets[] row of its
+  source_file (else of its file_name) as it stands, else a new row {file:
+  its file_name, purpose, source_file, confidence (default T1-low)},
+  whose purpose skf-detect-scripts-assets.py reads from the file under
+  --source-root (its file name when no --source-root is given or the
+  file is not there).
+
+Metadata (update-skill write.md §2):
+
+  metadata.json as --metadata holds it, with what the update sets: version
+  (--version) and generation_date (--generation-date, YYYY-MM-DDTHH:MM:SSZ);
+  source_commit and source_ref when --source-commit or --source-ref is
+  given (an empty one sets null), else as they stand; exports, scripts and
+  assets from --lists (apply's --lists-out), scripts or assets left out
+  when its list is empty; confidence_distribution from --stats (the JSON
+  skf-render-metadata-stats.py writes with -o), and stats: the stats
+  helper's fields, then each other field --metadata's stats holds (a
+  component library's own counts, a reference app's notes, a field a
+  gap-driven patch added), the stats helper's fields an earlier run wrote
+  that this run's does not (effective_denominator,
+  pattern_surfaces_documented) dropped. It removes last_update and
+  update_type, which the provenance map's update block records, and keeps
+  every other field. It refuses (exit 1, nothing written) a --stats whose
+  scripts_count or assets_count is not the length of --lists' scripts or
+  assets, a --generation-date of another form, and a file it cannot read.
+
   Summary on stdout: {"status": "written", "map": <-o>, "entries":
-  {"added", "updated", "removed"}, "file_entries": {"added", "updated",
-  "removed"}, "warnings": [...]}, or {"status": "refused",
+  {"added", "updated", "removed"}, "not_public": [{name, file}],
+  "file_entries": {"added", "updated", "removed"}, "warnings": [...]},
+  or {"status": "refused",
   "blocking_unresolved": [{export_name, severity}]} with exit 3.
 
 Records (update-skill re-extract.md §4, and gap-driven.md §4a for the files
@@ -323,6 +414,29 @@ it scans):
   return_type are set only where the seed has none. A patch for an export
   no seed holds is not added, with a warning. confidence_breakdown counts
   the exports by confidence, and T2 the exports with a qmd_evidence.
+
+  Public surface. When --extraction's scope.type is public-api (in any
+  case) and it has an entry_point_diff, each export of a language family
+  whose entry_points.by_language status is `barrel` is marked `public`:
+  true when its name and file are a pair of the runner's entry_point_diff
+  `public` (its name, or the name `local` gives it in that file) or
+  `extraction_gaps`, or when a `public` item of its name and family has
+  no file; false otherwise. A `public` item with `via` namespace and a
+  `members` list (what the submodule passes on, which users reach as
+  `pkg.sub.name`, and which counts.exports_public_api counts in its place)
+  gives its members' pairs (each member's name, or its `local` one, and
+  its file; a member with no file its name) in place of its own; one
+  whose `members` is null (a module the runner could not read), or that
+  has no `members` key (an older runner's), gives its own pair, as any
+  item does.
+  The rule is skf-extraction-inventory.py's public_surface, loaded from
+  this folder, by which create-skill marks its extraction inventory too.
+  In a normal update merge documents no export marked false that the map
+  does not hold, and apply adds none; gap-records drops the mark, and a
+  full (degraded) apply adds every record. Any other scope type, a family
+  with no barrel, and a run with no entry_point_diff, an incomplete one,
+  one with errors or one whose entry_points.unresolved is not empty mark
+  nothing.
 
 Gap records (update-skill gap-driven.md §3, §4 and §4a):
 
@@ -383,7 +497,8 @@ Gap records (update-skill gap-driven.md §3, §4 and §4a):
      first export of its name in the blocks of those files, in their
      order: `re-extracted`, new_location its record's location,
      resolution_source remediation-paths, and the record copied into
-     `files` as `records` wrote it, with the answered `docstring` added.
+     `files` as `records` wrote it, less its `public` mark (a normal
+     update's), with the answered `docstring` added.
      An entry with no match, or no path to scan, is unresolved, except a
      missing-export or missing-type one that is not blocking, which is
      unknown. Any unresolved entry: {"status": "unresolved",
@@ -420,12 +535,37 @@ Gap records (update-skill gap-driven.md §3, §4 and §4a):
   is {resolved_count, files_scanned, exports_matched, tier}, also appended
   to --evidence as one JSON line keyed `targeted_reextraction`.
 
+Baseline gaps (update-skill detect-changes Category B, step 1):
+
+  The recipe runner never reports a module, an alias that renames, a
+  dunder such as `__version__` or another underscore name, so the diff
+  would read each such map entry as a deleted export. baseline-gaps lists,
+  for step 2 to read by eye, each entry of a file --files lists (the
+  modified files, Category A's modified-files.json) whose name and file
+  no export of --extraction (the runner's JSON, or {"exports": []} when
+  it could not run) holds, under its name or its re-export target, and
+  whose file still declares it. The selection and the declaration rule
+  are skf-verify-provenance-completeness.py's `baseline_gaps` (the rule
+  audit-skill's extraction snapshot applies), loaded from this folder: a
+  verifier that cannot be loaded is an error, never an empty list. A
+  name the runner's own `entry_point_diff.extraction_gaps` lists at that
+  file is left to that list. A map whose `entries` is missing or null
+  has none to check. Writes {"gaps": [{name, file, line, entry: null,
+  export_type?}], "unchecked": [{name, file, export_type}]}: a gap's line
+  declares the name (line 1 of the module or package so named for a
+  `module` or `package` entry), and `unchecked` holds each entry no rule
+  can check, to read by eye: its file neither Python nor TS/JS, a file
+  the lookup will not read (outside the source root, a test file or a
+  minified bundle, a symlink on its path), or a dotted `module` or
+  `package` name.
+
 Exit codes:
   0  operation succeeded (for gap-records, whatever its `status`)
   1  user error (malformed JSON, bad path, malformed provenance file, a
      helper file that is not the output it names, a gap-records answer of
-     the wrong type, or targeted re-extraction to match with no
-     --remediation-records)
+     the wrong type, targeted re-extraction to match with no
+     --remediation-records, or, for baseline-gaps, a source root that is
+     no folder or a verifier that cannot be loaded)
   3  apply refused: a blocking gap reached the provenance write with no
      source line (nothing written)
 """
@@ -538,11 +678,20 @@ def category_b_from_diff(diff: dict) -> dict:
             lists["modified_exports"].append({"name": key[0], "file": key[1], "old_line": None, "new_line": None})
             modified.add(key)
     for item in _get_list(diff, "moved"):
-        if isinstance(item, dict) and (item.get("name"), item.get("current_file")) not in modified:
-            lists["moved_exports"].append({
-                "name": item.get("name"), "file": item.get("current_file"),
-                "old_line": item.get("previous_line"), "new_line": item.get("line"),
-            })
+        if not isinstance(item, dict):
+            continue
+        key, old_file = (item.get("name"), item.get("current_file")), _norm_path(item.get("previous_file"))
+        across = old_file not in (None, _norm_path(item.get("current_file")))  # apply finds the entry at old_file
+        if key in modified:
+            if across:  # moved across files and changed: a MODIFIED_EXPORT that names the file it left
+                for entry in lists["modified_exports"]:
+                    if (entry["name"], entry["file"]) == key:
+                        entry.update(old_line=item.get("previous_line"), old_file=old_file)
+            continue
+        move = {"name": item.get("name"), "file": item.get("current_file")}
+        if across:
+            move["old_file"] = old_file
+        lists["moved_exports"].append({**move, "old_line": item.get("previous_line"), "new_line": item.get("line")})
     return lists
 
 
@@ -738,12 +887,15 @@ def _build_per_file(
         path = entry.get("file")
         if not path:
             return
-        exports_by_file.setdefault(path, []).append({
+        change = {
             "name": entry.get("name"),
             "change_type": change_type,
             "old_line": entry.get("old_line"),
             "new_line": entry.get("new_line") or entry.get("line"),
-        })
+        }
+        if entry.get("old_file"):
+            change["old_file"] = entry["old_file"]  # a move across files: a MOVED_EXPORT, or a MODIFIED_EXPORT
+        exports_by_file.setdefault(path, []).append(change)
 
     for e in b_modified:
         _record(e, "MODIFIED_EXPORT")
@@ -941,6 +1093,34 @@ def _name_of(record: dict) -> str | None:
 
 def _file_of(record: dict) -> str | None:
     return _norm_path(record.get("source_file", record.get("file", record.get("file_path"))))
+
+
+_INVENTORY = None
+
+
+def _inventory():
+    """skf-extraction-inventory.py, loaded once from this folder: its typed_param and its public-surface rule, so
+    create-skill and update-skill write one parameter form and keep one public surface."""
+    global _INVENTORY
+    if _INVENTORY is None:
+        path = Path(__file__).resolve().parent / "skf-extraction-inventory.py"
+        spec = importlib.util.spec_from_file_location("skf_extraction_inventory", path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"cannot load {path}")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _INVENTORY = module
+    return _INVENTORY
+
+
+def public_surface(extraction: object) -> tuple[object | None, str | None]:
+    """skf-extraction-inventory.py's public_surface over the recipe runner's output (see "Records" in the module
+    docstring): (the public surface, None) for a public-api run, (None, why) when its surface cannot be read, and
+    (None, None) for any other scope type. An input that is no object (a gap-driven or docs-only run gives none)
+    is (None, None) without loading the inventory helper."""
+    if not isinstance(extraction, dict):
+        return None, None
+    return _inventory().public_surface(extraction)
 
 
 # --------------------------------------------------------------------------
@@ -1192,6 +1372,7 @@ class _Fresh:
         self.runner = {}
         self.details = {}
         self.worker = {}
+        self.surface, self.surface_problem = public_surface(extraction)
         for record in _exports_of(extraction, "--extraction file"):
             key = (_name_of(record), _file_of(record))
             if all(key):
@@ -1214,6 +1395,17 @@ class _Fresh:
 
     def all_keys(self) -> list[tuple]:
         return sorted({k for source in (self.runner, self.details, self.worker) for k in source})
+
+    def public(self, name: str, path: str) -> bool | None:
+        """The `public` mark `records` gave the export, else the public-surface rule over --extraction; None when
+        neither marks it."""
+        mark = (self.worker.get((name, path)) or {}).get("public")
+        if isinstance(mark, bool):
+            return mark
+        if self.surface is None:
+            return None
+        record = self.runner.get((name, path)) or self.details.get((name, path)) or {}
+        return self.surface.public(name, path, record.get("language"))
 
     def record(self, name: str, path: str) -> dict | None:
         """The entry fields of an export's fresh record, or None when no source holds it."""
@@ -1304,6 +1496,7 @@ class _Map:
         self.added: list[str] = []
         self.updated: list[str] = []
         self.removed: list[str] = []
+        self.renamed: list[tuple[str, str]] = []  # (old name, new name)
         self.touched_files: set[str] = set()
 
     def find(self, name: str, path: str | None, line: int | None = None) -> int | None:
@@ -1329,6 +1522,8 @@ class _Map:
         if after != before:
             self.doc["entries"][index] = after
             self.updated.append(_name_of(after))
+            if _name_of(before) and _name_of(after) and _name_of(before) != _name_of(after):
+                self.renamed.append((_name_of(before), _name_of(after)))
             for path in (_file_of(before), _file_of(after)):
                 if path:
                     self.touched_files.add(path)
@@ -1342,9 +1537,29 @@ class _Map:
 
 
 def _apply_normal(pmap: _Map, manifest: dict | None, categories: dict | None, fresh: _Fresh,
-                  warnings: list[str]) -> tuple[int, int]:
-    """Normal mode: the manifest's file and export changes. Returns (files, exports) for the update block."""
+                  warnings: list[str], not_public: list[dict]) -> tuple[int, int]:
+    """Normal mode: the manifest's file and export changes. Returns (files, exports) for the update block; each
+    name it leaves out as off a public-api skill's public surface goes to `not_public`."""
     per_file = [f for f in _get_list(manifest or {}, "per_file") if isinstance(f, dict)]
+    # the names of the entries this run removes (a DELETED_EXPORT, a DELETED file's, a MOVED file's old path's):
+    # one that comes back in another file is re-added whatever its mark, so no held export is lost
+    removed: set[str] = set()
+    for item in per_file:
+        path = _norm_path(item.get("old_path") if item.get("status") == "MOVED" else item.get("file_path"))
+        if item.get("status") in ("DELETED", "MOVED") and path:
+            removed.update(_name_of(pmap.doc["entries"][i]) for i in pmap.indexes_of(path))
+        removed.update(_name_of(c) for c in item.get("exports_affected") or []
+                       if isinstance(c, dict) and c.get("change_type") == "DELETED_EXPORT")
+    listed: set[tuple[str, str]] = set()
+
+    def off_surface(name: str, path: str) -> bool:
+        """True for a name the run would add that is off the public surface, which it lists."""
+        if name in removed or fresh.public(name, path) is not False:
+            return False
+        if (name, path) not in listed:
+            listed.add((name, path))
+            not_public.append({"name": name, "file": path})
+        return True
 
     def refresh(index: int | None, name: str, path: str, *, add: bool) -> None:
         record = fresh.record(name, path)
@@ -1353,7 +1568,7 @@ def _apply_normal(pmap: _Map, manifest: dict | None, categories: dict | None, fr
                             f"{'kept as it was' if index is not None else 'not added'}")
             return
         if index is None:
-            if add:
+            if add and not off_surface(name, path):
                 pmap.add(_new_entry(record, pmap.library))
             return
         pmap.update(index, _without_none(record, keep=("ast_node_type",)))
@@ -1373,6 +1588,8 @@ def _apply_normal(pmap: _Map, manifest: dict | None, categories: dict | None, fr
             for name, key_path in fresh.keys_of(path):
                 record = fresh.record(name, key_path)
                 carried = old_entries.get(name)
+                if carried is None and off_surface(name, key_path):
+                    continue
                 entry = _rewrite(carried, _without_none(record, keep=("ast_node_type",))) if carried \
                     else _new_entry(record, pmap.library)
                 pmap.add(entry)
@@ -1386,7 +1603,8 @@ def _apply_normal(pmap: _Map, manifest: dict | None, categories: dict | None, fr
             if not isinstance(change, dict) or not _name_of(change):
                 continue
             name, kind = _name_of(change), change.get("change_type")
-            index = pmap.find(name, path, _line_of(change.get("old_line")))
+            # a move across files (a MOVED_EXPORT, or a MODIFIED_EXPORT that also moved) names the file its entry is at
+            index = pmap.find(name, _norm_path(change.get("old_file")) or path, _line_of(change.get("old_line")))
             if kind == "DELETED_EXPORT":
                 if index is not None:
                     pmap.remove([index])
@@ -1395,7 +1613,18 @@ def _apply_normal(pmap: _Map, manifest: dict | None, categories: dict | None, fr
                 line = record["source_line"] if record and record.get("source_line") is not None \
                     else _line_of(change.get("new_line"))
                 if index is not None and line is not None:
-                    pmap.update(index, {"source_file": path, "source_line": line})
+                    fields = {"source_file": path, "source_line": line}
+                    if record is not None and record["extraction_method"] == "ast-grep":
+                        # the runner matched it: its labels, never its export_type, params or return_type
+                        fields.update(confidence=record["confidence"], extraction_method=record["extraction_method"])
+                        if record["ast_node_type"] is not None:
+                            fields["ast_node_type"] = record["ast_node_type"]
+                        entry = pmap.doc["entries"][index]
+                        # its signature_source only when the record holds each signature part the entry does
+                        if all(record.get(part) is not None for part in ("params", "return_type")
+                               if entry.get(part) is not None):
+                            fields["signature_source"] = record["signature_source"]
+                    pmap.update(index, fields)
             elif kind in ("NEW_EXPORT", "MODIFIED_EXPORT"):
                 refresh(index, name, path, add=True)
     for rename in _get_list(categories or {}, "category_c", "renamed_exports"):
@@ -1583,14 +1812,118 @@ def _apply_files(pmap: _Map, compare: dict | None, new_files: dict | None, promo
     return done
 
 
+REFERENCE_APP = "reference-app"
+
+
+def _export_name(item: object) -> str | None:
+    """The name of a metadata.json exports[] item: a string, or an object's name or export_name."""
+    if isinstance(item, str):
+        return item or None
+    return _name_of(item) if isinstance(item, dict) else None
+
+
+def exports_after(metadata: object, pmap: _Map, update_type: str) -> list:
+    """metadata.json's exports[] after the update (see "Exports" in the module docstring)."""
+    if not isinstance(metadata, dict):
+        raise ValueError("--metadata-in file must hold a JSON object (the skill's metadata.json)")
+    if metadata.get("scope_type") == REFERENCE_APP:
+        return []
+    current = metadata.get("exports") if isinstance(metadata.get("exports"), list) else []
+    held = {_name_of(e) for e in pmap.doc["entries"] if isinstance(e, dict)} - {None}
+    renamed = dict(pmap.renamed)
+    gone = ({n for n in pmap.removed if n} | set(renamed)) - held
+    if update_type == "full":
+        gone |= {n for n in map(_export_name, current) if n and n not in held}
+    out: list = []
+    seen: set[str] = set()
+
+    def put(item: object, name: str | None) -> None:
+        if name and name not in seen:
+            seen.add(name)
+            out.append(item)
+
+    for item in current:
+        name = _export_name(item)
+        if name in gone:
+            new = renamed.get(name)
+            put(new, new if new in held else None)
+        else:
+            put(item, name)
+    for name in pmap.added + [new for _old, new in pmap.renamed]:
+        put(name, name if name in held else None)
+    return out
+
+
+_DETECTOR = None
+
+
+def _detector():
+    """skf-detect-scripts-assets.py, loaded once from this folder: the purpose a new script's or asset's row
+    takes, read from the file as create-skill's detector reads it."""
+    global _DETECTOR
+    if _DETECTOR is None:
+        path = Path(__file__).resolve().parent / "skf-detect-scripts-assets.py"
+        spec = importlib.util.spec_from_file_location("skf_detect_scripts_assets", path)
+        if spec is None or spec.loader is None or not path.is_file():
+            raise ValueError(f"cannot load {path.name} beside {Path(__file__).name}: re-install SKF")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _DETECTOR = module
+    return _DETECTOR
+
+
+def _purpose(source_file: str, kind: str, source_root: Path | None) -> str:
+    """A new script's or asset's purpose: the detector's, read from the file under `source_root`, else its name."""
+    path = source_root / source_file if source_root is not None else None
+    if path is None or not path.is_file():
+        return Path(source_file).name
+    detector = _detector()
+    hint = detector.asset_type(path, source_root) if kind == "asset" else None
+    return detector.extract_purpose(path, asset_type_hint=hint)
+
+
+def file_rows_after(metadata: dict, pmap: _Map, source_root: Path | None) -> dict[str, list]:
+    """metadata.json's scripts[] and assets[] after the update (see "Lists" in the module docstring)."""
+    by_source: dict[str, dict] = {}
+    by_file: dict[str, dict] = {}
+    for key in ("scripts", "assets"):
+        rows = metadata.get(key)
+        for row in rows if isinstance(rows, list) else []:
+            if not isinstance(row, dict):
+                continue
+            source = _norm_path(row.get("source_file"))
+            if source:
+                by_source.setdefault(source, row)
+            if isinstance(row.get("file"), str):
+                by_file.setdefault(row["file"], row)
+    lists: dict[str, list] = {"scripts": [], "assets": []}
+    entries = pmap.doc.get("file_entries")
+    for entry in entries if isinstance(entries, list) else []:
+        if not isinstance(entry, dict) or _file_type(entry) not in ("script", "asset"):
+            continue
+        kind = _file_type(entry)
+        source = _norm_path(entry.get("source_file"))
+        held = by_source.get(source) if source else None
+        if held is None and isinstance(entry.get("file_name"), str):
+            held = by_file.get(entry["file_name"])
+        if held is None:
+            held = {"file": entry.get("file_name") or f"{kind}s/{Path(source or '').name}",
+                    "purpose": _purpose(source, kind, source_root) if source else "",
+                    "source_file": source, "confidence": entry.get("confidence") or "T1-low"}
+        lists[f"{kind}s"].append(held)
+    return lists
+
+
 def apply_update(*, update_type: str, provenance: dict | None, skill_name: str, manifest: dict | None = None,
                  categories: dict | None = None, extraction: dict | None = None, details: dict | None = None,
                  records: dict | None = None, merge_records: dict | None = None, compare: dict | None = None,
                  new_files: dict | None = None, promoted: list | None = None, source_root: Path | None = None,
                  generation_date: str, test_report_run_id: str | None, confidence_tier: str,
                  manual_sections_preserved: int, source_commit: str | None = None,
-                 source_ref: str | None = None, drift: tuple | None = None) -> tuple[dict, dict]:
-    """(new map, summary) of one update (see "Apply" in the module docstring).
+                 source_ref: str | None = None, drift: tuple | None = None,
+                 metadata: dict | None = None) -> tuple[dict, dict]:
+    """(new map, summary) of one update (see "Apply" in the module docstring). With `metadata` (the skill's
+    metadata.json), the summary's `lists` holds the exports[], scripts[] and assets[] it takes after the update.
 
     A refusal returns ({}, summary) with status "refused" and no map.
     Raises ValueError for inputs it cannot read.
@@ -1602,6 +1935,7 @@ def apply_update(*, update_type: str, provenance: dict | None, skill_name: str, 
     records = records if isinstance(records, dict) else {}
     pmap = _Map(provenance, skill_name)
     warnings: list[str] = []
+    not_public: list[dict] = []
     mode = records.get("mode")
     if update_type == "gap-driven":
         outcome = _apply_gap_driven(pmap, records, merge_records, drift, warnings)
@@ -1623,7 +1957,12 @@ def apply_update(*, update_type: str, provenance: dict | None, skill_name: str, 
             files = len({path for _name, path in fresh.all_keys()})
             exports = len(fresh.all_keys())
         else:
-            files, exports = _apply_normal(pmap, manifest, categories, fresh, warnings)
+            files, exports = _apply_normal(pmap, manifest, categories, fresh, warnings, not_public)
+            if fresh.surface_problem:
+                warnings.append(f"provenance: the public surface of this public-api skill could not be applied "
+                                f"({fresh.surface_problem}): every new export was added")
+    if not_public:
+        warnings.append(_not_public_warning(not_public))
     file_changes = _apply_files(pmap, compare, new_files, promoted, source_root)
     doc = pmap.doc
     for key, value in (("source_commit", source_commit), ("source_ref", source_ref)):
@@ -1643,10 +1982,74 @@ def apply_update(*, update_type: str, provenance: dict | None, skill_name: str, 
     summary = {
         "status": "written",
         "entries": {"added": pmap.added, "updated": pmap.updated, "removed": pmap.removed},
+        "not_public": not_public,
         "file_entries": file_changes,
         "warnings": warnings,
     }
+    if metadata is not None:
+        summary["lists"] = {"exports": exports_after(metadata, pmap, update_type),
+                            **file_rows_after(metadata, pmap, source_root)}
     return doc, summary
+
+
+GENERATION_DATE_RE = re.compile(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ")
+# the stats fields skf-render-metadata-stats.py writes, some only for a shape or a judgment
+STATS_HELPER_FIELDS = ("exports_documented", "exports_public_api", "exports_internal", "exports_total",
+                       "public_api_coverage", "total_coverage", "scripts_count", "assets_count",
+                       "pattern_surfaces_documented", "effective_denominator")
+
+
+def update_metadata(metadata: object, lists: object, stats: object, *, version: str, generation_date: str,
+                    source_commit: str | None = None, source_ref: str | None = None) -> dict:
+    """The metadata.json an update leaves (see "Metadata" in the module docstring). Raises ValueError."""
+    if not isinstance(metadata, dict):
+        raise ValueError("--metadata file must hold a JSON object (the skill's metadata.json)")
+    if not isinstance(lists, dict) or not all(isinstance(lists.get(k), list) for k in ("exports", "scripts",
+                                                                                        "assets")):
+        raise ValueError("--lists file must hold the exports, scripts and assets lists apply wrote (--lists-out)")
+    if not isinstance(stats, dict) or not isinstance(stats.get("stats"), dict) \
+            or not isinstance(stats.get("confidence_distribution"), dict):
+        raise ValueError("--stats file must hold the stats helper's JSON: a stats and a confidence_distribution "
+                         "object")
+    if not version.strip():
+        raise ValueError("--version must not be empty")
+    if not GENERATION_DATE_RE.fullmatch(generation_date):
+        raise ValueError(f"--generation-date must be YYYY-MM-DDTHH:MM:SSZ, read from the clock; got "
+                         f"{generation_date!r}")
+    for kind in ("scripts", "assets"):
+        counted = stats["stats"].get(f"{kind}_count")
+        if counted != len(lists[kind]):
+            raise ValueError(f"the stats count {counted} {kind} but apply's lists hold {len(lists[kind])}: run the "
+                             f"stats helper again with the lists' {kind}")
+    out = {k: v for k, v in metadata.items() if k not in ("last_update", "update_type")}
+    out["version"] = version
+    out["generation_date"] = generation_date
+    for key, value in (("source_commit", source_commit), ("source_ref", source_ref)):
+        if value is not None:
+            out[key] = value or None
+    out["exports"] = lists["exports"]
+    for kind in ("scripts", "assets"):
+        if lists[kind]:
+            out[kind] = lists[kind]
+        else:
+            out.pop(kind, None)
+    old_stats = metadata.get("stats") if isinstance(metadata.get("stats"), dict) else {}
+    kept = {k: v for k, v in old_stats.items() if k not in STATS_HELPER_FIELDS and k not in stats["stats"]}
+    out["stats"] = {**stats["stats"], **kept}
+    out["confidence_distribution"] = stats["confidence_distribution"]
+    return out
+
+
+NOT_PUBLIC_NAMED = 10  # the names the not_public warning spells out; the summary lists them all
+
+
+def _not_public_warning(not_public: list[dict]) -> str:
+    """The one warning for every name apply left out as off a public-api skill's public surface."""
+    names = [item["name"] for item in not_public]
+    shown = ", ".join(names[:NOT_PUBLIC_NAMED])
+    more = f" and {len(names) - NOT_PUBLIC_NAMED} more" if len(names) > NOT_PUBLIC_NAMED else ""
+    return (f"provenance: {len(names)} new export(s) off the public surface of this public-api skill not added "
+            f"(the summary's not_public lists each with its file): {shown}{more}")
 
 
 def _write_json_atomic(path: Path, value) -> None:
@@ -1681,22 +2084,12 @@ def _write_json_atomic(path: Path, value) -> None:
 # a patch sets only where the seed has none.
 PATCH_FIELDS = ("signature", "members", "docstring", "qmd_evidence")
 PATCH_IF_NULL = ("params", "return_type")
-_INVENTORY = None
 
 
 def _typed_param(param, language: object) -> str | None:
-    """One parameter as the provenance map writes it: skf-extraction-inventory.py's typed_param, loaded once from
-    this folder, so create-skill and update-skill write one form."""
-    global _INVENTORY
-    if _INVENTORY is None:
-        path = Path(__file__).resolve().parent / "skf-extraction-inventory.py"
-        spec = importlib.util.spec_from_file_location("skf_extraction_inventory", path)
-        if spec is None or spec.loader is None:
-            raise ImportError(f"cannot load {path}")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        _INVENTORY = module
-    return _INVENTORY.typed_param(param, language if isinstance(language, str) else None)
+    """One parameter as the provenance map writes it: skf-extraction-inventory.py's typed_param, so create-skill
+    and update-skill write one form."""
+    return _inventory().typed_param(param, language if isinstance(language, str) else None)
 
 
 def _typed_params(value, language: object) -> list | None:
@@ -1784,6 +2177,11 @@ def build_records(extraction: dict | None, details: dict | None, files: list | N
                 if patch.get(field) is not None:
                     seeded[key][field] = patch[field]
             fill_if_null(key, patch)
+    surface, _problem = public_surface(extraction)  # apply warns when a public-api run gives no surface
+    for key in seeded if surface is not None else ():
+        mark = surface.public(key[0], key[1], languages.get(key))
+        if mark is not None:
+            seeded[key]["public"] = mark
     paths = list(dict.fromkeys([p for p in (_norm_path(f) for f in files or []) if p]
                                + sorted({key[1] for key in seeded})))
     blocks = [{"file_path": path, "exports": [seeded[key] for key in sorted(seeded) if key[1] == path]}
@@ -1797,6 +2195,7 @@ def build_records(extraction: dict | None, details: dict | None, files: list | N
             "T1-low": sum(1 for r in exports if r["confidence"] == "T1-low"),
             "T2": sum(1 for r in exports if r.get("qmd_evidence") is not None),
         },
+        "marked_not_public": sum(1 for r in exports if r.get("public") is False),
         "warnings": warnings,
     }
     return {"mode": "normal", "files": blocks}, summary
@@ -2156,6 +2555,7 @@ def gap_records(manifest: dict, provenance: dict | None, *, source_root: Path | 
     for g in routed:
         if g.record is not None and not g.internal:
             record = dict(g.record)
+            record.pop("public", None)  # a repair documents and maps every record: the mark is a normal update's
             if g.answers.get("docstring") is not None:
                 record["docstring"] = g.answers["docstring"]
             if record not in kept.setdefault(g.record_path, []):
@@ -2356,9 +2756,42 @@ def _apply_categories(args: argparse.Namespace) -> dict | None:
     return {**(categories or {}), "category_c": cat_c}
 
 
+def _metadata_in(path: str | None) -> dict | None:
+    """apply's --metadata-in: the skill's metadata.json, an object."""
+    if not path:
+        return None
+    metadata = _load_json_file(Path(path), "--metadata-in file")
+    if not isinstance(metadata, dict):
+        raise ValueError("--metadata-in file must hold a JSON object (the skill's metadata.json)")
+    return metadata
+
+
+def _cmd_metadata(args: argparse.Namespace) -> int:
+    target = Path(args.metadata)
+    try:
+        metadata = update_metadata(
+            _load_json_file(target, "--metadata file"), _load_json_file(Path(args.lists), "--lists file"),
+            _load_json_file(Path(args.stats), "--stats file"), version=args.version,
+            generation_date=args.generation_date, source_commit=args.source_commit, source_ref=args.source_ref)
+        _write_json_atomic(target, metadata)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    except OSError as exc:
+        print(f"error: cannot write {args.metadata}: {exc}", file=sys.stderr)
+        return 1
+    print(json.dumps({"status": "written", "metadata": target.as_posix(), "version": metadata["version"],
+                      "exports": len(metadata["exports"]), "scripts": len(metadata.get("scripts") or []),
+                      "assets": len(metadata.get("assets") or [])}))
+    return 0
+
+
 def _cmd_apply(args: argparse.Namespace) -> int:
     if bool(args.drift_head) != bool(args.drift_pinned):
         print("error: --drift-head and --drift-pinned go together", file=sys.stderr)
+        return 1
+    if bool(args.metadata_in) != bool(args.lists_out):
+        print("error: --metadata-in and --lists-out go together", file=sys.stderr)
         return 1
     try:
         promoted = _optional_json(args.promoted_docs, "--promoted-docs file")
@@ -2385,6 +2818,7 @@ def _cmd_apply(args: argparse.Namespace) -> int:
             source_commit=args.source_commit,
             source_ref=args.source_ref,
             drift=(args.drift_head, args.drift_pinned) if args.drift_head else None,
+            metadata=_metadata_in(args.metadata_in),
         )
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -2392,11 +2826,15 @@ def _cmd_apply(args: argparse.Namespace) -> int:
     if summary["status"] == "refused":
         print(json.dumps(summary))
         return EXIT_REFUSED
-    try:
-        _write_json_atomic(Path(args.output), doc)
-    except OSError as exc:
-        print(f"error: cannot write {args.output}: {exc}", file=sys.stderr)
-        return 1
+    lists = summary.pop("lists", None)
+    for path, value in ((args.not_public_out, summary["not_public"]), (args.lists_out, lists),
+                        (args.output, doc)):
+        try:
+            if path:
+                _write_json_atomic(Path(path), value)
+        except OSError as exc:
+            print(f"error: cannot write {path}: {exc}", file=sys.stderr)
+            return 1
     print(json.dumps({**summary, "map": args.output}))
     return 0
 
@@ -2461,6 +2899,76 @@ def _cmd_gap_records(args: argparse.Namespace) -> int:
         print(f"error: cannot write: {exc}", file=sys.stderr)
         return 1
     print(json.dumps(summary, indent=2))
+    return 0
+
+
+# --------------------------------------------------------------------------
+# Baseline gaps (update-skill detect-changes Category B)
+# --------------------------------------------------------------------------
+
+
+VERIFIER_FILE = "skf-verify-provenance-completeness.py"
+
+
+def _baseline_verifier():
+    """The verifier beside this script, for its `baseline_gaps`. Unlike `_verifier()`, which lets a gap-driven
+    spot-check go on as unknown, one that cannot be loaded (or has no `baseline_gaps`) is a ValueError: with no
+    verifier no gap is listed, and every name the runner leaves out would read as a deleted export."""
+    path = Path(__file__).resolve().parent / VERIFIER_FILE
+    where = f"cannot load {VERIFIER_FILE} beside {Path(__file__).name}"
+    try:
+        spec = importlib.util.spec_from_file_location("skf_verify_provenance_completeness_baseline", path)
+        if spec is None or spec.loader is None or not path.is_file():
+            raise ImportError(f"no file at {path}")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    except Exception as exc:  # whatever the script raises, the call reports it
+        raise ValueError(f"{where}: {exc}; re-install SKF") from exc
+    if not callable(getattr(module, "baseline_gaps", None)):
+        raise ValueError(f"{where}: it has no baseline_gaps; re-install SKF")
+    return module
+
+
+def baseline_gaps(provenance: dict, extraction: dict, files: list, source_root: Path, verifier) -> dict:
+    """{"gaps", "unchecked"}: the map entries of `files` the runner's `extraction` lacks whose file still declares
+    them (see "Baseline gaps" in the module docstring)."""
+    if not isinstance(extraction, dict):
+        raise ValueError("--extraction file has no `exports` array: is it the helper's output?")
+    held = {(name, file) for e in _exports_of(extraction, "--extraction file")
+            if (name := _name_of(e)) is not None and (file := _file_of(e)) is not None}
+    diff = extraction.get("entry_point_diff")
+    listed = {(item["name"], _norm_path(item["file"]))
+              for item in (diff.get("extraction_gaps") or [] if isinstance(diff, dict) else [])
+              if isinstance(item, dict) and isinstance(item.get("name"), str) and _norm_path(item.get("file"))}
+    if provenance.get("entries") is not None and not isinstance(provenance["entries"], list):
+        raise ValueError("provenance `entries` must be an array")  # missing or null: no entry (#684)
+    wanted = {f for f in (_norm_path(p) for p in files) if f is not None}
+    gaps, unchecked = verifier.baseline_gaps(provenance, source_root, held, wanted, listed)
+    return {"gaps": gaps, "unchecked": unchecked}
+
+
+def _cmd_baseline_gaps(args: argparse.Namespace) -> int:
+    try:
+        source_root = Path(args.source_root)
+        if not source_root.is_dir():
+            raise ValueError(f"--source-root {args.source_root} is not a folder")
+        files = _load_json_file(Path(args.files), "--files file")
+        if not (isinstance(files, list) and all(isinstance(f, str) for f in files)):
+            raise ValueError(f"--files file {args.files} must hold a JSON array of paths")
+        provenance = _load_json_file(Path(args.provenance_map), "--provenance-map file")
+        if not isinstance(provenance, dict):
+            raise ValueError(f"--provenance-map file {args.provenance_map} must hold a JSON object")
+        extraction = _load_json_file(Path(args.extraction), "--extraction file")
+        result = baseline_gaps(provenance, extraction, files, source_root, _baseline_verifier())
+        _write_json_atomic(Path(args.output), result)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    except OSError as exc:
+        print(f"error: cannot write {args.output}: {exc}", file=sys.stderr)
+        return 1
+    print(json.dumps({"status": "written", "output": args.output, "gaps": len(result["gaps"]),
+                      "unchecked": len(result["unchecked"])}))
     return 0
 
 
@@ -2537,8 +3045,35 @@ def _build_parser() -> argparse.ArgumentParser:
     p_apply.add_argument("--source-ref", default=None, help="the map's source_ref (empty: null)")
     p_apply.add_argument("--drift-head", default=None, help="under the drift override: HEAD's short SHA")
     p_apply.add_argument("--drift-pinned", default=None, help="under the drift override: the pinned short SHA")
+    p_apply.add_argument("--not-public-out", metavar="FILE",
+                         help="also write the summary's not_public list here (a JSON array)")
+    p_apply.add_argument("--metadata-in", metavar="FILE",
+                         help="the skill's metadata.json, whose exports[], scripts[] and assets[] the update "
+                              "starts from")
+    p_apply.add_argument("--lists-out", metavar="FILE",
+                         help="write the exports[], scripts[] and assets[] metadata.json takes after the update "
+                              "here (a JSON object)")
     p_apply.add_argument("-o", "--output", required=True, metavar="FILE", help="where to write the new map")
     p_apply.set_defaults(func=_cmd_apply)
+
+    p_meta = sub.add_parser(
+        "metadata", help="write the metadata.json an update leaves",
+        description="Rewrite the skill's metadata.json in place. It sets version and generation_date, "
+                    "source_commit and source_ref when given, exports, scripts and assets from --lists (a script "
+                    "or asset list left out when empty), confidence_distribution from --stats and the stats "
+                    "helper's stats fields, dropping one an earlier run wrote that --stats lacks; it removes "
+                    "last_update and update_type and keeps every other field, a patched one included. It refuses "
+                    "a --stats whose scripts_count or assets_count is not the length of --lists' scripts or assets.")
+    p_meta.add_argument("--metadata", required=True, metavar="FILE",
+                        help="the skill's metadata.json, rewritten in place")
+    p_meta.add_argument("--lists", required=True, metavar="FILE", help="the lists apply wrote (--lists-out)")
+    p_meta.add_argument("--stats", required=True, metavar="FILE",
+                        help="the JSON skf-render-metadata-stats.py wrote (its -o file)")
+    p_meta.add_argument("--version", required=True, help="the version this update writes")
+    p_meta.add_argument("--generation-date", required=True, help="the clock's UTC time, YYYY-MM-DDTHH:MM:SSZ")
+    p_meta.add_argument("--source-commit", default=None, help="the commit this update read (an empty one: null)")
+    p_meta.add_argument("--source-ref", default=None, help="the ref this update read (an empty one: null)")
+    p_meta.set_defaults(func=_cmd_metadata)
 
     p_records = sub.add_parser("records", help="write step 3's re-extraction records from the runner's and the "
                                                "workers' files")
@@ -2568,6 +3103,17 @@ def _build_parser() -> argparse.ArgumentParser:
     p_gap.add_argument("--tier", help="with --evidence: the forge tier the record names")
     p_gap.add_argument("-o", "--output", metavar="FILE", help="where to write the records (without --plan)")
     p_gap.set_defaults(func=_cmd_gap_records)
+
+    p_base = sub.add_parser("baseline-gaps", help="list the map entries the runner left out that their modified "
+                                                  "file still declares, for Category B's step 2 to read")
+    p_base.add_argument("--provenance-map", required=True, metavar="FILE", help="the map the update starts from")
+    p_base.add_argument("--extraction", required=True, metavar="FILE",
+                        help="the recipe runner's output ({\"exports\": []} when it could not run)")
+    p_base.add_argument("--files", required=True, metavar="FILE",
+                        help="the files whose entries are checked: Category A's modified-files.json")
+    p_base.add_argument("--source-root", required=True, metavar="DIR", help="the source tree the files are read in")
+    p_base.add_argument("-o", "--output", required=True, metavar="FILE", help="where to write the gaps")
+    p_base.set_defaults(func=_cmd_baseline_gaps)
 
     for p in (p_build, p_ratio):
         p.add_argument(

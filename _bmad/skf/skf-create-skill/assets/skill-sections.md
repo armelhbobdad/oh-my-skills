@@ -117,7 +117,7 @@ Indexed pipe-delimited format for CLAUDE.md managed section (~80-120 tokens per 
   "tool_versions": {
     "ast_grep": "{version-or-null}",
     "qmd": "{version-or-null}",
-    "skf": "{skf_version}"
+    "skf": "{installed-skf-version-or-unknown}"
   },
   "confidence_distribution": {
     "t1": 0,
@@ -134,7 +134,7 @@ Indexed pipe-delimited format for CLAUDE.md managed section (~80-120 tokens per 
     "total_coverage": 0.0,
     "scripts_count": 0,
     "assets_count": 0
-    // "effective_denominator": 0  // optional — emitted for the curated-subset shapes in compile.md §4 condition 1; test-skill uses this as the coverage denominator when present. See compile.md §4 emit rules.
+    // "effective_denominator": 0  // optional: emitted when compile.md §4 passes it (counts.effective_denominator_decision.store and a stratified scope.notes); test-skill uses this as the coverage denominator when present.
   },
   // scripts[] and assets[] — include ONLY when inventories are non-empty; omit entirely otherwise
   // "scripts": [{ "file": "scripts/{name}", "purpose": "{description}", "source_file": "{source-path}", "confidence": "T1-low" }],
@@ -144,7 +144,7 @@ Indexed pipe-delimited format for CLAUDE.md managed section (~80-120 tokens per 
   // detected_via "brief_doc_urls" = docs-only skills: the brief's doc_urls (plus subpages step 3c fetched), hashed by `skf-detect-docs.py hash-urls`
   "generated_by": "{quick-skill|create-skill}",
   "dependencies": [],
-  "compatibility": "{semver-range}"
+  "compatibility": ""
 }
 ```
 
@@ -270,9 +270,9 @@ t2_future_count: {N}
 **Source:** {repo} @ {commit}
 
 ## Tool Versions
-- ast-grep: {version}
-- QMD: {version}
-- SKF: {skf_version}
+- ast-grep: {tool_versions.ast_grep}
+- QMD: {tool_versions.qmd}
+- SKF: {tool_versions.skf}
 
 ## Extraction Summary
 - Files scanned: {count}

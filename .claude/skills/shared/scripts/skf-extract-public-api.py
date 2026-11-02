@@ -4,7 +4,7 @@
 # ///
 """SKF Extract Public API: one package's public surface, by parser or by recipe.
 
-Three modes:
+Four modes:
 
   --mode quick   (the default) A pure parser: takes one logical package (one
                  manifest, one or more entry-point files) and emits its
@@ -16,9 +16,10 @@ Three modes:
                  raw fetches into a folder, or a local checkout), so a file's
                  text never passes through the model or a shell string.
                  --follow also reads the modules an `export *` chain passes
-                 names on from, fetching them first with --repo. Multi-module
-                 monorepos are caller-orchestrated: invoke once per module,
-                 aggregate.
+                 names on from, fetching them first with --repo, and
+                 --resolve-version looks up a version the manifest does
+                 not state. Multi-module monorepos are caller-orchestrated:
+                 invoke once per module, aggregate.
   --mode full    The ast-grep recipe runner (skf-create-skill and the
                  workflows that extract as it does): runs the recipes in
                  src/shared/data/ast-grep-recipes.yaml over a source tree
@@ -30,6 +31,11 @@ Three modes:
                  rules, so no caller derives an entry file from a
                  distribution name or reads a manifest by eye. See "Entries
                  mode" below.
+  --mode denominator
+                 Full mode's counts and effective_denominator decision for
+                 public names counted without its diff (by quick mode or by
+                 eye), and its scope facts with no recipe run. See
+                 "Denominator mode" below.
 
 Quick mode
 ----------
@@ -120,7 +126,7 @@ or the files, read from disk (stdin is then never read):
   --mode quick --language <language> [--source-root <dir>]
       [--manifest-file <path>] [--entry-file <path>]...
       [--follow-file <path>]... [--tree-file <listing>] [--fetch-list <file>]
-      [--follow [--repo <owner/repo> [--ref <ref>]]]
+      [--follow] [--resolve-version] [--repo <owner/repo> [--ref <ref>]]
 
 An entry with `followed` true (a --follow-file) is a module an `unlisted[]`
 record named, read as an entry is, less a JS/TS `export default`, which
@@ -137,6 +143,41 @@ without it, each is read where --source-root holds it (a local checkout).
 A module that cannot be fetched or read stays in `unlisted[]`, and a
 warning names it and why. The output then also lists `followed`, the
 modules read this way, in the order they were read.
+
+--resolve-version (with --source-root) looks up a version the manifest does
+not state, in this order, and names where it came from in `version_source`:
+
+  python  the `__version__` literal of an entry `__init__.py`, then of the
+          `_version.py` beside it, then the `version=` literal of the
+          setup.py beside the manifest (a dynamic version, `attr:` or
+          `file:`, or a version setup.py computes)
+  rust    the `[workspace.package] version` of the workspace root, the
+          nearest Cargo.toml at or above the manifest's folder that holds
+          a `[workspace]` table (`version.workspace = true`)
+  any     the release tag: with --repo, skf-github-probe.py's tag listing
+          at --ref (the newest tag whose name is a release version, X.Y.Z,
+          at the default branch; the pinned tag itself at a tag; none at a
+          branch or a commit); without, the tag `git describe --tags
+          --abbrev=0` names in --source-root, when its name is a version
+
+A file the lookups read is read under --source-root; with --repo and
+--tree-file, one the listing holds is fetched there first, at --ref. A
+version a file gives must start with a digit and be no placeholder, and
+one a tag gives drops a leading `v`. For JavaScript and TypeScript read
+with --repo at the default branch, a manifest pre-release (`-alpha`,
+`-beta`, `-rc`, `-next`, `-canary`) gives way to the newest release, with
+a warning. When nothing gives a version, a warning says so.
+
+With --source-root, each Python, JavaScript and TypeScript export also
+carries `defined_in`: the file that defines it, traced as full mode traces
+an entry point (through each import, re-export, `export *` and star import
+to the end of its chain, a cycle cut), so a name an entry file only passes
+on names its own module. It reads only files under --source-root (the
+files full mode lists there, never the --tree-file listing) and needs no
+ast-grep: Python with full mode's module reader, JavaScript and TypeScript
+from each module's text as quick mode reads an entry file. It is null when
+the trace finds no file, as for a name passed on from another package or a
+module --source-root does not hold. `source_file` stays the file read.
 
 Each path is relative to --source-root, the folder the files were staged in
 laid out like the repository (or a local checkout), else to the current
@@ -155,9 +196,20 @@ Output JSON shape (stdout):
   {
     "language":    "python",
     "package_name": "foo",
-    "version":      "1.2.3",
+    "version":      "1.2.3",                      (the manifest's literal
+                                                   version, else null: a
+                                                   go.mod, a dynamic or
+                                                   workspace-inherited one,
+                                                   a placeholder; with
+                                                   --resolve-version, the
+                                                   one it looked up)
+    "version_source": "manifest" | "file:<path>" | "tag:<tag>" | null,
+                                                  (--resolve-version only)
     "description":  "...",
-    "exports":      [{"name": "Bar", "type": "class", "source_file": "..."}, ...],
+    "exports":      [{"name": "Bar", "type": "class", "source_file": "...",
+                      "defined_in": "..."}, ...],      (defined_in: Python,
+                                                   JS and TS, with
+                                                   --source-root)
     "dependencies": ["requests", "pydantic", ...],
     "modules":      ["server", "client"],         (Maven/Gradle only)
     "module_folders": ["server", "client"],       (each module's folder in
@@ -193,10 +245,12 @@ Exit codes (quick):
        or given twice with the file inputs, a --manifest-file, --entry-file
        or --follow-file that cannot be read or leads outside --source-root,
        a --tree-file that cannot be read or a --fetch-list that cannot be
-       written, --follow without --tree-file and --source-root, --repo or
-       --ref without --follow (--ref without --repo), or a --repo or --ref
-       skf-github-fetch.py does not accept. A module --follow could not
-       read changes no exit code.
+       written, --follow without --tree-file and --source-root,
+       --resolve-version without --source-root, --repo or --ref without
+       --follow or --resolve-version (--ref without --repo), or a --repo or
+       --ref skf-github-fetch.py does not accept. A module --follow could
+       not read, and a version --resolve-version could not find, change no
+       exit code.
 
 Entries mode
 ------------
@@ -276,7 +330,15 @@ is one the recipes read (python, typescript, tsx, javascript, rust, go and
 .vue files) and --language allows it. Globs follow
 skf-resolve-authoritative-files.py's rules: `**` spans any number of path
 segments, none included, and `*` and `?` stay inside one, so `src/**/*.ts`
-matches `src/index.ts` and `**/test_*` matches a top-level `test_x.py`.
+matches `src/index.ts` and `**/test_*` matches a top-level `test_x.py`. An
+include glob that matches no file (a brief written for an older layout,
+say) is named in `warnings` and listed in `scope.unmatched_include`. A
+scope.tier_a_include glob is matched against the whole tree under
+--source-root, regardless of --files-from and before the excludes: one
+that matches no file is named in `warnings` too and listed in
+`scope.unmatched_tier_a_include`, and, when scope.include has a glob, one
+that matches only files no scope.include glob matches is named in
+`warnings`.
 
 --brief supplies scope.include, scope.exclude, scope.tier_a_include,
 scope.type and language; --include, --exclude, --tier-a-include,
@@ -337,11 +399,27 @@ JS/TS one that is not). Chains are followed to the end, a cycle cut: an
 `export *`, a star import or a glob passes on what its module exports,
 that module's own chains included; a re-exported name is traced through
 each re-export, import and glob between to the file that defines it (a
-default export to the name it declares). A namespace (`export * as ns`, a
-Python submodule, a Rust `pub mod`) counts once, and what it makes
-reachable is not internal: the names its module passes on, the modules
-among them in turn, and for Rust every recipe match in the crate root and
-in each module file a `pub mod` or `pub use` of a reachable module names.
+default export to the name it declares). A Python package's explicit
+binding of a name (an import, or a def or class in its __init__.py)
+comes before its submodule: `from .x import y` imports the y
+x/__init__.py binds, and the submodule x/y.py only when x/__init__.py
+binds no y or binds the submodule itself (`from . import y`, `from
+pkg.x import y`); a y x/__init__.py binds only through a star import
+(`from .impl import *`) is still read as the submodule x/y.py. A
+namespace (`export * as ns`, a Python submodule, a Rust `pub mod`)
+lists in `members` the names its module passes on, which users reach as
+`pkg.ns.name`, each traced to the file that defines it as a public name
+is, and in place of a namespace among them its members (each module once,
+so a cycle is cut); `members` is null when the trace cannot read the
+module (a JavaScript target no file here holds, a Rust inline or
+`#[path]` module), and a nested one the trace cannot read is a member
+itself. A member re-exported from another package has no file, is no
+gap when a recipe found its name, marks its name public, and, unlike the
+same form in an entry point, adds no `unresolved` item. What a namespace
+makes reachable is not internal: the names its module passes on, the
+modules among them in turn, and for Rust every recipe match in the crate
+root and in each module file a `pub mod` or `pub use` of a reachable
+module names.
 A chain the trace cannot follow (a module no file here holds, a `#[path]`
 module) is listed in `unresolved`. The diff against the recipe inventory,
 one language family at a time (JavaScript/TypeScript, Python, Rust, Go):
@@ -350,20 +428,58 @@ that no entry point exports or makes reachable), `extraction_gaps` (names
 an entry point exports that no recipe found, defined in a file in scope or
 in none the trace reached: read them by eye) and `outside_scope` (such
 names defined in a file out of scope: widen scope.include to document
-them). In a family with no entry point, or only empty ones, every name the
+them). A namespace with `members` is diffed as its members: each is found
+when a recipe found its name, or its `local` one, in its file (one with
+no file by its name alone, as a public name is), and has no row of its
+own when a public name (or another namespace's member) has its name and
+file; one with null `members`, and a member that is such a module, is no
+gap. In a family with no entry point, or only empty ones, every name the
 recipes found is public.
 
 Counts. `exports_public_api` counts the public names (the package's whole
-public API, `outside_scope` names included) and `exports_internal` the
-internal ones. `effective_denominator` counts the public names whose
-definition file matches scope.tier_a_include (else scope.include) and no
-scope.exclude glob: each name once, so a type counts once whatever its
-methods, and a barrel that only re-exports adds nothing of its own. `arms` gives compile's effective_denominator arms:
+public API, `outside_scope` names included), each distinct name and file
+once: a namespace with `members` counts as its members (none for an empty
+list, and a member that is also a public name, or another namespace's
+member, once), one with null `members` as one. `exports_internal` counts
+the internal names. `effective_denominator` counts those public names
+whose definition file matches scope.include (any file when it has no
+glob), scope.tier_a_include when given, and no scope.exclude glob: each
+name once, so a type counts once whatever its methods, a barrel that
+only re-exports adds nothing of its own, and a name the entry points
+pass on from two files (a namespace member named like another public
+name, or like another namespace's member, at another file) or in two
+languages counts once, when any one of its files matches, as Test
+Skill's sets count it. A tier A list that counts no public name (each
+glob matches no file, or only files scope.exclude drops, that
+scope.include leaves out or that define no public name) narrows nothing
+on a run that counted a public name and read every file (no `errors`
+item): the count falls back to scope.include (else every file), with a
+warning.
+`arms` gives compile's effective_denominator arms:
 (a) `monorepo` from skf-detect-workspaces.py, (b) `specific_modules`
 (scope type specific-modules on a repository that is not a monorepo) and
 (c) `multi_subpath_exports` (an in-scope package.json whose `exports` map
 has more than one non-root subpath without a `*`, on a repository that is
 not a monorepo).
+
+Store or not. `curated_subset` is true when the files the count's basis
+globs list (scope.include's, else every file; a tier A count's, those
+among them a tier A glob matches too; under arm (b), less those a
+scope.exclude glob matches) leave out a file that defines a counted public
+name (an `outside_scope` name's included) or, in a monorepo, every source
+file of a skf-detect-workspaces.py workspace; a basis of `all-files` lists
+none. `effective_denominator_decision` says whether create-skill and
+update-skill store `effective_denominator` as stats.effective_denominator,
+the brief's scope.notes aside (documenting the stratification is the one
+judgment left to them): `store` is true only when none of these holds,
+and `reason` names the first that does, else `curated-subset`:
+`reference-app` (scope type reference-app: pattern_surfaces_documented is
+its basis), `incomplete-run` (an `errors` item: a file a failed call left
+unread can hide a public name, so the count can be 0 or partial),
+`no-arm` (no arm is true), `full-library` (scope type full-library),
+`all-files` (the basis), `not-curated` (`curated_subset` false) and
+`zero-count` (a stored 0 is no denominator: Test Skill reads it as
+deflation).
 
 Output JSON (stdout, or -o):
 
@@ -376,7 +492,9 @@ Output JSON (stdout, or -o):
     "ast_grep": {"path": "<exe>" | null, "version": "<x.y.z>" | null},
     "scope": {"include": [...], "exclude": [...],
               "tier_a_include": [...] | null, "type": "<type>" | null,
-              "languages": [...], "files_from": "<file>" | null},
+              "languages": [...], "files_from": "<file>" | null,
+              "unmatched_include": [...],         # include globs no file matches
+              "unmatched_tier_a_include": [...]},  # tier A globs no file matches
     "files_in_scope": N,
     "files_by_language": {"<language>": N, ...},
     "files_without_recipes": {".java": N, ...},  # in scope, no recipe reads them
@@ -409,35 +527,44 @@ Output JSON (stdout, or -o):
                                     | {"entry", "name", "from", "file"}, ...]},
     "entry_point_diff": {
         "public": [{"name", "language", "entry", "via", "from", "local",
-                    "file", "line"}, ...],
+                    "file", "line",
+                    "members": [{"name", "local", "file", "line"}, ...]
+                               | null}, ...],  # members: via namespace only
         "internal": [{"name", "language", "source_file", "source_line"}, ...],
         "extraction_gaps": [{"name", "language", "entry", "file", "line"}, ...],
         "outside_scope": [{"name", "language", "entry", "file", "line"}, ...]},
     "reexport_targets": [{"name", "language", "local", "from", "entry",
                           "file", "line", "via"}, ...],
-    "counts": {"exports_public_api": N, "exports_internal": N,
-               "effective_denominator": N,
+    "counts": {"exports_public_api": N,  # (family, name, file) keys
+               "exports_internal": N,
+               "effective_denominator": N,  # names, each once
                "effective_denominator_basis": "tier_a_include" | "scope.include"
-                                              | "all-files",
-               "denominator_files": N},
+                                              | "all-files",  # not tier_a_include when it counts no scope.include name
+               "denominator_files": N,
+               "curated_subset": bool,
+               "effective_denominator_decision": {"store": bool, "reason": "<reason>"}},
     "arms": {"monorepo": bool, "monorepo_kind": "<kind>" | null,
              "specific_modules": bool, "multi_subpath_exports": bool},
     "errors": [{"reason": "ast-grep-error" | "ast-grep-timeout" | "time-limit",
                 "files": N, "first_file", "detail",
-                "unread": [...]}, ...],      # unread: time-limit only
-    "warnings": ["..."]
+                "unread": [...]}, ...],      # unread: the files its call(s) may have left unread
+    "warnings": ["..."],
+    "files_in_scope_list": ["<file>", ...],         # the files files_in_scope counts, in tree order
+    "files_without_recipes_list": ["<file>", ...]   # the files files_without_recipes counts
   }
 
 `via` says how an entry point exports a name: `declaration` (defined in the
 entry point), `re-export` (from another file, which `file` names, `local`
 giving the name it has there when it differs), `star` (through `export *`,
 `from .x import *` or `pub use x::*`) or `namespace` (a module: `export *
-as ns`, a Python submodule, a Rust module). `line` is null where no line
-defines the name (a module, a name from another package). An `unresolved`
-item names a subpath whose targets name no file, or a chain met tracing
-`entry` that stops at `file`, the module `from` naming no file here.
-Without ast-grep the JSON still has the entry points' `files`, the
-`exports_maps`, the unresolved subpaths and the `arms`.
+as ns`, a Python submodule, a Rust module, its names in `members`). `line`
+is null where no line defines the name (a module, a name from another
+package), and a member's `file` is null for a name from another package.
+An `unresolved` item names a subpath whose targets name no file, or a
+chain met tracing `entry` that stops at `file`, the module `from` naming
+no file here.
+Without ast-grep the JSON still has the files in scope, the entry points'
+`files`, the `exports_maps`, the unresolved subpaths and the `arms`.
 `file_issues` lists the files to read by eye: a file ast-grep skips (not
 UTF-8), and a file where the parser met code it could not read (an ERROR
 node), where a recipe can miss an export. `t1_low` is 0: every export here
@@ -449,14 +576,18 @@ under the 10-minute limit an agent's shell call often has) have passed
 since the run started: the run going on is stopped, no other starts, and
 an `errors[]` item with the reason `time-limit` lists in `unread` the
 files left unread (each ast-grep call also stops after 600 seconds,
-`ast-grep-timeout`). The JSON is still written, status "incomplete".
+`ast-grep-timeout`). A call that times out keeps no match; one that exited
+keeps the matches it printed before any line that is not JSON, but a kill
+can cut a file's matches anywhere, so the item of every failed call lists
+all its files in `unread`. The JSON is still written, status "incomplete".
 
 Exit codes (full):
 
   0    the recipes ran on every file in scope ("ok")
-  1    an ast-grep run failed (exited non-zero) or timed out, or the
-       --timeout ran out: its files may be unread and the result is
-       incomplete ("incomplete"); `errors` lists them
+  1    an ast-grep call could not start, exited non-zero, printed other
+       than JSON lines or timed out, or the --timeout ran out: the result
+       is incomplete ("incomplete"), and each `errors` item lists in
+       `unread` the files it may have left unread
   2    input error (no source root, an unreadable brief, file list or
        recipe file, a recipe without its metadata, no PyYAML, an -o file
        that cannot be written, a --timeout not above 0), or a failure the
@@ -465,6 +596,63 @@ Exit codes (full):
        only an npm .cmd/.bat shim (Windows) with no native ast-grep.exe
        beside it (cmd.exe would read a repository path's `&` as syntax);
        the JSON has the scope and no exports; extract by source reading
+
+Denominator mode
+----------------
+
+  --mode denominator [--source-root <dir> | --tree-file <listing>]
+      [--brief <skill-brief.yaml>] [--include GLOB]... [--exclude GLOB]...
+      [--tier-a-include GLOB]... [--scope-type TYPE] [--language LANG]...
+      [--quick <quick.json>]... [--extraction <full.json>] [-o <out.json>]
+      < {payload_json}
+
+The counts full mode writes, for public names no runner diff gave: those
+a stdin payload lists,
+
+  {"public":  [{"name", "file", "language",
+                "members": [{"name", "file"}, ...]}, ...],
+   "exports": [{"name", "file", "language"}, ...]}
+
+(`file` relative to --source-root, with `/`; `members` for a submodule
+the entry points export by name, which counts as the names its module
+passes on), each export of a --quick output at its `defined_in` (else its
+`source_file`), and the --extraction runner's `entry_point_diff.public`;
+a payload name replaces a --quick or runner one of its family and name.
+`exports_internal` counts the names of the payload's `exports` (the
+exports extraction found; `_` names left out) and of the runner's
+`internal` that no public name or member has. `effective_denominator`,
+its basis, `curated_subset` and `effective_denominator_decision` follow
+full mode's rules, over the tree under --source-root, with the scope and
+arms full mode works out there; an --extraction that is `incomplete` is
+never stored. A name whose `file` is not in that tree counts in
+`exports_public_api` alone, with a warning. With no --source-root (a
+remote source read by eye) the tree is the --tree-file listing (a file,
+or `-` for stdin, which then holds no payload: JSON with a `tree` list, a
+list, or one path per line; one that lists no file is an input error),
+else the names' files; the arms are all false, there is no entry point,
+and the decision is never to store (`no-source-tree`). An empty payload
+(`{}`, or no stdin) gives the scope facts alone, with no recipe run:
+`scope`, the two file lists (by full mode's Which files rule, null with
+neither a tree nor a listing), `entry_points` (`files`, `exports_maps`)
+and `arms`.
+
+`entry_point_diff` replaces a compare by eye, each item {"name",
+"language", "file"}: `public`, the names `exports_public_api` counts (a
+namespace as its `members`); `internal`, the exports `exports_internal`
+counts; `extraction_gaps`, the public names the payload and --quick give
+that no export found has (the payload's `exports`, the --extraction
+runner's names), to trace (the runner lists its own gaps).
+
+Output JSON: `mode` "denominator", `source_root`, `scope` (as full mode
+writes it), `files_in_scope`, `files_without_recipes`, `entry_points`,
+`arms`, `runner_status` (the --extraction's `status`, else null),
+`counts` (as full mode writes it), `entry_point_diff`, `warnings`, and
+last `files_in_scope_list` and `files_without_recipes_list` (as full
+mode writes them), to -o when given (its folder created). Exit 0, or 2
+on an input error (a --source-root that is no folder, a brief, --quick,
+--extraction or --tree-file that cannot be read, --tree-file beside
+--source-root, a payload that is not this shape, a flag of another
+mode).
 
 CLI examples:
   uv run skf-extract-public-api.py --mode quick < {payload_json}
@@ -722,7 +910,7 @@ def parse_package_swift(content: str) -> dict:
     """Best-effort parse of a SwiftPM Package.swift manifest.
 
     SwiftPM has no version field in the manifest (versions come from git tags),
-    so `version` is always None; the brief falls back to target_version / default.
+    so `version` is always None; a caller reads it from a git tag.
     """
     name_m = re.search(r"\bPackage\s*\(\s*name:\s*['\"]([^'\"]+)['\"]", content, re.DOTALL)
     deps: list[str] = []
@@ -1332,6 +1520,35 @@ def _detect_placeholder_version(version: str | None) -> str | None:
     return None
 
 
+def _literal_version(version: object, warnings: list[str]) -> str | None:
+    """The version the manifest writes as a literal string, else None.
+
+    A placeholder and a version that is not a string (Cargo's
+    `version = { workspace = true }`, which the workspace root's Cargo.toml
+    holds) give None with a warning, so the output's `version` is a string
+    or null, which --resolve-version looks up."""
+    if version is None:
+        return None
+    if not isinstance(version, str):
+        if isinstance(version, dict) and version.get("workspace") is True:
+            warnings.append(
+                "manifest version is inherited from the workspace (version.workspace = true), "
+                "which the workspace root's Cargo.toml holds, so the manifest states none"
+            )
+        else:
+            warnings.append(f"manifest version {version!r} is not a string, so the manifest states none")
+        return None
+    placeholder = _detect_placeholder_version(version)
+    if placeholder is not None:
+        warnings.append(
+            f"manifest version {placeholder!r} is a release-time placeholder "
+            f"(workspace protocol or semantic-release sentinel) and is not a real version, "
+            f"so the manifest states none"
+        )
+        return None
+    return version
+
+
 def extract(payload: dict) -> dict:
     """Orchestrate manifest parse + export scan for one logical package."""
     warnings: list[str] = []
@@ -1353,14 +1570,7 @@ def extract(payload: dict) -> dict:
             warnings.append(parsed["_parse_error"])
             parsed = {}
 
-    placeholder = _detect_placeholder_version(parsed.get("version"))
-    if placeholder is not None:
-        warnings.append(
-            f"manifest version {placeholder!r} is a release-time placeholder "
-            f"(workspace protocol or semantic-release sentinel) and is not a real version; "
-            f"the brief will fall back to user-supplied target_version or the default"
-        )
-        parsed["version"] = None
+    parsed["version"] = _literal_version(parsed.get("version"), warnings)
 
     _, scanner = LANGUAGE_DISPATCH[language]
     exports: list[dict] = []
@@ -1536,6 +1746,8 @@ JS_SOURCE_OF = {
 JS_TARGET_SUFFIXES = (".d.mts", ".d.cts", ".d.ts", ".mjs", ".cjs", ".jsx", ".js", ".mts", ".cts", ".tsx", ".ts")
 PACKAGE_ENTRY_FIELDS = ("types", "typings", "module", "main", "browser")
 WORKSPACE_MANIFESTS = ("package.json", "pnpm-workspace.yaml", "lerna.json", "Cargo.toml", "rush.json", "nx.json")
+# The arms under which a curated count can be stored as stats.effective_denominator.
+DENOMINATOR_ARMS = ("monorepo", "specific_modules", "multi_subpath_exports")
 
 
 class RunnerError(Exception):
@@ -1560,8 +1772,9 @@ def _sibling(filename: str):
     """A helper installed beside this script, loaded once as a module:
     skf-source-tree.py (git without the caller's hooks and git variables,
     and a tool lookup that never takes a shim planted in the current
-    folder), skf-resolve-authoritative-files.py (the brief's glob rules) and
-    skf-detect-workspaces.py (monorepo detection). Raises RunnerError."""
+    folder), skf-resolve-authoritative-files.py (the brief's YAML and glob
+    rules) and skf-detect-workspaces.py (monorepo detection). Raises
+    RunnerError."""
     module = _SIBLINGS.get(filename)
     if module is None:
         path = Path(__file__).resolve().parent / filename
@@ -1856,8 +2069,9 @@ def _read_file_list(path: Path) -> list[str]:
 def _read_brief(path: Path) -> dict:
     """The scope fields and language of a skill brief."""
     yaml = _yaml()
+    parse_brief_yaml = _sibling("skf-resolve-authoritative-files.py").parse_brief_yaml
     try:
-        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data = parse_brief_yaml(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError) as exc:
         raise RunnerError(f"cannot read brief {path}: {exc}") from exc
     except yaml.YAMLError as exc:
@@ -2003,12 +2217,17 @@ def _scan(exe: str, root: Path, folder: Path, rules: list[dict], files: list[str
           errors: list[dict], clock: _Clock | None = None) -> list[dict]:
     """ast-grep's matches of `rules` in `files` (relative to `root`), in
     batches. The rules go in a file as JSON documents (YAML reads JSON),
-    never on the command line. A call that times out, exits non-zero (its
-    rules carry no severity, so a scan that read every file exits 0, matches
-    or not) or prints other than JSON lines adds to `errors`: its batch's
-    files may be unread. The matches it printed are kept. When `clock` (the
-    run's --timeout) runs out, the call running is stopped and no other
-    starts: one `time-limit` item names every file left unread."""
+    never on the command line. A call that cannot start, times out, exits
+    non-zero (its rules carry no severity, so a scan that read every file
+    exits 0, matches or not) or prints other than JSON lines adds to
+    `errors` an item whose `unread` lists every file of its batch: ast-grep
+    prints a file's matches as one block per rule, with other files' blocks
+    between them, and a kill can stop it anywhere, so the output cannot show
+    which files it printed in full. A call that exited keeps the matches it
+    printed before any line that is not JSON; a call that timed out keeps
+    none. When `clock` (the run's --timeout) runs out, a call running is
+    stopped (its `time-limit` item lists its batch) and no other starts: a
+    `time-limit` item lists the files no call read, if any."""
     if not rules or not files:
         return []
     rule_file = folder / "rules.yml"
@@ -2055,10 +2274,8 @@ def _scan(exe: str, root: Path, folder: Path, rules: list[dict], files: list[str
                 if match is not None:
                     found.append(match)
         if failure is not None:
-            error = {"reason": failure[0], "files": len(batch), "first_file": batch[0], "detail": failure[1]}
-            if failure[0] == "time-limit":
-                error["unread"] = list(batch)
-            errors.append(error)
+            errors.append({"reason": failure[0], "files": len(batch), "first_file": batch[0], "detail": failure[1],
+                           "unread": list(batch)})
     return found
 
 
@@ -2861,26 +3078,66 @@ def _specifier_local(text: str) -> str:
     return re.split(r"\s+as\s+", item, maxsplit=1)[0].strip().strip("'\"")
 
 
+def _member(name: str, local: str | None, file: str | None, line: int | None) -> dict:
+    """One name a namespace's module passes on, traced to the file that
+    defines it (`local` the name it has there when it differs)."""
+    return {"name": name, "local": local if local and local != name else None, "file": file, "line": line}
+
+
+def _flatten(start, direct: Callable[[object], list[tuple[str, str, object]]]) -> list[dict]:
+    """The members of the namespace module `start`: what `direct` says it
+    passes on, (name, "member", member) or (name, "module", the module),
+    each nested namespace module's members spliced in its place (each
+    module once, so a cycle is cut), each (name, file) once, and no name
+    that starts with `_`, which is never public."""
+    out: list[dict] = []
+    seen: set[tuple[str, str | None]] = set()
+    visited: set = set()
+
+    def walk(module) -> None:
+        visited.add(module)
+        for name, kind, value in direct(module):
+            if not name or name.startswith("_"):
+                continue
+            if kind == "module":
+                if value not in visited:
+                    walk(value)
+            elif (value["name"], value["file"]) not in seen:
+                seen.add((value["name"], value["file"]))
+                out.append(value)
+
+    walk(start)
+    return out
+
+
 class _Surface:
     """The public names one language family's entry points declare:
     {name: info}, the first entry point naming it wins; the names, and the
     files, a namespace export (a module) makes reachable, which are not
-    internal; and the re-exports the trace could not follow."""
+    internal; and the re-exports the trace could not follow. A namespace
+    item also carries its `members`, the names its module passes on (None
+    when the trace cannot read that module); `opaque` holds the (name,
+    file) of each member that is itself a module the trace cannot read,
+    which, as such a namespace, is no recipe's target."""
 
     def __init__(self) -> None:
         self.names: dict[str, dict] = {}
         self.reachable: set[str] = set()
         self.reachable_files: set[str] = set()
         self.unresolved: list[dict] = []
+        self.opaque: set[tuple[str, str | None]] = set()
 
     def add(self, name: str, entry: str, via: str, file: str | None, line: int | None,
-            source: str | None = None, local: str | None = None) -> dict | None:
+            source: str | None = None, local: str | None = None,
+            members: list[dict] | None = None) -> dict | None:
         if not name or name.startswith("_"):
             return None
         if name not in self.names:
             self.names[name] = {"name": name, "entry": entry, "via": via, "from": source,
                                 "local": local if local and local != name else None,
                                 "file": file, "line": line}
+            if via == "namespace":
+                self.names[name]["members"] = [dict(m) for m in members] if members is not None else None
         return self.names[name]
 
     def unresolve(self, entry: str, name: str, source: str | None, file: str) -> None:
@@ -3053,6 +3310,40 @@ def _js_surface(root: Path, entries: list[dict], tree_set: set[str], forms: dict
             if fact is not None and fact["how"] == "namespace":
                 reach(target(fact["source"], where))
 
+    passes: dict[str, list[tuple[str, str, object]]] = {}
+
+    def direct(file: str) -> list[tuple[str, str, object]]:
+        """What the namespace module `file` passes on, in order: (name,
+        "member", a member traced as publish traces a name) or (name,
+        "module", the file of a namespace among them); a namespace whose
+        module no file here holds is a member itself, with no file, and so
+        is a re-export from another package, which (unlike the same form in
+        an entry point) is not unresolved."""
+        if file not in passes:
+            out: list[tuple[str, str, object]] = []
+            for name, owner in passed_on(file).items():
+                where, local, line, fact = resolve(owner, name, set())
+                how = fact["how"] if fact is not None else None
+                namespace = target(fact["source"], where) if how == "namespace" else None
+                if namespace is not None:
+                    out.append((name, "module", namespace))
+                elif how == "namespace":
+                    surface.opaque.add((name, None))
+                    out.append((name, "member", _member(name, None, None, None)))
+                elif how == "re-export":
+                    out.append((name, "member", _member(name, local, None, None)))
+                else:
+                    out.append((name, "member", _member(name, local, where, line)))
+            passes[file] = out
+        return passes[file]
+
+    member_lists: dict[str, list[dict]] = {}
+
+    def members(file: str) -> list[dict]:
+        if file not in member_lists:
+            member_lists[file] = _flatten(file, direct)
+        return member_lists[file]
+
     def publish(entry: str, name: str, via: str, module: str, source: str | None) -> None:
         """Add public `name`, which `module` exports, traced to what it is."""
         chain: set[str] = set()
@@ -3061,7 +3352,8 @@ def _js_surface(root: Path, entries: list[dict], tree_set: set[str], forms: dict
         how = fact["how"] if fact is not None else None
         if how == "namespace":
             namespace = target(fact["source"], where)
-            surface.add(name, entry, "namespace", namespace, None, source)
+            surface.add(name, entry, "namespace", namespace, None, source,
+                        members=members(namespace) if namespace is not None else None)
             if namespace is None:
                 surface.unresolve(entry, name, fact["source"], where)
             reach(namespace)
@@ -3371,9 +3663,16 @@ def _py_surface(root: Path, entries: list[dict], tree_set: set[str], surface: _S
             if found is None:
                 return None, binding["imported"], None, "import"
             if found.endswith("__init__.py"):
-                sub = _py_submodule(posixpath.dirname(found), binding["imported"], tree_set)
-                if sub and sub != rel:
-                    return sub, binding["imported"], None, "submodule"
+                # Python's own precedence: the package's explicit binding of
+                # the name first, the submodule only when it binds none (or
+                # binds the submodule itself, `from . import name` or
+                # `from pkg.x import name`); a star import is not read here
+                inner = bindings(found)[1].get(binding["imported"])
+                if inner is None or (inner["kind"] == "import" and inner["imported"] == binding["imported"]
+                                     and module_file(found, inner["level"], inner["module"], top) == found):
+                    sub = _py_submodule(posixpath.dirname(found), binding["imported"], tree_set)
+                    if sub and sub != rel:
+                        return sub, binding["imported"], None, "submodule"
             rel, name = found, binding["imported"]
         return rel, name, None, "missing"
 
@@ -3390,6 +3689,31 @@ def _py_surface(root: Path, entries: list[dict], tree_set: set[str], surface: _S
             surface.reachable.update(chain | {local})
             if what == "submodule" and where is not None:
                 reach(where, top)
+
+    passes: dict[tuple[str, str], list[tuple[str, str, object]]] = {}
+
+    def direct(rel: str, top: str) -> list[tuple[str, str, object]]:
+        """What the submodule `rel` passes on (its star_names), in order:
+        (name, "member", a member traced by resolve) or (name, "module",
+        the file of a submodule among them); a name from another package
+        has no file."""
+        if (rel, top) not in passes:
+            out: list[tuple[str, str, object]] = []
+            for name, owner in star_names(rel, top).items():
+                where, local, line, what = resolve(owner, name, top, set())
+                if what == "submodule" and where is not None:
+                    out.append((name, "module", where))
+                else:
+                    out.append((name, "member", _member(name, local, where, line)))
+            passes[(rel, top)] = out
+        return passes[(rel, top)]
+
+    member_lists: dict[tuple[str, str], list[dict]] = {}
+
+    def members(rel: str, top: str) -> list[dict]:
+        if (rel, top) not in member_lists:
+            member_lists[(rel, top)] = _flatten(rel, lambda module: direct(module, top))
+        return member_lists[(rel, top)]
 
     for entry in [e["file"] for e in entries]:
         top = posixpath.dirname(entry)
@@ -3420,7 +3744,7 @@ def _py_surface(root: Path, entries: list[dict], tree_set: set[str], surface: _S
             where, local, line, what = resolve(entry, name, top, chain)
             surface.reachable.update(chain)
             if what == "submodule":
-                surface.add(name, entry, "namespace", where, None, source, local)
+                surface.add(name, entry, "namespace", where, None, source, local, members=members(where, top))
                 reach(where, top)
             elif what == "import":
                 surface.add(name, entry, "re-export", None, None, source, local)
@@ -3674,6 +3998,41 @@ def _rust_surface(root: Path, entries: list[dict], tree_set: set[str], surface: 
             if sub is not None:
                 reach(lib, sub, reached)
 
+    passes: dict[tuple[str, tuple[str, ...]], list[tuple[str, str, object]]] = {}
+
+    def direct(lib: str, here: tuple[str, ...]) -> list[tuple[str, str, object]]:
+        """What the module at `here` passes on (exported), in order: (name,
+        "member", a member traced as publish traces a name) or (name,
+        "module", the path of a module among them that a file of its own
+        holds); an inline or `#[path]` module is a member itself, at its
+        `pub mod`, and a `pub use` of another crate's item one with no file,
+        which (unlike the same form in the crate root) is not unresolved."""
+        if (lib, here) not in passes:
+            out: list[tuple[str, str, object]] = []
+            for name in exported(lib, list(here)):
+                file, local, line, sub, stop = resolve(lib, list(here), name, set())
+                if stop is not None:
+                    out.append((name, "member", _member(name, local, None, None)))
+                elif sub is not None and _rust_file(lib, sub, tree_set) is not None:
+                    out.append((name, "module", tuple(sub)))
+                else:
+                    if sub is not None:
+                        surface.opaque.add((name, file))
+                    out.append((name, "member", _member(name, local, file, line)))
+            passes[(lib, here)] = out
+        return passes[(lib, here)]
+
+    member_lists: dict[tuple[str, tuple[str, ...]], list[dict]] = {}
+
+    def members(lib: str, here: list[str]) -> list[dict] | None:
+        """The members of the module at `here`; None when no file of its own holds it."""
+        if _rust_file(lib, here, tree_set) is None:
+            return None
+        key = (lib, tuple(here))
+        if key not in member_lists:
+            member_lists[key] = _flatten(tuple(here), lambda path: direct(lib, path))
+        return member_lists[key]
+
     def publish(lib: str, here: list[str], name: str, via: str, source: str | None,
                 reached: set[tuple[str, ...]]) -> None:
         """Add public `name`, which the module at `here` exports, traced to
@@ -3685,7 +4044,7 @@ def _rust_surface(root: Path, entries: list[dict], tree_set: set[str], surface: 
             surface.add(name, lib, via, None, None, source, local)
             surface.unresolve(lib, name, *stop)
         elif sub is not None:
-            surface.add(name, lib, "namespace", file, line, "::".join(sub))
+            surface.add(name, lib, "namespace", file, line, "::".join(sub), members=members(lib, sub))
             reach(lib, sub, reached)
         else:
             surface.add(name, lib, via, file, line, source, local)
@@ -3700,7 +4059,8 @@ def _rust_surface(root: Path, entries: list[dict], tree_set: set[str], surface: 
                 continue
             sub = [name.removeprefix("r#")]
             sub_file = _rust_file(lib, sub, tree_set)
-            surface.add(name, lib, "namespace", sub_file or lib, None if sub_file else line)
+            surface.add(name, lib, "namespace", sub_file or lib, None if sub_file else line,
+                        members=members(lib, sub))
             reach(lib, sub, reached)
         for path, alias, glob, _ in info["uses"]:
             if not glob:
@@ -3779,8 +4139,13 @@ def entry_point_diff(exports: list[dict], surfaces: dict[str, _Surface], entries
     reachable (a name, or any export of a reachable file), is internal. A
     declared name no recipe found is a gap when a file in scope defines it
     (or the trace found no file), and is outside scope when a file out of
-    scope does; a module is no recipe's target, so neither. In a family
-    with no entry point, or only empty ones, every export is public."""
+    scope does; a module is no recipe's target, so neither: a namespace
+    with `members` has each member diffed in its place, found when a
+    recipe found its name, or its `local` one, in its file, and given no
+    row of its own when a declared name has its name and file (or another
+    namespace gave it one); one whose members are unknown (None), or a
+    member that is such a module (`opaque`), is no gap. In a family with
+    no entry point, or only empty ones, every export is public."""
     statuses: dict[str, str] = {}
     public: dict[tuple[str, str], dict] = {}
     internal: list[dict] = []
@@ -3814,7 +4179,41 @@ def entry_point_diff(exports: list[dict], surfaces: dict[str, _Surface], entries
             if name in names or (info["local"] or name) in names or info["via"] == "namespace":
                 continue
             (gaps if info["file"] is None or info["file"] in in_scope else outside).append((family, info))
+        # A namespace's members, each by its name (or `local`) and file, or
+        # by name alone when it has no file, as a declared name is: a name
+        # at a file a declared name already gives counts once.
+        found = {(e["export_name"], e["source_file"]) for e in records}
+        given = {(info["name"], info["file"]) for info in declared.values() if not _has_members(info)}
+        for info in declared.values():
+            for member in info["members"] if _has_members(info) else []:
+                key = (member["name"], member["file"])
+                if (key in given or key in found or key in surface.opaque
+                        or (member["local"] and (member["local"], member["file"]) in found)
+                        or (member["file"] is None and {member["name"], member["local"]} & names)):
+                    continue
+                given.add(key)
+                row = {"name": member["name"], "entry": info["entry"], "file": member["file"],
+                       "line": member["line"]}
+                (gaps if member["file"] is None or member["file"] in in_scope else outside).append((family, row))
     return statuses, public, internal, gaps, outside
+
+
+def _has_members(info: dict) -> bool:
+    """A namespace item whose module's members the trace read (a list, maybe empty)."""
+    return info.get("via") == "namespace" and isinstance(info.get("members"), list)
+
+
+def _public_keys(public: dict[tuple[str, str], dict]) -> set[tuple[str, str, str | None]]:
+    """The (family, name, file) the counts count: each public name but a
+    namespace with members, in its place each member, and so a member that
+    is also a declared name (or another namespace's member) once."""
+    keys: set[tuple[str, str, str | None]] = set()
+    for (family, _), info in public.items():
+        if _has_members(info):
+            keys.update((family, m["name"], m["file"]) for m in info["members"])
+        else:
+            keys.add((family, info["name"], info["file"]))
+    return keys
 
 
 def _head_cap(value: int | None, tier: str | None, scope_type: str | None) -> int | None:
@@ -3823,7 +4222,7 @@ def _head_cap(value: int | None, tier: str | None, scope_type: str | None) -> in
     return HEAD_CAPS.get((tier, scope_type), DEFAULT_HEAD_CAP)
 
 
-def _monorepo(root: Path, tree: list[str], tree_set: set[str]) -> tuple[bool, str | None]:
+def _workspaces(root: Path, tree: list[str], tree_set: set[str]) -> dict:
     """skf-detect-workspaces.py's verdict on the source root."""
     manifests = {}
     for name in WORKSPACE_MANIFESTS:
@@ -3831,19 +4230,111 @@ def _monorepo(root: Path, tree: list[str], tree_set: set[str]) -> tuple[bool, st
             text = _read_text(root, name)
             if text is not None:
                 manifests[name] = text
-    result = _sibling("skf-detect-workspaces.py").detect({"tree": tree, "manifests": manifests})
+    return _sibling("skf-detect-workspaces.py").detect({"tree": tree, "manifests": manifests})
+
+
+def _monorepo(root: Path, tree: list[str], tree_set: set[str]) -> tuple[bool, str | None]:
+    """skf-detect-workspaces.py's verdict on the source root: (is it a monorepo, its manifest kind)."""
+    result = _workspaces(root, tree, tree_set)
     return bool(result.get("is_monorepo")), result.get("manifest_kind")
+
+
+def _workspace_sources(result: dict, tree: list[str], wanted: set[str]) -> list[set[str]]:
+    """The source files (of a language --language selects) of each workspace
+    skf-detect-workspaces.py found, one set per workspace that holds any."""
+    sources = []
+    for workspace in result.get("workspaces") or [] if result.get("is_monorepo") else []:
+        folder = _norm(workspace.get("path") if isinstance(workspace, dict) else "").strip("/")
+        files = {f for f in tree if (not folder or f.startswith(folder + "/")) and _file_language(f) in wanted}
+        if files:
+            sources.append(files)
+    return sources
+
+
+def denominator_count(counted: set[tuple[str, str, str | None]], tree: list[str], includes: list[str],
+                      excludes: list[str], tier_a: list[str], glob_match: Callable[[str, str], bool],
+                      read_all: bool) -> tuple[int, str, set[str], str | None]:
+    """(effective_denominator, its basis, the files it counts, a warning or None)
+    over the (family, name, file) keys `counted`: each name once whose file
+    matches scope.include (any file with no glob), scope.tier_a_include when
+    given (a tier A name counts only in a file scope.include matches too) and
+    no scope.exclude glob. A tier A list that counts no name falls back to
+    scope.include (else every file) once a name was counted and every file
+    was read (`read_all`)."""
+
+    def files_matching(globs: list[str]) -> set[str]:
+        return {f for f in tree if (not globs or any(glob_match(f, g) for g in globs))
+                and not any(glob_match(f, g) for g in excludes)}
+
+    in_include = files_matching(includes)
+    denominator_files = (files_matching(tier_a) & in_include) if tier_a else in_include
+    basis = "tier_a_include" if tier_a else ("scope.include" if includes else "all-files")
+    warning = None
+    if tier_a and counted and read_all and not any(file in denominator_files for _, _, file in counted):
+        basis = "scope.include" if includes else "all-files"
+        denominator_files = in_include
+        counts_what = "scope.include" if includes else "every file"
+        warning = f"scope.tier_a_include counts no public name: effective_denominator counts {counts_what}"
+    # Each name once, as Test Skill's sets of names count it: a name the entry points pass on
+    # from two files, or in two languages, is two keys but one name.
+    count = len({name for _, name, file in counted if file in denominator_files})
+    return count, basis, denominator_files, warning
+
+
+def curated_subset(counted: set[tuple[str, str, str | None]], basis: str, tree: list[str], includes: list[str],
+                   excludes: list[str], tier_a: list[str], glob_match: Callable[[str, str], bool],
+                   arms: dict, workspace_sources: list[set[str]]) -> bool:
+    """Whether the files the count read are a curated subset rather than the
+    whole workspace (in a single-package repository, the whole package): the
+    files the basis globs list (a tier A list's, among those scope.include
+    lists; under arm (b), less those scope.exclude drops) leave out a file
+    that defines a counted public name or, in a monorepo, every source file
+    of a workspace. A basis of all-files lists none."""
+    if basis == "all-files":
+        return False
+    files = {f for f in tree if not includes or any(glob_match(f, g) for g in includes)}
+    if basis == "tier_a_include":
+        files = {f for f in files if any(glob_match(f, g) for g in tier_a)}
+    if arms.get("specific_modules"):
+        files = {f for f in files if not any(glob_match(f, g) for g in excludes)}
+    tree_set = set(tree)
+    defining = {file for _, _, file in counted if file in tree_set}
+    return bool(defining - files) or any(not (sources & files) for sources in workspace_sources)
+
+
+def effective_denominator_decision(arms: dict, scope_type: str | None, basis: str, curated: bool, count: int,
+                                   incomplete: bool) -> dict:
+    """Whether create-skill and update-skill store the count as
+    stats.effective_denominator, the brief's scope.notes aside: {store, reason},
+    the reason naming the first condition that fails."""
+    if scope_type == "reference-app":
+        reason = "reference-app"
+    elif incomplete:
+        reason = "incomplete-run"
+    elif not any(arms.get(arm) for arm in DENOMINATOR_ARMS):
+        reason = "no-arm"
+    elif scope_type == "full-library":
+        reason = "full-library"
+    elif basis == "all-files":
+        reason = "all-files"
+    elif not curated:
+        reason = "not-curated"
+    elif count == 0:
+        reason = "zero-count"
+    else:
+        return {"store": True, "reason": "curated-subset"}
+    return {"store": False, "reason": reason}
 
 
 def _select_files(root: Path, candidates: list[str], listed: bool, includes: list[str], excludes: list[str],
                   wanted: set[str], glob_match: Callable[[str, str], bool], issues: list[dict],
-                  warnings: list[str]) -> tuple[list[str], dict[str, int]]:
-    """(the files in scope, by extension the in-scope source files no recipe
-    reads). A file a --files-from list names that is missing, or that no
-    recipe reads, is an issue; an include glob no candidate matches, a
-    warning."""
+                  warnings: list[str]) -> tuple[list[str], list[str], list[str]]:
+    """(the files in scope, the in-scope source files no recipe reads, the
+    include globs no candidate matches). A file a --files-from list names
+    that is missing, or that no recipe reads, is an issue; an include glob
+    no candidate matches, a warning too."""
     in_scope: list[str] = []
-    without_recipes: Counter = Counter()
+    without_recipes: list[str] = []
     used = dict.fromkeys(includes, False)
     for rel in candidates:
         hits = [g for g in includes if glob_match(rel, g)]
@@ -3859,51 +4350,66 @@ def _select_files(root: Path, candidates: list[str], listed: bool, includes: lis
             if listed:
                 issues.append({"file": rel, "issue": "no-recipes"})
             elif extension in NO_RECIPE_EXTENSIONS:
-                without_recipes[extension] += 1
+                without_recipes.append(rel)
             continue
         in_scope.append(rel)
-    warnings += [f"scope.include pattern {g!r} matches no file" for g, hit in used.items() if not hit]
-    return in_scope, dict(sorted(without_recipes.items()))
+    unmatched = [g for g, hit in used.items() if not hit]
+    warnings += [f"scope.include pattern {g!r} matches no file" for g in unmatched]
+    return in_scope, without_recipes, unmatched
 
 
-def run_full(args: argparse.Namespace) -> tuple[dict, int]:
-    """Run the recipes over the source tree; (result, exit code)."""
-    clock = _Clock(DEFAULT_TIMEOUT_SEC if args.timeout is None else args.timeout)
-    root = Path(args.source_root)
-    if not root.is_dir():
-        raise RunnerError(f"source root not found: {args.source_root}")
-    recipes_path = Path(args.recipes) if args.recipes else RECIPES_FILE
-    recipes = load_recipe_file(recipes_path)
+def _by_extension(files: list[str]) -> dict[str, int]:
+    """`files_without_recipes`: how many of `files` each extension has."""
+    return dict(sorted(Counter(posixpath.splitext(f)[1].lower() for f in files).items()))
+
+
+def _unmatched_tier_a(tier_a: list[str], includes: list[str], tree: list[str],
+                      glob_match: Callable[[str, str], bool], warnings: list[str]) -> list[str]:
+    """The tier A globs that match no file of `tree` (the whole tree, regardless
+    of --files-from and before the excludes), with a warning for each, and one
+    for each that matches only files outside scope.include."""
+    unmatched = [g for g in dict.fromkeys(tier_a) if not any(glob_match(f, g) for f in tree)]
+    warnings += [f"scope.tier_a_include pattern {g!r} matches no file" for g in unmatched]
+    warnings += [f"scope.tier_a_include pattern {g!r} matches only files outside scope.include"
+                 for g in dict.fromkeys(tier_a) if includes and g not in unmatched
+                 and not any(glob_match(f, g) and any(glob_match(f, i) for i in includes) for f in tree)]
+    return unmatched
+
+
+def _brief_scope(args: argparse.Namespace) -> dict:
+    """The scope globs, scope type and languages: the flags', else the brief's."""
     brief = _read_brief(Path(args.brief)) if args.brief else {}
-    includes = [g for g in (_norm(v) for v in (args.include or brief.get("include") or [])) if g]
-    excludes = [g for g in (_norm(v) for v in (args.exclude or brief.get("exclude") or [])) if g]
-    tier_a = [g for g in (_norm(v) for v in (args.tier_a_include or brief.get("tier_a_include") or [])) if g]
-    scope_type = args.scope_type or brief.get("type")
     language_values = args.language or ([brief["language"]] if brief.get("language") else [])
     wanted, unknown_languages = _wanted_languages(language_values)
-    recipe_set = args.recipe_set or ("component-library" if scope_type == "component-library" else "standard")
-    head_cap = _head_cap(args.head_cap, args.tier, scope_type)
-    glob_match = _sibling("skf-resolve-authoritative-files.py").glob_match
+    return {
+        "includes": [g for g in (_norm(v) for v in (args.include or brief.get("include") or [])) if g],
+        "excludes": [g for g in (_norm(v) for v in (args.exclude or brief.get("exclude") or [])) if g],
+        "tier_a": [g for g in (_norm(v) for v in (args.tier_a_include or brief.get("tier_a_include") or [])) if g],
+        "scope_type": args.scope_type or brief.get("type"),
+        "wanted": wanted,
+        "glob_match": _sibling("skf-resolve-authoritative-files.py").glob_match,
+        "warnings": [f"no recipe reads {value} files" for value in unknown_languages],
+    }
 
-    warnings: list[str] = [f"no recipe reads {value} files" for value in unknown_languages]
-    errors: list[dict] = []
+
+def _scope_facts(args: argparse.Namespace, root: Path) -> dict:
+    """What full mode and denominator mode know before any recipe runs: the
+    brief's scope, the files in scope, the entry points and the arms."""
+    scope = _brief_scope(args)
+    includes, excludes, tier_a = scope["includes"], scope["excludes"], scope["tier_a"]
+    scope_type, wanted, glob_match = scope["scope_type"], scope["wanted"], scope["glob_match"]
+    warnings: list[str] = scope["warnings"]
     issues: list[dict] = []
     tree = list_tree(root)
     tree_set = set(tree)
-    listed = _read_file_list(Path(args.files_from)) if args.files_from else None
-    in_scope, without_recipes = _select_files(root, tree if listed is None else listed, listed is not None,
-                                              includes, excludes, wanted, glob_match, issues, warnings)
-    readable = []
-    for rel in in_scope:
-        try:
-            (root / rel).read_bytes().decode("utf-8")
-        except OSError:
-            issues.append({"file": rel, "issue": "unreadable"})
-            continue
-        except UnicodeDecodeError:
-            issues.append({"file": rel, "issue": "not-utf8"})
-            continue
-        readable.append(rel)
+    files_from = getattr(args, "files_from", None)
+    listed = _read_file_list(Path(files_from)) if files_from else None
+    in_scope, without_recipes, unmatched_include = _select_files(
+        root, tree if listed is None else listed, listed is not None, includes, excludes, wanted, glob_match,
+        issues, warnings)
+    # A tier A glob is matched against the whole tree under --source-root (the
+    # tree effective_denominator reads).
+    unmatched_tier_a = _unmatched_tier_a(tier_a, includes, tree, glob_match, warnings)
 
     # The entry points and the arms need no ast-grep.
     in_scope_set = set(in_scope)
@@ -3922,13 +4428,85 @@ def run_full(args: argparse.Namespace) -> tuple[dict, int]:
                             f"{entry['package']}) is outside the files in scope: widen scope.include to document "
                             "the names it exports (entry_point_diff.outside_scope), which effective_denominator "
                             "leaves out")
-    monorepo, monorepo_kind = _monorepo(root, tree, tree_set)
+    workspaces = _workspaces(root, tree, tree_set)
+    monorepo = bool(workspaces.get("is_monorepo"))
     arms = {
         "monorepo": monorepo,
-        "monorepo_kind": monorepo_kind,
+        "monorepo_kind": workspaces.get("manifest_kind"),
         "specific_modules": scope_type == "specific-modules" and not monorepo,
         "multi_subpath_exports": not monorepo and any(m["non_root_subpaths"] > 1 for m in maps),
     }
+    return {
+        "includes": includes, "excludes": excludes, "tier_a": tier_a, "scope_type": scope_type, "wanted": wanted,
+        "glob_match": glob_match, "warnings": warnings, "issues": issues, "tree": tree, "tree_set": tree_set,
+        "in_scope": in_scope, "without_recipes": without_recipes, "unmatched_include": unmatched_include,
+        "unmatched_tier_a": unmatched_tier_a, "surfaces": surfaces, "js_entries": js_entries, "maps": maps,
+        "unresolved_subpaths": unresolved_subpaths, "py_entries": py_entries, "rust_entries": rust_entries,
+        "entries": entries, "arms": arms, "workspace_sources": _workspace_sources(workspaces, tree, wanted),
+    }
+
+
+def _scope_record(args: argparse.Namespace, facts: dict) -> dict:
+    """The `scope` object full mode and denominator mode write."""
+    return {"include": facts["includes"], "exclude": facts["excludes"], "tier_a_include": facts["tier_a"] or None,
+            "type": facts["scope_type"], "languages": sorted(facts["wanted"]),
+            "files_from": getattr(args, "files_from", None), "unmatched_include": facts["unmatched_include"],
+            "unmatched_tier_a_include": facts["unmatched_tier_a"]}
+
+
+def _denominator_counts(facts: dict, counted: set[tuple[str, str, str | None]], public_api: int, internal: int,
+                        incomplete: bool, warnings: list[str]) -> dict:
+    """The `counts` object: the two API counts, effective_denominator with its
+    basis and files, whether those files are a curated subset, and the
+    decision whether to store the count."""
+    count, basis, denominator_files, warning = denominator_count(
+        counted, facts["tree"], facts["includes"], facts["excludes"], facts["tier_a"], facts["glob_match"],
+        not incomplete)
+    if warning:
+        warnings.append(warning)
+    curated = curated_subset(counted, basis, facts["tree"], facts["includes"], facts["excludes"], facts["tier_a"],
+                             facts["glob_match"], facts["arms"], facts["workspace_sources"])
+    return {
+        "exports_public_api": public_api,
+        "exports_internal": internal,
+        "effective_denominator": count,
+        "effective_denominator_basis": basis,
+        "denominator_files": len(denominator_files),
+        "curated_subset": curated,
+        "effective_denominator_decision": effective_denominator_decision(
+            facts["arms"], facts["scope_type"], basis, curated, count, incomplete),
+    }
+
+
+def run_full(args: argparse.Namespace) -> tuple[dict, int]:
+    """Run the recipes over the source tree; (result, exit code)."""
+    clock = _Clock(DEFAULT_TIMEOUT_SEC if args.timeout is None else args.timeout)
+    root = Path(args.source_root)
+    if not root.is_dir():
+        raise RunnerError(f"source root not found: {args.source_root}")
+    recipes_path = Path(args.recipes) if args.recipes else RECIPES_FILE
+    recipes = load_recipe_file(recipes_path)
+    facts = _scope_facts(args, root)
+    scope_type, warnings, issues = facts["scope_type"], facts["warnings"], facts["issues"]
+    tree_set, in_scope = facts["tree_set"], facts["in_scope"]
+    in_scope_set = set(in_scope)
+    surfaces, js_entries, maps = facts["surfaces"], facts["js_entries"], facts["maps"]
+    py_entries, rust_entries, entries = facts["py_entries"], facts["rust_entries"], facts["entries"]
+    unresolved_subpaths, arms = facts["unresolved_subpaths"], facts["arms"]
+    recipe_set = args.recipe_set or ("component-library" if scope_type == "component-library" else "standard")
+    head_cap = _head_cap(args.head_cap, args.tier, scope_type)
+    errors: list[dict] = []
+    readable = []
+    for rel in in_scope:
+        try:
+            (root / rel).read_bytes().decode("utf-8")
+        except OSError:
+            issues.append({"file": rel, "issue": "unreadable"})
+            continue
+        except UnicodeDecodeError:
+            issues.append({"file": rel, "issue": "not-utf8"})
+            continue
+        readable.append(rel)
 
     exe, version, shim = _ast_grep()
     result: dict = {
@@ -3938,12 +4516,10 @@ def run_full(args: argparse.Namespace) -> tuple[dict, int]:
         "recipes_file": recipes_path.as_posix(),
         "recipe_set": recipe_set,
         "ast_grep": {"path": exe, "version": version},
-        "scope": {"include": includes, "exclude": excludes, "tier_a_include": tier_a or None,
-                  "type": scope_type, "languages": sorted(wanted),
-                  "files_from": args.files_from},
+        "scope": _scope_record(args, facts),
         "files_in_scope": len(in_scope),
         "files_by_language": dict(sorted(Counter(_file_language(f) for f in in_scope).items())),
-        "files_without_recipes": without_recipes,
+        "files_without_recipes": _by_extension(facts["without_recipes"]),
         "file_issues": issues,
         "head_cap": head_cap,
         "truncated": False,
@@ -3958,6 +4534,9 @@ def run_full(args: argparse.Namespace) -> tuple[dict, int]:
         "arms": arms,
         "errors": errors,
         "warnings": warnings,
+        # Last: only a run without the recipes reads them, and a large tree lists thousands.
+        "files_in_scope_list": in_scope,
+        "files_without_recipes_list": facts["without_recipes"],
     }
     if exe is None:
         result["status"] = "no-ast-grep"
@@ -4013,10 +4592,12 @@ def run_full(args: argparse.Namespace) -> tuple[dict, int]:
     else:
         status = "empty-barrel" if "empty-barrel" in statuses.values() else "no-entry-point"
 
-    basis_globs = tier_a or includes
-    basis = "tier_a_include" if tier_a else ("scope.include" if includes else "all-files")
-    denominator_files = {f for f in tree if (not basis_globs or any(glob_match(f, g) for g in basis_globs))
-                         and not any(glob_match(f, g) for g in excludes)}
+    # A tier A list that counts no public name (each glob matches no file, or
+    # only files an exclude drops, that scope.include leaves out or that
+    # define no public name) narrows nothing, once the run counted a name
+    # and read every file (no error).
+    counted = _public_keys(public)
+    counts = _denominator_counts(facts, counted, len(counted), len(internal), bool(errors), warnings)
 
     by_type: Counter = Counter(e["export_type"] for e in exports)
     ordered = sorted(public.items(), key=lambda item: (item[0][1], item[0][0]))
@@ -4043,13 +4624,7 @@ def run_full(args: argparse.Namespace) -> tuple[dict, int]:
             {"name": info["name"], "language": family, "local": info["local"], "from": info["from"],
              "entry": info["entry"], "file": info["file"], "line": info["line"], "via": info["via"]}
             for (family, _), info in ordered if info["via"] in ("re-export", "star", "namespace")],
-        "counts": {
-            "exports_public_api": len(public),
-            "exports_internal": len(internal),
-            "effective_denominator": sum(1 for info in public.values() if info["file"] in denominator_files),
-            "effective_denominator_basis": basis,
-            "denominator_files": len(denominator_files),
-        },
+        "counts": counts,
     })
     result["file_issues"] = sorted(issues, key=lambda i: (i["file"], i["issue"]))
     if errors:
@@ -4058,35 +4633,249 @@ def run_full(args: argparse.Namespace) -> tuple[dict, int]:
     return result, 0
 
 
+def _full_exit_2(message: str) -> int:
+    """Exit 2 of full mode (an input error, a failed -o write or a crash):
+    `message` on one stderr line, each line break and the whitespace around
+    it joined into one space (a YAML error spans several lines) and every
+    other space kept, so a path is quoted as written. Callers quote the line
+    as the reason they stop or fall back."""
+    sys.stderr.write("error: " + re.sub(r"\s*[\r\n]\s*", " ", message.strip("\r\n")) + "\n")
+    return 2
+
+
 def _main_full(args: argparse.Namespace) -> int:
     if not args.source_root:
-        sys.stderr.write("error: --mode full needs --source-root\n")
-        return 2
+        return _full_exit_2("--mode full needs --source-root")
     if args.head_cap is not None and args.head_cap < 0:
-        sys.stderr.write("error: --head-cap must be 0 (no cap) or more\n")
-        return 2
+        return _full_exit_2("--head-cap must be 0 (no cap) or more")
     if args.timeout is not None and not args.timeout > 0:
-        sys.stderr.write("error: --timeout must be more than 0 seconds\n")
-        return 2
+        return _full_exit_2("--timeout must be more than 0 seconds")
     try:
         result, code = run_full(args)
     except RunnerError as exc:
-        sys.stderr.write(f"error: {exc}\n")
-        return 2
+        return _full_exit_2(str(exc))
     except Exception as exc:  # noqa: BLE001 - one stderr line and exit 2, never a traceback
-        detail = " ".join(str(exc).split())
-        sys.stderr.write(f"error: the run failed: {type(exc).__name__}: {detail}\n")
-        return 2
+        return _full_exit_2(f"the run failed: {type(exc).__name__}: {exc}")
     text = json.dumps(result, indent=2) + "\n"
     if args.output:
         try:
             Path(args.output).write_text(text, encoding="utf-8")
         except OSError as exc:
-            sys.stderr.write(f"error: cannot write {args.output}: {exc}\n")
-            return 2
+            return _full_exit_2(f"cannot write {args.output}: {exc}")
     else:
         sys.stdout.write(text)
     return code
+
+
+# --------------------------------------------------------------------------
+# Denominator mode: the counts and the effective_denominator decision of
+# names counted without the runner's diff
+# --------------------------------------------------------------------------
+
+NO_ARMS = {"monorepo": False, "monorepo_kind": None, "specific_modules": False, "multi_subpath_exports": False}
+
+
+class DenominatorInputError(Exception):
+    """Exit 2 of denominator mode."""
+
+
+def _name_family(language: object, file: object) -> str:
+    """The language family a name counts in: its file's, else its language's."""
+    family = FAMILY_OF.get(_file_language(file)) if isinstance(file, str) and file else None
+    if family is not None:
+        return family
+    value = str(language or "").strip().lower()
+    selected = LANGUAGE_FAMILIES.get(value)
+    return FAMILY_OF[selected[0]] if selected else value
+
+
+def _payload_names(items: object, where: str) -> list[dict]:
+    """The {name, file, language, members} items of a payload list, checked."""
+    if items is None:
+        return []
+    if not isinstance(items, list):
+        raise DenominatorInputError(f"{where} is not a list")
+    names = []
+    for i, item in enumerate(items):
+        if not isinstance(item, dict) or not isinstance(item.get("name"), str) or not item["name"].strip():
+            raise DenominatorInputError(f"{where}[{i}] is not an object with a name")
+        if item.get("file") is not None and not isinstance(item["file"], str):
+            raise DenominatorInputError(f"{where}[{i}].file is not a path")
+        members = item.get("members")
+        if members is not None:
+            if not isinstance(members, list):
+                raise DenominatorInputError(f"{where}[{i}].members is not a list")
+            members = _payload_names(members, f"{where}[{i}].members")
+        file = _norm(item["file"]) if item.get("file") else None
+        names.append({"name": item["name"].strip(), "file": file, "language": item.get("language"),
+                      "members": members})
+    return names
+
+
+def _read_json_file(path: str, flag: str) -> dict:
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        raise DenominatorInputError(f"cannot read {flag} {path}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise DenominatorInputError(f"{flag} {path} is not a JSON object")
+    return data
+
+
+def run_denominator(args: argparse.Namespace, payload: dict) -> dict:
+    """The counts of the public names `payload`, --quick and --extraction
+    give, with the effective_denominator decision full mode makes."""
+    public: dict[tuple[str, str], dict] = {}
+    runner_public: dict[tuple[str, str], dict] = {}
+    # The exports found, each key at its file: the payload's and the runner's.
+    found: dict[tuple[str, str], str | None] = {}
+    internal: set[tuple[str, str]] = set()
+    incomplete = False
+    runner_status = None
+    if args.extraction:
+        runner = _read_json_file(args.extraction, "--extraction")
+        if runner.get("mode") != "full":
+            raise DenominatorInputError(f"--extraction {args.extraction} is not --mode full output")
+        runner_status = runner.get("status")
+        incomplete = runner_status == "incomplete" or bool(runner.get("errors"))
+        diff = runner.get("entry_point_diff") if isinstance(runner.get("entry_point_diff"), dict) else {}
+        for info in diff.get("public") or []:
+            if isinstance(info, dict) and isinstance(info.get("name"), str):
+                key = (str(info.get("language") or ""), info["name"])
+                public[key] = runner_public[key] = info
+                found[key] = info.get("file")
+        for item in diff.get("internal") or []:
+            if isinstance(item, dict) and isinstance(item.get("name"), str):
+                internal.add((str(item.get("language") or ""), item["name"]))
+                found[(str(item.get("language") or ""), item["name"])] = item.get("source_file")
+    for path in args.quick or []:
+        quick = _read_json_file(path, "--quick")
+        if not isinstance(quick.get("exports"), list):
+            raise DenominatorInputError(f"--quick {path} is not --mode quick output (no exports list)")
+        for item in quick["exports"]:
+            if isinstance(item, dict) and isinstance(item.get("name"), str) and item["name"]:
+                file = item.get("defined_in") or item.get("source_file")
+                file = _norm(file) if isinstance(file, str) and file else None
+                public[(_name_family(quick.get("language"), file), item["name"])] = {
+                    "name": item["name"], "file": file, "via": "declaration"}
+    for item in _payload_names(payload.get("public"), "public"):
+        family = _name_family(item["language"], item["file"])
+        info = {"name": item["name"], "file": item["file"], "via": "declaration"}
+        if item["members"] is not None:
+            info.update(via="namespace", members=[{"name": m["name"], "file": m["file"]} for m in item["members"]])
+        public[(family, item["name"])] = info
+    for item in _payload_names(payload.get("exports"), "exports"):
+        key = (_name_family(item["language"], item["file"]), item["name"])
+        found.setdefault(key, item["file"])
+        if not item["name"].startswith("_"):
+            internal.add(key)
+    named = set(public) | {(family, m["name"]) for (family, _), info in public.items() if _has_members(info)
+                           for m in info["members"]}
+    counted = _public_keys(public)
+
+    if args.source_root:
+        root = Path(args.source_root)
+        if not root.is_dir():
+            raise RunnerError(f"source root not found: {args.source_root}")
+        facts = _scope_facts(args, root)
+    else:
+        # No local tree (a remote source read by eye): the repository's listing, else the names' files.
+        facts = _brief_scope(args)
+        in_scope = without_recipes = None
+        unmatched_include: list[str] = []
+        unmatched_tier_a: list[str] = []
+        if args.tree_file is not None:
+            try:
+                listed, cut = _read_listing(args.tree_file)
+            except QuickInputError as exc:
+                raise DenominatorInputError(str(exc)) from exc
+            tree = sorted(set(listed))
+            if cut:
+                facts["warnings"].append("the listing was cut short: the file lists can miss files")
+            in_scope, without_recipes, unmatched_include = _select_files(
+                Path("."), tree, False, facts["includes"], facts["excludes"], facts["wanted"], facts["glob_match"],
+                [], facts["warnings"])
+            unmatched_tier_a = _unmatched_tier_a(facts["tier_a"], facts["includes"], tree, facts["glob_match"],
+                                                 facts["warnings"])
+        else:
+            tree = sorted({file for _, _, file in counted if file})
+        facts.update(tree=tree, in_scope=in_scope, without_recipes=without_recipes,
+                     unmatched_include=unmatched_include, unmatched_tier_a=unmatched_tier_a, arms=dict(NO_ARMS),
+                     workspace_sources=[], entries=[], maps=[])
+    warnings = facts["warnings"]
+    tree_set = set(facts["tree"])
+    outside_tree = sorted((name, file) for _, name, file in counted if file and file not in tree_set)
+    warnings += [f"public name {name} is defined in {file}, which is not in the tree: effective_denominator "
+                 "and curated_subset leave it out" for name, file in outside_tree]
+    counts = _denominator_counts(facts, counted, len(counted), len(internal - named), incomplete, warnings)
+    if not args.source_root and counts["effective_denominator_decision"]["reason"] not in ("reference-app",
+                                                                                         "incomplete-run"):
+        counts["effective_denominator_decision"] = {"store": False, "reason": "no-source-tree"}
+    without_recipes = facts["without_recipes"]
+
+    def row(key: tuple[str, str], file: str | None) -> dict:
+        return {"name": key[1], "language": key[0], "file": file}
+
+    def by_name(keys):
+        return sorted(keys, key=lambda k: (k[1], k[0]))
+
+    # The names the payload and --quick gave (the runner diffed its own), a namespace as its members.
+    given: dict[tuple[str, str], str | None] = {}
+    for key, info in public.items():
+        if info is runner_public.get(key):
+            continue
+        for member in info["members"] if _has_members(info) else [info]:
+            given.setdefault((key[0], member["name"]), member["file"])
+    return {
+        "mode": "denominator",
+        "source_root": args.source_root,
+        "scope": _scope_record(args, facts),
+        "files_in_scope": None if facts["in_scope"] is None else len(facts["in_scope"]),
+        "files_without_recipes": None if without_recipes is None else _by_extension(without_recipes),
+        "entry_points": {"files": facts["entries"], "exports_maps": facts["maps"]},
+        "arms": facts["arms"],
+        "runner_status": runner_status,
+        "counts": counts,
+        "entry_point_diff": {
+            "public": [row((family, name), file)
+                       for family, name, file in sorted(counted, key=lambda k: (k[1], k[0], k[2] or ""))],
+            "internal": [row(key, found.get(key)) for key in by_name(internal - named)],
+            "extraction_gaps": [row(key, given[key]) for key in by_name(given) if key not in found],
+        },
+        "warnings": warnings,
+        "files_in_scope_list": facts["in_scope"],
+        "files_without_recipes_list": without_recipes,
+    }
+
+
+def _main_denominator(args: argparse.Namespace) -> int:
+    if args.source_root and args.tree_file is not None:
+        return _full_exit_2("--tree-file stands for a remote source with no --source-root: pass one of them")
+    # With `--tree-file -` stdin holds the listing, so there is no payload.
+    reads_stdin = args.tree_file != "-" and sys.stdin is not None and not sys.stdin.isatty()
+    raw = sys.stdin.read() if reads_stdin else ""
+    try:
+        payload = json.loads(raw) if raw.strip() else {}
+    except ValueError as exc:
+        return _full_exit_2(f"stdin is not JSON: {exc}")
+    if not isinstance(payload, dict):
+        return _full_exit_2("stdin must be a JSON object: {\"public\": [...], \"exports\": [...]}")
+    try:
+        result = run_denominator(args, payload)
+    except (RunnerError, DenominatorInputError) as exc:
+        return _full_exit_2(str(exc))
+    except Exception as exc:  # noqa: BLE001 - one stderr line and exit 2, never a traceback
+        return _full_exit_2(f"the run failed: {type(exc).__name__}: {exc}")
+    text = json.dumps(result, indent=2) + "\n"
+    if args.output:
+        try:
+            Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+            Path(args.output).write_text(text, encoding="utf-8")
+        except OSError as exc:
+            return _full_exit_2(f"cannot write {args.output}: {exc}")
+    else:
+        sys.stdout.write(text)
+    return 0
 
 
 # --------------------------------------------------------------------------
@@ -4281,10 +5070,11 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--mode",
         default="quick",
-        choices=("quick", "full", "entries"),
+        choices=("quick", "full", "entries", "denominator"),
         help="quick (default): parse the stdin payload, or the --manifest-file and --entry-file files; "
              "full: run the recipes over --source-root; entries: list one package's entry files from "
-             "--tree-file.",
+             "--tree-file; denominator: count the public names a stdin payload, --quick and --extraction give, "
+             "and decide whether to store effective_denominator, as full mode does.",
     )
     quick = parser.add_argument_group("quick mode, files read from disk")
     quick.add_argument("--manifest-file", metavar="PATH",
@@ -4298,16 +5088,23 @@ def _build_parser() -> argparse.ArgumentParser:
                        help=f"read each module an unlisted[] record names as one more --follow-file, round "
                             f"after round (at most {FOLLOW_ROUNDS}), until none is left; needs --tree-file and "
                             f"--source-root")
+    quick.add_argument("--resolve-version", action="store_true",
+                       help="look up a version the manifest does not state: a version file, a Cargo workspace "
+                            "root, then a release tag (of --repo at --ref, else git describe in --source-root); "
+                            "needs --source-root")
     quick.add_argument("--repo", metavar="OWNER/REPO",
                        help="with --follow: fetch each module from this GitHub repository into --source-root "
-                            "first (skf-github-fetch.py)")
+                            "first (skf-github-fetch.py); with --resolve-version: the repository whose tags "
+                            "it reads, and whose files it fetches with --tree-file")
     quick.add_argument("--ref", metavar="REF",
-                       help="with --repo: the branch, tag or commit to fetch at (default: the default branch)")
+                       help="with --repo: the branch, tag or commit to fetch and read the version at "
+                            "(default: the default branch)")
     listing = parser.add_argument_group("entries mode, and the listing quick mode follows chains in")
     listing.add_argument("--tree-file", metavar="PATH",
                          help="the repository's file listing (skf-github-probe.py tree output, JSON, or one "
-                              "path per line): entries mode finds the entry files in it, and quick mode "
-                              "resolves each unlisted[] statement's module_file against it")
+                              "path per line): entries mode finds the entry files in it, quick mode "
+                              "resolves each unlisted[] statement's module_file against it, and denominator "
+                              "mode, with no --source-root, takes it as the tree (- reads it from stdin)")
     listing.add_argument("--scope", metavar="FOLDER",
                          help="entries mode: the package folder to read (default: the repository root)")
     listing.add_argument("--fetch-list", metavar="FILE",
@@ -4322,7 +5119,11 @@ def _build_parser() -> argparse.ArgumentParser:
     full.add_argument("--exclude", action="append", metavar="GLOB",
                       help="an exclude glob, repeatable (replaces the brief's scope.exclude)")
     full.add_argument("--tier-a-include", action="append", metavar="GLOB",
-                      help="a tier-A glob for effective_denominator, repeatable (replaces scope.tier_a_include)")
+                      help="a tier-A glob for effective_denominator, repeatable (replaces scope.tier_a_include), "
+                           "that counts a name only in a file scope.include matches too; one that matches no "
+                           "file is listed in scope.unmatched_tier_a_include, one that matches only files "
+                           "scope.include leaves out is named in warnings, and a list that counts no public name "
+                           "gives way to scope.include (else every file)")
     full.add_argument("--scope-type", help="the scope type (replaces the brief's scope.type)")
     full.add_argument("--language", action="append",
                       help="a language family to extract, repeatable (replaces the brief's language); quick "
@@ -4339,6 +5140,14 @@ def _build_parser() -> argparse.ArgumentParser:
                       help=f"stop the ast-grep runs after this many seconds and still write the JSON, "
                            f"status incomplete (default {DEFAULT_TIMEOUT_SEC})")
     full.add_argument("-o", "--output", metavar="FILE", help="write the JSON here instead of stdout")
+    denominator = parser.add_argument_group("denominator mode (with --source-root, --brief, the scope flags, "
+                                            "--language and -o)")
+    denominator.add_argument("--quick", action="append", metavar="FILE",
+                             help="a --mode quick output whose exports are public names, each at its defined_in "
+                                  "(else its source_file), repeatable")
+    denominator.add_argument("--extraction", metavar="FILE",
+                             help="a --mode full output whose entry_point_diff public and internal names count "
+                                  "too; an incomplete one is never stored")
     return parser
 
 
@@ -4346,10 +5155,14 @@ FULL_MODE_FLAGS = ("source_root", "brief", "include", "exclude", "tier_a_include
                    "files_from", "recipe_set", "recipes", "tier", "head_cap", "timeout", "output")
 # The full mode flags quick mode takes with its file inputs, and entries mode always.
 QUICK_FILE_FLAGS = ("source_root", "language")
+# The full mode flags denominator mode takes, and its own.
+DENOMINATOR_FLAGS = ("source_root", "brief", "include", "exclude", "tier_a_include", "scope_type", "language",
+                     "output")
+DENOMINATOR_OWN_FLAGS = ("quick", "extraction")
 # The flags of entries mode; quick mode takes --tree-file and --fetch-list with its file inputs.
 LISTING_FLAGS = ("tree_file", "scope", "fetch_list")
 # Quick mode's own flags with its file inputs: the chains it follows itself.
-FOLLOW_FLAGS = ("follow", "repo", "ref")
+FOLLOW_FLAGS = ("follow", "repo", "ref", "resolve_version")
 FOLLOW_ROUNDS = 5
 
 
@@ -4479,6 +5292,327 @@ def _follow(args: argparse.Namespace, result: dict) -> dict:
     return result
 
 
+# --resolve-version: a version the manifest does not state
+_PY_VERSION_RE = re.compile(r"""^__version__[ \t]*(?::[^=\n]*)?=[ \t]*(['"])([^'"\n]+)\1""", re.M)
+_JS_PRERELEASE_RE = re.compile(r"-(?:alpha|beta|rc|next|canary)", re.I)
+JS_FAMILY = ("js", "ts", "javascript", "typescript")
+
+
+def _version_reader(args: argparse.Namespace, tree: list[str] | None) -> Callable[[str], str | None]:
+    """path -> the text of that file under --source-root, else None. With
+    --repo and --tree-file, a file the listing holds and the folder does not
+    is fetched there first, as --follow fetches a module. Raises
+    QuickInputError."""
+    root = Path(args.source_root)
+    listed = set(tree or [])
+    fetch: list = []
+
+    def read(path: str) -> str | None:
+        target = root / path
+        if not target.is_file() and args.repo is not None and args.tree_file is not None and path in listed:
+            if not fetch:
+                fetch.append(_follow_reader(args))
+            fetch[0]([path])
+        try:
+            if target.is_file() and target.resolve().is_relative_to(root.resolve()):
+                return target.read_bytes().decode("utf-8-sig", errors="replace")
+        except OSError:
+            pass
+        return None
+    return read
+
+
+def _version_value(value: object) -> str | None:
+    """A version a version file writes: a literal that starts with a digit, not a placeholder."""
+    if not isinstance(value, str) or not re.match(r"\d", value.strip()):
+        return None
+    return None if _detect_placeholder_version(value) else value.strip()
+
+
+def _python_version_file(manifest: str | None, entries: list[str],
+                         read: Callable[[str], str | None]) -> tuple[str, str] | None:
+    """(version, path): the `__version__` literal of an entry __init__.py,
+    then of the _version.py beside it, then setup.py's `version=` literal
+    beside the manifest."""
+    inits = [e for e in entries if e.rsplit("/", 1)[-1] == "__init__.py"]
+    folder = posixpath.dirname(manifest or "")
+    candidates = [(path, "py") for path in inits]
+    candidates += [(posixpath.join(posixpath.dirname(path), "_version.py"), "py") for path in inits]
+    if posixpath.basename(manifest or "") != "setup.py":
+        candidates.append((posixpath.join(folder, "setup.py"), "setup.py"))
+    for path, kind in dict.fromkeys(candidates):
+        text = read(path)
+        if text is None:
+            continue
+        if kind == "py":
+            m = _PY_VERSION_RE.search(text)
+            version = _version_value(m.group(2)) if m else None
+        else:
+            version = _version_value(parse_setup_py(text).get("version"))
+        if version:
+            return version, path
+    return None
+
+
+def _cargo_workspace_version(manifest: str | None, read: Callable[[str], str | None]) -> tuple[str, str] | None:
+    """(version, path): the `[workspace.package] version` of the workspace
+    root, the nearest Cargo.toml at or above the manifest's folder that
+    holds a `[workspace]` table."""
+    if not manifest:
+        return None
+    folder = posixpath.dirname(manifest)
+    while True:
+        path = posixpath.join(folder, "Cargo.toml")
+        text = read(path)
+        try:
+            data = tomllib.loads(text) if text is not None else None
+        except tomllib.TOMLDecodeError:
+            data = None
+        workspace = data.get("workspace") if isinstance(data, dict) else None
+        if isinstance(workspace, dict):
+            package = workspace.get("package")
+            version = _version_value(package.get("version")) if isinstance(package, dict) else None
+            return (version, path) if version else None
+        if not folder:
+            return None
+        folder = posixpath.dirname(folder)
+
+
+def _release_tag(args: argparse.Namespace, warnings: list[str]) -> tuple[str, str] | None:
+    """(version, tag) of the tag a version is read from: with --repo, the
+    `release` skf-github-probe.py's tag listing gives at --ref (the newest
+    release tag at the default branch, the pinned tag itself at a tag);
+    without, the tag `git describe --tags --abbrev=0` names in
+    --source-root, when its name is a version. The version drops a
+    leading v."""
+    try:
+        probe = _sibling("skf-github-probe.py")
+    except RunnerError as exc:
+        warnings.append(f"--resolve-version could not read tags: {exc}")
+        return None
+    if args.repo is not None:
+        parsed = probe.parse_repo(args.repo)
+        if parsed is None:
+            warnings.append(f"--resolve-version read no tags: {args.repo} is not a github.com repository")
+            return None
+        probe._start_clock(probe.DEFAULT_TIMEOUT_SEC)
+        out = probe.probe_tags(*parsed, [], 1, ref=args.ref)
+        if out["status"] != "ok":
+            warnings.append(f"the tags of {args.repo} could not be listed ({out['message']}), so no release "
+                            f"tag gave a version")
+            return None
+        release = out["release"]
+        return (release["version"], release["tag"]) if release else None
+    try:
+        res = _sibling("skf-source-tree.py")._git(Path(args.source_root), "describe", "--tags", "--abbrev=0")
+    except RunnerError:
+        return None
+    if res is None or res[0] != 0:
+        return None
+    tag = res[1].decode("utf-8", errors="replace").strip()
+    version = probe.tag_version(tag)
+    return (version, tag) if version else None
+
+
+def resolve_version(args: argparse.Namespace, result: dict, tree: list[str] | None) -> None:
+    """--resolve-version: when the manifest states no version, look it up
+    (Python: _python_version_file; Rust: _cargo_workspace_version; then any
+    language: _release_tag), and for JavaScript or TypeScript read from
+    --repo at the default branch, let the newest release replace a manifest
+    pre-release (-alpha, -beta, -rc, -next, -canary). Sets `version` and
+    `version_source`: "manifest", "file:<path>", "tag:<tag>", or null with
+    a warning when nothing gave one. Raises QuickInputError."""
+    warnings = result["warnings"]
+    version = result["version"]
+    source = "manifest" if version is not None else None
+    manifest = Path(args.manifest_file).as_posix() if args.manifest_file is not None else None
+    if version is None:
+        read = _version_reader(args, tree)
+        found = None
+        if result["language"] == "python":
+            found = _python_version_file(manifest, [Path(e).as_posix() for e in args.entry_file or []], read)
+        elif result["language"] == "rust":
+            found = _cargo_workspace_version(manifest, read)
+        if found:
+            version, source = found[0], f"file:{found[1]}"
+    prerelease = (version is not None and source == "manifest" and result["language"] in JS_FAMILY
+                  and args.repo is not None and (args.ref or "").strip().lower() in ("", "null", "none", "head")
+                  and _JS_PRERELEASE_RE.search(version) is not None)
+    if version is None or prerelease:
+        tag = _release_tag(args, warnings)
+        if tag and prerelease:
+            warnings.append(f"manifest version {version!r} is a pre-release on the default branch; version is "
+                            f"the newest release, {tag[0]} (tag {tag[1]})")
+        if tag:
+            version, source = tag[0], f"tag:{tag[1]}"
+    if version is None:
+        warnings.append("no version found in the manifest, a version file or a release tag; version is null")
+    result["version"] = version
+    result["version_source"] = source
+
+
+_JS_LIST_SOURCE_RE = re.compile(r"\s*from\s*(['\"])")
+_JS_IMPORT_RE = re.compile(r"^import\s+(?:type\s+)?([A-Za-z_$*{][^;'\"]*?)\s*from\s*(['\"])", re.M)
+_JS_BRACES_RE = re.compile(r"\{([^}]*)\}")
+DEFINED_IN_FAMILIES = {"python": "python", "js": "js", "ts": "js", "javascript": "js", "typescript": "js"}
+
+
+def _quick_js_facts(content: str) -> dict:
+    """What one JS/TS module exports, read from its text as quick mode reads
+    an entry file, in _js_facts's shape: {"names": {exposed name: {"how",
+    "local", "source"}}, "stars": [source], "default": the local name of
+    its default export, or None}. A declaration beats a list item, and an
+    exported binding an import brings in is that import's re-export (or
+    namespace, for `import * as`)."""
+    code = _blank(content, "js")
+    imports: dict[str, tuple[str, str]] = {}
+    for m in _JS_IMPORT_RE.finditer(code):
+        source = _js_string(content, code, m.end(2) - 1)
+        braces = _JS_BRACES_RE.search(m.group(1))
+        for piece in braces.group(1).split(",") if braces else []:
+            words = piece.split()
+            if words and _JS_NAME_RE.fullmatch(words[-1]):
+                imports.setdefault(words[-1], (_specifier_local(piece), source))
+        for part in _JS_BRACES_RE.sub("", m.group(1)).split(","):
+            words = part.split()
+            if len(words) == 3 and words[:2] == ["*", "as"]:
+                imports.setdefault(words[2], ("*", source))
+            elif len(words) == 1 and _JS_NAME_RE.fullmatch(words[0]):
+                imports.setdefault(words[0], ("default", source))
+    names: dict[str, dict] = {}
+
+    def put(name: str, how: str, local: str | None, source: str | None) -> None:
+        names.setdefault(name, {"how": how, "local": local, "source": source})
+
+    def bound(name: str, local: str) -> None:
+        imported, source = imports.get(local, (None, None))
+        if imported == "*":
+            put(name, "namespace", None, source)
+        elif imported is not None:
+            put(name, "re-export", imported, source)
+        else:
+            put(name, "declaration", local, None)
+
+    for export in scan_exports_js(content, "", None, None, defaults=False):
+        if export["type"] not in ("re-export", "namespace"):
+            put(export["name"], "declaration", export["name"], None)
+    default = None
+    for m in _JS_DECL_RE.finditer(code):
+        if m.group(1) and "default" in m.group(1).split():
+            default = default or m.group(3)
+            put("default", "declaration", m.group(3), None)
+        elif m.group(1) and _js_type(m.group(2)) == "namespace":
+            put(m.group(3), "declaration", m.group(3), None)  # `export namespace X`, `export module X`
+    stars: list[str] = []
+    for m in _JS_STAR_RE.finditer(code):
+        source = _js_string(content, code, m.end(2) - 1)
+        if m.group(1):
+            put(m.group(1), "namespace", None, source)
+        else:
+            stars.append(source)
+    for m in _JS_LIST_RE.finditer(code):
+        after = _JS_LIST_SOURCE_RE.match(code, m.end())
+        source = _js_string(content, code, after.end(1) - 1) if after else None
+        for piece in m.group(1).split(","):
+            words = piece.split()
+            if not words or not _JS_NAME_RE.fullmatch(words[-1]):
+                continue
+            if source is not None:
+                put(words[-1], "re-export", _specifier_local(piece), source)
+            else:
+                bound(words[-1], _specifier_local(piece))
+    for m in _JS_DEFAULT_RE.finditer(code):
+        if m.group(1) not in _JS_NOT_NAMES:
+            default = default or m.group(1)
+            bound("default", m.group(1))
+    return {"names": names, "stars": stars, "default": default}
+
+
+def _js_defined_in(root: Path, tree: set[str]) -> Callable[[str, str], str | None]:
+    """(module, name it exports) -> the file that defines that name, as
+    _js_surface's resolve traces it: through each re-export, imported
+    binding and `export *` (a cycle ends the trace at the module it
+    reached), a namespace export giving its module's file; None for a
+    re-export or a namespace whose module no file under `root` holds."""
+    cache: dict[str, dict] = {}
+
+    def facts(file: str) -> dict:
+        if file not in cache:
+            cache[file] = _quick_js_facts(_read_text(root, file) or "")
+        return cache[file]
+
+    def owner(file: str, name: str) -> str | None:
+        """The first module the `export *` chain of `file` passes `name` on from."""
+        stack, visited = [file], set()
+        while stack:
+            module = stack.pop()
+            if module in visited:
+                continue
+            visited.add(module)
+            if module != file and name in facts(module)["names"]:
+                return module
+            stack += reversed([t for t in (resolve_js_module(s, module, tree) for s in facts(module)["stars"]) if t])
+        return None
+
+    def resolve(file: str, name: str) -> str | None:
+        if name not in facts(file)["names"] and name == facts(file)["default"]:
+            name = "default"  # quick mode names a default export by what it declares
+        visited: set[tuple[str, str]] = set()
+        while (file, name) not in visited:
+            visited.add((file, name))
+            fact = facts(file)["names"].get(name)
+            if fact is None:
+                found = owner(file, name) if name != "default" else None
+                if found is None:
+                    return file
+                file = found
+                continue
+            if fact["how"] == "declaration":
+                return file
+            target = resolve_js_module(fact["source"], file, tree)
+            if fact["how"] == "namespace" or target is None:
+                return target
+            file, name = target, fact["local"]
+        return file
+
+    return resolve
+
+
+def _py_defined_in(root: Path, tree: set[str]) -> Callable[[str, str], str | None]:
+    """(module, name it exports) -> the file full mode's _py_surface traces
+    that name to from that module (None when it gives none: a name another
+    package passes on, or one the trace does not list)."""
+    traced: dict[str, dict[str, str | None]] = {}
+
+    def resolve(file: str, name: str) -> str | None:
+        if file not in traced:
+            surface = _Surface()
+            _py_surface(root, [{"file": file}], tree, surface, [])
+            traced[file] = {n: info["file"] for n, info in surface.names.items()}
+        return traced[file].get(name)
+
+    return resolve
+
+
+def _defined_in(root: Path, result: dict) -> None:
+    """Give each export of a Python, JavaScript or TypeScript quick result
+    its `defined_in` (see "Quick mode" above): the file the export is
+    declared in for a name its file binds itself, else the file the trace
+    reaches. The tree under `root` is listed only when a name is traced."""
+    family = DEFINED_IN_FAMILIES.get(result.get("language") or "")
+    if family is None:
+        return
+    resolve: Callable[[str, str], str | None] | None = None
+    for export in result["exports"]:
+        if export["type"] not in ("re-export", "namespace", "module"):
+            export["defined_in"] = export["source_file"]
+            continue
+        if resolve is None:
+            tree = set(list_tree(root))
+            resolve = (_py_defined_in if family == "python" else _js_defined_in)(root, tree)
+        export["defined_in"] = resolve(export["source_file"], export["name"])
+
+
 def _main_entries(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     """`--mode entries`: the entry files of one package, as JSON on stdout."""
     if args.manifest_file is not None or args.entry_file or args.follow_file:
@@ -4517,9 +5651,20 @@ def main(argv: list[str]) -> int:
     args = parser.parse_args(argv)
     files = args.manifest_file is not None or bool(args.entry_file) or bool(args.follow_file)
     listing = [f"--{flag.replace('_', '-')}" for flag in LISTING_FLAGS if getattr(args, flag) is not None]
-    following = [f"--{flag}" for flag in FOLLOW_FLAGS if getattr(args, flag) not in (None, False)]
+    following = [f"--{flag.replace('_', '-')}" for flag in FOLLOW_FLAGS if getattr(args, flag) not in (None, False)]
     if following and (args.mode != "quick" or not files):
         parser.error(f"{', '.join(following)}: quick mode only, with --manifest-file or --entry-file")
+    own = [f"--{flag}" for flag in DENOMINATOR_OWN_FLAGS if getattr(args, flag) is not None]
+    if own and args.mode != "denominator":
+        parser.error(f"{', '.join(own)}: denominator mode only (--mode denominator)")
+    if args.mode == "denominator":
+        other = [f"--{flag.replace('_', '-')}" for flag in FULL_MODE_FLAGS
+                 if getattr(args, flag) is not None and flag not in DENOMINATOR_FLAGS]
+        listing = [flag for flag in listing if flag != "--tree-file"]
+        if files or listing or other:
+            parser.error(f"{', '.join(other + listing) or '--manifest-file, --entry-file, --follow-file'}: "
+                         "not denominator mode's")
+        return _main_denominator(args)
     if args.mode == "full":
         if files:
             parser.error("--manifest-file, --entry-file, --follow-file: quick mode only (--mode quick)")
@@ -4543,17 +5688,24 @@ def main(argv: list[str]) -> int:
     if files:
         if not args.language or len(args.language) != 1:
             parser.error("--manifest-file and --entry-file take one --language")
-        if (args.repo is not None or args.ref is not None) and not args.follow:
-            parser.error("--repo and --ref fetch the modules --follow reads, so pass --follow")
+        if (args.repo is not None or args.ref is not None) and not (args.follow or args.resolve_version):
+            parser.error("--repo and --ref fetch the modules --follow reads and name the tags --resolve-version "
+                         "reads, so pass --follow or --resolve-version")
         if args.ref is not None and args.repo is None:
             parser.error("--ref is the ref of --repo, so pass --repo")
         if args.follow and (args.tree_file is None or args.source_root is None):
             parser.error("--follow finds each module in --tree-file and reads it under --source-root: pass both")
+        if args.resolve_version and args.source_root is None:
+            parser.error("--resolve-version reads the version files under --source-root: pass it")
         try:
             payload = _quick_files_payload(args)
             result = extract(payload)
             if args.follow and "_error" not in result:
                 result = _follow(args, result)
+            if args.resolve_version and "_error" not in result:
+                resolve_version(args, result, payload.get("tree"))
+            if args.source_root is not None and "_error" not in result:
+                _defined_in(Path(args.source_root), result)
             if args.fetch_list is not None and "_error" not in result:
                 follow = [item["module_file"] for item in result["unlisted"] if item["module_file"]]
                 _write_fetch_list(args.fetch_list, list(dict.fromkeys(follow)))

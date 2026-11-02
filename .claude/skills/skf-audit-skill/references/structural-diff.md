@@ -69,7 +69,7 @@ With `-o` the helper saves the diff to the file and prints one line, `{"status":
 - It starts `Cannot write output`: HALT with **exit 4**, `halt_reason: "write-failed"`, phase `structural-diff:diff`, `"path": "{auditDataFolder}/structural-diff.json"`.
 - Otherwise it names `{provenanceMap}`, which step 1 §4 read: HALT with **exit 3**, `halt_reason: "provenance-invalid"`, phase `structural-diff:diff`, `"path": "{provenanceMap}"`, showing the `error`.
 
-The helper canonicalizes both sides before it matches each export by its name and its file (the quote style of string defaults, stdlib module prefixes, and a renamed public re-export resolved through the re-export map it derives from the provenance map), so a cosmetic extractor difference never reads as drift. It records each transform it applied in `applied_transforms`, and takes `--reexport-map {file}` only to override the derived map.
+The helper canonicalizes both sides before it matches each export by its name and its file (the quote style of string defaults, stdlib module prefixes, and a renamed public re-export resolved through the re-export map it derives from the provenance map), and, for a matched export, takes a semantic kind a by-eye read records as the runner's base kind when the runner's signature shows that form (`async_function` or `decorator` as `function`, `enum` as `class`), so a cosmetic extractor difference never reads as drift. It records each transform it applied in `applied_transforms`, and takes `--reexport-map {file}` only to override the derived map.
 
 The saved diff holds every set §5 renders. This step reads three of its fields itself: §1b reads `summary.removed` and the `name` of each `removed[]` entry (an export in the provenance map but not in the snapshot), and §6 records `applied_transforms` (each transform the helper applied, with its count) in the drift report's frontmatter for step 6's Provenance table.
 
@@ -95,32 +95,37 @@ When `added` is above 0, run §1's command again with the same arguments and the
 
 ### 2. What the Diff Decides
 
-Every set comes straight from the saved diff, never from set arithmetic of your own. Three of its facts steer what later steps judge:
+Every set comes straight from the saved diff, never from set arithmetic of your own. Four of its facts steer what later steps judge:
 
 - **Moved** (`moved[]`): a matched export whose file changed. A move is **not** a removal.
 - **Ambiguous names** (`ambiguous_names[]`): a name left on both sides that occurs more than once on a side (a `GET` handler in several route files, for example), so the helper paired none of its entries. They stay in `removed[]` and `added[]`, and step 5 judges whether a removed and an added entry of one name are one export that moved.
+- **Off the public surface** (`not_public[]`): for a public-api skill, step 2 marked each export by the public surface create-skill and update-skill keep its map to, and an export marked `public: false` that pairs with no map entry is listed here, not in `added[]`, since neither workflow documents it. It is not drift: it is not counted in Total Drift Items or the exit code, and step 5 never classifies it (`--from-diff` reads only `added[]`, `removed[]`, `changed[]` and `moved[]`). §5's renderer counts it in an **Off the public surface:** note. A name in `ambiguous_names[]` stays in `added[]` for step 5 to pair, and a map entry is matched whatever its mark, so none reads as removed.
 - **Not drift:** `summary.signature_unverified` counts matched exports whose signature sits in different fields on the two sides, so a change there cannot be seen, and `label_changes[]` lists matched exports whose `confidence` or `extraction_method` differs, which names the tool that read the export, not what the source says. Neither is counted in Total Drift Items, and step 5 classifies neither.
 
 ### 4b. Detect Script/Asset Drift
 
 **Only execute if provenance-map.json contains `file_entries`.**
 
-**Resolve `{compareFileHashesHelper}`** from `{compareFileHashesProbeOrder}`; first existing path wins. Run one comparison: it hashes the tracked `file_entries[]` and, the other way round, the files of the standard script, asset and doc folders of the source tree:
+**Resolve `{compareFileHashesHelper}`** from `{compareFileHashesProbeOrder}`; first existing path wins. Run one comparison: it hashes the tracked `file_entries[]` and, the other way round, walks the source tree for the files the map does not track, with the script and asset detector create-skill and update-skill use, plus the documents under `docs/authoritative/`, keeping only those the skill brief's scope takes, by the scope test update-skill and create-skill use. A module of a Python package named like a script folder, a file the map's `entries[]` cite, a file under `scripts/[MANUAL]/` or `assets/[MANUAL]/`, and a script or an asset whose `scripts_intent` or `assets_intent` is `none` are never new files. Pass `--brief` only when that brief, `{forge_data_folder}/{skill_name}/skill-brief.yaml`, exists (a skill built without one, such as a quick skill, has none):
 
 ```bash
-uv run {compareFileHashesHelper} compare "{provenanceMap}" "{source_root}" > "{auditDataFolder}/file-drift.json"
+uv run {compareFileHashesHelper} compare "{provenanceMap}" "{source_root}" \
+    [--brief "{forge_data_folder}/{skill_name}/skill-brief.yaml"] > "{auditDataFolder}/file-drift.json"
 ```
 
 The saved JSON, which step 5 builds its Script/Asset findings from:
 
 ```
 {
-  "added":   ["<rel-path>", ...],   // present on disk in tracked dirs, NOT in file_entries
+  "added":   ["<rel-path>", ...],   // a script or an asset to the detector, or a docs/authoritative/ file, on disk, in the brief's scope, NOT in file_entries
+  "added_not_checked": null,        // or why no new file was looked for: "no skill brief", the brief's error, or a helper it cannot load
   "removed": ["<rel-path>", ...],   // in file_entries, missing on disk
   "changed": [{"path": "...", "stored_hash": "sha256:...", "current_hash": "sha256:..."}],
   "stats":   {"added": N, "removed": N, "changed": N, "unchanged": N}
 }
 ```
+
+**When `added_not_checked` is not null** (`no skill brief` without `--brief`, the error of a brief the helper could not read, or `cannot load ... re-install SKF` when a helper beside it could not be loaded), no new file was looked for, so `added` is empty, while the tracked files were still compared: §5's renderer prints the reason under the Script/Asset Drift table. Record it for the envelope too: write `new_files_not_checked: {added_not_checked}` to `{run_dir}/warning.txt` with a file write (the reason can hold quotes), then, from `{project-root}`, run `uv run {emitEnvelopeHelper} record --run-dir "{run_dir}" --warning "$(cat "{run_dir}/warning.txt")"`.
 
 **When no candidate resolves, or the command exits non-zero** (delete the file then), skip the check with a `### Script/Asset Drift: skipped ({the reason})` note: it is supplementary to the export diff, so it never halts the audit.
 
