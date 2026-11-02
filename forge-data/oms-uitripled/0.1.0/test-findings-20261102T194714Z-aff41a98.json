@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "run_id": "20261102T194714Z-aff41a98",
+  "stages": [
+    "coverage-check",
+    "coherence-check",
+    "external-validators",
+    "report"
+  ],
+  "records": [
+    {
+      "id": "GAP-001",
+      "severity": "Medium",
+      "category": "brief-scope-stale",
+      "group": "Coverage",
+      "title": "stale brief scope: scope.include globs match no source file",
+      "source": "forge-data/oms-uitripled/skill-brief.yaml",
+      "remediation": "Edit `scope.include` in `forge-data/oms-uitripled/skill-brief.yaml` by hand so each glob matches the files it meant in this version of the source (update-skill does not rewrite an include glob), and add to `scope.exclude` any restored file the brief meant to leave out.",
+      "issue": "the `scope.include` globs `apps/docs/app/**/page.mdx`, `apps/docs/components/demos/**` match no file in the source tested; no root export was restored",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-002",
+      "severity": "Medium",
+      "category": "metadata-drift",
+      "group": "Coverage",
+      "title": "metadata drift — barrel export counts diverge",
+      "source": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json",
+      "remediation": "Recount the exports and correct the diverging counts in `skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json`; update-skill applies it as a metadata update.",
+      "issue": "stats.exports_public_api=445, exports[].length=297 → 33% drift",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-003",
+      "severity": "Info",
+      "category": "multi-denominator",
+      "group": "Coverage",
+      "title": "multi-denominator reporting — barrel vs documented surface",
+      "source": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json",
+      "remediation": "No action required: the barrel and the documented surface measure different sets by design, and the report records both counts.",
+      "issue": "barrel=445, documented=311",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-004",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Subpath import of HeroSection names files that do not exist",
+      "source": "references/integration.md:45",
+      "remediation": "In references/integration.md lines 45 and 48, change the HeroSection import paths to @uitripled/react-shadcn/components/sections/hero-section and @uitripled/react-shadcn/src/components/sections/hero-section, matching packages/components/react-shadcn/src/components/sections/hero-section.tsx:7.",
+      "issue": "references/integration.md:45 and :48 import HeroSection from @uitripled/react-shadcn/components/page/hero/hero-section and @uitripled/react-shadcn/src/components/page/hero-section; neither file exists at a5ffb45, HeroSection is defined at packages/components/react-shadcn/src/components/sections/hero-section.tsx:7",
+      "export": "HeroSection",
+      "stage": "coherence-check"
+    },
+    {
+      "id": "GAP-005",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "HeroSection, NativeHoverCard and the GridCell component lack a component reference row",
+      "source": "SKILL.md:185",
+      "remediation": "Add `export function HeroSection()` with install id @uitripled/hero-section-shadcnui to references/blocks-and-sections.md (Sections and blocks), the NativeHoverCard signature from packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx:81 with install id @uitripled/native-hover-card-shadcnui to references/native-components.md, and the GridCell component from packages/components/react-shadcn/src/components/grid/grid-cell.tsx:14 to the Grid Generator panels of references/motion-components.md.",
+      "issue": "SKILL.md:185 says every other react-shadcn src/ export is in the four component reference files with signature and install id, but HeroSection (src/components/sections/hero-section.tsx:7, hero-section-shadcnui), NativeHoverCard (src/components/native/native-hover-card-shadcnui.tsx:81, native-hover-card-shadcnui) and the GridCell component (src/components/grid/grid-cell.tsx:14) have no signature line or table row there",
+      "stage": "coherence-check"
+    },
+    {
+      "id": "GAP-006",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "SKILL.md points to a NativeHoverCardProps entry types.md lacks",
+      "source": "SKILL.md:147",
+      "remediation": "Add a `NativeHoverCardProps` subsection to the Component props types of references/types.md with the interface copied from packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx:9, and write `size?` in SKILL.md:147.",
+      "issue": "SKILL.md:147 says NativeHoverCardProps (imageSrc, name, size) is documented in references/types.md, which has no such entry; the interface at packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx:9 has 11 fields and size is optional",
+      "export": "NativeHoverCardProps",
+      "stage": "coherence-check"
+    },
+    {
+      "id": "GAP-007",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "types.md points to a Registry schema table SKILL.md does not have",
+      "source": "references/types.md:192",
+      "remediation": "In references/types.md:192, replace the pointer with the registry.json item fields (name, type, registryDependencies, dependencies, files[].path/target) cited from packages/registry/registry.json, or point to references/catalog.md#registry-types.",
+      "issue": "references/types.md:192 says SKILL.md \"Full API Reference → Registry schema\" has the table form of the registry.json schema; SKILL.md has no such table",
+      "stage": "coherence-check"
+    },
+    {
+      "id": "GAP-008",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "utils.md calls the react-shadcn cn wrapper an identical implementation",
+      "source": "references/utils.md:36",
+      "remediation": "In references/utils.md:36, say that packages/components/react-shadcn/src/lib/utils.ts wraps the @uitripled/utils cn (`cn(...inputs: any[])`, importing `cn as baseCn`), so code that keeps that file depends on @uitripled/utils.",
+      "issue": "references/utils.md:36 says packages/components/react-shadcn/src/lib/utils.ts is an identical implementation and @uitripled/utils is not needed; that file imports cn as baseCn from @uitripled/utils and takes ...inputs: any[] (lib/utils.ts:1-4)",
+      "export": "cn",
+      "stage": "coherence-check"
+    },
+    {
+      "id": "GAP-009",
+      "severity": "Info",
+      "category": "discovery",
+      "group": "Discovery",
+      "title": "Discovery testing not performed: subagents unavailable, routing test requires isolated context",
+      "source": "SKILL.md frontmatter description",
+      "remediation": "Re-run test-skill for oms-uitripled in an environment that can spawn subagents so the three realistic prompts are routed against the 4-skill catalog in isolated contexts.",
+      "issue": "The catalog holds 4 skills (oms-cocoindex, oms-cognee, oms-storybook-react-vite, oms-uitripled), but this headless run cannot spawn isolated subagents, and a main-thread routing answer would self-route to the skill under test.",
+      "stage": "report"
+    }
+  ]
+}
