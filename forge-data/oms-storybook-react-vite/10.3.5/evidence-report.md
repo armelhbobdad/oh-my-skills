@@ -292,3 +292,51 @@ With the stratified denominator aligned to the authoring surface (GAP-005) and t
 - Notes: Gap-driven repair corrected the portable-stories import path (GAP-012, GAP-950), added as a third gotcha; headline exports and version unchanged
 
 _active_symlink_update: ok (10.3.5) (no-op, gap-driven repair keeps the version); workspace clone not moved (gap-driven: no source tree prepared)._
+
+## Update Operation — 2026-11-02T20:27:19Z (gap-driven repair, SKF 4.0.0)
+
+**Trigger:** test report `test-report-oms-storybook-react-vite-20261102T195806Z-98102474.md` (FAIL: hard gate on 8 Critical), `skf-update-skill --from-test-report --headless`
+**Forge Tier:** Deep
+**Mode:** gap-driven
+**Source commit:** e486d382 (read as it stands; workspace HEAD verified equal to the pinned commit)
+
+### Changes Detected
+- Files modified: 0 (gap-driven: no source drift detection)
+- Files added: 0
+- Files deleted: 0
+- Exports affected: 9 gaps translated (8 Critical signature-mismatch: DocsContainer, Heading, Source, Subheading, Subtitle, Title, mocked, create; 1 Medium metadata-drift); 51 gaps not routed (50 provenance-unverified, 1 multi-denominator)
+
+### Merge Results
+- Exports updated: 8 (`references/doc-blocks.md`: DocsContainer, Heading, Source, Subheading, Subtitle, Title; `references/core-api.md`: mocked, create)
+- Exports added: 0 (Heading and Subheading gained provenance entries at their verified definition lines)
+- Exports removed: 0
+- [MANUAL] sections preserved: 4
+- Conflicts resolved: 0
+- Metadata patch: GAP-009 applied through the stats recount; stats.exports_public_api (1335) still differs from exports[].length (887) by design
+
+### Scope and Targeted Re-Extraction
+- Authoritative files: none
+- Scope reconciliation before detection: none
+- Scope reconciliation after detection: none
+- Targeted re-extraction: none
+
+### Validation Summary
+- Spec compliance: PASS (quality score 100/100, skill-check: 0 errors, 0 warnings, nothing to fix)
+- [MANUAL] integrity: PASS
+- Confidence tiers: PASS
+- Provenance: WARN (findings). Fixed: nothing (fix applied no citation or line change; kind-at matched none of the 48 node kinds). Left: 3 missing (Args, DocsPage, Parameters), 143 orphaned (metadata exports[] lags the map), 50 unverified citations with no definition line, 2 file-missing (composeStory, setProjectAnnotations cite portable-stories.ts), 48 invalid node kinds (46 no-match, 2 file-missing); 0 citation-prefix findings (912 of 1031 skill citations matched a map entry)
+- Diff: SKIP
+- Security: SKIP (SNYK_TOKEN not configured)
+
+### Description Guard
+- Restored: false
+- Triggering tool: —
+- Original description preserved: —
+- Notes: —
+
+### Context Snippet
+- Regenerated: false
+- Triggers fired: —
+- Notes: Gap-driven repair — the 8 corrected signatures are doc-block and theming/test helpers outside the snippet's headline exports; version and gotchas unchanged
+
+_active_symlink_update: ok (10.3.5) (no-op, gap-driven repair keeps the version); workspace clone not moved (gap-driven: no source tree prepared)._

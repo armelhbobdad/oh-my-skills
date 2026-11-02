@@ -72,8 +72,8 @@ import * as ButtonStories from './Button.stories';
 | Component | Props | Purpose |
 |---|---|---|
 | `Meta` | `{ of?, title? }` | Declare component metadata in an MDX doc — connects the MDX page to a CSF module. Required once per doc. |
-| `Title` | `{ children? }` | Render page title (defaults to `meta.title`). |
-| `Subtitle` | `{ children? }` | Render page subtitle (defaults to `parameters.docs.subtitle`). |
+| `Title` | `withMdxComponentOverride('Title', TitleImpl)`, `TitleImpl: FunctionComponent<TitleProps>`, `TitleProps = { of?: Of; children?: ReactNode }` | Render the page title: `children` when given, else the last `/` segment of the title of the CSF file `of` names (a CSF file's default export), else of the attached meta. `of={undefined}` throws. `[SRC:code/addons/docs/src/blocks/blocks/Title.tsx:L55]` |
+| `Subtitle` | `withMdxComponentOverride('Subtitle', SubtitleImpl)`, `SubtitleImpl: FunctionComponent<SubtitleProps>`, `SubtitleProps = { children?: ReactNode; of?: Of }` | Render the page subtitle: `children` when given, else `parameters.docs.subtitle` (then the deprecated `parameters.componentSubtitle`) of the CSF file `of` names, else of the attached meta. `of={undefined}` throws. `[SRC:code/addons/docs/src/blocks/blocks/Subtitle.tsx:L55]` |
 | `Description` | `FC<DescriptionProps>`, `DescriptionProps = { of?: Of }` | Render the description of a component, CSF file or story (`of`), else of the attached meta. Pulls from JSDoc or `parameters.docs.description`; it has no `markdown` prop (use `<Markdown>` for custom text). `[SRC:code/addons/docs/src/blocks/blocks/Description.tsx:L74]` |
 
 ## Control blocks
@@ -82,15 +82,15 @@ import * as ButtonStories from './Button.stories';
 |---|---|---|
 | `Controls` | `{ of?, include?, exclude?, sort? }` | Interactive controls panel for story args. |
 | `ArgTypes` | `{ of?, include?, exclude?, sort? }` | Static arg types documentation table (read-only). |
-| `Source` | `{ of?, code?, language?, dark?, format? }` | Formatted source code block for a story. |
+| `Source` | `withMdxComponentOverride('Source', SourceImpl)` over `SourceProps = SourceParameters & { of?: ModuleExport }`, `SourceParameters = SourceCodeProps & { type?: SourceType; transform?: (code: string, storyContext) => string \| Promise<string> }`, `SourceCodeProps = { language?: SupportedLanguage; code?: string; format?; dark?: boolean; copyable?: boolean }` | Formatted source code block for a story (`of`). `type` picks where the code is read from (`SourceType`: `'auto'`, the default, `'code'` or `'dynamic'`); `transform` rewrites the detected code for display (it overrides `parameters.docs.source.transform`); `copyable` shows the copy button (default `true`); `code` overrides the content. `[SRC:code/addons/docs/src/blocks/blocks/Source.tsx:L181]` |
 
 ## Content blocks
 
 | Component | Props | Purpose |
 |---|---|---|
 | `Markdown` | `{ children }` | Render markdown content inside MDX. |
-| `Heading` | `{ children }` | H2 with anchor link. |
-| `Subheading` | `{ children }` | H3 with anchor link. |
+| `Heading` | `withMdxComponentOverride('Heading', HeadingImpl)`, `HeadingImpl: FC<PropsWithChildren<HeadingProps>>`, `HeadingProps = { disableAnchor?: boolean }` | H2 with anchor link. `disableAnchor` (or non-string `children`) renders a plain H2 with no anchor. `[SRC:code/addons/docs/src/blocks/blocks/Heading.tsx:L33]` |
+| `Subheading` | `withMdxComponentOverride('Subheading', SubheadingImpl)`, `SubheadingImpl: FC<PropsWithChildren<HeadingProps>> = ({ children, disableAnchor })` | H3 with anchor link. `disableAnchor` (or non-string `children`) renders a plain H3 with no anchor. `[SRC:code/addons/docs/src/blocks/blocks/Subheading.tsx:L23]` |
 | `Anchor` | `{ storyId }` | Create an anchor link to a story. |
 | `Unstyled` | `{ children }` | Wrapper that removes Storybook's docs styling — use for custom-styled sections. |
 
@@ -110,7 +110,7 @@ import * as ButtonStories from './Button.stories';
 |---|---|---|
 | `Docs` | `Docs<TRenderer>({ context, docsParameter }: DocsProps<TRenderer>)`, `DocsProps = { docsParameter: Parameters; context: DocsContextProps<TRenderer> }` | Root docs container — rarely used directly. `docsParameter` is required: its `container`, `page` and `theme` pick the container and page it renders. `[SRC:code/addons/docs/src/blocks/blocks/Docs.tsx:L17]` |
 | `DocsPage` | — | Default Autodocs layout function. |
-| `DocsContainer` | `{ context, children }` | MDX docs wrapper (provides context). |
+| `DocsContainer` | `FC<PropsWithChildren<DocsContainerProps>>`, `DocsContainerProps<TFramework extends Renderer = Renderer> = { context: DocsContextProps<TFramework>; theme?: ThemeVars }` | MDX docs wrapper: provides `context` to the blocks it wraps and applies `theme` (a `ThemeVars`, for example `themes.dark` from `storybook/theming`) to the docs page. `[SRC:code/addons/docs/src/blocks/blocks/DocsContainer.tsx:L23]` |
 | `DocsStory` | `{ of, expanded?, withToolbar? }` | Internal story renderer used by `Primary`/`Stories`. |
 
 ## Utilities

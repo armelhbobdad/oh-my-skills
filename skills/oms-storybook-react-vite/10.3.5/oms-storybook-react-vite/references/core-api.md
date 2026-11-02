@@ -139,7 +139,7 @@ These mirror Vitest's `vi.*` mock helpers but are re-exported through `storybook
 | `clearAllMocks` | function | `() => void` — clear call history, keep implementations | `[AST:code/core/src/test/spy.ts:L77]` |
 | `resetAllMocks` | function | `() => void` — reset call history and return values to undefined | `[AST:code/core/src/test/spy.ts:L89]` |
 | `restoreAllMocks` | function | `() => void` — restore original implementations (undo `spyOn`) | `[AST:code/core/src/test/spy.ts:L98]` |
-| `mocked` | function | `(item: T, options?: { partial?: boolean; deep?: boolean }) => MaybeMocked<T>` — TS type assertion helper | `[AST:code/core/src/test/spy.ts:L119]` |
+| `mocked` | function | overloads: `mocked<T>(item: T, deep?: false): MaybeMocked<T>`; `mocked<T>(item: T, deep: true): MaybeMockedDeep<T>`; `mocked<T>(item: T, options: { partial?: false; deep?: false }): MaybeMocked<T>`; `mocked<T>(item: T, options: { partial?: false; deep: true }): MaybeMockedDeep<T>`; `mocked<T>(item: T, options: { partial: true; deep?: false }): MaybePartiallyMocked<T>`; `mocked<T>(item: T, options: { partial: true; deep: true }): MaybePartiallyMockedDeep<T>`; `mocked<T>(item: T): MaybeMocked<T>` — TS type helper that returns `item` unchanged; the return type follows `deep` (boolean second argument or option) and `partial` | `[AST:code/core/src/test/spy.ts:L119]` |
 | `mocks` | const | `typeof mocks` — re-exported from `@vitest/spy`, set of active mocks | `[AST:code/core/src/test/spy.ts:L17]` |
 
 ## storybook/manager-api
@@ -186,7 +186,7 @@ Entry: `code/core/src/theming/create.ts`. Used in `.storybook/manager.ts` or `pr
 
 | Export | Kind | Signature | Source |
 |---|---|---|---|
-| `create` | function | `create(vars: ThemeVarsPartial, rest?: Rest): ThemeVars` — build a theme from partial vars | `[AST:code/core/src/theming/create.ts:L29]` |
+| `create` | function | `create = (vars: ThemeVarsPartial = { base: preferredColorScheme }, rest?: Rest): ThemeVars` — build a theme from partial vars; `vars` is optional and defaults to `{ base: preferredColorScheme }` (`'light'` or `'dark'`, as the OS prefers) | `[AST:code/core/src/theming/create.ts:L29]` |
 | `themes` | const | `{ light: ThemeVars; dark: ThemeVars; normal: ThemeVars }` — built-in themes | `[AST:code/core/src/theming/create.ts:L20]` |
 
 **Example:**

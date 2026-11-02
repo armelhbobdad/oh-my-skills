@@ -12378,9 +12378,37 @@
       "extraction_method": "source-read",
       "ast_node_type": null,
       "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Heading",
+      "export_type": "component",
+      "source_library": "@storybook/react",
+      "params": [
+        "props: PropsWithChildren<HeadingProps>"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/Heading.tsx",
+      "source_line": 33,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Subheading",
+      "export_type": "component",
+      "source_library": "@storybook/react",
+      "params": [
+        "props: PropsWithChildren<HeadingProps>"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/Subheading.tsx",
+      "source_line": 23,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     }
   ],
-  "last_update": "2026-11-02T19:47:10Z",
+  "last_update": "2026-11-02T20:27:19Z",
   "update_type": "gap-driven",
   "update_history": [
     {
@@ -12409,9 +12437,9 @@
     "confidence_tier": "Deep",
     "notes": "Second gap-driven pass (2026-04-11T22:30Z). Fixes: composeStories signature + path (.ts→.tsx, L1→L148), defineMain line (L1→L3), ThemesGlobalsInterface renamed to ThemesGlobals_def (disambiguator convention), CanvasProps detail expanded in doc-blocks.md, Key API Summary moved to core-api.md, Key Types trimmed to 3 essentials, Architecture collapsed to paragraph, scope.exclude narrowed (GAP-005) to exclude code/core/src/components|babel|csf-tools|core-server|router|node-logger|telemetry|channels|builder-manager."
   },
-  "test_report_run_id": "20261102T190557Z-c5dc5bb7",
-  "files_changed": 194,
-  "exports_affected": 870,
+  "test_report_run_id": "20261102T195806Z-98102474",
+  "files_changed": 2,
+  "exports_affected": 8,
   "confidence_tier": "Deep",
   "manual_sections_preserved": 4
 }
