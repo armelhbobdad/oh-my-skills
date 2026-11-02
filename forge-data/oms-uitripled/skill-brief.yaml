@@ -87,4 +87,3 @@ scope:
       - target_commit: a5ffb45be05335d2c547436664cfbfb8c22d04df (master HEAD at brief creation)
       - registry_content_hash (sha256): a51b64916a74283b364f5fe1b59aacd36a33134d6431565b3e2df732bff9f540
     update-skill should diff against target_commit for identity and detect registry drift via content hash.
----

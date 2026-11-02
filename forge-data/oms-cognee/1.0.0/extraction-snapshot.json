@@ -1,0 +1,1146 @@
+{
+  "extraction_date": "20261007-000457",
+  "confidence_tier": "Deep",
+  "source_root": "/home/armel/.skf/workspace/repos/github.com/topoteretes/cognee",
+  "bounded_scan": true,
+  "bounded_scan_source": "provenance-map",
+  "runner_status": "ok",
+  "runner_errors": [],
+  "files_scanned": 29,
+  "complete": true,
+  "files": [
+    {
+      "file": "cognee/__init__.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 2
+    },
+    {
+      "file": "cognee/api/v1/__init__.py",
+      "status": "read-by-eye",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/api/v1/add/add.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/api/v1/cognify/cognify.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 5
+    },
+    {
+      "file": "cognee/api/v1/config/config.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/api/v1/datasets/datasets.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/api/v1/delete/__init__.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/api/v1/forget/forget.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/api/v1/improve/improve.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 2
+    },
+    {
+      "file": "cognee/api/v1/prune/prune.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/api/v1/recall/recall.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 2
+    },
+    {
+      "file": "cognee/api/v1/remember/remember.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 3
+    },
+    {
+      "file": "cognee/api/v1/search/search.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/api/v1/serve/disconnect.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/api/v1/serve/serve.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/api/v1/session/session.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 4
+    },
+    {
+      "file": "cognee/api/v1/ui/ui.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 12
+    },
+    {
+      "file": "cognee/api/v1/update/update.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/api/v1/visualize/start_visualization_server.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 2
+    },
+    {
+      "file": "cognee/api/v1/visualize/visualize.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 10
+    },
+    {
+      "file": "cognee/modules/agent_memory/decorator.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/modules/memify/memify.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/modules/observability/trace_context.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 6
+    },
+    {
+      "file": "cognee/modules/pipelines/__init__.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/modules/run_custom_pipeline/run_custom_pipeline.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/modules/search/types/SearchType.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/modules/visualization/cognee_network_visualization.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 5
+    },
+    {
+      "file": "cognee/pipelines/types.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 1
+    },
+    {
+      "file": "cognee/run_migrations.py",
+      "status": "extracted",
+      "issue": null,
+      "fallback": false,
+      "exports": 2
+    }
+  ],
+  "files_by_status": {
+    "extracted": 28,
+    "read-by-eye": 1,
+    "hash-tracked": 0,
+    "missing": 0,
+    "parse-failed": 0,
+    "unread": 0
+  },
+  "ast_fallback_files": [],
+  "extraction_gaps": [],
+  "truncated": false,
+  "cap_hits": [],
+  "outside_scope": [
+    {
+      "path": "cognee/api/v1/agents/agents.py",
+      "names": [
+        "agents"
+      ],
+      "entries": [
+        "cognee/__init__.py"
+      ]
+    },
+    {
+      "path": "cognee/api/v1/push/push.py",
+      "names": [
+        "PushResult"
+      ],
+      "entries": [
+        "cognee/__init__.py"
+      ]
+    },
+    {
+      "path": "cognee/api/v1/validate/validate.py",
+      "names": [
+        "ValidationIssue",
+        "ValidationReport",
+        "ValidationStatus"
+      ],
+      "entries": [
+        "cognee/__init__.py"
+      ]
+    },
+    {
+      "path": "cognee/api/v1/visualize/memory_provenance.py",
+      "names": [
+        "get_memory_provenance_graph",
+        "visualize_memory_provenance"
+      ],
+      "entries": [
+        "cognee/__init__.py"
+      ]
+    },
+    {
+      "path": "cognee/infrastructure/background_tasks.py",
+      "names": [
+        "wait_for_background_tasks"
+      ],
+      "entries": [
+        "cognee/__init__.py"
+      ]
+    },
+    {
+      "path": "cognee/memory/entries.py",
+      "names": [
+        "FeedbackEntry",
+        "MemoryEntry",
+        "QAEntry",
+        "TraceEntry"
+      ],
+      "entries": [
+        "cognee/__init__.py"
+      ]
+    },
+    {
+      "path": "cognee/modules/migration/export.py",
+      "names": [
+        "ExportResult"
+      ],
+      "entries": [
+        "cognee/__init__.py"
+      ]
+    },
+    {
+      "path": "cognee/modules/session_lifecycle/models.py",
+      "names": [
+        "SessionModelUsage",
+        "SessionRecord"
+      ],
+      "entries": [
+        "cognee/__init__.py"
+      ]
+    },
+    {
+      "path": "cognee/shared/env_file.py",
+      "names": [
+        "describe_resolution",
+        "load_env_file"
+      ],
+      "entries": [
+        "cognee/__init__.py"
+      ]
+    },
+    {
+      "path": "cognee/shared/logging_utils.py",
+      "names": [
+        "setup_logging"
+      ],
+      "entries": [
+        "cognee/__init__.py"
+      ]
+    },
+    {
+      "path": "cognee/version.py",
+      "names": [
+        "get_cognee_version"
+      ],
+      "entries": [
+        "cognee/__init__.py"
+      ]
+    }
+  ],
+  "counts": {
+    "exports": 72,
+    "by_type": {
+      "alias": 1,
+      "class": 8,
+      "function": 57,
+      "module": 3,
+      "sentinel": 1,
+      "variable": 2
+    },
+    "t1": 65,
+    "t1_low": 7
+  },
+  "exports": [
+    {
+      "name": "__version__",
+      "type": "variable",
+      "signature": "__version__ = get_cognee_version()",
+      "file": "cognee/__init__.py",
+      "line": 22,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "source_library": "cognee"
+    },
+    {
+      "name": "logger",
+      "type": "variable",
+      "signature": "logger = setup_logging()",
+      "file": "cognee/__init__.py",
+      "line": 34,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "source_library": "cognee"
+    },
+    {
+      "name": "visualize",
+      "type": "alias",
+      "signature": "from cognee.api.v1.visualize import visualize_graph as visualize",
+      "file": "cognee/api/v1/__init__.py",
+      "line": 8,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "source_library": "cognee"
+    },
+    {
+      "name": "add",
+      "type": "function",
+      "signature": "async def add(data: BinaryIO | list[BinaryIO] | str | list[str] | DataItem | list[DataItem] | Any, dataset_name: str = DEFAULT_DATASET_NAME, user: User = None, node_set: list[str] | None = None, vector_db_config: dict | None = None, graph_db_config: dict | None = None, dataset_id: UUID | None = None, preferred_loaders: list[str | dict[str, dict[str, Any]]] | None = None, incremental_loading: bool = True, data_per_batch: int | None = 20, importance_weight: float | None = 0.5, run_in_background: bool = False, llm_config: LLMConfig | None = None, embedding_config: EmbeddingConfig | None = None, data_cache: bool = True, skip_connection_test: bool = False, **kwargs):",
+      "file": "cognee/api/v1/add/add.py",
+      "line": 39,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "raise_if_cognify_errored",
+      "type": "function",
+      "signature": "def raise_if_cognify_errored(result) -> None:",
+      "file": "cognee/api/v1/cognify/cognify.py",
+      "line": 83,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "cognify",
+      "type": "function",
+      "signature": "async def cognify(datasets: str | list[str] | list[UUID] | None = None, user: User = None, graph_model: BaseModel = KnowledgeGraph, chunker=TextChunker, chunk_size: int | None = None, chunks_per_batch: int | None = None, config: Config = None, vector_db_config: dict | None = None, graph_db_config: dict | None = None, run_in_background: bool = False, incremental_loading: bool = True, custom_prompt: str | None = None, temporal_cognify: bool = False, functional_relationships: Collection[str] | None = None, data_per_batch: int = 20, llm_config: LLMConfig | None = None, embedding_config: EmbeddingConfig | None = None, data_cache: bool = True, dry_run: bool = False, raise_on_error: bool = True, chunk_attachment: Literal[\"direct\", \"all\"] | None = None, extractor: Literal[\"llm\", \"gliner_demo\", \"gliner\"] | None = None, ontology_file_path: str | None = None, **kwargs):",
+      "file": "cognee/api/v1/cognify/cognify.py",
+      "line": 110,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "get_default_tasks",
+      "type": "function",
+      "signature": "async def get_default_tasks(user: User = None, graph_model: BaseModel = KnowledgeGraph, chunker=TextChunker, chunk_size: int | None = None, config: Config = None, custom_prompt: str | None = None, chunks_per_batch: int | None = None, functional_relationships: Collection[str] | None = None, chunk_attachment: Literal[\"direct\", \"all\"] | None = None, **kwargs) -> list[Task]:",
+      "file": "cognee/api/v1/cognify/cognify.py",
+      "line": 565,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "get_dlt_tasks",
+      "type": "function",
+      "signature": "async def get_dlt_tasks(chunk_size: int | None = None, chunks_per_batch: int | None = None) -> list[Task]:",
+      "file": "cognee/api/v1/cognify/cognify.py",
+      "line": 645,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "get_temporal_tasks",
+      "type": "function",
+      "signature": "async def get_temporal_tasks(user: User = None, chunker=TextChunker, chunk_size: int | None = None, chunks_per_batch: int | None = None) -> list[Task]:",
+      "file": "cognee/api/v1/cognify/cognify.py",
+      "line": 695,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "config",
+      "type": "class",
+      "signature": "class config:",
+      "file": "cognee/api/v1/config/config.py",
+      "line": 171,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "class_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "datasets",
+      "type": "class",
+      "signature": "class datasets:",
+      "file": "cognee/api/v1/datasets/datasets.py",
+      "line": 105,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "class_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "delete",
+      "type": "function",
+      "signature": "async def delete(data_id: UUID, dataset_id: UUID, mode: str = \"soft\", user: User | None = None):",
+      "file": "cognee/api/v1/delete/__init__.py",
+      "line": 12,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "forget",
+      "type": "function",
+      "signature": "async def forget(*, data_id: UUID | None = None, dataset: str | None = None, dataset_id: UUID | None = None, everything: bool = False, memory_only: bool = False, user: Any = None) -> dict:",
+      "file": "cognee/api/v1/forget/forget.py",
+      "line": 22,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "ImproveKwargs",
+      "type": "class",
+      "signature": "class ImproveKwargs(TypedDict, total=False):",
+      "file": "cognee/api/v1/improve/improve.py",
+      "line": 88,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "class_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "improve",
+      "type": "function",
+      "signature": "async def improve(dataset: str | UUID = \"main_dataset\", *, run_in_background: bool = False, node_name: list[str] | None = None, session_ids: list[str] | None = None, build_global_context_index: bool = False, build_truth_subspace: bool = False, **kwargs: Unpack[ImproveKwargs]) -> ImproveResult:",
+      "file": "cognee/api/v1/improve/improve.py",
+      "line": 101,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "prune",
+      "type": "class",
+      "signature": "class prune:",
+      "file": "cognee/api/v1/prune/prune.py",
+      "line": 5,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "class_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "RecallKwargs",
+      "type": "class",
+      "signature": "class RecallKwargs(TypedDict, total=False):",
+      "file": "cognee/api/v1/recall/recall.py",
+      "line": 62,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "class_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "recall",
+      "type": "function",
+      "signature": "async def recall(query_text: str, query_type: SearchType | None = None, *, datasets: list[str] | None = None, dataset_ids: list[UUID] | None = None, top_k: int = 15, auto_route: bool = True, scope: str | list[str] | None = None, system_prompt: str | None = None, system_prompt_path: str = \"answer_simple_question.txt\", node_name: list[str] | None = None, node_name_filter_operator: str = \"OR\", only_context: bool = False, session_id: str | None = None, context_profile: str = \"qa\", wide_search_top_k: int | None = None, triplet_distance_penalty: float | None = None, feedback_influence: float = get_base_config().default_feedback_influence, verbose: bool = False, retriever_specific_config: dict | None = None, response_model: type | None = None, neighborhood_depth: int | None = None, neighborhood_seed_top_k: int | None = None, include_references: bool = False, tool_connections: list[str] | None = None, tools_trigger: str = \"always\", code_query: dict | None = None, user: object | None = None, llm_config: LLMConfig | None = None, embedding_config: EmbeddingConfig | None = None) -> list[RecallResponse]:",
+      "file": "cognee/api/v1/recall/recall.py",
+      "line": 347,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "RememberKwargs",
+      "type": "class",
+      "signature": "class RememberKwargs(TypedDict, total=False):",
+      "file": "cognee/api/v1/remember/remember.py",
+      "line": 90,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "class_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "RememberResult",
+      "type": "class",
+      "signature": "class RememberResult:",
+      "file": "cognee/api/v1/remember/remember.py",
+      "line": 600,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "class_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "remember",
+      "type": "function",
+      "signature": "async def remember(data: Union[BinaryIO, list[BinaryIO], str, list[str], DataItem, list[DataItem], \"MemoryEntry\", MemorySource, \"PresortReport\", dict], dataset_name: str = \"main_dataset\", *, dataset_id: UUID | None = None, session_id: str | None = None, chunk_size: int | None = None, chunker: Any | None = None, custom_prompt: str | None = None, run_in_background: bool = False, self_improvement: bool = True, session_ids: list[str] | None = None, dry_run: bool | Literal[\"presort\"] = False, raise_on_error: bool = True, **kwargs: Unpack[RememberKwargs]) -> Union[\"RememberResult\", \"DryRunEstimate\", \"PresortReport\", dict]:",
+      "file": "cognee/api/v1/remember/remember.py",
+      "line": 867,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "search",
+      "type": "function",
+      "signature": "async def search(query_text: str, query_type: SearchType = SearchType.HYBRID_COMPLETION, user: User | None = None, datasets: list[str] | str | None = None, dataset_ids: list[UUID] | UUID | None = None, system_prompt_path: str = \"answer_simple_question.txt\", system_prompt: str | None = None, top_k: int = 15, node_type: type | None = NodeSet, node_name: list[str] | None = None, node_name_filter_operator: str = \"OR\", only_context: bool = False, session_id: str | None = None, wide_search_top_k: int | None = None, triplet_distance_penalty: float | None = None, feedback_influence: float = get_base_config().default_feedback_influence, verbose: bool = False, retriever_specific_config: dict | None = None, neighborhood_depth: int | None = None, neighborhood_seed_top_k: int | None = None, skills: list[str | Skill] | None = None, tools: list[str] | None = None, max_iter: int | None = None, include_references: bool = False, llm_config: LLMConfig | None = None, embedding_config: EmbeddingConfig | None = None, code_query: dict[str, Any] | None = None) -> list[SearchResult]:",
+      "file": "cognee/api/v1/search/search.py",
+      "line": 41,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "disconnect",
+      "type": "function",
+      "signature": "async def disconnect(clear_saved: bool = False) -> None:",
+      "file": "cognee/api/v1/serve/disconnect.py",
+      "line": 8,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "serve",
+      "type": "function",
+      "signature": "async def serve(url: str | None = None, api_key: str | None = None, *, management_url: str | None = None, auth0_domain: str | None = None, auth0_client_id: str | None = None, auth0_audience: str | None = None) -> CloudClient:",
+      "file": "cognee/api/v1/serve/serve.py",
+      "line": 17,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "session",
+      "type": "module",
+      "signature": "session = types.SimpleNamespace(get_session=..., add_feedback=..., delete_feedback=..., distill_session=...)  # cognee/api/v1/session/__init__.py:8 over session.py",
+      "file": "cognee/api/v1/session/session.py",
+      "line": 1,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "source_library": "cognee"
+    },
+    {
+      "name": "get_session",
+      "type": "function",
+      "signature": "async def get_session(session_id: str | None = None, last_n: int | None = None, user: User | None = None) -> list[SessionQAEntry]:",
+      "file": "cognee/api/v1/session/session.py",
+      "line": 65,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "add_feedback",
+      "type": "function",
+      "signature": "async def add_feedback(session_id: str, qa_id: str, feedback_text: str | None = None, feedback_score: int | None = None, user: User | None = None) -> bool:",
+      "file": "cognee/api/v1/session/session.py",
+      "line": 113,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "delete_feedback",
+      "type": "function",
+      "signature": "async def delete_feedback(session_id: str, qa_id: str, user: User | None = None) -> bool:",
+      "file": "cognee/api/v1/session/session.py",
+      "line": 147,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "normalize_version_for_comparison",
+      "type": "function",
+      "signature": "def normalize_version_for_comparison(version: str) -> str:",
+      "file": "cognee/api/v1/ui/ui.py",
+      "line": 160,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "get_frontend_cache_dir",
+      "type": "function",
+      "signature": "def get_frontend_cache_dir() -> Path:",
+      "file": "cognee/api/v1/ui/ui.py",
+      "line": 172,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "get_frontend_download_info",
+      "type": "function",
+      "signature": "def get_frontend_download_info() -> tuple[str, str]:",
+      "file": "cognee/api/v1/ui/ui.py",
+      "line": 184,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "download_frontend_assets",
+      "type": "function",
+      "signature": "def download_frontend_assets(force: bool = False) -> bool:",
+      "file": "cognee/api/v1/ui/ui.py",
+      "line": 200,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "find_frontend_path",
+      "type": "function",
+      "signature": "def find_frontend_path() -> Path | None:",
+      "file": "cognee/api/v1/ui/ui.py",
+      "line": 321,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "install_frontend_dependencies",
+      "type": "function",
+      "signature": "def install_frontend_dependencies(frontend_path: Path) -> bool:",
+      "file": "cognee/api/v1/ui/ui.py",
+      "line": 351,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "is_development_frontend",
+      "type": "function",
+      "signature": "def is_development_frontend(frontend_path: Path) -> bool:",
+      "file": "cognee/api/v1/ui/ui.py",
+      "line": 382,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "prompt_user_for_download",
+      "type": "function",
+      "signature": "def prompt_user_for_download() -> bool:",
+      "file": "cognee/api/v1/ui/ui.py",
+      "line": 406,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "stop_ui_pid",
+      "type": "function",
+      "signature": "def stop_ui_pid(pid: int, *, running: bool = True) -> None:",
+      "file": "cognee/api/v1/ui/ui.py",
+      "line": 431,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "stop_ui_process",
+      "type": "function",
+      "signature": "def stop_ui_process(process: subprocess.Popen) -> None:",
+      "file": "cognee/api/v1/ui/ui.py",
+      "line": 460,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "remove_ui_container",
+      "type": "function",
+      "signature": "def remove_ui_container(container_name: str) -> None:",
+      "file": "cognee/api/v1/ui/ui.py",
+      "line": 485,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "start_ui",
+      "type": "function",
+      "signature": "def start_ui(pid_callback: Callable[[int | tuple[int, str]], None], port: int = 3000, open_browser: bool = True, auto_download: bool = False, start_backend: bool = False, backend_port: int = 8000, start_mcp: bool = False, mcp_port: int = 8001) -> subprocess.Popen | None:",
+      "file": "cognee/api/v1/ui/ui.py",
+      "line": 514,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "update",
+      "type": "function",
+      "signature": "async def update(data_id: UUID, data: BinaryIO | list[BinaryIO] | str | list[str], dataset_id: UUID, user: User = None, node_set: list[str] | None = None, vector_db_config: dict | None = None, graph_db_config: dict | None = None, preferred_loaders: dict[str, dict[str, Any]] | None = None, incremental_loading: bool = True, data_cache: bool = True, chunk_level_diff: bool = True, graph_model: type[BaseModel] = KnowledgeGraph, custom_prompt: str | None = None, chunker: type = TextChunker, policy: ChunkPolicy = DEFAULT_CHUNK_POLICY) -> dict:",
+      "file": "cognee/api/v1/update/update.py",
+      "line": 28,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "start_visualization_server",
+      "type": "module",
+      "signature": "module cognee.api.v1.visualize.start_visualization_server (re-exported by cognee/__init__.py:53 via submodule import; exposes visualization_server(port))",
+      "file": "cognee/api/v1/visualize/start_visualization_server.py",
+      "line": 1,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "source_library": "cognee"
+    },
+    {
+      "name": "visualization_server",
+      "type": "function",
+      "signature": "def visualization_server(port) -> Callable[[], Callable[[], None]]:",
+      "file": "cognee/api/v1/visualize/start_visualization_server.py",
+      "line": 6,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "fetch_visualization_data",
+      "type": "function",
+      "signature": "async def fetch_visualization_data(user: User | None = None, dataset: str | UUID | None = DEFAULT_DATASET_NAME, *, full: bool = False, query: str | None = None, seed_node_ids: list[str] | None = None, recall_result: Any | None = None, neighborhood_depth: int = DEFAULT_NEIGHBORHOOD_DEPTH, neighborhood_seed_top_k: int = DEFAULT_SEED_TOP_K, max_nodes: int = DEFAULT_MAX_NODES, include_session_events: bool = True, session_ids: list | None = None) -> tuple[Any, list | None]:",
+      "file": "cognee/api/v1/visualize/visualize.py",
+      "line": 43,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "fetch_dataset_graph_data",
+      "type": "function",
+      "signature": "async def fetch_dataset_graph_data(dataset: Any | None, *, full: bool = False, query: str | None = None, seed_node_ids: list[str] | None = None, recall_result: Any | None = None, neighborhood_depth: int = DEFAULT_NEIGHBORHOOD_DEPTH, neighborhood_seed_top_k: int = DEFAULT_SEED_TOP_K, max_nodes: int = DEFAULT_MAX_NODES) -> Any:",
+      "file": "cognee/api/v1/visualize/visualize.py",
+      "line": 117,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "stream_dataset_graph",
+      "type": "function",
+      "signature": "async def stream_dataset_graph(dataset: Any | None, *, query: str | None = None, seed_node_ids: list[str] | None = None, neighborhood_depth: int = DEFAULT_NEIGHBORHOOD_DEPTH, neighborhood_seed_top_k: int = DEFAULT_SEED_TOP_K, max_nodes: int = DEFAULT_MAX_NODES, chunk_size: int = STREAM_CHUNK_SIZE) -> AsyncGenerator[tuple[str, dict[str, Any]], None]:",
+      "file": "cognee/api/v1/visualize/visualize.py",
+      "line": 157,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "visualize_graph",
+      "type": "function",
+      "signature": "async def visualize_graph(destination_file_path: str | None = None, include_session_events: bool = True, session_ids: list | None = None, user: User | None = None, dataset: str | UUID | None = DEFAULT_DATASET_NAME, *, full: bool = False, query: str | None = None, seed_node_ids: list[str] | None = None, recall_result: Any | None = None, neighborhood_depth: int = DEFAULT_NEIGHBORHOOD_DEPTH, neighborhood_seed_top_k: int = DEFAULT_SEED_TOP_K, max_nodes: int = DEFAULT_MAX_NODES) -> str:",
+      "file": "cognee/api/v1/visualize/visualize.py",
+      "line": 193,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "visualize_graph_json",
+      "type": "function",
+      "signature": "async def visualize_graph_json(include_session_events: bool = True, session_ids: list | None = None, user: User | None = None, dataset: str | UUID | None = DEFAULT_DATASET_NAME, *, full: bool = False, query: str | None = None, seed_node_ids: list[str] | None = None, recall_result: Any | None = None, neighborhood_depth: int = DEFAULT_NEIGHBORHOOD_DEPTH, neighborhood_seed_top_k: int = DEFAULT_SEED_TOP_K, max_nodes: int = DEFAULT_MAX_NODES) -> dict:",
+      "file": "cognee/api/v1/visualize/visualize.py",
+      "line": 271,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "visualize_semantic_json",
+      "type": "function",
+      "signature": "async def visualize_semantic_json(user: User | None = None, dataset: str | UUID | None = DEFAULT_DATASET_NAME, *, full: bool = False, query: str | None = None, seed_node_ids: list[str] | None = None, recall_result: Any | None = None, neighborhood_depth: int = DEFAULT_NEIGHBORHOOD_DEPTH, neighborhood_seed_top_k: int = DEFAULT_SEED_TOP_K, max_nodes: int = DEFAULT_MAX_NODES) -> dict:",
+      "file": "cognee/api/v1/visualize/visualize.py",
+      "line": 317,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "build_brains_payload",
+      "type": "function",
+      "signature": "async def build_brains_payload(user: User | None = None, max_nodes: int = DEFAULT_MAX_NODES) -> dict:",
+      "file": "cognee/api/v1/visualize/visualize.py",
+      "line": 355,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "build_brains_summary_payload",
+      "type": "function",
+      "signature": "async def build_brains_summary_payload(user: User | None = None) -> dict:",
+      "file": "cognee/api/v1/visualize/visualize.py",
+      "line": 454,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "get_live_events",
+      "type": "function",
+      "signature": "async def get_live_events(dataset_id: UUID, since: datetime | None = None, user: User | None = None) -> dict[str, Any]:",
+      "file": "cognee/api/v1/visualize/visualize.py",
+      "line": 543,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "visualize_multi_user_graph",
+      "type": "function",
+      "signature": "async def visualize_multi_user_graph(user_dataset_pairs: list[tuple[Any, Any]], destination_file_path: str | None = None) -> Any:",
+      "file": "cognee/api/v1/visualize/visualize.py",
+      "line": 611,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "agent_memory",
+      "type": "function",
+      "signature": "def agent_memory(*, agent_session_name: str | None = None, with_memory: bool = True, with_session_memory: bool = False, save_session_traces: bool = False, memory_query_fixed: str | None = None, memory_query_from_method: str | None = None, memory_system_prompt: str | None = None, memory_top_k: int = 5, memory_only_context: bool = False, session_memory_last_n: int = 5, session_id: str | None = None, user: User | None = None, dataset_name: str | None = None, session_trace_summary: bool = False, persist_session_trace_after: int | None = None, persist_session_trace_raw_content: bool = False, persist_session_trace_node_set_name: str | None = None) -> Callable[[Callable[..., Any]], Callable[..., Any]]:",
+      "file": "cognee/modules/agent_memory/decorator.py",
+      "line": 29,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "memify",
+      "type": "function",
+      "signature": "async def memify(extraction_tasks: Sequence[Task | str] | None = None, enrichment_tasks: Sequence[Task | str] | None = None, data: Any | None = None, dataset: str | UUID = DEFAULT_DATASET_NAME, user: User = None, node_type: type | None = NodeSet, node_name: list[str] | None = None, vector_db_config: dict | None = None, graph_db_config: dict | None = None, run_in_background: bool = False):",
+      "file": "cognee/modules/memify/memify.py",
+      "line": 27,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "enable_tracing",
+      "type": "function",
+      "signature": "def enable_tracing(console_output: bool = False) -> None:",
+      "file": "cognee/modules/observability/trace_context.py",
+      "line": 18,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "disable_tracing",
+      "type": "function",
+      "signature": "def disable_tracing() -> None:",
+      "file": "cognee/modules/observability/trace_context.py",
+      "line": 43,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "is_tracing_enabled",
+      "type": "function",
+      "signature": "def is_tracing_enabled() -> bool:",
+      "file": "cognee/modules/observability/trace_context.py",
+      "line": 62,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "get_last_trace",
+      "type": "function",
+      "signature": "def get_last_trace() -> CogneeTrace | None:",
+      "file": "cognee/modules/observability/trace_context.py",
+      "line": 101,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "get_all_traces",
+      "type": "function",
+      "signature": "def get_all_traces() -> list[CogneeTrace]:",
+      "file": "cognee/modules/observability/trace_context.py",
+      "line": 112,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "clear_traces",
+      "type": "function",
+      "signature": "def clear_traces() -> None:",
+      "file": "cognee/modules/observability/trace_context.py",
+      "line": 121,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "pipelines",
+      "type": "module",
+      "signature": "module cognee.modules.pipelines (from .modules import pipelines; exports Task, run_tasks, run_tasks_parallel, run_pipeline, ...)",
+      "file": "cognee/modules/pipelines/__init__.py",
+      "line": 1,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "source_library": "cognee"
+    },
+    {
+      "name": "run_custom_pipeline",
+      "type": "function",
+      "signature": "async def run_custom_pipeline(tasks: list[Task] | list[str] | None = None, data: Any = None, dataset: str | UUID = DEFAULT_DATASET_NAME, user: User = None, vector_db_config: dict | None = None, graph_db_config: dict | None = None, incremental_loading: bool = False, data_per_batch: int = 20, run_in_background: bool = False, pipeline_name: str = \"custom_pipeline\", data_cache: bool = False, skip_connection_test: bool = False):",
+      "file": "cognee/modules/run_custom_pipeline/run_custom_pipeline.py",
+      "line": 14,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "SearchType",
+      "type": "class",
+      "signature": "class SearchType(str, Enum):",
+      "file": "cognee/modules/search/types/SearchType.py",
+      "line": 4,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "class_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "build_visualization_payload",
+      "type": "function",
+      "signature": "def build_visualization_payload(graph_data, schema_data: dict | None = None, search_events: list | None = None) -> dict:",
+      "file": "cognee/modules/visualization/cognee_network_visualization.py",
+      "line": 72,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "build_semantic_payload",
+      "type": "function",
+      "signature": "async def build_semantic_payload(graph_data, schema_data: dict | None = None) -> dict:",
+      "file": "cognee/modules/visualization/cognee_network_visualization.py",
+      "line": 100,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "build_brain_summary_payload",
+      "type": "function",
+      "signature": "def build_brain_summary_payload(dataset_name: str, graph_data) -> dict:",
+      "file": "cognee/modules/visualization/cognee_network_visualization.py",
+      "line": 116,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "cognee_network_visualization",
+      "type": "function",
+      "signature": "async def cognee_network_visualization(graph_data, destination_file_path: str | None = None, schema_data: dict | None = None, search_events: list | None = None) -> str:",
+      "file": "cognee/modules/visualization/cognee_network_visualization.py",
+      "line": 154,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "aggregate_multi_user_graphs",
+      "type": "function",
+      "signature": "async def aggregate_multi_user_graphs(user_dataset_pairs):",
+      "file": "cognee/modules/visualization/cognee_network_visualization.py",
+      "line": 256,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "Drop",
+      "type": "sentinel",
+      "signature": "Drop = _Drop()",
+      "file": "cognee/pipelines/types.py",
+      "line": 32,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "source_library": "cognee"
+    },
+    {
+      "name": "run_relational_migrations",
+      "type": "function",
+      "signature": "async def run_relational_migrations():",
+      "file": "cognee/run_migrations.py",
+      "line": 11,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    },
+    {
+      "name": "run_migrations",
+      "type": "function",
+      "signature": "async def run_migrations():",
+      "file": "cognee/run_migrations.py",
+      "line": 18,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "function_definition",
+      "source_library": "cognee"
+    }
+  ],
+  "relocations": [],
+  "warnings": []
+}

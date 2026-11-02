@@ -1,0 +1,81 @@
+# DO NOT EDIT -- overwritten on every update.
+#
+# Workflow customization surface for skf-drop-skill.
+# Team overrides:     {project-root}/_bmad/custom/skf-drop-skill.toml
+# Personal overrides: {project-root}/_bmad/custom/skf-drop-skill.user.toml
+
+[workflow]
+
+# --- Configurable below. Overrides merge per BMad structural rules: ---
+#   scalars: override wins • arrays (persistent_facts, activation_steps_*): append
+#   arrays-of-tables with `code`/`id`: replace matching items, append new ones.
+
+# Steps to run once On Activation has loaded config.yaml and resolved this
+# customization, before its pre-flight (helper check, run folder, write
+# probe and headless-purge guard) and before the first prompt. Overrides
+# append. Use for org-wide checks (audit-log emit, ticket-reference
+# enforcement) that must precede any destructive work.
+
+activation_steps_prepend = []
+
+# Steps to run right after the prepend steps and the persistent facts,
+# still before the pre-flight: a run that then HALTs on a missing helper,
+# an unwritable folder or the headless-purge guard has already run them.
+# Overrides append. Use for context loads or banner customization.
+
+activation_steps_append = []
+
+# Persistent facts the workflow keeps in mind for the whole run
+# (drop-policy reminders, retention guardrails, audit-trail rules).
+# Overrides append.
+#
+# Each entry is one of:
+#   - a literal sentence, e.g. "Purges of skills tagged `compliance` require ticket reference."
+#   - a file reference prefixed with `file:`, e.g.
+#     "file:{project-root}/docs/drop-policy.md" (globs supported; file
+#     contents are loaded and treated as facts).
+#   - an entry prefixed with `!`, which loads nothing and drops each earlier
+#     entry it names.
+#
+# The default below loads every project-context.md under {project-root}.
+# Overrides append, so they cannot delete it; to stop loading those files,
+# set in {project-root}/_bmad/custom/skf-drop-skill.toml:
+#   [workflow]
+#   persistent_facts = ["!file:{project-root}/**/project-context.md"]
+
+persistent_facts = [
+  "file:{project-root}/**/project-context.md",
+]
+
+# Optional post-drop hook: a shell command, run as
+# `<command> --result-path=<path>` once step 3 (references/report.md) has
+# written the drop's result record. It runs only after a drop whose record
+# the emitter wrote (report.md skips it when `result_path` is null), so a
+# dry run, a HALT or a failed record write never calls it. A hook that
+# exits non-zero is shown as a line of its own and never fails the drop,
+# which may already be irreversible. Useful for an audit-log emit, a
+# notifier or a ticket-tracker update after a purge.
+
+on_complete = ""
+
+# --- Optional safety scalar ---
+#
+# Block a purge in headless mode. Any value other than the empty string
+# turns the guard on ("true", a TOML true, and even "false" or false), so a
+# mistyped value that still parses blocks the purge rather than allowing it.
+# An override file that fails to parse (an unquoted True, yes or on, or a
+# bad line elsewhere in it) stops the resolver: the run warns
+# customization_resolver_unavailable and uses this file alone, so the guard
+# is off. Quote the value, as in "true". In
+# {project-root}/_bmad/custom/skf-drop-skill.toml (or .user.toml) write it
+# under the table, as two lines: `[workflow]` then
+# `forbid_purge_in_headless = "true"`. A key above the `[workflow]` line is
+# ignored without a warning, which leaves the guard off. With the guard
+# on, a headless run with `mode=purge` HALTs at activation with exit code 6
+# (`halt_reason: "headless-purge-forbidden"`) instead of deleting files:
+# re-run with `mode=deprecate`, or interactively. A draft skill with no
+# manifest entry cannot be deprecated, so it needs an interactive run or
+# the guard off. The drop mode has no default: every run passes `mode` or
+# answers the prompt. Empty string = no guard (default).
+
+forbid_purge_in_headless = ""

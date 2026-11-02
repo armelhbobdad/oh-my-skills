@@ -5,30 +5,43 @@
       "active_version": "1.0.0",
       "versions": {
         "0.3.37": {
-          "ides": ["claude-code"],
+          "ides": [
+            "claude-code"
+          ],
           "last_exported": "2026-04-12",
           "status": "archived"
         },
         "1.0.0": {
-          "ides": ["claude-code"],
-          "last_exported": "2026-04-25",
-          "status": "active",
-          "compiled_at": "2026-04-25",
-          "compiled_by_workflow": "skf-update-skill"
+          "ides": [
+            "claude-code"
+          ],
+          "last_exported": "2026-11-02",
+          "status": "active"
         }
       }
     },
     "oms-cognee": {
-      "active_version": "1.0.0",
+      "active_version": "1.6.2",
       "versions": {
         "0.5.8": {
-          "ides": ["claude-code"],
+          "ides": [
+            "claude-code"
+          ],
           "last_exported": "2026-04-12",
           "status": "archived"
         },
         "1.0.0": {
-          "ides": ["claude-code"],
+          "ides": [
+            "claude-code"
+          ],
           "last_exported": "2026-04-13",
+          "status": "archived"
+        },
+        "1.6.2": {
+          "ides": [
+            "claude-code"
+          ],
+          "last_exported": "2026-11-02",
           "status": "active"
         }
       }
@@ -37,8 +50,10 @@
       "active_version": "10.3.5",
       "versions": {
         "10.3.5": {
-          "ides": ["claude-code"],
-          "last_exported": "2026-04-12",
+          "ides": [
+            "claude-code"
+          ],
+          "last_exported": "2026-11-02",
           "status": "active"
         }
       }
@@ -47,11 +62,14 @@
       "active_version": "0.1.0",
       "versions": {
         "0.1.0": {
-          "ides": ["claude-code"],
-          "last_exported": "2026-04-12",
+          "ides": [
+            "claude-code"
+          ],
+          "last_exported": "2026-11-02",
           "status": "active"
         }
       }
     }
-  }
+  },
+  "updated_at": "2026-11-02T23:38:58.510459+00:00"
 }

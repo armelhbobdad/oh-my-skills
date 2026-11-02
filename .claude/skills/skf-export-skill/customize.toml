@@ -1,0 +1,82 @@
+# DO NOT EDIT -- overwritten on every update.
+#
+# Workflow customization surface for skf-export-skill.
+# Team overrides:     {project-root}/_bmad/custom/skf-export-skill.toml
+# Personal overrides: {project-root}/_bmad/custom/skf-export-skill.user.toml
+
+[workflow]
+
+# --- Configurable below. Overrides merge per BMad structural rules: ---
+#   scalars: override wins • arrays (persistent_facts, activation_steps_*): append
+#   arrays-of-tables with `code`/`id`: replace matching items, append new ones.
+
+# Steps SKILL.md On Activation step 3 runs once this file resolves: after
+# the config load (step 1) and the headless flag (step 2), before step 4
+# resolves the helpers and creates the run folder, and before any stage.
+# Overrides append. Use for org-wide pre-flight checks (auth, network,
+# compliance) that must precede any export work.
+
+activation_steps_prepend = []
+
+# Steps to run after activation but before the first stage executes.
+# Overrides append. Use for context loads or banner customization that
+# should run once activation completes successfully.
+
+activation_steps_append = []
+
+# Persistent facts the workflow keeps in mind for the whole run
+# (publishing standards, distribution-instruction house style, snippet
+# token-budget guardrails). Overrides append.
+#
+# Each entry is one of:
+#   - a literal sentence, e.g. "All exported skills must include a CHANGELOG entry."
+#   - a file reference prefixed with `file:`, e.g.
+#     "file:{project-root}/docs/export-policy.md" (globs supported; file
+#     contents are loaded and treated as facts).
+#   - an entry prefixed with `!`, which loads nothing and drops each earlier
+#     entry it names.
+#
+# The default below loads every project-context.md under {project-root}.
+# Overrides append, so they cannot delete it; to stop loading those files,
+# set in {project-root}/_bmad/custom/skf-export-skill.toml:
+#   persistent_facts = ["!file:{project-root}/**/project-context.md"]
+
+persistent_facts = [
+  "file:{project-root}/**/project-context.md",
+]
+
+# Optional post-export hook: a shell command, not an instruction. When
+# non-empty, step 6 runs `<value> --result-path="<per-run result JSON>"`
+# after it writes that file (before the terminal health-check step); a
+# --dry-run writes none and never invokes it. Example:
+# on_complete = "scripts/publish-skill.sh". Useful for downstream
+# distribution, notification, or pipeline chaining. A failure shows as a
+# warning line in the run's output and never fails the workflow.
+# Empty = no-op (default).
+
+on_complete = ""
+
+# --- Optional asset override ---
+#
+# The snippet template step 3 fills for each skill. Empty string = the
+# bundled default, assets/snippet-format.md. Override it to restyle the free
+# lines or add one (an owner or license line, for example). Scripts parse
+# the rest, so a copy keeps these as they are:
+#   - line 1, `[{skill-name} v{version}]|root: {skill_root}{skill-name}/`
+#     (for a stack, `[{project}-stack v{version}]|root: ...`): assemble
+#     builds each managed-section row from it and leaves out a snippet whose
+#     first line differs (skipped_malformed_snippet);
+#   - line 2, which starts `|IMPORTANT:` with the skill name as its first
+#     word (a single skill's also says `writing {skill-name} code`):
+#     skf-validate-output.py checks the start, and rename-skill rewrites the
+#     name in each place;
+#   - the `|gotchas:` label and its `[CARRIED]` marker, which step 3 reads
+#     to carry gotchas forward for one export;
+#   - no line that is a bare `|`, which splits rows in the managed section.
+# The quick-start, api and key-types lines, and the stack and integrations
+# lines, are free to change. The managed-section format and the IDE mapping
+# have no override: drop-skill and rename-skill rebuild the same section
+# through the shared helper, so a copy only export read would put them out
+# of step.
+
+snippet_format_path = ""

@@ -28,10 +28,10 @@ description: >
 {README-derived description of what the package does}
 
 ## Key Exports
-{List of public exports with brief descriptions}
+{List of public exports with brief descriptions. For a skills module: each skill with its description, then each menu code with its description, display name and the skill it runs}
 
 ## Usage Patterns
-{Common usage patterns extracted from README examples}
+{Common usage patterns extracted from README examples. For a skills module with module-help.csv: one entry per row, giving the menu code, display name and description, the skill and action it runs, its args, and the skills it follows or precedes}
 ```
 
 ### Optional Sections (include when data available)
@@ -54,9 +54,9 @@ Indexed format targeting ~80-120 tokens per skill:
 ```markdown
 [{skill_name} v{version}]|root: skills/{skill_name}/
 |IMPORTANT: {skill_name} v{version} — read SKILL.md before writing {skill_name} code. Do NOT rely on training data.
-|quick-start:{SKILL.md#quick-start}
+|quick-start:{SKILL.md#usage-patterns}
 |api: {top-5 exports with () for functions}
-|key-types:{SKILL.md#key-types} — {inline summary of most important type values}
+|key-types:{SKILL.md#key-exports} — {inline summary of most important type values}
 |gotchas: {2-3 most critical pitfalls or breaking changes, inline}
 ```
 
@@ -101,6 +101,12 @@ Indexed format targeting ~80-120 tokens per skill:
     "assets_count": 0
   },
   "dependencies": [],
-  "compatibility": "{semver-range}"
+  "compatibility": "{semver-range}",
+  "provenance": {
+    "language_hint": "{language_hint or null}",
+    "scope_hint": "{scope_hint or null}"
+  }
 }
 ```
+
+For a skills module (`repo_shape: skills-module`), `exports` lists the skill names, then the menu codes, and the export counts in `stats` and `confidence_distribution.t1_low` count both.

@@ -3,7 +3,7 @@ name: 'health-check'
 description: 'Workflow self-improvement health check — captures real friction as GitHub issues'
 # No nextStepFile — this is always the terminal step
 healthCheckRepo: '{health_check_repo}'
-localFallbackFolder: '{output_folder}/improvement-queue'
+localFallbackFolder: '{forge_data_folder}/improvement-queue'  # forge workspace artifact — use forge_data_folder (single, unambiguous SKF var), NOT output_folder (a Core Config var that resolves differently across co-installed BMad modules)
 seenCachePath: '$HOME/.skf/health-check-seen.json'
 liveSubmitSeverities: ['bug']  # friction/gap go local-queue-default with explicit opt-in
 ---
@@ -16,7 +16,7 @@ liveSubmitSeverities: ['bug']  # friction/gap go local-queue-default with explic
 
 Reflect on the workflow that just completed. If real friction, bugs, or gaps were encountered in the SKF workflow instructions, capture them as structured findings for the user to review and optionally submit as GitHub issues.
 
-**Zero overhead for clean runs.** If nothing went wrong, say so and exit immediately.
+**Zero overhead for clean runs.** If nothing went wrong, say so (or, on an envelope-only run, display only the setup envelope — see §0) and exit immediately.
 
 ## MANDATORY EXECUTION RULES:
 
@@ -24,17 +24,8 @@ Reflect on the workflow that just completed. If real friction, bugs, or gaps wer
 - Read the complete step file before taking any action
 - Speak in `{communication_language}`
 
-### Role Reinforcement:
-- You are a **self-improvement auditor** — honest, precise, evidence-based
-- You report ONLY what you actually experienced during THIS session
-- You are NOT a creative writer looking for things to say
-
-### Anti-Hallucination Rules:
-- **DO NOT FABRICATE ISSUES.** If the workflow ran smoothly, say so and exit. Inventing issues to appear thorough is a SYSTEM FAILURE.
-- Only report issues you **ACTUALLY encountered** during THIS workflow execution
-- Every finding MUST cite the **specific step file path and section** where the issue occurred
-- If you are unsure whether something was a real issue or your own confusion, DO NOT report it
-- Reporting zero issues is the EXPECTED outcome for a well-designed workflow
+### Findings Rule:
+Zero findings is the expected outcome of a good run. Report only a bug, friction or gap you hit in this session, each with the step file and section where it happened, and leave out anything you cannot tell apart from your own confusion: a finding you invent can become a real GitHub issue filed against the module.
 
 ---
 
@@ -42,11 +33,15 @@ Reflect on the workflow that just completed. If real friction, bugs, or gaps wer
 
 ### 0. Announce Arrival
 
+**Envelope-only runs.** Treat `{quiet_mode}` as true only when the workflow that loaded this step is skf-setup and it set `{quiet_mode}` to true. In every other case (unset, another workflow ran, or the user asked for this health check directly) treat it as false. skf-setup sets it under `--quiet` or in headless mode because its result envelope must be the only line setup displays. When it is true, this whole step displays nothing of its own and writes no text between tool calls: skip this announcement and its headless log, and queue any findings locally through **[Q]** without presenting them (§3, §4). Wherever it stops (the clean-run stop in §2, or the end of §5c), it displays skf-setup's `{setup_envelope_line}` verbatim after every tool call, with no code fence and nothing of this step's own before or after it (nothing at all if that line is empty). In a standalone setup run that line is the final message, because `claude -p` prints only the final message. When `{pipeline_mode}` is true, skf-setup is one step of a forger pipeline: control then returns to the forger, which keeps chaining.
+
+**Result envelope line.** Any other workflow may bind `{result_envelope_line}` before it loads this step, in headless mode only (Brief Skill also in an `[auto]` run), to the result envelope line its run printed through the shared emitter (its `SKF_<NAME>_RESULT_JSON: ...` line; skf-test-skill's report step binds its `SKF_TEST_RESULT_JSON` line). When it is bound and not empty, wherever this step stops (the clean-run stop in §2, or the end of §5c) it displays that line verbatim as its very last line, after everything else it displays, with no code fence and nothing after it. In a standalone headless run, such as `claude -p`, which prints only the final message, that line is then the final message a pipeline reads. A workflow that binds nothing gets nothing extra.
+
 **Display in `{communication_language}`:**
 
 "**Running a quick self-improvement check on this workflow.** If nothing rough came up, I'll close out immediately."
 
-**GATE [default: skip]** — If `{headless_mode}`: skip the display entirely, log: "headless: skipped health-check arrival announcement".
+**GATE [default: skip]** — If `{quiet_mode}` is true: skip the display and log nothing. Otherwise, if `{headless_mode}`: skip the display entirely, log: "headless: skipped health-check arrival announcement".
 
 **If interactive:** display the line above, then proceed to step 1 (Read Workflow Context) without waiting. The line is informational, not a commitment gate — the user's commitment to continuing was already captured upstream (either via an explicit menu in the calling step or by auto-chain). This announcement just tells them what is about to happen.
 
@@ -68,15 +63,19 @@ Silently review the workflow execution. Ask yourself:
 
 **If the answer to ALL of these is "no":**
 
-Display:
+If `{quiet_mode}` is true, display only `{setup_envelope_line}` (§0). Otherwise display:
 
 "**Health Check: Clean run.** No workflow issues to report.
 
 Workflow complete."
 
+When `{result_envelope_line}` is bound (§0), display it verbatim after that, as the last line.
+
 **STOP HERE. Do not proceed further. The workflow is done.**
 
 ### 3. Present Findings (Only If Issues Exist)
+
+**If `{quiet_mode}` is true:** do not present the findings. Go to §4, which chooses **[Q]** without displaying anything, so every finding, whatever its severity, is written to the local queue per §5c and nothing is submitted to GitHub.
 
 For each genuine finding, present it in this format:
 
@@ -90,7 +89,7 @@ For each genuine finding, present it in this format:
 |-------|-------|
 | **Severity** | `bug` / `friction` / `gap` |
 | **Workflow** | {workflow name} |
-| **Step File** | `src/skf-{workflow}/steps-c/{step-file-path}` |
+| **Step File** | `src/skf-{workflow}/references/{step-file-path}` |
 | **Section** | {the specific section or instruction number — use a stable section heading slug, not line numbers} |
 | **Fingerprint** | `fp-{7-hex}` — first 7 hex chars of `sha1("{severity}|{workflow}|{step_file}|{section-slug}")` |
 
@@ -112,13 +111,16 @@ For each genuine finding, present it in this format:
 
 ### 4. User Review Gate
 
-After presenting all findings, ask:
+**GATE [default: Q]** — If `{quiet_mode}` is true, choose **[Q]** without displaying anything. Otherwise, if `{headless_mode}` is true, choose **[Q]** and log: "headless: queued {N} finding(s) locally". In both cases skip the question below and go to Menu Handling: live submission always needs an interactive **[Y]**.
+
+**If interactive:** after presenting all findings, ask:
 
 "**Submit these findings?**
 
 - **[Y]** Yes — submit all findings
 - **[N]** No — discard all findings
 - **[E]** Edit — let me revise before submitting
+- **[Q]** Queue locally — save every finding to {localFallbackFolder}/, submit nothing
 
 _You are the final filter. Reject any finding that doesn't reflect a real issue you observed._"
 
@@ -129,6 +131,7 @@ _You are the final filter. Reject any finding that doesn't reflect a real issue 
 - **IF Y:** Proceed to step 5
 - **IF N:** Display "Findings discarded. Workflow complete." — STOP
 - **IF E:** Let user specify which findings to keep, modify, or remove. Then re-present the revised list and ask again.
+- **IF Q:** Compute each finding's fingerprint as §5a sub-step 1 describes, then write every finding, whatever its severity, to the local queue per §5c — STOP after §5c
 
 ### 5. Route Each Finding by Severity
 
@@ -149,9 +152,44 @@ fp="fp-$(printf '%s|%s|%s|%s' "{severity}" "{workflow}" "{step_file}" "{section-
 
 The `section-slug` is a kebab-case normalized section heading (e.g. `missing-staging-path`). Never include line numbers — they drift when files are edited.
 
+`sha1sum` is not on stock macOS or Windows. On macOS, use `shasum -a 1` in its place. Anywhere neither exists, this prints the same 7 hex characters, to prefix the same way:
+
+```
+uv run python -c "import hashlib,sys; print(hashlib.sha1(sys.argv[1].encode()).hexdigest()[:7])" "{severity}|{workflow}|{step_file}|{section-slug}"
+```
+
 **2. Check the local seen-cache** at `{seenCachePath}`:
 
-If the cache exists and already contains this fingerprint for this user, skip submission silently and log: `"fp-{hash}: already submitted from this machine on {date}, issue {url} — skipping"`. This prevents the same user from re-reporting the same defect across sessions.
+Read `{seenCachePath}`. A missing file, an empty file, or one that does not parse as JSON is an empty cache — never an error, never a reason to halt.
+
+**Presence in the cache is not the verdict.** A fingerprint whose defect was already fixed must NOT suppress: a fresh sighting of a fixed defect is a *regression*, and it is the single most valuable report this loop can produce. Look up the fingerprint and work these branches in order, stopping at the first that matches:
+
+1. **No record for this fingerprint** → `unseen`. Go to sub-step 3.
+2. **Record with `"action": "resolved"`** → `regression`. Recorded by hand when the defect was fixed. Go to sub-step 3 and apply the regression treatment below.
+3. **Record with `"action"` of `created`, `reacted`, or `commented`, and a non-empty `issue_url`** → you must decide whether that issue is still live before you may suppress. The cache is machine-local and records only what *this* user did; the issue's own state is shared, so it is the better authority. Run exactly this, and give it a hard time bound so a hung network can never strand the run:
+
+   ```
+   timeout 10 gh issue view {issue_url} --json state,stateReason --jq '.state + "/" + (.stateReason // "")'
+   ```
+
+   - `CLOSED/COMPLETED`, or `MERGED` (the record points at a resolving PR) → `regression`. It was fixed and closed out.
+   - `CLOSED/NOT_PLANNED` → `handled`. **Not** a fix: this is how the dedup Action closes a duplicate, and how a maintainer closes a wontfix. Treating it as a regression would file a REGRESSION issue against a defect nobody ever fixed, every session, forever.
+   - `OPEN` → `handled`. Already filed and still being tracked.
+   - Any failure at all (offline, timeout, no auth, deleted issue, unparseable output) → `handled`. This refinement never blocks a run and never halts on error.
+4. **Record with one of those actions but an empty `issue_url`** → `handled`. There is no issue to consult, so the local record stands.
+5. **Record with no `action`, or any other value** → `unrecognized`. Hand-edited, or written by a newer version of this file, so it cannot be confirmed handled. Go to sub-step 3 as an ordinary submission.
+
+**`handled` is the only verdict that suppresses.** Skip submission silently and log: `"fp-{hash}: already handled on {date}, issue {url} — skipping"`. Every other verdict proceeds to sub-step 3.
+
+**Why anything uncertain reports instead of suppressing.** A duplicate report is self-healing: the dedup Action closes it and moves the upvote to the canonical issue. A silenced regression is caught by nothing at all. When the verdict is in doubt, report.
+
+**Regression treatment** (verdicts `regression` only). Carry the prior record forward so the recurrence can never be filed as a first sighting:
+
+- Append ` — REGRESSION` to the issue title, after `{short description}`.
+- Add a `## Regression` section immediately above `## Finding`, containing one line: `Regression of {issue_url}, resolved {date}.` If the prior record has no `issue_url`, write `Regression of a previously resolved local finding, resolved {date}.` The `{fp}` label still ties the two together server-side.
+- Leave `## Finding` and the other one-sentence sections exactly as specified below. The backlink lives in its own section precisely so those budgets are untouched.
+
+**What this does and does not catch.** The fingerprint is `sha1` over the section slug, so a fix that renames or relocates the section it touches changes the fingerprint. Such a regression arrives as `unseen` and is reported as a first sighting, which is safe but unlinked. These branches catch the regressions that recur under the same heading in the same step file, which is the case where the old behaviour was silent.
 
 **3. Check GitHub CLI availability** with `gh auth status`. If `gh` is unavailable, fall through to step 5c (local fallback).
 
@@ -205,9 +243,11 @@ gh issue create \
   --body "{formatted body using issue template structure}"
 ```
 
+When sub-step 2 returned `regression`, append ` — REGRESSION` to that `--title` value, after `{short description}`, and include the `## Regression` backlink section in the body. The command above is the literal one you run, so the marker has to be in it: an instruction that the title should say REGRESSION loses to a copied command that does not.
+
 The fingerprint `{fp}` appears in both title (human-readable) and label (server-side filterable). Maintainers can query all reports for a defect via the `fp-*` label without relying on title text.
 
-After the issue is created, write the fingerprint → issue-url mapping to the seen-cache at `{seenCachePath}` so this user never re-reports the same fingerprint.
+After the issue is created, write the fingerprint → issue-url mapping to the seen-cache at `{seenCachePath}` so this user does not re-report it while that issue stays open.
 
 **Writing rules — non-negotiable:**
 
@@ -215,7 +255,6 @@ After the issue is created, write the fingerprint → issue-url mapping to the s
 - **Respect the length budgets.** Finding, Expected, Actual, Impact are each ONE sentence. Evidence is 2-5 bullets, not prose. Suggested Fix is 1-3 sentences with ONE recommendation — multiple options go in the `Alternatives considered` collapsible or (better) not at all.
 - **Quote, don't paraphrase.** In Evidence, cite the exact `file:line` and put the quoted text in quotes. Link the convention to the instruction that caused it.
 - **Never narrate the session.** The reader wants the defect, not the story. If a sentence starts with "During my run..." or "I was trying to...", delete it.
-- **If unsure whether it's a real issue, do not submit it.** Reporting zero findings is a healthy outcome.
 
 **Issue body format:**
 ```markdown
@@ -223,7 +262,7 @@ After the issue is created, write the fingerprint → issue-url mapping to the s
 {workflow name, e.g. `skf-create-skill`}
 
 ## Step File
-`src/skf-{workflow}/steps-c/step-NN-name.md`
+`src/skf-{workflow}/references/step-NN-name.md`
 
 ## Severity
 `{bug | friction | gap}`
@@ -246,7 +285,7 @@ After the issue is created, write the fingerprint → issue-url mapping to the s
 
 ## Actual
 <!-- ONE sentence. What did you observe instead? -->
-{e.g. No staging path specified, so artifacts were written to `skills/{name}/` and step-07 had to reorganize them.}
+{e.g. No staging path specified, so artifacts were written to `skills/{name}/` and step 7 had to reorganize them.}
 
 ## Evidence
 <!-- Bulleted `file:line` citations. 2-5 bullets. No narrative prose. -->
@@ -255,11 +294,11 @@ After the issue is created, write the fingerprint → issue-url mapping to the s
 
 ## Impact
 <!-- ONE sentence. What did this cost in THIS session? -->
-{e.g. 50KB of artifacts written to the wrong path; step-07 required a file-move pass.}
+{e.g. 50KB of artifacts written to the wrong path; step 7 required a file-move pass.}
 
 ## Suggested Fix
 <!-- ONE recommended change. 1-3 sentences. Do NOT list multiple options here. -->
-{e.g. Add a rule to step-05 naming `_bmad-output/{skill-name}/` as the staging directory used by step-06 validation.}
+{e.g. Add a rule to step 5 naming `_bmad-output/.skf-stage/{skill-name}/` as the staging directory used by step 6 validation.}
 
 <details>
 <summary>Alternatives considered (optional)</summary>
@@ -300,13 +339,19 @@ After each successful `gh issue create`, append to `{seenCachePath}`:
 }
 ```
 
-Ensure the parent directory exists. This file is global across the user's machine — not per-project — so the same defect is never re-reported across different repos the user works in.
+Ensure the parent directory exists. This file is global across the user's machine — not per-project — so the same defect is not re-reported across different repos the user works in while its issue stays open.
 
-### 5c. Local-Queue Path (gh unavailable OR friction/gap default)
+**Merge, never replace.** Read the existing file, set this one key, write the whole object back. A write that emits only the new key silently discards every other fingerprint the user has ever recorded.
 
-For findings that didn't go live (gh unavailable, user declined the friction/gap opt-in, or user chose **\[S]** at the dedup gate), write a local file to `{localFallbackFolder}/`:
+**Read before you write, and never downgrade a `resolved` record.** Before setting the key, check whether one already exists with `"action": "resolved"`. If it does, and you are here because that resolved defect just recurred, you are recording the regression's new issue: overwrite it with `created` and the new URL, which is correct because a live issue now tracks the recurrence. In every other case leave a `resolved` record alone. The record must never move from `resolved` back to a suppressing action without a new open issue to justify it, or the next run silently re-arms the suppression the fix removed.
 
-**Filename:** `hc-{workflow}-{timestamp}.md` (one file per finding, timestamp as YYYYMMDD-HHmmss)
+**The `action` vocabulary is `created`, `reacted`, `commented`, `resolved`.** The first three are written by this workflow. `resolved` is written by hand when the defect is fixed, and it is the only one that does not suppress. See the health-check section of `CONTRIBUTING.md` for when to record it.
+
+### 5c. Local-Queue Path (gh unavailable, friction/gap default, or Queue locally)
+
+For findings that didn't go live (gh unavailable, user declined the friction/gap opt-in, user chose **\[S]** at the dedup gate, or the §4 review gate resolved to **\[Q]**), write a local file to `{localFallbackFolder}/`:
+
+**Filename:** `hc-{workflow}-{timestamp}.md` (one file per finding, timestamp as YYYYMMDD-HHmmss; when findings share a timestamp, append `-2`, `-3`, … to the later names so no file is overwritten)
 
 **File content:** Same structured format as the issue body above, with YAML frontmatter:
 
@@ -321,52 +366,16 @@ date: {ISO date}
 ---
 ```
 
-After writing all files, display:
+After writing all files, if `{quiet_mode}` is true, display only `{setup_envelope_line}` (§0) and stop. Otherwise display the block below. `{reason}` is the sentence that says why the findings stayed local: "GitHub CLI is not available.", "Friction and gap findings stay local unless you opt in.", "You skipped these at the dedup gate." or "The review gate queued these locally."
 
 "**{N} finding(s) saved locally:**
 {list each file path}
 
-GitHub CLI is not available. To submit these as issues, run:
+{reason} To submit these as issues, run:
 `gh issue create --repo {healthCheckRepo} --title \"[title]\" --body-file {file-path}`
 
 Or open them manually at: <https://github.com/{healthCheckRepo}/issues/new/choose>
 
 Workflow complete."
 
----
-
-## CRITICAL STEP COMPLETION NOTE
-
-This is the TERMINAL step — shared across all SKF workflows. After the health check completes (clean run or findings submitted/discarded), the workflow is fully done. No further steps to load.
-
----
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### SUCCESS:
-
-- Clean runs exit immediately with no findings (most common outcome)
-- Findings cite specific step files and sections with real evidence
-- User review gate presented before any submission
-- Severity gate respected: only `bug` submits live by default; `friction`/`gap` require explicit opt-in
-- Fingerprint computed deterministically and applied to both title prefix and `fp-*` label
-- `fp-*` label is ensured idempotently (`gh label create ... || true`) before `gh issue create`, so a first reporter of a defect never hard-fails
-- Remote dedup search performed before every live submission; existing issues get reactions/delta-comments rather than duplicates
-- Seen-cache at `{seenCachePath}` updated after every submission/reaction and consulted before every search
-- Local fallback files written with clear manual submission instructions (when `gh` unavailable)
-- Workflow ends cleanly
-
-### SYSTEM FAILURE:
-
-- Fabricating issues that were not actually encountered during the session
-- Reporting vague issues without step file citations ("the workflow was confusing")
-- Skipping the user review gate
-- Creating issues without user confirmation
-- Creating a new issue when a matching `fp-*` open issue already exists (without explicit user \[N] override)
-- Submitting `friction` or `gap` findings live without the explicit severity-gate opt-in
-- Using LLM-judged "similarity" in place of the deterministic fingerprint
-- Not updating the seen-cache, causing the same user to re-report identical fingerprints
-- Not providing the local fallback when `gh` is unavailable
-- Continuing to load steps after this one (this is terminal)
-
-**Master Rule:** Honesty is the only policy. Zero findings is the expected, healthy outcome. Fabricating issues to appear thorough undermines the entire self-improvement system and constitutes SYSTEM FAILURE.
+When `{result_envelope_line}` is bound (§0), display it verbatim after that block, as the last line.

@@ -1,0 +1,41 @@
+{
+  "skill": "skf-test-skill",
+  "status": "error",
+  "skill_name": "oms-cocoindex",
+  "verdict": "FAIL",
+  "score": null,
+  "threshold": null,
+  "report_path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261102T190553Z-bac8090f.md",
+  "next_workflow": "update-skill",
+  "exit_code": 2,
+  "halt_reason": "hard-gate-blocked",
+  "outputs": [
+    {
+      "type": "report",
+      "path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261102T190553Z-bac8090f.md"
+    }
+  ],
+  "summary": {
+    "score": null,
+    "threshold": null,
+    "result": "FAIL",
+    "testMode": "naive",
+    "activeCategories": [],
+    "gapCounts": {
+      "Critical": 2,
+      "High": 2,
+      "Medium": 4,
+      "Low": 8,
+      "Info": 101
+    },
+    "hardGate": "blocked"
+  },
+  "runId": "20261102T190553Z-bac8090f",
+  "healthCheckDispatched": true,
+  "timestamp": "2026-11-02T19:23:13Z",
+  "run_id": "20261102T190553Z-bac8090f",
+  "headless_decisions": [],
+  "warnings": [
+    "customization_resolver_unavailable: not found"
+  ]
+}

@@ -55,10 +55,27 @@ __all__ = [
 ```
 
 ```python
-from cocoindex.connectors import qdrant
+async def mount_collection_target(
+    db: ContextKey[QdrantClient],
+    collection_name: str,
+    schema: CollectionSchema,
+    *,
+    managed_by: target.ManagedBy = target.ManagedBy.SYSTEM,
+) -> CollectionTarget[coco.ResolvedS]: ...
+```
+[SRC:python/cocoindex/connectors/qdrant/_target.py:L561]
 
-target = await qdrant.mount_collection_target(QDRANT_KEY, collection_name="docs",
-    collection_schema=qdrant.CollectionSchema(vectors=[qdrant.QdrantVectorDef("embedding", size=384, distance="Cosine")]))
+The third parameter is `schema`, not `collection_schema`. Build the schema with the async `CollectionSchema.create(vectors=...)`, which takes one `QdrantVectorDef` (unnamed vector) or a `dict` of vector name to `QdrantVectorDef`. `QdrantVectorDef` is a NamedTuple `(schema, distance="cosine", multivector_comparator="max_sim")`: its `schema` is a `VectorSchemaProvider` (an embedder, or a `VectorSchema(dtype=..., size=...)`), and `distance` is `"cosine"`, `"dot"` or `"euclid"`. [SRC:python/cocoindex/connectors/qdrant/_target.py:L50] [:L150]
+
+```python
+import numpy as np
+from cocoindex.connectors import qdrant
+from cocoindex.resources.schema import VectorSchema
+
+schema = await qdrant.CollectionSchema.create(
+    vectors={"embedding": qdrant.QdrantVectorDef(schema=VectorSchema(dtype=np.float32, size=384), distance="cosine")}
+)
+target = await qdrant.mount_collection_target(QDRANT_KEY, "docs", schema)
 ```
 
 ## LanceDB — `cocoindex.connectors.lancedb`
@@ -130,7 +147,28 @@ __all__ = [
 ]
 ```
 
-`kafka.topic_as_map(...)` returns a `LiveMapFeed[K, V]` — pass it to `coco.mount_each` to consume a topic as a streaming feed. Requires `app.update(live=True)`.
+```python
+IsDeleteFn = Callable[[Message], bool]          # confluent_kafka.Message
+
+def topic_as_map(
+    consumer: AIOConsumer,                      # confluent_kafka.aio.AIOConsumer
+    topics: list[str],
+    *,
+    is_deletion: IsDeleteFn | None = None,
+) -> _TopicMapFeed: ...                         # a LiveMapFeed[bytes | str, Message]
+```
+[SRC:python/cocoindex/connectors/kafka/_source.py:L30] [:L361]
+
+`topic_as_map` takes an **unsubscribed** `AIOConsumer` (auto-commit disabled) and a list of topics: it subscribes the consumer itself, to register partition-rebalance callbacks. It has no `topic=` or `group=` parameter (the consumer group is the consumer's own `group.id` config) and takes no `ContextKey`. Each item is keyed by the message key, with the full `confluent_kafka.Message` as its value. Tombstones (a `None` value) are always deletions; `is_deletion` adds a predicate for other messages. Pass the feed to `coco.mount_each`; a feed needs `app.update(live=True)`.
+
+```python
+from confluent_kafka.aio import AIOConsumer
+from cocoindex.connectors import kafka
+
+consumer = AIOConsumer({"bootstrap.servers": "localhost:9092", "group.id": "ingestor", "enable.auto.commit": "false"})
+feed = kafka.topic_as_map(consumer, ["events"])
+await coco.mount_each(process_event, feed, target)
+```
 
 ## Local filesystem — `cocoindex.connectors.localfs`
 

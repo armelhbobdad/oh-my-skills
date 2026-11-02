@@ -5,6 +5,7 @@
 - [cn](#cn)
 - [Landing Builder helpers](#landing-builder-helpers)
 - [Grid helpers](#grid-helpers)
+- [Bento presets](#bento-presets)
 - [Import merging](#import-merging)
 - [Types re-exported from utils](#types-re-exported-from-utils)
 
@@ -52,7 +53,7 @@ export function countSavedProjectComponents(project: SavedProject): number;   //
 - `extractSavedPages`: normalizes a `SavedProject` into `SavedProjectPage[]`. If the project already has `pages[]`, returns it as-is. Otherwise synthesizes a single `"Landing"` page using `project.entryPageId` (or a slugified project name) as the id, `project.components ?? []` as content, and `project.code` if present — this handles the legacy single-page project shape.
 - `countSavedProjectComponents`: totals the `components.length` across all pages (via `extractSavedPages`) for display in project lists.
 
-Used by the Landing Builder (`apps/docs/app/builder/`) to name and manage saved pages. `[AST:packages/utils/src/builder-utils.ts:L7]` `[AST:packages/utils/src/builder-utils.ts:L33]` `[AST:packages/utils/src/builder-utils.ts:L52]` `[AST:packages/utils/src/builder-utils.ts:L70]`
+Used by the Landing Builder (`apps/docs/app/builder/`) to name and manage saved pages. `[AST:packages/utils/src/builder-utils.ts:L7]` `[SRC:packages/utils/src/builder-utils.ts:L33]` `[SRC:packages/utils/src/builder-utils.ts:L52]` `[SRC:packages/utils/src/builder-utils.ts:L70]`
 
 ## Grid helpers
 
@@ -63,7 +64,7 @@ export interface GridCell { row: number; col: number; rowSpan: number; colSpan: 
 export interface BentoPreset { name: string; cols: number; rows: number; cells: GridCell[]; }
 
 export const GAP_VALUES: number[] = [0, 1, 2, 3, 4, 5, 6, 8, 10, 12];
-export const getGapSliderIndex: (value: number) => number;
+export const getGapSliderIndex: (gapValue: number) => number;
 export const getGapValueFromIndex: (index: number) => number;
 export const generateGridCode: (
   cells: GridCell[],
@@ -78,7 +79,27 @@ export const isCellInSelection: (row: number, col: number, selectedCells: string
 
 `GAP_VALUES` deliberately skips `7`, `9`, and `11` (Tailwind's non-canonical gap steps). `[AST:packages/utils/src/grid-utils.ts:L23]`
 
+`getGapSliderIndex(gapValue)` returns the index of `gapValue` in `GAP_VALUES`, or `0` when it is not one of them. `packages/components/react-shadcn/src/lib/grid-utils.ts` is a byte-identical copy of this file, so the react-shadcn subpath `@uitripled/react-shadcn/lib/grid-utils` exports the same helpers. `[AST:packages/utils/src/grid-utils.ts:L32]` `[SRC:packages/components/react-shadcn/src/lib/grid-utils.ts:L32]`
+
 Used by the Grid Generator (`apps/docs/app/grid-generator/`) and Background Builder.
+
+## Bento presets
+
+**Source:** `packages/components/react-shadcn/src/lib/grid-presets.ts`
+
+```ts
+export const bentoPresets: BentoPreset[] = [ … ];
+```
+
+8 Grid Generator presets, each a `BentoPreset` (`name`, `cols`, `rows`, `cells`; see Grid helpers above): Classic Bento, Feature Hero, Dashboard Pro, Masonry Style, Portfolio Grid, Magazine Layout, App Interface, Content Hub. The react-shadcn package ships it beside its own copy of the grid helpers, so import both from the `@uitripled/react-shadcn/lib/<file>` subpath. `[SRC:packages/components/react-shadcn/src/lib/grid-presets.ts:L7]`
+
+```ts
+import { bentoPresets } from "@uitripled/react-shadcn/lib/grid-presets";
+import { generateGridCode } from "@uitripled/react-shadcn/lib/grid-utils";
+
+const preset = bentoPresets[0];
+const code = generateGridCode(preset.cells, preset.cols, 4);
+```
 
 ## Import merging
 

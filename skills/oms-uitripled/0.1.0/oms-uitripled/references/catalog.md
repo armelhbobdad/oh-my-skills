@@ -6,6 +6,8 @@
 - [Categories & subcategories](#categories--subcategories)
 - [Install each component](#install-each-component)
 - [Manual import paths (workspace-mode)](#manual-import-paths-workspace-mode)
+- [Registry arrays (`@uitripled/registry`)](#registry-arrays-uitripledregistry)
+- [Standalone CLI internals (`uitripled add`)](#standalone-cli-internals-uitripled-add)
 - [Upstream shadcn/ui resolution](#upstream-shadcnui-resolution)
 - [Universal dependencies](#universal-dependencies)
 
@@ -58,7 +60,7 @@ npx uitripled add <name>
 npx uitripled add <name> --overwrite
 ```
 
-Both install the same files. `[SRC:packages/uitripled/src/commands/add.ts:L8]` `[SRC:apps/docs/public/llms-full.txt:L49]`
+Both install the same files. `[AST:packages/uitripled/src/commands/add.ts:L8]` `[SRC:apps/docs/public/llms-full.txt:L49]`
 
 ## Manual import paths (workspace-mode)
 
@@ -74,6 +76,57 @@ Used by the project's own docs site (`apps/docs/`) and documented in `llms-full.
 | `@uitripled/react-shadcn/ui-library-provider` | `dist/ui-library-provider.*` | The `UILibraryProvider` setup component |
 
 **Do NOT use the bare `@uitripled/react-shadcn` barrel import** — `packages/components/react-shadcn/src/index.ts` is literally `export {};` by design `[SRC:packages/components/react-shadcn/src/index.ts:L2]`. The package forces consumers down either (a) the shadcn CLI copy-paste path, or (b) the subpath-import path. There is no tree-shakable root export.
+
+## Registry arrays (`@uitripled/registry`)
+
+The in-memory component lists of the `@uitripled/registry` package (not the `registry.json` file the CLIs read). Its build entry is `src/index.tsx`, which defines `componentsRegistry` and re-exports both arrays `[SRC:packages/registry/src/index.tsx:L5]`. Each record is the registry package's `Component` type (see `references/types.md` → Component (registry)).
+
+```ts
+// packages/registry/src/index.tsx
+export const componentsRegistry: Component[] = [ … ];
+// packages/registry/src/registry/native.tsx
+export const nativeComponents: Component[] = [ … ];
+// packages/registry/src/registry/ui.tsx
+export const uiComponents: Component[] = [ … ];
+```
+
+| Export | Holds | Source |
+|--------|-------|--------|
+| `componentsRegistry` | `[...nativeComponents, ...uiComponents]` | `[SRC:packages/registry/src/index.tsx:L8]` |
+| `nativeComponents` | 77 `Component` records | `[SRC:packages/registry/src/registry/native.tsx:L218]` |
+| `uiComponents` | 151 `Component` records | `[SRC:packages/registry/src/registry/ui.tsx:L179]` |
+
+```ts
+import { componentsRegistry } from "@uitripled/registry";
+
+const ids = componentsRegistry.map((c) => c.id);
+```
+
+## Standalone CLI internals (`uitripled add`)
+
+**Source:** `packages/uitripled/src/commands/add.ts`, `packages/uitripled/src/utils/registry.ts`
+
+```ts
+export async function add(componentName: string | undefined, options: { overwrite: boolean })
+export async function fetchComponent(componentName: string)
+```
+
+- `fetchComponent(componentName)` requests `https://ui.tripled.work/r/{componentName}.json` and resolves to the parsed JSON, or to `null` on a 404; any other failed status throws `Failed to fetch component: {statusText}`. `[AST:packages/uitripled/src/utils/registry.ts:L5]`
+- `add(componentName, options)` prompts for a name when none is given, fetches the item with `fetchComponent`, and stops when it has no `files`. It installs under the first of `src/components`, `app/components` and `components` that exists (`components` when none does), asks for confirmation, then writes each file at its `target` (else `path`) less the first segment; an existing file is skipped unless `options.overwrite` is true. It ends with an `npm install` hint for the item's `dependencies`. `[AST:packages/uitripled/src/commands/add.ts:L8]` `[SRC:packages/uitripled/src/commands/add.ts:L45]`
+- `npx uitripled add [component] [-o, --overwrite]` calls `add(component, options)`. `[SRC:packages/uitripled/src/index.ts:L15]`
+
+The `uitripled` package publishes only its `dist` bin, so `fetchComponent` is called from inside `packages/uitripled/src/`, as `add` does:
+
+```ts
+import { fetchComponent } from "./utils/registry";
+
+const item = await fetchComponent("hero-section-shadcnui");
+if (item === null) {
+  console.log("hero-section-shadcnui is not in the registry");
+} else {
+  console.log(item.files.length, "file(s) to install");
+}
+```
 
 ## Upstream shadcn/ui resolution
 

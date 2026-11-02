@@ -1,91 +1,18 @@
-# Registry Resolution Patterns
+<!-- Config: communicate in {communication_language}. -->
 
-## Package-to-Repo Resolution
+# Registry Resolution: Web Search Fallback
 
-When the user provides a package name instead of a GitHub URL, use this fallback chain to resolve the source repository.
+`skf-resolve-package.py` reads every target and asks the registries, npm, PyPI and crates.io, and resolve-target §1b to §3 act on its JSON. This file holds what the script leaves to judgment: the web search for a name no registry resolved (resolve-target §3, `status: "fallthrough"`), which a Go module path or a Maven coordinate also tries (resolve-target §2).
 
-### Detection: URL vs Package Name
+## Search
 
-- **GitHub URL:** Starts with `https://github.com/` or `github.com/` — extract org/repo directly
-- **Package name:** Everything else — enter resolution chain below
+Search `"{package_name} github repository"`, spending at most 15 seconds, and read the top results for a `github.com/<owner>/<repo>` URL.
 
-### Resolution Fallback Chain
+## Pick the Repository
 
-Try each registry in order. Stop at first success.
+Take a URL only when that repository is the package's source: its name, or the package or module name its page shows, matches `{package_name}` (`uber-go/zap` for `go.uber.org/zap`, `google/guava` for `com.google.guava:guava`). Prefer the project's own repository over a fork, a mirror or a list that links to it, and keep a `/tree/<ref>/<folder>` URL whole when the package is one folder of a larger repository.
 
-#### 1. npm Registry (JavaScript/TypeScript)
+## Result
 
-```
-URL: https://registry.npmjs.org/{package_name}
-Field: repository.url
-Fallback field: homepage
-```
-
-Extract `repository.url`, strip `git+` prefix and `.git` suffix if present.
-
-#### 2. PyPI Registry (Python)
-
-```
-URL: https://pypi.org/pypi/{package_name}/json
-Field: info.project_urls.Source OR info.project_urls.Repository OR info.home_page
-```
-
-Check `project_urls` keys in order: Source, Repository, Homepage. Filter for GitHub URLs.
-
-#### 3. crates.io Registry (Rust)
-
-```
-URL: https://crates.io/api/v1/crates/{package_name}
-Field: crate.repository
-```
-
-Direct `repository` field usually points to GitHub.
-
-#### 4. Web Search Fallback
-
-If all registry lookups fail:
-
-```
-Search: "{package_name} github repository"
-```
-
-Look for GitHub URL in top results. Verify it matches the package name.
-
-#### 5. Resolution Failure
-
-If all methods fail:
-
-```
-"Could not resolve '{package_name}' to a GitHub repository.
-
-Please provide the GitHub URL directly, or check:
-- Is the package name spelled correctly?
-- Is it a private package?
-- Is the source hosted on a non-GitHub platform?"
-```
-
-**Hard halt** — cannot proceed without a resolved source.
-
-## Language Detection
-
-After resolving to a GitHub repo, detect primary language from:
-
-1. Manifest file presence:
-   - `package.json` → JavaScript/TypeScript
-   - `pyproject.toml` or `setup.py` → Python
-   - `Cargo.toml` → Rust
-   - `go.mod` → Go
-   - `pom.xml` or `build.gradle` → Java
-2. User-provided language hint (overrides detection)
-3. GitHub API language field (if accessible)
-
-## Manifest File Priority
-
-For each language, the primary manifest to read:
-
-| Language | Manifest       | Key Fields                                                               |
-|----------|----------------|--------------------------------------------------------------------------|
-| JS/TS    | package.json   | name, version, description, main, exports, dependencies                  |
-| Python   | pyproject.toml | project.name, project.version, project.description, project.dependencies |
-| Rust     | Cargo.toml     | package.name, package.version, package.description, dependencies         |
-| Go       | go.mod         | module path, require list                                                |
+- **A URL:** resolve-target takes it as the target and parses it again from §1b.
+- **None, or the search timed out:** resolve-target halts with its resolution failure.

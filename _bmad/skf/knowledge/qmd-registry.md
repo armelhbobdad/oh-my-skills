@@ -51,10 +51,10 @@ The `status` field is only present when QMD embed verification fails during coll
 
 | Type | Producer | Content | Primary Consumers |
 | --- | --- | --- | --- |
-| `extraction` | create-skill step-07 | Compiled SKILL.md, references, context-snippet — structured, confidence-rated exports | audit-skill (drift detection), update-skill (T2 enrichment) |
-| `brief` | brief-skill step-05 | skill-brief.yaml — intent, scope, target repository metadata | Portfolio-level search (cross-skill deduplication) |
-| `temporal` | create-skill step-03b | GitHub issues, PRs, releases, changelogs — historical and planned context at T2 confidence | step-04 enrichment (temporal annotations per exported function) |
-| `docs` | create-skill step-03c | Fetched external documentation — API references, guides, usage examples (T3 confidence) | step-04 enrichment (cross-reference doc context with source-extracted functions) |
+| `extraction` | create-skill step 7 | Compiled SKILL.md, references, context-snippet — structured, confidence-rated exports | audit-skill (drift detection), update-skill (T2 enrichment) |
+| `brief` | brief-skill step 5 | skill-brief.yaml — intent, scope, target repository metadata | Portfolio-level search (cross-skill deduplication) |
+| `temporal` | create-skill step 3b | GitHub issues, PRs, releases, changelogs — historical and planned context at T2 confidence | step 4 enrichment (temporal annotations per exported function) |
+| `docs` | create-skill step 3c | Fetched external documentation — API references, guides, usage examples (T3 confidence) | step 4 enrichment (cross-reference doc context with source-extracted functions) |
 
 ### Lifecycle
 
@@ -112,7 +112,7 @@ The `ccc_index_registry` array in forge-tier.yaml is a **parallel but separate**
 | **What is indexed** | Curated workflow artifacts (SKILL.md, briefs, temporal data) | Source code (the actual codebase) |
 | **Index engine** | QMD (BM25 + optional vector search) | cocoindex-code (AST + vector embeddings) |
 | **Lifecycle** | Per-skill: created by create-skill, consumed by audit/update-skill | Per-project: created by setup, verified by create-skill |
-| **Janitor** | setup step-03 (orphan/stale QMD collection cleanup) | setup step-03 section 5b (stale path cleanup) |
+| **Janitor** | setup step 3 (orphan/stale QMD collection cleanup) | setup step 3 section 5b (stale path cleanup) |
 | **Availability** | Deep tier only | Forge+ and Deep tiers |
 
 These registries are orthogonal — they never reference each other, and their janitor sections operate independently.
@@ -135,15 +135,15 @@ Then append/replace the registry entry in forge-tier.yaml. Failures never block 
 
 ### Example 2: Consumer Discovery (audit-skill)
 
-**Context:** Audit-skill needs temporal context for drift detection.
+**Context:** Audit-skill's Deep-tier semantic diff retrieves what the skill documents about each export, then checks each claim against the current source.
 
-**Implementation:** Read `qmd_collections` from forge-tier.yaml. Find entry where `skill_name` matches AND `type` is `"extraction"`. If found, query via qmd_bridge. If not found, log and continue without T2 enrichment — not an error.
+**Implementation:** Read `qmd_collections` from forge-tier.yaml. Find entry where `skill_name` matches AND `type` is `"extraction"`. If found, query via qmd_bridge. If not found, log it and read the skill's own files instead (the direct-content fallback, labeled T1-low-fallback): not an error.
 
 ### Example 3: Janitor Hygiene (setup)
 
 **Context:** Setup-forge verifies QMD health on every run.
 
-**Implementation:** Cross-reference live QMD collections against registry. Classify as healthy (in both), orphaned (in QMD only), or stale (in registry only). Prompt user before removing orphans. Silently clean stale registry entries.
+**Implementation:** Cross-reference live QMD collections against registry. Classify as healthy (in both), orphaned (in QMD only, and indexed from a folder inside this project: QMD's index is shared by every project on the machine, so another project's collections never count), or stale (in registry only). Prompt user before removing orphans, and check each one's folder again just before removing it. Silently clean stale registry entries.
 
 ## Related Fragments
 

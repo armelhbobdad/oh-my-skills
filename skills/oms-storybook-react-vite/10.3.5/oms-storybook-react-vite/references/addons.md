@@ -44,7 +44,7 @@ Accessibility testing via axe-core. Runs checks in the browser during story rend
 
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
-| `PARAM_KEY` | const | String identifier for a11y parameters (used internally) | `[AST:code/addons/a11y/src/index.ts]` |
+| `PARAM_KEY` | const | String identifier for a11y parameters (used internally) | `[AST:code/addons/a11y/src/index.ts:L6]` |
 | `A11yParameters` | interface | `{ context?: ContextSpecWithoutNode; options?: RunOptions; config?: Spec; disable?: boolean; test?: A11yTest }` — per-story a11y config | `[AST:code/addons/a11y/src/params.ts:L20]` |
 | `A11yGlobals` | interface | `{ a11y?: { manual?: boolean } }` — global a11y settings (manual vs auto run) | `[AST:code/addons/a11y/src/types.ts:L16]` |
 | `A11yTypes` | interface | `{ parameters: A11yParameters; globals: A11yGlobals }` — addon type bundle | `[AST:code/addons/a11y/src/types.ts:L55]` |
@@ -190,12 +190,12 @@ The main entry is deliberately thin — test execution happens in the vitest-plu
 
 | Export | Kind | Value | Source |
 |---|---|---|---|
-| `ADDON_ID` | const | `'storybook/test'` | `[AST:code/addons/vitest/src/constants.ts]` |
-| `TEST_PROVIDER_ID` | const | `'storybook/test/test-provider'` | `[AST:code/addons/vitest/src/constants.ts]` |
+| `ADDON_ID` | const | `'storybook/test'` | `[AST:code/addons/vitest/src/constants.ts:L11]` |
+| `TEST_PROVIDER_ID` | const | `'storybook/test/test-provider'` | `[AST:code/addons/vitest/src/constants.ts:L12]` |
 | `STORYBOOK_ADDON_TEST_CHANNEL` | const | `'storybook/test/channel'` | `[AST:code/addons/vitest/src/constants.ts]` |
 | `COMPONENT_TESTING_PANEL_ID` | const | (re-exported from core) | `[AST:code/addons/vitest/src/constants.ts]` |
 | `A11Y_PANEL_ID`, `A11Y_ADDON_ID` | const | (re-exported from addon-a11y) | `[AST:code/addons/vitest/src/constants.ts]` |
-| `storeOptions` | object | Store config: `{ initialState: { coverage, a11y, watching, componentTestStatuses, ... } }` | `[AST:code/addons/vitest/src/constants.ts]` |
+| `storeOptions` | object | Store config: `{ initialState: { coverage, a11y, watching, componentTestStatuses, ... } }` | `[AST:code/addons/vitest/src/constants.ts:L21]` |
 | `FULL_RUN_TRIGGERS` | type | `('global' \| 'run-all')[]` | `[AST:code/addons/vitest/src/constants.ts]` |
 | `TriggerTestRunRequestPayload` | type | `{ requestId, actor, storyIds?, config? }` | `[AST:code/addons/vitest/src/constants.ts]` |
 | `TestRunResult` | type | `CurrentRun` | `[AST:code/addons/vitest/src/constants.ts]` |
@@ -240,7 +240,7 @@ Powers Autodocs and MDX. Registered once in `main.ts`; story files gain automati
 
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
-| `DocsRenderer` | component | Main renderer for docs pages | `[AST:code/addons/docs/src/index.ts:L1]` |
+| `DocsRenderer` | component | Main renderer for docs pages | `[AST:code/addons/docs/src/index.ts:L8]` |
 | `DocsTypes` | type | Addon type definitions | `[AST:code/addons/docs/src/index.ts:L1]` |
 
 ### `parameters.docs` (story-level config)

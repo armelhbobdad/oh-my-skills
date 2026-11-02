@@ -19,6 +19,9 @@ architectureDoc: ''
 prdDoc: ''
 previousReport: ''
 skillsAnalyzed: 0
+coverageCovered: null
+coverageMissing: null
+coverageReplaced: null
 stepsCompleted: []
 requirementsPass: ''
 requirementsFulfilled: null
@@ -37,7 +40,7 @@ deltaUnchanged: null
 **PRD Document:** {prdDoc}
 **Skills Analyzed:** {skillsAnalyzed}
 
-> Schema contract: `src/shared/references/feasibility-report-schema.md` (schemaVersion `1.0`). Consumers MUST halt on `schemaVersion` mismatch.
+> Schema contract: `{feasibilitySchemaRef}` (schemaVersion `1.0`). Consumers MUST halt on `schemaVersion` mismatch.
 
 ## Executive Summary
 
@@ -49,15 +52,14 @@ deltaUnchanged: null
 
 ## Coverage Analysis
 
-<!-- Appended by step-02-coverage -->
+<!-- Appended by coverage -->
 
 ---
 
 ## Integration Verdicts
 
-<!-- Appended by step-03-integrations.
-Consumers grep for the `## Integration Verdicts` heading to locate the pair table.
-The table header is fixed and MUST be emitted exactly as shown below: -->
+<!-- Filled in place by integrations: one row per pair goes under this header.
+The report holds this table once: consumers read it and reject a second copy. -->
 
 | lib_a | lib_b | verdict | rationale |
 |-------|-------|---------|-----------|
@@ -66,11 +68,15 @@ The table header is fixed and MUST be emitted exactly as shown below: -->
 
 ## Recommendations
 
-<!-- Appended by step-05-synthesize -->
+<!-- Appended by synthesize -->
 
 ---
 
 ## Evidence Sources
 
-<!-- Appended by step-05-synthesize — cite each skill's SKILL.md path, metadata_schema_version,
-     confidence_tier, stack manifest (if any), and architecture/PRD doc paths -->
+<!-- Filled in place by synthesize: one row per skill goes under this header (the
+next run's delta reads its evidence_tier column), then the architecture and PRD
+document paths. -->
+
+| skill | evidence_tier | confidence_tier | metadata_schema_version | skill_md |
+|-------|---------------|-----------------|-------------------------|----------|

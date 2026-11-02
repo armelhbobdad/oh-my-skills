@@ -1,10 +1,10 @@
 # /// script
-# requires-python = ">=3.10"
+# requires-python = ">=3.11"
 # dependencies = []
 # ///
 """SKF Atomic Write — Crash-safe artifact writing for skill workflows.
 
-Provides three CLI subcommands skills can invoke via bash to avoid
+Provides four CLI subcommands skills can invoke via bash to avoid
 partial-write corruption and active-symlink races.
 
 Subcommands:
@@ -21,19 +21,39 @@ Subcommands:
              restore. Supports rollback via --rollback to undo the most recent
              commit by restoring the rollback dir if still present.
 
-  flip-link  Atomically update symlink <link> to point at <target> using
-             the `ln -sfn tmp && mv -Tf tmp link` pattern (or equivalent via
-             os.replace on the link path). Holds an flock on <link>.lock.
+  flip-link  Point the link <link> at <target>: create the new link as
+             <link>.skf-tmp-link, then os.replace it over <link>, holding an
+             exclusive lock on <link>.skf-lock, which only the flip holding
+             it removes. skf-update-active-symlink.py update takes the same
+             lock (take_flip_lock), so one flip of a link runs at a time.
+             Refuses to replace a <link> that is a real directory or file.
 
 Cross-platform: locking branches between fcntl (POSIX) and msvcrt
-(Windows). Symlink semantics on Windows require dev mode or admin —
-flip-link surfaces a clear error rather than silently falling back.
-Native Windows is untested in CI; the supported path is WSL2.
+(Windows). On Windows os.symlink needs Developer Mode or admin; when it
+fails for lack of privilege, flip-link creates a directory junction
+(mklink /J) instead, which needs neither but requires <target> to be an
+existing directory. Windows renames nothing over an existing directory
+link, so on the junction path, and on Windows whenever the rename over the
+old link is refused, replace_link removes the old link first (a junction
+whose folder is gone included) and the flip is not atomic. The Windows
+tests in test-skf-atomic-write.py and test-skf-update-active-symlink.py
+make os.symlink fail as it does without the privilege, so CI's Windows
+runner, which holds it, runs the junction path too.
 
 Exit codes:
-  0 on success
-  1 on user error (bad args, missing input)
-  2 on operation failure (disk full, permission, race-detected)
+  0 on success (JSON on stdout)
+  1 when commit-dir has no staging or rollback directory to use (JSON
+    error on stderr), and on any unexpected error (a Python traceback on
+    stderr); for flip-link that includes Windows refusing both a symlink
+    and a junction
+  2 on a refused or failed operation, with {"status": "error", "message":
+    ...} on stderr: write failed, stage-dir could not clear a stale entry,
+    commit-dir found a non-directory target or could not swap, flip-link
+    found a non-link at <link>, another process holding its lock, a
+    lock file Windows kept refusing to open for its short wait while the
+    file was being removed, or (on POSIX) a locked lock file that kept
+    leaving the path for that same wait; and on bad arguments (argparse
+    usage on stderr, no JSON)
 
 CLI examples:
   cat metadata.json | python3 skf-atomic-write.py write --target /path/to/metadata.json
@@ -51,12 +71,25 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 if os.name == "nt":
     import msvcrt
 else:
     import fcntl
+
+# While the flip that held <link>.skf-lock is removing it, Windows refuses a
+# new open of the file with PermissionError. flip-link takes that for a held
+# lock and tries again for up to this long (a flip fails fast on contention
+# by design, so the wait is short), then exits 2 as it does for a held lock.
+# The same wait bounds a POSIX flip that keeps finding the file it locked
+# gone from the path: it opens the path again until then, then exits 2.
+# A caller that gives take_flip_lock a longer `wait` (skf-update-active-symlink.py
+# update) keeps both retries going until that wait ends.
+_IS_WINDOWS = os.name == "nt"
+_LOCK_OPEN_WAIT_SECONDS = 1.0
+_LOCK_OPEN_POLL_SECONDS = 0.02
 
 
 def _create_symlink_or_junction(target: str, link_path: Path) -> str:
@@ -129,6 +162,16 @@ def _release_lock(fd: int) -> None:
             pass
 
 
+# Keep identical to _names_open_file in gap-ledger.py
+# (test/test-skf-atomic-write.py pins the copy).
+def _names_open_file(fd: int, path: Path) -> bool:
+    """True when `path` still names the file open as `fd`."""
+    try:
+        return os.path.samestat(os.fstat(fd), os.stat(path))
+    except OSError:
+        return False
+
+
 def _die(code: int, message: str) -> None:
     print(json.dumps({"status": "error", "message": message}), file=sys.stderr)
     sys.exit(code)
@@ -144,8 +187,11 @@ def cmd_write(target: Path) -> None:
     data = sys.stdin.buffer.read()
     target.parent.mkdir(parents=True, exist_ok=True)
     tmp = target.with_name(target.name + ".skf-tmp")
+    # O_BINARY (Windows only; 0 elsewhere) suppresses the text-mode \n -> \r\n
+    # translation that would otherwise corrupt verbatim writes on Windows.
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_BINARY", 0)
     try:
-        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
+        fd = os.open(tmp, flags, 0o644)
         try:
             os.write(fd, data)
             os.fsync(fd)
@@ -244,13 +290,17 @@ def cmd_commit_dir(target: Path, rollback: bool = False) -> None:
     _ok({"committed": str(target)})
 
 
+# Keep identical to _is_link_or_junction in skf-skill-inventory.py
+# (test/test-skf-skill-inventory.py pins the copies).
 def _is_link_or_junction(p: Path) -> bool:
     """True for POSIX symlinks AND Windows junctions/symlinks.
 
     `Path.is_symlink()` is False for Windows junctions; os.readlink succeeds
     for both symlinks and junctions (since CPython 3.8 on Windows). A regular
     directory raises OSError on readlink, which is the signal we want to
-    refuse replacement.
+    refuse replacement. On Windows, any other reparse point (a cloud-sync
+    placeholder, a deduplicated file, an app execution alias) raises
+    ValueError: it does not redirect to another path, so it is not a link.
     """
     if p.is_symlink():
         return True
@@ -259,22 +309,186 @@ def _is_link_or_junction(p: Path) -> bool:
     try:
         os.readlink(p)
         return True
-    except OSError:
+    except (OSError, ValueError):
         return False
+
+
+def _remove_link(p: Path) -> None:
+    """Remove the symlink or junction at p, whether or not the folder it names exists.
+
+    os.readlink raises for a real folder or file (OSError) and for another
+    Windows reparse point (ValueError), so neither is ever removed. os.unlink
+    removes a symlink, and on Windows a directory symlink or a junction too;
+    os.rmdir is the fallback for a directory link unlink refuses.
+    """
+    if not p.is_symlink():
+        os.readlink(p)
+    try:
+        os.unlink(p)
+    except OSError:
+        os.rmdir(p)
+
+
+def replace_link(link: Path, target: str, tmp_link: Path | None = None) -> str:
+    """Point the link <link> at <target> through <tmp_link>; return "symlink" or "junction".
+
+    The caller holds take_flip_lock(link) and has refused a real folder or
+    file at <link>. A stale <tmp_link> from a crashed flip is removed first.
+    The new link is made at <tmp_link> and renamed over <link>, which is
+    atomic for a symlink on POSIX. Windows renames nothing over an existing
+    directory link, so the old link is removed first on the junction path,
+    and on Windows when the rename is refused: a reader can then find no
+    <link> for a moment. A failure removes <tmp_link> and raises.
+    """
+    if tmp_link is None:
+        tmp_link = link.with_name(link.name + ".skf-tmp-link")
+    if os.path.lexists(tmp_link):
+        _remove_link(tmp_link)
+    link_kind = _create_symlink_or_junction(target, tmp_link)
+    try:
+        if link_kind == "junction" and os.path.lexists(link):
+            _remove_link(link)
+        try:
+            os.replace(tmp_link, link)
+        except OSError:
+            if not _IS_WINDOWS or not os.path.lexists(link):
+                raise
+            _remove_link(link)
+            os.replace(tmp_link, link)
+    except BaseException:
+        try:
+            if os.path.lexists(tmp_link):
+                _remove_link(tmp_link)
+        except (OSError, ValueError):
+            pass
+        raise
+    return link_kind
+
+
+class FlipLockHeld(Exception):
+    """Another flip holds <link>.skf-lock; the message names <link>."""
+
+
+def take_flip_lock(link: Path, wait: float = 0.0) -> int:
+    """Take <link>.skf-lock, the lock every flip of <link> holds, and return its fd.
+
+    flip-link and skf-update-active-symlink.py update both take it, so one
+    flip of a link runs at a time. `wait` is how long to keep trying a lock
+    another flip holds: the call closes the file, sleeps
+    _LOCK_OPEN_POLL_SECONDS and opens the path again. flip-link passes 0
+    and is refused at once. Raises FlipLockHeld when the lock stays held
+    past `wait`, and when the retries cmd_flip_link's docstring describes
+    (Windows refusing the open, a locked file that left the path) run out:
+    they run until max(_LOCK_OPEN_WAIT_SECONDS, wait). release_flip_lock
+    gives the lock back.
+    """
+    lock_path = link.with_name(link.name + ".skf-lock")
+    held_deadline = time.monotonic() + wait
+    deadline = time.monotonic() + max(_LOCK_OPEN_WAIT_SECONDS, wait)
+    vanished = False
+    while True:
+        try:
+            lock_fd = os.open(lock_path, os.O_WRONLY | os.O_CREAT, 0o644)
+        except PermissionError as exc:
+            # Windows refuses to open a file whose removal is pending. A folder
+            # at the path, or nothing there twice running (once can be the
+            # removal ending just now), is a lasting denial: raise it.
+            if not _IS_WINDOWS or os.path.isdir(lock_path):
+                raise
+            if not os.path.lexists(lock_path):
+                if vanished:
+                    raise
+                vanished = True
+                continue
+            vanished = False
+            if time.monotonic() >= deadline:
+                raise FlipLockHeld(f"another process holds flip lock on {link} (last open refused: {exc})")
+            time.sleep(_LOCK_OPEN_POLL_SECONDS)
+            continue
+        held = False
+        try:
+            try:
+                _acquire_lock(lock_fd)
+            except OSError as e:
+                if e.errno != errno.EAGAIN:
+                    raise
+                if time.monotonic() >= held_deadline:
+                    raise FlipLockHeld(f"another process holds flip lock on {link}")
+                held = True
+            else:
+                # os.name here and in release_flip_lock follows the real OS; _IS_WINDOWS is the test seam of the
+                # open retry and of replace_link's remove-first retry.
+                if os.name == "nt" or _names_open_file(lock_fd, lock_path):
+                    return lock_fd
+                _release_lock(lock_fd)
+        except BaseException:
+            os.close(lock_fd)
+            raise
+        os.close(lock_fd)
+        if held:
+            time.sleep(_LOCK_OPEN_POLL_SECONDS)
+            continue
+        if time.monotonic() >= deadline:
+            raise FlipLockHeld(f"another process holds flip lock on {link}")
+
+
+def release_flip_lock(link: Path, lock_fd: int) -> None:
+    """Give back the lock take_flip_lock returned, removing <link>.skf-lock."""
+    lock_path = link.with_name(link.name + ".skf-lock")
+    # Only the flip holding the lock gets here, so it alone removes the
+    # lock file: on POSIX while the lock is still held, so that a flip on
+    # the old file sees the path no longer names it; on Windows, which
+    # removes no open file, after the release and the close. Best effort:
+    # a leftover file is locked and removed by the next flip.
+    if os.name != "nt":
+        try:
+            lock_path.unlink()
+        except OSError:
+            pass
+    _release_lock(lock_fd)
+    os.close(lock_fd)
+    if os.name == "nt":
+        try:
+            lock_path.unlink()
+        except OSError:
+            pass
 
 
 def cmd_flip_link(link: Path, target: str) -> None:
     """Atomically point <link> at <target> using rename-over-symlink pattern.
 
     target is the value of the symlink (may be relative, as is convention
-    for `active -> 1.0.0`). Held lock on <link>.lock prevents concurrent flips.
+    for `active -> 1.0.0`). A lock on <link>.skf-lock, which
+    skf-update-active-symlink.py update takes too, prevents concurrent flips.
 
     On Windows, os.symlink requires Developer Mode or admin. When that fails
     with PRIVILEGE_NOT_HELD/ACCESS_DENIED the helper falls back to a directory
     junction (no elevation needed); junctions resolve identically for
-    skf-skill-inventory's resolve_active_version().
+    skf-skill-inventory's resolve_active_version(). replace_link makes the
+    new link and renames it over <link>; skf-update-active-symlink.py update
+    flips through it too.
+
+    The lock follows ledger_lock in gap-ledger.py (the same identity check
+    and removal order): a fix to one belongs in both. The lock file is
+    removed on release, by the flip that held the lock: a flip refused by a
+    held lock exits 2 and leaves the file to its holder. On POSIX the
+    removal happens while the lock is still held, and a flip checks that
+    the file it locked is still the one at the path: otherwise a flip on
+    the removed file and a newcomer on a new one would both get a lock. A
+    flip whose file is no longer at the path lets it go and opens the path
+    again: it goes on as soon as it locks the file that is at the path, and
+    exits 2 at once when another flip holds that file. Only when the files
+    it locks keep leaving the path until _LOCK_OPEN_WAIT_SECONDS runs out
+    does it exit 2 with the "another process holds flip lock" message a
+    held lock gives. Windows removes no file that is open, so there the file goes after the
+    release, unless another flip has it open. While the removal is under
+    way (the remover's own delete handle is open, or a virus scanner's or
+    the search indexer's), Windows refuses a new open of the file with
+    PermissionError: the flip retries for up to _LOCK_OPEN_WAIT_SECONDS,
+    then exits 2 with the held-lock message, naming the last refusal. A
+    refusal with a folder at the path, or with nothing there on an
+    immediate second try, is a lasting denial and is raised as before.
     """
-    lock_path = link.with_name(link.name + ".skf-lock")
     link.parent.mkdir(parents=True, exist_ok=True)
 
     # Refuse only if <link> is a real directory/file (not a symlink or junction).
@@ -282,56 +496,14 @@ def cmd_flip_link(link: Path, target: str) -> None:
     if link.exists() and not _is_link_or_junction(link):
         _die(2, f"refusing to replace non-link: {link}")
 
-    lock_fd = os.open(lock_path, os.O_WRONLY | os.O_CREAT, 0o644)
-    lock_held = False
     try:
-        try:
-            _acquire_lock(lock_fd)
-            lock_held = True
-        except OSError as e:
-            if e.errno == errno.EAGAIN:
-                _die(2, f"another process holds flip lock on {link}")
-            raise
-
-        tmp_link = link.with_name(link.name + ".skf-tmp-link")
-        if tmp_link.is_symlink() or tmp_link.exists():
-            # On Windows a junction returns is_dir()=True, exists()=True but
-            # is_symlink()=False — must rmdir/unlink based on type.
-            if tmp_link.is_dir() and not tmp_link.is_symlink():
-                tmp_link.rmdir()
-            else:
-                tmp_link.unlink()
-        try:
-            link_kind = _create_symlink_or_junction(target, tmp_link)
-        except OSError as e:
-            if os.name == "nt" and getattr(e, "winerror", None) in (1314, 5):
-                _die(
-                    2,
-                    "symlink/junction creation failed on Windows. Junction fallback "
-                    "requires the target directory to exist. Either enable Developer "
-                    "Mode (Settings → Privacy & Security → For Developers) or use WSL2.",
-                )
-            raise
-        # os.replace can swap a symlink-over-symlink atomically, but Windows
-        # rejects renaming a directory (junction) over an existing directory
-        # (junction or real). Drop the existing link first when junction-based.
-        if link_kind == "junction" and (link.is_dir() or link.is_symlink() or link.exists()):
-            if link.is_symlink() or not link.is_dir():
-                link.unlink()
-            else:
-                link.rmdir()
-        os.replace(tmp_link, link)
+        lock_fd = take_flip_lock(link)
+    except FlipLockHeld as exc:
+        _die(2, str(exc))
+    try:
+        link_kind = replace_link(link, target)
     finally:
-        if lock_held:
-            _release_lock(lock_fd)
-        os.close(lock_fd)
-        # Lock file is bookkeeping only — once the fd is closed the lock is
-        # gone, so leaving the file around just litters the skill_group dir.
-        # Best-effort unlink; a concurrent flipper may have already removed it.
-        try:
-            lock_path.unlink()
-        except OSError:
-            pass
+        release_flip_lock(link, lock_fd)
 
     _ok({"link": str(link), "points_to": target, "kind": link_kind})
 

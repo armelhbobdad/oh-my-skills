@@ -1,0 +1,212 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "campaign-state",
+  "description": "Schema for _campaign-state.yaml — single source of truth for campaign orchestration state",
+  "type": "object",
+  "required": ["campaign", "skills", "dependency_graph"],
+  "additionalProperties": false,
+  "properties": {
+    "campaign": {
+      "type": "object",
+      "required": ["name", "started_at", "last_updated", "current_stage", "quality_gate"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "current_stage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "directive_path": {
+          "type": "string"
+        },
+        "quality_gate": {
+          "type": "object",
+          "required": ["hard", "soft_target", "soft_fallback"],
+          "additionalProperties": false,
+          "properties": {
+            "hard": {
+              "type": "string"
+            },
+            "soft_target": {
+              "type": "number"
+            },
+            "soft_fallback": {
+              "type": "number"
+            }
+          }
+        },
+        "health_findings_queue": {
+          "type": "string",
+          "enum": ["local", "improvement"],
+          "description": "Ignored. Setup asked for it before v3.0.0; the end-of-run health check now decides where findings go. Kept optional so state files that hold it still validate."
+        },
+        "architecture_doc_path": {
+          "type": ["string", "null"],
+          "description": "Path to the architecture document consumed by the verify (Stage 7) and refine (Stage 8) stages. Sourced at setup; null when the campaign runs no verification."
+        },
+        "capstone": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "description": "Capstone (stack) outcome composed from all completed campaign skills (Tier A and Tier B). Campaign-level summary; the composed skill itself lives at skill_path.",
+          "properties": {
+            "skill_path": {
+              "type": ["string", "null"]
+            },
+            "quality_score": {
+              "type": ["number", "null"]
+            },
+            "verified": {
+              "type": ["boolean", "null"]
+            },
+            "completed_at": {
+              "type": ["string", "null"],
+              "format": "date-time"
+            }
+          }
+        },
+        "verification": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "description": "Stage 7 verify-stack summary. Detailed findings live in the external report at report_path.",
+          "properties": {
+            "report_path": {
+              "type": ["string", "null"],
+              "description": "report_path of the skf-verify-stack result envelope: the timestamped report, which no later run rewrites (not the -latest copy)."
+            },
+            "overall_verdict": {
+              "type": ["string", "null"],
+              "enum": ["FEASIBLE", "CONDITIONALLY_FEASIBLE", "NOT_FEASIBLE", null],
+              "description": "overall_verdict of the skf-verify-stack result envelope."
+            },
+            "coverage_percentage": {
+              "type": ["number", "null"]
+            },
+            "recommendation_count": {
+              "type": ["integer", "null"]
+            }
+          }
+        },
+        "refinement": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "description": "Stage 8 refine-architecture summary. The refined document lives at refined_path.",
+          "properties": {
+            "refined_path": {
+              "type": ["string", "null"]
+            },
+            "gap_count": {
+              "type": ["integer", "null"]
+            },
+            "issue_count": {
+              "type": ["integer", "null"]
+            },
+            "improvement_count": {
+              "type": ["integer", "null"]
+            }
+          }
+        }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "status", "tier"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "active", "completed", "failed", "skipped"]
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tier": {
+            "type": "string",
+            "enum": ["A", "B"]
+          },
+          "pin": {
+            "type": ["string", "null"]
+          },
+          "brief_path": {
+            "type": ["string", "null"]
+          },
+          "skill_path": {
+            "type": ["string", "null"]
+          },
+          "quality_score": {
+            "type": ["number", "null"]
+          },
+          "workarounds_applied": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "started_at": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "commit_sha": {
+            "type": ["string", "null"]
+          },
+          "export": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["status"],
+            "description": "The Export stage's outcome for this skill, recorded by campaign-state.py set-skill --export after its skf-export-skill call: exported, or failed with that call's halt_reason and exit code (null when it gave none). Absent until Export runs the skill; a reset to pending removes it.",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["exported", "failed"]
+              },
+              "halt_reason": {
+                "type": ["string", "null"]
+              },
+              "exit_code": {
+                "type": ["integer", "null"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "dependency_graph": {
+      "type": "object",
+      "required": ["execution_order", "circular_deps_detected"],
+      "additionalProperties": false,
+      "properties": {
+        "execution_order": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "circular_deps_detected": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

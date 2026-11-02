@@ -22,9 +22,9 @@
 
 Your AI coding assistant doesn't read documentation. It pattern-matches against a snapshot of the internet from months ago, and then confidently writes code against functions that were deprecated two releases back. You find out after three stack traces and a trip to GitHub to read the source — which is where the assistant should have been looking all along.
 
-This repository is the antidote. Not more curation. **Compilation.** Each skill is built from a specific upstream commit by an AST parser (not an LLM), every documented symbol cites its source file and line, and every claim can be audited against the upstream in under 60 seconds. When we're wrong, the test report says we're wrong.
+This repository is the antidote. Not more curation. **Compilation.** Each skill is built from a specific upstream commit, every documented symbol cites its source file and line with a tag that says how it was read (`[AST:]` when an ast-grep rule matched the definition, `[SRC:]` when the source was read by eye), and every claim can be audited against the upstream in under 60 seconds. When we're wrong, the test report says we're wrong.
 
-This repo is what [Skill Forge](https://github.com/armelhbobdad/bmad-module-skill-forge) produces. Four libraries today, all Deep-tier, all scoring **99.0%–99.49%** against their own source trees. The receipts are below — so is the demo, the dare, and the one we lost.
+This repo is what [Skill Forge](https://github.com/armelhbobdad/bmad-module-skill-forge) produces. Four libraries today, all Deep-tier, all passing Skill Forge 4.0.0's test gate at **95.17%–100%** against their own source trees. The receipts are below — so is the demo, the dare, and the points we lost.
 
 > **Who this is for:** devs tired of debugging hallucinated imports · library maintainers who want their users' agents to stop getting the API wrong · skeptical staff engineers who want evidence, not vibes.
 
@@ -52,7 +52,7 @@ import { fn } from 'storybook/test';
 import { useArgs } from 'storybook/preview-api';
 ```
 
-No hallucinations. No guesswork. Just a parser reading real code.
+No hallucinations. No guesswork. Just real code, cited by file and line.
 
 ---
 
@@ -60,10 +60,10 @@ No hallucinations. No guesswork. Just a parser reading real code.
 
 | If you're writing... | Version | Test score | Upstream source | Pinned at |
 |---|---|---|---|---|
-| [**cocoindex**](skills/oms-cocoindex/1.0.0/oms-cocoindex/SKILL.md) (Python) | 1.0.0 | [**99.0%**](forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20260424T235130Z-281688-535f.md) | [`cocoindex-io/cocoindex`](https://github.com/cocoindex-io/cocoindex) | [`5fe4f37a`](https://github.com/cocoindex-io/cocoindex/commit/5fe4f37a526e51516655832ec9814e7ca24ade9a) · 2026-04-22 |
-| [**cognee**](skills/oms-cognee/1.0.0/oms-cognee/SKILL.md) (Python) | 1.0.0 | [**99.0%**](forge-data/oms-cognee/1.0.0/test-report-oms-cognee.md) | [`topoteretes/cognee`](https://github.com/topoteretes/cognee) | [`3c048aa4`](https://github.com/topoteretes/cognee/commit/3c048aa4147776f14d4546704f986242554a9ef3) · 2026-04-11 |
-| [**Storybook**](skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/SKILL.md) (React + Vite, TS) | 10.3.5 | [**99.49%**](forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite.md) | [`storybookjs/storybook`](https://github.com/storybookjs/storybook) | [`e486d382`](https://github.com/storybookjs/storybook/commit/e486d3826bcd40c52db1c766966d1c8ec16df6cb) · 2026-04-07 |
-| [**uitripled**](skills/oms-uitripled/0.1.0/oms-uitripled/SKILL.md) (TS) | 0.1.0 | [**99.45%**](forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled.md) | [`moumen-soliman/uitripled`](https://github.com/moumen-soliman/uitripled) | [`a5ffb45b`](https://github.com/moumen-soliman/uitripled/commit/a5ffb45be05335d2c547436664cfbfb8c22d04df) · 2026-03-22 |
+| [**cocoindex**](skills/oms-cocoindex/1.0.0/oms-cocoindex/SKILL.md) (Python) | 1.0.0 | [**100%**](forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261102T201851Z-bf06d70f.md) | [`cocoindex-io/cocoindex`](https://github.com/cocoindex-io/cocoindex) | [`5fe4f37a`](https://github.com/cocoindex-io/cocoindex/commit/5fe4f37a526e51516655832ec9814e7ca24ade9a) · 2026-04-22 |
+| [**cognee**](skills/oms-cognee/1.6.2/oms-cognee/SKILL.md) (Python) | 1.6.2 | [**99.00%**](forge-data/oms-cognee/1.6.2/test-report-oms-cognee-20261102T194852Z-d56413cb.md) | [`topoteretes/cognee`](https://github.com/topoteretes/cognee) | [`ba3631f2`](https://github.com/topoteretes/cognee/commit/ba3631f2ed363a6ea50d649c34c56885af6b36fe) · 2026-09-29 |
+| [**Storybook**](skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/SKILL.md) (React + Vite, TS) | 10.3.5 | [**95.17%**](forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261102T231406Z-a5890950.md) | [`storybookjs/storybook`](https://github.com/storybookjs/storybook) | [`e486d382`](https://github.com/storybookjs/storybook/commit/e486d3826bcd40c52db1c766966d1c8ec16df6cb) · 2026-04-07 |
+| [**uitripled**](skills/oms-uitripled/0.1.0/oms-uitripled/SKILL.md) (TS) | 0.1.0 | [**100%**](forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled-20261102T194714Z-aff41a98.md) | [`moumen-soliman/uitripled`](https://github.com/moumen-soliman/uitripled) | [`a5ffb45b`](https://github.com/moumen-soliman/uitripled/commit/a5ffb45be05335d2c547436664cfbfb8c22d04df) · 2026-03-22 |
 
 **Staleness has a date.** Every row above carries the upstream's own commit date. Your `.cursorrules` file doesn't. When upstream ships, we recompile and publish a new skill version next to the old one — never in place.
 
@@ -84,7 +84,7 @@ Replace `<SKILL>` with the path for the skill you want:
 | Skill                    | `<SKILL>` path                                           |
 | ------------------------ | -------------------------------------------------------- |
 | oms-cocoindex            | `oms-cocoindex/1.0.0/oms-cocoindex`                      |
-| oms-cognee               | `oms-cognee/1.0.0/oms-cognee`                            |
+| oms-cognee               | `oms-cognee/1.6.2/oms-cognee`                            |
 | oms-storybook-react-vite | `oms-storybook-react-vite/10.3.5/oms-storybook-react-vite` |
 | oms-uitripled            | `oms-uitripled/0.1.0/oms-uitripled`                      |
 
@@ -112,7 +112,7 @@ A skeptical reader is already comparing this repo to four things in their head. 
 
 |                            | **Oh-My-Skills**                | MCP doc servers    | Hand-edited `.cursorrules` | awesome-\* lists |
 | -------------------------- | ------------------------------- | ------------------ | -------------------------- | ---------------- |
-| Reproducible from source   | commit SHA + AST parser         | varies; opaque     | whatever you wrote         | none             |
+| Reproducible from source   | commit SHA + cited source lines | varies; opaque     | whatever you wrote         | none             |
 | Version-pinned & immutable | yes, per-version directories    | runtime-dependent  | rots silently              | no               |
 | Audit trail                | `provenance-map.json` + report  | depends on server  | none                       | none             |
 | Runtime cost               | zero (markdown + JSON)          | a running process  | zero                       | zero             |
@@ -147,22 +147,22 @@ For the deeper trails — extraction rules, evidence reports, per-skill denomina
 
 ---
 
-## The scores, including the one we lost
+## The scores, including the points we lost
 
 **A promise of perfection is suspicious. A promise of visible fallibility is trustworthy.**
 
-The lowest test score in this repo is **99.0%**. The highest is **99.49%**. The score is a weighted average of four deterministic measurements (Coherence is redistributed because each skill runs in naive mode):
+The lowest test score in this repo is **95.17%**. The highest is **100%**. All four reports come from Skill Forge 4.0.0, whose [provenance checks](https://armelhbobdad.github.io/bmad-module-skill-forge/verifying-a-skill/#workflow-time-enforcement) also require every label in a skill's provenance map to match the tool that produced it. The score is a weighted average of four deterministic measurements (Coherence is redistributed because each skill runs in naive mode):
 
 | Weight  | Dimension             | What it measures                                                                                                    |
 | ------- | --------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | **45%** | Export Coverage       | `(documented exports / source exports) × 100` — what fraction of the library's public API is in `SKILL.md`?         |
 | **25%** | Signature Accuracy    | Do documented function signatures match the real ones at the pinned commit — parameter names, types, order, return? |
 | **20%** | Type Coverage         | Are the types and interfaces referenced in exports fully documented?                                                |
-| **10%** | External Validation   | Average of [`skill-check`](https://github.com/thedaviddias/skill-check) quality score and [`tessl`](https://tessl.io) content score |
+| **10%** | External Validation   | [`skill-check`](https://github.com/thedaviddias/skill-check) quality score, averaged with the [`tessl`](https://tessl.io) content score when Tessl Review is configured (it was off for these four reports) |
 
 Pass threshold is 80% — anything below fails the gate and triggers `update-skill`, not `export-skill`. The full arithmetic, per-skill denominators, and reproducibility steps live in [TRUST.md](TRUST.md#how-the-99-is-computed).
 
-**GAP-004 — the one we lost.** `oms-storybook-react-vite` scores **215/216**, not 216/216. The 1-entry drift is logged openly in the test report as GAP-004 and discussed in [TRUST.md](TRUST.md#gap-004-the-one-we-lost). We didn't hide the rough edge. We wrote it down.
+**The points we lost.** `oms-cognee` scores **99.00%**: skill-check rates its `SKILL.md` body at about 5,646 tokens, over its 5,000-token budget, so External Validation is 90%. `oms-storybook-react-vite` scores **95.17%**: its brief names the story-authoring entry points as the skill's authored tier (280 public names), and 91 of that tier's 120 types are documented, so Type Coverage is 75.83%. The report also discloses that its Export Coverage reads 100% only because Skill Forge's count credits every documented name: 207 of the 280 authored names are documented. Every report also lists the gaps that cost no points, such as a brief glob that no longer matches a file. Both are discussed in [TRUST.md](TRUST.md#the-points-we-lost). We didn't hide the rough edges. We wrote them down.
 
 ---
 
@@ -170,18 +170,19 @@ Pass threshold is 80% — anything below fails the gate and triggers `update-ski
 
 Skills are pinned to a **source commit**, not a floating tag. When upstream ships, we recompile and publish a new skill version alongside the old one. **Your existing install will never change its mind while you sleep.**
 
-This is not a hypothetical — it is what already happened to `oms-cognee`. Upstream `topoteretes/cognee` shipped v1.0.0 on top of the v0.5.8 surface this repo was originally compiled against. We recompiled from the v1.0.0 commit and wrote the new skill version next to the old one:
+This is not a hypothetical — it is what already happened to `oms-cognee`, twice. Upstream `topoteretes/cognee` shipped v1.0.0 on top of the v0.5.8 surface this repo was originally compiled against, then v1.6.2. Each time we recompiled from the new commit and wrote the new skill version next to the old ones:
 
 ```
 skills/oms-cognee/
-  0.5.8/oms-cognee/   ← still pinned to b51dcce1 (v0.5.8), scoring 99.45%
-  1.0.0/oms-cognee/   ← pinned to 3c048aa4 (v1.0.0, 2026-04-11), current, scoring 99.00%
+  0.5.8/oms-cognee/   ← still pinned to b51dcce1 (v0.5.8)
+  1.0.0/oms-cognee/   ← still pinned to 3c048aa4 (v1.0.0, 2026-04-11)
+  1.6.2/oms-cognee/   ← pinned to ba3631f2 (v1.6.2, 2026-09-29), current, scoring 99.00%
   active              → symlink to the current version
 ```
 
-The v0.5.8 tree was never re-pinned. Its [`metadata.json`](skills/oms-cognee/0.5.8/oms-cognee/metadata.json) still anchors `source_commit: b51dcce1`, and its [test report](forge-data/oms-cognee/0.5.8/test-report-oms-cognee.md) still scores the v0.5.8 API surface. A project that pinned `CLAUDE.md` to `skills/oms-cognee/0.5.8/oms-cognee` before the v1.0.0 recompile continues to resolve against that tree today, with zero upstream drift. When the team is ready to adopt v1.0.0's new surface (e.g. `run_startup_migrations` replacing `run_migrations`, `cognee.low_level` moved out of the public API), they bump the path in `CLAUDE.md` — one line, reviewable in a PR — the same way they would bump a `package.json` dependency.
+The older trees were never re-pinned. The v1.0.0 [`metadata.json`](skills/oms-cognee/1.0.0/oms-cognee/metadata.json) still anchors `source_commit: 3c048aa4`, and a project that pinned `CLAUDE.md` to `skills/oms-cognee/1.0.0/oms-cognee` continues to resolve against that tree today, with zero upstream drift. When the team is ready to adopt v1.6.2's surface, they bump the path in `CLAUDE.md` — one line, reviewable in a PR — the same way they would bump a `package.json` dependency. The new surface shows why the pin matters: v1.0.0 replaced `cognee.run_migrations` with `cognee.run_startup_migrations`, and v1.6.2 removed `run_startup_migrations` again and brought back `run_migrations`, alongside new APIs such as `export`, `push` and `validate`. Each skill version documents the API of its own commit.
 
-The [export manifest](skills/.export-manifest.json) records the full version history, marking `0.5.8` as `archived` and `1.0.0` as `active`. Upgrades are install-a-new-version, never mutate-in-place.
+The [export manifest](skills/.export-manifest.json) records the full version history, marking `0.5.8` and `1.0.0` as `archived` and `1.6.2` as `active`. Upgrades are install-a-new-version, never mutate-in-place.
 
 ---
 
@@ -191,7 +192,7 @@ Skill Forge can do a lot of things. This repo deliberately ships the narrowest u
 
 - **No "official" authority claim.** All four skills are tagged `source_authority: community` in `metadata.json`. Only library maintainers can publish official skills through the [agentskills.io](https://agentskills.io) open-format ecosystem ([spec repo](https://github.com/agentskills/agentskills), Anthropic-maintained). **Authority is a costume; audit is a garment.** These are accurate community builds — audited, not blessed.
 - **No MCP server, no runtime.** Skills are plain markdown and JSON. No process to run, no port to open, no dependency to manage. Your assistant reads them like any other file in the repo. If you want runtime doc-fetch, use an MCP server — this repo solves a different problem: reproducible, version-controlled, **grep-able** context.
-- **No "curated" anything.** Every awesome-list on GitHub is curated. Curation is trust-by-vibes. What this repo ships is **compilation** — extracted by an AST parser, tested against the source, shipped with a receipt. *The skills are the demo; the pipeline is the moat.*
+- **No "curated" anything.** Every awesome-list on GitHub is curated. Curation is trust-by-vibes. What this repo ships is **compilation** — extracted from the source at a pinned commit, tested against it, shipped with a receipt. *The skills are the demo; the pipeline is the moat.*
 - **No silent updates.** Each skill version is immutable. Your install will never change its mind while you sleep.
 
 ## How the skills are built
@@ -201,10 +202,10 @@ Every step below exists because one failure mode of training-data docs had to di
 Skills are compiled by [**Skill Forge**](https://github.com/armelhbobdad/bmad-module-skill-forge), a [BMAD](https://github.com/bmad-code-org/BMAD-METHOD) module that runs a six-step pipeline against the upstream source:
 
 1. **Brief** (`skf-brief-skill`) — scope, goals, non-goals. *Kills:* unbounded scope, doc-dumps that bury the public API.
-2. **Extract** — AST enumeration via [ast-grep](https://github.com/ast-grep/ast-grep) against an ephemeral sparse-checkout clone at the pinned tag. *Kills:* LLM-paraphrased signatures that drift from source.
+2. **Extract** — AST enumeration via [ast-grep](https://github.com/ast-grep/ast-grep) against an ephemeral sparse-checkout clone at the pinned tag; an export no rule matches is read from the source by eye and labeled `T1-low` with an `[SRC:]` citation, so the provenance map always says which tool read what. *Kills:* LLM-paraphrased signatures that drift from source.
 3. **Enrich** — fetch temporal context (issues, PRs, releases, docs) and index into a local [QMD](https://github.com/tobi/qmd) collection. *Kills:* skills that know the API but miss the deprecation drama around it.
 4. **Compile** — author `SKILL.md`, references, and `context-snippet.md` with inline provenance citations. *Kills:* the gap between "documented" and "cited."
-5. **Test** (`skf-test-skill` · [Skill Forge → Workflows](https://armelhbobdad.github.io/bmad-module-skill-forge/workflows/)) — coverage, coherence, external validators, single numeric score against an 80% threshold. *Kills:* unbacked confidence — see GAP-004 above.
+5. **Test** (`skf-test-skill` · [Skill Forge → Workflows](https://armelhbobdad.github.io/bmad-module-skill-forge/workflows/)) — coverage, coherence, external validators, single numeric score against an 80% threshold. *Kills:* unbacked confidence — see the points we lost above.
 6. **Export** (`skf-export-skill`) — write `context-snippet.md` into target context files as a managed block. *Kills:* the last-mile step where a reader wires a skill into their agent and forgets.
 
 Full reference: [Skill Forge → Docs](https://armelhbobdad.github.io/bmad-module-skill-forge/).

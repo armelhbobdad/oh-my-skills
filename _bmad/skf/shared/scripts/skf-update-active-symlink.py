@@ -1,0 +1,368 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = []
+# ///
+"""SKF Update Active Symlink — atomic + idempotent + verified flip of
+{skill_group}/active to point at a target version directory.
+
+update-skill's `write.md` (its active-link step) previously asked the LLM to
+"create or update the active symlink at {skill_group}/active pointing
+to the new {version}; if the symlink already exists, remove it first
+and recreate". That two-step (`rm` then `ln`) leaves a brief window
+where the symlink doesn't exist — readers that resolve `active`
+mid-update see a `FileNotFoundError`. A second check then re-reads the symlink
+to verify it points where expected and halts on divergence.
+
+This helper consolidates the two steps into one workflow-specific
+invocation:
+
+  - holds {skill-group}/active.skf-lock, the lock skf-atomic-write.py
+    flip-link takes, from the read through the re-read, so one flip of
+    the link runs at a time; while another flip holds it, waits up to
+    FLIP_LOCK_WAIT_SECONDS, then returns busy without touching the link
+  - detects whether a flip is required (idempotent: already pointing
+    at the target → no-op)
+  - performs the flip through skf-atomic-write.py's replace_link, the
+    code flip-link runs (link at a temp name → os.replace), so on POSIX
+    concurrent readers never see a missing symlink
+  - verifies the post-state and surfaces ok / flipped / mismatch
+    / missing-target / busy
+
+Two subcommands:
+
+  update --skill-group <path> --version <name>
+      Make {skill-group}/active point at {version}. Atomic.
+      Idempotent: returns status=ok with action=no-op when the link
+      already points there.
+
+  verify --skill-group <path> --version <name>
+      Read-only: check that {skill-group}/active currently points at
+      {version}. Used by step-06 derived-artifact verification.
+
+The target version directory (`{skill-group}/{version}/`) MUST exist
+on disk before this script is called. The helper refuses to point
+the symlink at a path that doesn't resolve — a dangling `active`
+silently breaks downstream consumers that expect it to resolve.
+
+Output JSON (stdout):
+  {
+    "status": "ok" | "flipped" | "mismatch" | "missing-target" | "busy",
+    "skill_group": "<abs path>",
+    "active_link": "<abs path to active>",
+    "expected_target": "<version>",
+    "current_target": "<previous target>" | null,
+    "action_taken": "no-op" | "flipped" | "halt",
+    "log_message": "...",
+    "halt_message": "<multi-line user message>" | null
+  }
+
+Exit codes:
+  0: ok (already correct) or flipped (just updated)
+  1: script error, one `error:` line on stderr and nothing on stdout
+     (group path invalid, a real folder or file at {skill-group}/active,
+     skf-atomic-write.py not loadable from this script's folder, or the
+     link could not be moved); argparse exits 2 on bad arguments
+  2: mismatch (verify mode and target diverges), missing-target
+     (the {version} directory doesn't exist; caller must halt), or
+     busy (update: another flip held the link's lock for the whole
+     wait; the link is unchanged, caller must halt)
+
+Platform: Linux, macOS and native Windows, as skf-atomic-write.py's
+flip-link. On Windows the flip removes the old link first whenever the
+rename over it is refused, which it always is over a directory link, so
+it is not atomic there; without symlink privilege the new link is a
+directory junction. A junction reads back as the name of the version folder it
+resolves to, so `ok` means the link names {version} whichever kind it is.
+"""
+
+from __future__ import annotations
+
+import argparse
+import importlib.util
+import json
+import os
+import sys
+from pathlib import Path
+
+
+ACTIVE_NAME = "active"
+ATOMIC_WRITE_HELPER = Path(__file__).resolve().parent / "skf-atomic-write.py"
+# A flip holds <link>.skf-lock for well under a millisecond, so update waits
+# this long for another flip to let it go before it returns busy.
+FLIP_LOCK_WAIT_SECONDS = 5.0
+
+
+def _load_atomic_write():
+    """Load skf-atomic-write.py, which installs into the same folder as this script."""
+    try:
+        spec = importlib.util.spec_from_file_location("skf_atomic_write", ATOMIC_WRITE_HELPER)
+        if spec is None or spec.loader is None:
+            raise ImportError("no import spec")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    except (OSError, ImportError, SyntaxError) as e:
+        raise OSError(f"cannot load the flip-lock helper {ATOMIC_WRITE_HELPER}: {e}") from e
+    return module
+
+
+# --------------------------------------------------------------------------
+# Symlink primitives
+# --------------------------------------------------------------------------
+
+
+def read_link_target(link_path: Path) -> str | None:
+    """Return what the link at `link_path` names, or None if nothing is there.
+
+    A symlink gives its stored target (`1.6.2` for the links SKF makes). A
+    Windows junction, which Path.is_symlink() does not report and whose
+    os.readlink is an absolute `\\\\?\\` path, gives the name of the folder it
+    resolves to when that folder sits beside it, else its stored path (a
+    junction whose folder is gone, one that leads elsewhere, or a loop). Raises
+    ValueError if `link_path` exists but is not a link (someone replaced it
+    with a regular dir/file)."""
+    if not os.path.lexists(link_path):
+        return None
+    if link_path.is_symlink():
+        return os.readlink(link_path)
+    try:
+        stored = os.readlink(link_path)
+    except (OSError, ValueError):
+        raise ValueError(
+            f"{link_path} exists but is not a symlink — refusing to overwrite "
+            "(manual recovery required)"
+        ) from None
+    try:
+        resolved = link_path.resolve(strict=True)
+    except (OSError, RuntimeError):  # Python 3.11 and 3.12 raise RuntimeError on a loop
+        return stored
+    if resolved.parent == link_path.parent.resolve():
+        return resolved.name
+    return stored
+
+
+def atomic_flip_symlink(link_path: Path, target_name: str) -> None:
+    """Point `link_path` at `target_name` using the create-temp + rename
+    pattern. `target_name` is a relative path interpreted in the parent of
+    `link_path` (same convention as {skill_group}/active → version-dir-sibling).
+
+    Implementation: skf-atomic-write.py's replace_link, the code flip-link
+    runs, with `.{name}.skf-symlink.tmp` as the temp name: it removes a stale
+    temp from a prior crash, writes the new link there and os.replace renames
+    it over link_path. POSIX rename is atomic for symlinks, so concurrent
+    readers either see the old target or the new one, never a missing file.
+    On Windows the old link is removed first whenever the rename over it is
+    refused, which it always is over a directory link; without symlink
+    privilege the new link is a junction.
+    """
+    tmp = link_path.parent / f".{link_path.name}.skf-symlink.tmp"
+    _load_atomic_write().replace_link(link_path, target_name, tmp)
+
+
+# --------------------------------------------------------------------------
+# Core operations
+# --------------------------------------------------------------------------
+
+
+def _envelope_missing_target(skill_group: Path, version: str) -> dict:
+    return {
+        "status": "missing-target",
+        "skill_group": str(skill_group),
+        "active_link": str(skill_group / ACTIVE_NAME),
+        "expected_target": version,
+        "current_target": None,
+        "action_taken": "halt",
+        "log_message": (
+            f"active_symlink_update: missing-target "
+            f"({skill_group / version} does not exist)"
+        ),
+        "halt_message": (
+            f"Cannot point {skill_group / ACTIVE_NAME} at `{version}` — "
+            f"target directory `{skill_group / version}` does not exist on "
+            "disk. Verify the version directory was written before the flip runs."
+        ),
+    }
+
+
+def _envelope_ok(skill_group: Path, version: str, current: str | None) -> dict:
+    return {
+        "status": "ok",
+        "skill_group": str(skill_group),
+        "active_link": str(skill_group / ACTIVE_NAME),
+        "expected_target": version,
+        "current_target": current,
+        "action_taken": "no-op",
+        "log_message": f"active_symlink_update: ok ({version})",
+        "halt_message": None,
+    }
+
+
+def _envelope_flipped(skill_group: Path, version: str, previous: str | None) -> dict:
+    prev = previous if previous is not None else "(none)"
+    return {
+        "status": "flipped",
+        "skill_group": str(skill_group),
+        "active_link": str(skill_group / ACTIVE_NAME),
+        "expected_target": version,
+        "current_target": version,
+        "action_taken": "flipped",
+        "log_message": f"active_symlink_update: flipped ({prev} -> {version})",
+        "halt_message": None,
+    }
+
+
+def _envelope_mismatch(skill_group: Path, version: str, current: str | None) -> dict:
+    cur = current if current is not None else "(none)"
+    return {
+        "status": "mismatch",
+        "skill_group": str(skill_group),
+        "active_link": str(skill_group / ACTIVE_NAME),
+        "expected_target": version,
+        "current_target": current,
+        "action_taken": "halt",
+        "log_message": (
+            f"active_symlink_update: mismatch "
+            f"(expected={version}, current={cur})"
+        ),
+        "halt_message": (
+            f"Active symlink divergence. `{skill_group / ACTIVE_NAME}` "
+            f"resolves to `{cur}` but metadata.json reports `version: "
+            f"{version}`. The flip did not apply. Re-point the symlink manually "
+            f"(`uv run \"{ATOMIC_WRITE_HELPER}\" flip-link --link \"{skill_group / ACTIVE_NAME}\" "
+            f"--target \"{version}\"`) or re-run update-skill, then re-verify."
+        ),
+    }
+
+
+def _envelope_busy(skill_group: Path, version: str, message: str) -> dict:
+    return {
+        "status": "busy",
+        "skill_group": str(skill_group),
+        "active_link": str(skill_group / ACTIVE_NAME),
+        "expected_target": version,
+        "current_target": None,
+        "action_taken": "halt",
+        "log_message": f"active_symlink_update: busy ({message})",
+        "halt_message": (
+            f"Another flip of `{skill_group / ACTIVE_NAME}` held its lock for "
+            f"{FLIP_LOCK_WAIT_SECONDS:g} s, so the link is unchanged. "
+            "Re-run once the other run ends."
+        ),
+    }
+
+
+def update(skill_group: Path, version: str) -> dict:
+    """Idempotently flip {skill_group}/active to point at {version}."""
+    target_dir = skill_group / version
+    if not target_dir.is_dir():
+        return _envelope_missing_target(skill_group, version)
+
+    link_path = skill_group / ACTIVE_NAME
+    atomic_write = _load_atomic_write()
+    try:
+        lock_fd = atomic_write.take_flip_lock(link_path, wait=FLIP_LOCK_WAIT_SECONDS)
+    except atomic_write.FlipLockHeld as exc:
+        return _envelope_busy(skill_group, version, str(exc))
+    try:
+        current = read_link_target(link_path)
+        if current == version:
+            return _envelope_ok(skill_group, version, current)
+
+        atomic_flip_symlink(link_path, version)
+
+        # Re-read to confirm
+        post = read_link_target(link_path)
+    finally:
+        atomic_write.release_flip_lock(link_path, lock_fd)
+    if post != version:
+        # Only a writer that skips the lock, such as a hand-run `ln -sfn`, gets here.
+        return _envelope_mismatch(skill_group, version, post)
+    return _envelope_flipped(skill_group, version, current)
+
+
+def verify(skill_group: Path, version: str) -> dict:
+    """Read-only check: assert active points at version."""
+    link_path = skill_group / ACTIVE_NAME
+    current = read_link_target(link_path)
+    if current == version:
+        return _envelope_ok(skill_group, version, current)
+    return _envelope_mismatch(skill_group, version, current)
+
+
+# --------------------------------------------------------------------------
+# CLI
+# --------------------------------------------------------------------------
+
+
+def _exit_code_for_status(status: str) -> int:
+    if status in ("ok", "flipped"):
+        return 0
+    if status in ("mismatch", "missing-target", "busy"):
+        return 2
+    return 1
+
+
+def _cmd_update(args: argparse.Namespace) -> int:
+    skill_group = Path(args.skill_group)
+    if not skill_group.is_dir():
+        print(
+            f"error: skill-group not a directory: {skill_group}", file=sys.stderr
+        )
+        return 1
+    try:
+        result = update(skill_group, args.version)
+    except (ValueError, OSError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    json.dump(result, sys.stdout, indent=2)
+    sys.stdout.write("\n")
+    return _exit_code_for_status(result["status"])
+
+
+def _cmd_verify(args: argparse.Namespace) -> int:
+    skill_group = Path(args.skill_group)
+    if not skill_group.is_dir():
+        print(
+            f"error: skill-group not a directory: {skill_group}", file=sys.stderr
+        )
+        return 1
+    try:
+        result = verify(skill_group, args.version)
+    except (ValueError, OSError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    json.dump(result, sys.stdout, indent=2)
+    sys.stdout.write("\n")
+    return _exit_code_for_status(result["status"])
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="skf-update-active-symlink",
+        description=(
+            "Atomically + idempotently update {skill-group}/active to point "
+            "at a target version directory."
+        ),
+    )
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    p_upd = sub.add_parser("update", help="flip the symlink if needed")
+    p_upd.add_argument("--skill-group", required=True, help="path to the skill_group dir")
+    p_upd.add_argument("--version", required=True, help="version directory name")
+    p_upd.set_defaults(func=_cmd_update)
+
+    p_ver = sub.add_parser("verify", help="read-only: assert symlink matches version")
+    p_ver.add_argument("--skill-group", required=True)
+    p_ver.add_argument("--version", required=True)
+    p_ver.set_defaults(func=_cmd_verify)
+
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = _build_parser()
+    args = parser.parse_args(argv)
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

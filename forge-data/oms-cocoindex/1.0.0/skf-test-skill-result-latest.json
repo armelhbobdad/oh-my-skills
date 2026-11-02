@@ -1,49 +1,46 @@
 {
-  "workflow": "skf-test-skill",
-  "version": "1.0",
-  "runId": "20260424T235130Z-281688-535f",
-  "skillName": "oms-cocoindex",
-  "skillDir": "skills/oms-cocoindex/1.0.0/oms-cocoindex",
+  "skill": "skf-test-skill",
+  "status": "success",
+  "skill_name": "oms-cocoindex",
+  "verdict": "PASS",
+  "score": 100,
+  "threshold": 80,
+  "report_path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261102T201851Z-bf06d70f.md",
+  "next_workflow": "export-skill",
+  "exit_code": 0,
+  "halt_reason": null,
   "outputs": [
     {
-      "kind": "test-report",
-      "path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20260424T235130Z-281688-535f.md"
+      "type": "report",
+      "path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261102T201851Z-bf06d70f.md"
     }
   ],
   "summary": {
-    "score": 99.0,
+    "score": 100,
     "threshold": 80,
     "result": "PASS",
     "testMode": "naive",
-    "forgeTier": "Deep",
-    "analysisConfidence": "full",
-    "workspaceDrift": "ok",
-    "activeCategories": ["exportCoverage", "signatureAccuracy", "typeCoverage", "externalValidation"],
-    "skippedCategories": ["coherence"],
-    "inconclusiveReasons": []
+    "activeCategories": [
+      "exportCoverage",
+      "signatureAccuracy",
+      "typeCoverage",
+      "externalValidation"
+    ],
+    "gapCounts": {
+      "Critical": 0,
+      "High": 0,
+      "Medium": 2,
+      "Low": 1,
+      "Info": 105
+    },
+    "hardGate": "passed"
   },
-  "categoryScores": {
-    "exportCoverage": 100,
-    "signatureAccuracy": 100,
-    "typeCoverage": 100,
-    "coherence": null,
-    "externalValidation": 90
-  },
-  "externalValidators": {
-    "skillCheck": { "available": true, "score": 100, "errors": 0, "warnings": 0 },
-    "tessl": { "available": true, "validation": "PASSED", "description": 100, "content": 50, "review": 80 }
-  },
-  "discoveryQuality": {
-    "catalogSize": 4,
-    "promptsTested": 3,
-    "promptsPassed": 3,
-    "verdict": "PASS"
-  },
-  "gaps": {
-    "total": 6,
-    "blocking": 1,
-    "byseverity": { "critical": 0, "high": 1, "medium": 2, "low": 1, "info": 2 }
-  },
-  "nextWorkflow": "export-skill",
-  "healthCheckDispatched": true
+  "runId": "20261102T201851Z-bf06d70f",
+  "healthCheckDispatched": true,
+  "timestamp": "2026-11-02T20:30:46Z",
+  "run_id": "20261102T201851Z-bf06d70f",
+  "headless_decisions": [],
+  "warnings": [
+    "customization_resolver_unavailable: not found"
+  ]
 }

@@ -1,0 +1,46 @@
+{
+  "skill": "skf-export-skill",
+  "status": "success",
+  "outputs": [
+    {
+      "type": "skill",
+      "path": "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/context-snippet.md"
+    },
+    {
+      "type": "config",
+      "path": "CLAUDE.md"
+    },
+    {
+      "type": "manifest",
+      "path": "skills/.export-manifest.json"
+    }
+  ],
+  "summary": {
+    "skills": [
+      "oms-storybook-react-vite"
+    ],
+    "always_on_tokens": 1067,
+    "on_trigger_tokens": {
+      "oms-storybook-react-vite": 4123
+    }
+  },
+  "timestamp": "2026-11-02T23:39:31Z",
+  "run_id": "YZtYUkhp",
+  "headless_decisions": [
+    {
+      "gate": "load-skill.confirmation",
+      "default_action": "C",
+      "taken_action": "C",
+      "reason": "headless: auto-continue past skill confirmation"
+    },
+    {
+      "gate": "update-context.write-confirmation",
+      "default_action": "C",
+      "taken_action": "C",
+      "reason": "headless: auto-approve context file update"
+    }
+  ],
+  "warnings": [
+    "customization_resolver_unavailable: not found"
+  ]
+}

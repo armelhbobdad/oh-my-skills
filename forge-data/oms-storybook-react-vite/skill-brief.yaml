@@ -47,12 +47,82 @@ scope:
     - "code/core/src/telemetry/**"
     - "code/core/src/channels/**"
     - "code/core/src/builder-manager/**"
+  # Tier A (SKF 4.0.0 Export Coverage denominator): the definition files behind
+  # the entry points a React+Vite story author imports. Each glob also matches
+  # scope.include (a tier A glob counts only files scope.include matches).
+  tier_a_include:
+    # storybook/test: spyOn/fn/mocked/clearAllMocks... (spy.ts), UserEvent (testing-library.ts), sb/UserEventObject (index.ts)
+    - "code/core/src/test/index.ts"
+    - "code/core/src/test/spy.ts"
+    - "code/core/src/test/testing-library.ts"
+    # storybook/preview-api: hooks + makeDecorator, store/csf composition (composeStories, setProjectAnnotations...), preview-web classes the entry re-exports, Tag
+    - "code/core/src/preview-api/index.ts"
+    - "code/core/src/preview-api/modules/addons/**"
+    - "code/core/src/preview-api/modules/store/**"
+    - "code/core/src/preview-api/modules/preview-web/*"
+    - "code/core/src/preview-api/modules/preview-web/docs-context/DocsContext.ts"
+    - "code/core/src/preview-api/modules/preview-web/render/animation-utils.ts"
+    - "code/core/src/shared/constants/tags.ts"
+    # storybook/actions and storybook/actions/decorator (types.ts left out: its ActionsTypes reaches users only via storybook/internal/csf)
+    - "code/core/src/actions/index.ts"
+    - "code/core/src/actions/constants.ts"
+    - "code/core/src/actions/decorator.ts"
+    - "code/core/src/actions/models/**"
+    - "code/core/src/actions/runtime/**"
+    # storybook/theming and storybook/theming/create
+    - "code/core/src/theming/**"
+    # storybook/viewport
+    - "code/core/src/viewport/index.ts"
+    - "code/core/src/viewport/constants.ts"
+    - "code/core/src/viewport/defaults.ts"
+    - "code/core/src/viewport/types.ts"
+    - "code/core/src/viewport/responsiveViewport.tsx"
+    # storybook/highlight
+    - "code/core/src/highlight/index.ts"
+    - "code/core/src/highlight/constants.ts"
+    - "code/core/src/highlight/types.ts"
+    # @storybook/react-vite (FrameworkOptions, StorybookConfig) and @storybook/react-vite/node (defineMain)
+    - "code/frameworks/react-vite/src/index.ts"
+    - "code/frameworks/react-vite/src/types.ts"
+    - "code/frameworks/react-vite/src/node/index.ts"
+    # @storybook/react root (Meta, StoryObj, Decorator, Preview, composeStories...) and @storybook/react/preview (CSF factories)
+    - "code/renderers/react/src/index.ts"
+    - "code/renderers/react/src/public-types.ts"
+    - "code/renderers/react/src/portable-stories.tsx"
+    - "code/renderers/react/src/preview.tsx"
+    - "code/renderers/react/src/types.ts"
+    # @storybook/addon-docs root (DocsRenderer, DocsTypes) and @storybook/addon-docs/blocks
+    - "code/addons/docs/src/index.ts"
+    - "code/addons/docs/src/DocsRenderer.tsx"
+    - "code/addons/docs/src/types.ts"
+    - "code/addons/docs/src/blocks.ts"
+    - "code/addons/docs/src/blocks/**"
+    # @storybook/addon-a11y root: A11yParameters, A11yGlobals, A11yTypes, A11yReport, PARAM_KEY
+    - "code/addons/a11y/src/index.ts"
+    - "code/addons/a11y/src/params.ts"
+    - "code/addons/a11y/src/types.ts"
+    - "code/addons/a11y/src/constants.ts"
+    # @storybook/addon-themes root: withThemeByClassName / ByDataAttribute / FromJSXProvider, DecoratorHelpers, ThemesGlobals
+    - "code/addons/themes/src/index.ts"
+    - "code/addons/themes/src/types.ts"
+    - "code/addons/themes/src/decorators/**"
+    # @storybook/addon-vitest/vitest-plugin: storybookTest()
+    - "code/addons/vitest/src/vitest-plugin/index.ts"
+    # @storybook/builder-vite config surface: StorybookConfigVite, BuilderOptions, ViteFinal, ViteBuilder, hasVitePlugins, withoutVitePlugins
+    - "code/builders/builder-vite/src/types.ts"
+    - "code/builders/builder-vite/src/utils/has-vite-plugins.ts"
+    - "code/builders/builder-vite/src/utils/without-vite-plugins.ts"
   amendments:
     - action: "narrowed"
       path: "code/core/src/components/**, code/core/src/babel/**, code/core/src/csf-tools/**, code/core/src/core-server/**, code/core/src/router/**, code/core/src/node-logger/**, code/core/src/telemetry/**, code/core/src/channels/**, code/core/src/builder-manager/**"
       reason: "GAP-005 in test report (2026-04-11 79.68% FAIL). Stratified-scope re-derivation pulled these paths in via the coarse `code/core/**` glob, but they are build/server/addon-UI infrastructure, not story-authoring surface. Narrowing the scope aligns the denominator (~216) with the authoring-surface-only provenance-map baseline and flips Export Coverage from 71.4% to ~99%."
       date: "2026-04-11"
       workflow: "skf-update-skill"
+    - action: "tiered"
+      path: "scope.tier_a_include"
+      reason: "GAP-866 in the SKF 4.0.0 test report (2026-11-02, FAIL): SKF 4.0.0 counts Export Coverage over the whole scope.include union (985 public names, most of them code/core plumbing). A repair that documented all of them was reverted. tier_a_include names the definition files behind the entry points a React+Vite story author imports (280 public names measured with skf-extract-public-api.py), so coverage is measured on the authored surface."
+      date: "2026-11-03"
+      workflow: "manual"
   notes: |
     1. v10 consolidation: Storybook v10 consolidates prior @storybook/* packages into a single `storybook` package. The 40 exports in code/core are one package's public contract, not 40 sub-packages.
 
@@ -71,6 +141,8 @@ scope:
     8. Project-state preflight directive (compile-time): Skill entry point must instruct Claude to read the user's `.storybook/main.ts` and `package.json` before answering — discover (a) installed Storybook version, (b) registered addons, (c) framework in use — then consult the API surface. Turns the skill from a static knowledge dump into grounded guidance.
 
     9. Differentiator / moat: The skill's primary value vs. web search is grounding Claude in Storybook v10's consolidated `storybook` package import surface. Web examples and model training data lag 12-18 months and still show `@storybook/*` sub-package imports — the skill corrects this.
+
+    10. Coverage stratification (SKF 4.0.0): Tier A (`scope.tier_a_include`) is the definition files behind the entry points a React+Vite story author imports: storybook/test, storybook/preview-api, storybook/actions (+ /decorator), storybook/theming (+ /create), storybook/viewport, storybook/highlight, @storybook/react-vite (+ /node), @storybook/react (root + /preview), @storybook/addon-docs (root + /blocks), the @storybook/addon-a11y and @storybook/addon-themes roots, @storybook/addon-vitest/vitest-plugin, and the @storybook/builder-vite config types and plugin helpers. Tier A is the Export Coverage denominator. Tier B is what `scope.include` matches outside Tier A: storybook/internal/* (types, csf, common, docs-tools, cli, core-events, server-errors, preview-errors, instrumenter, mocking-utils, client-logger), storybook/manager-api, addon preset/manager/postinstall entries, the renderer's entry-preview* modules and the builder runtime. It stays in scope for signature lookups and citations and is documented only where a story needs it. Tier C is `scope.exclude`.
 doc_urls:
   - url: "https://storybook.js.org/docs"
     label: "Main documentation site"
@@ -81,4 +153,3 @@ doc_urls:
   - url: "https://storybook.js.org/addons"
     label: "Addon catalog"
 source_authority: "community"
----

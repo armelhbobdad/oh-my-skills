@@ -1,0 +1,120 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = []
+# ///
+"""SKF Language Corpora — canonical companion prose corpora for a language.
+
+A whole-language skill (issue #427) is forged from a language-reference repo
+(a compiler/interpreter such as rust-lang/rust). That repo carries the
+language's CODE, but a skill's value comes from the language's PROSE — the
+guide/Book, the standard/library API docs, idioms. README detection
+(skf-detect-docs.py) is the primary source for those; this lookup guarantees
+the canonical corpora for well-known languages even when the repo's README
+does not link them.
+
+Pure static lookup over src/shared/data/language-corpora.json — no network,
+no git, no `gh`. Output is the brief `doc_urls` contract (`{url, label,
+source}`), with `source` fixed to `"language-registry"` (issue #432), so the
+result can be seeded directly into a skill brief and later distinguished from
+README-detected docs.
+
+CLI:
+  uv run src/shared/scripts/skf-language-corpora.py --language <id>
+
+Output (JSON array on stdout): [{"url": "...", "label": "...", "source": "language-registry"}, ...]
+
+Exit codes:
+  0  registry hit — one or more corpora emitted
+  1  no entry for this language (long-tail / unknown) — emits []
+  2  error (bad args, missing/unreadable/invalid data file)
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+_DATA_FILE = Path(__file__).resolve().parent.parent / "data" / "language-corpora.json"
+
+
+def _die(message: str, code: str = "INTERNAL_ERROR") -> None:
+    json.dump({"error": message, "code": code}, sys.stderr, ensure_ascii=False)
+    sys.stderr.write("\n")
+    sys.exit(2)
+
+
+def _load_registry() -> dict:
+    try:
+        data = json.loads(_DATA_FILE.read_text(encoding="utf-8"))
+    except OSError as exc:
+        _die(f"Cannot read {_DATA_FILE.as_posix()}: {exc}", "DATA_READ_ERROR")
+    except json.JSONDecodeError as exc:
+        _die(f"Cannot parse {_DATA_FILE.as_posix()}: {exc}", "DATA_PARSE_ERROR")
+    if not isinstance(data, dict):
+        _die("Corpora registry must be a JSON object", "DATA_PARSE_ERROR")
+    return data
+
+
+def corpora_for(language: str) -> list[dict]:
+    """Return the `{url, label, source}` corpora for a language id, or [] if none.
+
+    Every emitted entry is stamped `source: "language-registry"` (issue #432) so
+    downstream — the brief writer, the noise-suppression filter (#431), and the
+    assembly tier-ordering (#430) — can distinguish a registry-guaranteed
+    corpus from an opportunistically README-detected doc.
+    """
+    registry = _load_registry()
+    entries = registry.get((language or "").strip().lower())
+    if not isinstance(entries, list):
+        return []
+    out: list[dict] = []
+    for e in entries:
+        if isinstance(e, dict) and e.get("url"):
+            out.append({
+                "url": e["url"],
+                "label": e.get("label", ""),
+                "source": "language-registry",
+            })
+    return out
+
+
+def _force_utf8(*streams) -> None:
+    """Reconfigure JSON-carrying streams to UTF-8 (issue #465).
+
+    A default Windows console decodes stdio as cp1252, which cannot carry
+    non-ASCII JSON (ensure_ascii=False output, raw UTF-8 input). Preserves
+    each stream's existing error handler — reconfigure(encoding=...) alone
+    would reset it to 'strict', downgrading e.g. an already-UTF-8 stderr on
+    Linux. For stdin this must run before the first read. Skips in-process
+    test doubles without reconfigure().
+    """
+    for stream in streams:
+        if hasattr(stream, "reconfigure"):
+            errors = getattr(stream, "errors", None)
+            if errors is None:
+                stream.reconfigure(encoding="utf-8")
+            else:
+                stream.reconfigure(encoding="utf-8", errors=errors)
+
+
+def main(argv: list[str]) -> int:
+    _force_utf8(sys.stdout, sys.stderr)
+    parser = argparse.ArgumentParser(
+        description="Look up canonical companion prose corpora for a language.",
+    )
+    parser.add_argument(
+        "--language", required=True,
+        help="Lowercase language id (rust, python, go, typescript, ruby, ...)",
+    )
+    args = parser.parse_args(argv)
+
+    result = corpora_for(args.language)
+    json.dump(result, sys.stdout, ensure_ascii=False)
+    sys.stdout.write("\n")
+    return 0 if result else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

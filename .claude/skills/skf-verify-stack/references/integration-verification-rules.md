@@ -8,16 +8,16 @@ Rules for cross-referencing API surfaces between two skills to determine integra
 
 ## Verdict Definitions
 
-Token set is defined canonically in `src/shared/references/feasibility-report-schema.md` — the table below restates the same set with this skill's evidence obligations. Tokens are case-sensitive (`Verified`, `Plausible`, `Risky`, `Blocked`); emitting any other token is a schema violation.
+Token set is defined canonically in the SKF shared feasibility report schema (`{project-root}/_bmad/skf/shared/references/feasibility-report-schema.md` in installed mode; `{project-root}/src/shared/references/feasibility-report-schema.md` in a dev checkout); the table below restates the same set with this skill's evidence obligations. Tokens are case-sensitive (`Verified`, `Plausible`, `Risky`, `Blocked`); emitting any other token is a schema violation.
 
-| Verdict       | Meaning                                                                                        | Required Evidence                                                                                                                                                                                                                                                   |
-|---------------|------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Verified**  | APIs demonstrably connect AND docs cross-reference each other                                  | Check 1 (language) passes with declared evidence; Check 3 (types) passes from cited `exports` signatures; **Check 4 (docs cross-reference) MUST pass with a literal substring/name citation** — without Check 4 evidence, cap at `Plausible`. Check 2 is best-effort only and cannot by itself promote to `Verified`. |
-| **Plausible** | Checks pass but rely on inferred or indirect evidence                                          | Language + type checks pass; Check 2 uses inferred `protocols_inferred`/`data_formats_inferred` (prose scan); Check 4 is weak or missing (no literal cross-reference). This is the mandatory cap whenever Check 4 does not surface a literal citation.             |
-| **Risky**     | Type mismatch, protocol gap, or language boundary requiring a bridge                           | A clear gap exists (e.g., TypeScript↔Rust FFI needed) but a workaround is architecturally feasible — a named workaround MUST be cited in the recommendation                                                                                                        |
-| **Blocked**   | Fundamental incompatibility — no feasible integration path even with a bridge or adapter layer | The two libraries cannot exchange data in any documented way; requires replacing one of the libraries                                                                                                                                                              |
+| Verdict | Meaning | Required Evidence |
+|---|---|---|
+| **Verified** | APIs demonstrably connect and at least one skill cites the other | Check 1 (language) passes with declared evidence; Check 2 (protocol) flags no risk; Check 3 (types) passes from cited `exports` signatures; **Check 4 (docs cross-reference) passes with a literal substring/name citation** |
+| **Plausible** | The checks pass, but neither skill cites the other | Checks 1 to 3 pass as for `Verified`; Check 4 finds no literal citation, so the Plausible cap below applies |
+| **Risky** | Type mismatch, protocol gap, or language boundary requiring a bridge | A clear gap exists (e.g., TypeScript↔Rust FFI needed) but a workaround is architecturally feasible: cite a named workaround in the recommendation |
+| **Blocked** | Fundamental incompatibility: no feasible integration path even with a bridge or adapter layer | The two libraries cannot exchange data in any documented way; requires replacing one of the libraries |
 
-**Promotion rule:** `Verified` requires Check 4 evidence. If Checks 1 and 3 pass but Check 4 fails (no literal substring/name citation from either skill's SKILL.md), the verdict is capped at `Plausible`. This rule is enforced by step-03 §4 and is the producer obligation declared in the shared schema.
+**Plausible cap:** when Check 4 finds no literal citation in either direction, cap the pair at `Plausible`: it can be `Plausible`, `Risky` or `Blocked`, never `Verified`. This is the only cap. Check 2 reads protocol and data-format tokens inferred from each skill's prose, so it can flag a risk, but it never promotes a pair to `Verified` and never caps one at `Plausible`. A pair whose Checks 1 to 3 pass and whose Check 4 finds a literal citation is `Verified`. This is the producer obligation the shared schema declares.
 
 ---
 
@@ -27,22 +27,14 @@ For each integration pair (Library A ↔ Library B):
 
 ### 1. Language Boundary Check
 
-| A Language          | B Language                             | Assessment                                                                       |
-|---------------------|----------------------------------------|----------------------------------------------------------------------------------|
-| Same language       | Same language                          | No boundary — direct API calls possible                                          |
-| TypeScript ↔ Rust   | Requires FFI, IPC, or WebSocket bridge | Check if a bridge library exists in the stack (e.g., Tauri provides JS↔Rust IPC) |
-| TypeScript ↔ Python | Requires REST/gRPC/WebSocket bridge    | Typically not direct                                                             |
-| Any ↔ C/C++         | FFI available in most languages        | Check for bindings                                                               |
+- Same language on both sides → no boundary, direct API calls. Different languages → the integration needs a bridge (FFI, IPC, or a network protocol; the mechanism follows from the pair — e.g. C/C++ exposes FFI most languages can bind).
+- The load-bearing nudge: **check whether a bridge library already exists in the stack** before assuming one must be built (e.g., Tauri provides JS↔Rust IPC).
 
 ### 2. Protocol Compatibility Check
 
-| A Protocol                | B Protocol        | Assessment                                                  |
-|---------------------------|-------------------|-------------------------------------------------------------|
-| In-process (same runtime) | In-process        | Direct — function calls                                     |
-| HTTP/REST                 | HTTP/REST         | Network bridge — compatible if API endpoints match          |
-| WebSocket                 | WebSocket         | Real-time bridge — check message format compatibility       |
-| Shared filesystem         | Shared filesystem | Async — check format compatibility                          |
-| Embedded database         | Embedded database | May conflict on lock files — check for multi-writer support |
+- Input: each skill's `protocols_inferred` and `data_formats_inferred` tokens, inferred from its SKILL.md prose. Conflicting transports or formats with no adapter in the stack flag a risk. A shared or complementary token (e.g. "HTTP client" and "HTTP server"), or no token on either side, flags none: the tokens are too weak to prove compatibility, and a library pair that names no transport usually calls in-process.
+- Matching transports are compatible modulo format alignment: both in-process → direct calls; both HTTP/REST → compatible if endpoints match; both WebSocket → check message-format compatibility; both shared-filesystem → async, check format.
+- The load-bearing nudge: **two embedded databases may conflict on lock files — check for multi-writer support** before treating them as compatible.
 
 ### 3. Type Compatibility Check
 
@@ -52,17 +44,15 @@ For each integration pair (Library A ↔ Library B):
 
 ### 4. Documentation Cross-Reference (required for `Verified`)
 
-- Search Skill A's SKILL.md for a literal substring/name citation of Library B
-- Search Skill B's SKILL.md for the reciprocal citation
-- Accept literal names or aliases declared in that skill's metadata; do NOT accept paraphrase or fuzzy matches
-- A pass requires at least one literal citation in at least one direction; the exact substring and location MUST be recorded in the evidence block
-- If neither skill literally cites the other, Check 4 FAILS and the per-pair verdict MUST cap at `Plausible` (not `Verified`)
+- Search Skill A's SKILL.md for a literal substring/name citation of Library B, and Skill B's SKILL.md for the reciprocal citation. The shared SKILL.md scanner runs that search (`skf-scan-skill-md-structure.py cross-reference`, integrations.md §4): a citation is a hit it lists, never a line read from a SKILL.md
+- A hit that only matches a common word does not count (`the next step` for a skill named `next`): quote the first hit whose excerpt names the library, and a direction whose hits name only the common word has no citation
+- A pass requires at least one literal citation in at least one direction; record the exact substring and its line in the evidence block. A fail brings the Plausible cap above into play.
 
 ---
 
 ## Verdict Evidence Format
 
-Each verdict MUST include:
+Each verdict includes:
 
 ```
 **{Library A} ↔ {Library B}: {VERDICT}**

@@ -7,3 +7,8 @@ _bmad-output/
 # Python bytecode
 __pycache__/
 *.pyc
+
+# SKF run working files (audit scratch folders, update-skill lock-side files, brief backups)
+forge-data/**/.skf-audit/
+forge-data/*/.skf-update-*
+forge-data/*/skill-brief.yaml.bak
