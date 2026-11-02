@@ -108,7 +108,7 @@ import * as ButtonStories from './Button.stories';
 
 | Component | Props | Purpose |
 |---|---|---|
-| `Docs` | `{ context }` | Root docs container — rarely used directly. |
+| `Docs` | `{ context, docsParameter }: DocsProps<TRenderer>`, both required: `Docs<TRenderer extends Renderer = Renderer>({ context, docsParameter }: DocsProps<TRenderer>)` with `DocsProps = { docsParameter: Parameters; context: DocsContextProps<TRenderer> }` | Root docs container: renders `docsParameter.page` (default `DocsPage`) inside `docsParameter.container` (default `DocsContainer`). Rarely used directly. `[SRC:code/addons/docs/src/blocks/blocks/Docs.tsx:L17]` |
 | `DocsPage` | — | Default Autodocs layout function. |
 | `DocsContainer` | `{ context, children }` | MDX docs wrapper (provides context). |
 | `DocsStory` | `{ of, expanded?, withToolbar? }` | Internal story renderer used by `Primary`/`Stories`. |

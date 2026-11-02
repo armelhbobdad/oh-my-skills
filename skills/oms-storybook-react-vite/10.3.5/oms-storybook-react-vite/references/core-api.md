@@ -205,7 +205,7 @@ Entry: `code/core/src/actions/index.ts`. The `action()` function logs events to 
 
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
-| `action` | function | `action(name: string)` — create an action logger for an arg | `[AST:code/core/src/actions/runtime/action.ts:L50]` |
+| `action` | function | `action(name: string, options: ActionOptions = {}): HandlerFunction` — create an action logger for an arg; `options` is optional | `[AST:code/core/src/actions/runtime/action.ts:L50]` |
 | `configureActions` | function | Global action config (max depth, clearOnStoryChange) | `[AST:code/core/src/actions/runtime/configureActions.ts:L9]` |
 | `ActionDisplay`, `ActionsFunction`, `ActionOptions`, `ActionsMap`, `HandlerFunction` | type | Action payload types | `[AST:code/core/src/actions/models/index.ts:L1]` |
 
