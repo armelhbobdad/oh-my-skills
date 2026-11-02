@@ -265,3 +265,54 @@ The full v0.3.37 evidence report is preserved at `forge-data/oms-cocoindex/0.3.3
 - Regenerated: false
 - Triggers fired: —
 - Notes: Gap-driven repair: the corrected signatures (topic_as_map, mount_collection_target) and the LlmPairResolver rename sit below the snippet surface, the version is unchanged and no gotcha changed.
+
+## Update Operation — 2026-11-02 (gap-driven, round 2)
+
+**Trigger:** test-report `test-report-oms-cocoindex-20261102T194626Z-f0fcead7.md` (FAIL, hard gate blocked on 1 High; 108 gaps: 0 Critical, 1 High, 3 Medium, 1 Low, 103 Info), via `skf-update-skill --from-test-report --headless` under SKF 4.0.0
+**Forge Tier:** Deep
+**Mode:** gap-driven
+**Source commit:** 5fe4f37a (read as it stands; workspace drift check ok, HEAD == pinned)
+
+### Changes Detected
+- Files modified: 0 (source not compared: same pinned commit)
+- Files added: 0
+- Files deleted: 0
+- Exports affected: 4 gaps translated (verified 0, moved 0, missing 0, re-extracted 0, rescoped 0, unknown 2; 2 forwarded: GAP-108 STRUCTURAL_FIX, GAP-106 metadata update)
+- Not routed: GAP-105 (brief-scope-stale), 103 Info observations (documented extras, no change)
+
+### Merge Results
+- Exports updated: 1 (`Chunk` GAP-006: the citation line under the `Chunk` / `TextPosition` block in `references/resources.md` now names both classes and cites their definition lines `resources/chunk.py:L9` and `:L26`, the lines the map records, instead of the decorator lines L8 / L25; documentation itself unchanged, it matches the source)
+- Exports added: 0
+- Exports removed: 0
+- Exports moved: 0 (`ServerSettings.parse_cors_origins` GAP-107 left unknown: definition lines 117, 121, 124 are two `@overload` stubs and the implementation, so no single line)
+- Structural fixes: GAP-108 (split-body, `DropHandle`) fixed in the SKILL.md body at SKILL.md:241, not in `references/component-api.md`: the body comment `# returned by App.drop()` contradicted the pinned source (`App.drop` is `async def drop(self) -> None` at `_internal/app.py:368`; no public method returns `DropHandle`), and the reference already matched the source. The body comment now reads `Awaitable[None]; .stats(), .watch() (AsyncIterator[UpdateSnapshot[None]]). App.drop() itself returns None` (`_internal/app.py:143`-`190`)
+- Metadata patch: GAP-106 (barrel counts diverge, `exports_public_api` 140 vs `exports[]` 119) served by the automatic recount, no hand patch: both counts are machine-owned. The recount keeps 140 (about 65 of the names come from the ten `connectors/*/__init__.py` barrels, which `exports[]` lists as one module entry each), so the drift remains
+- [MANUAL] sections preserved: 3
+- Conflicts resolved: 0
+
+### Scope and Targeted Re-Extraction
+- Authoritative files: none
+- Scope reconciliation before detection: none
+- Scope reconciliation after detection: none
+- Targeted re-extraction: none
+
+### Validation Summary
+- Spec compliance: PASS (skill-check quality score 100/100, 0 errors, 0 warnings, nothing fixed)
+- [MANUAL] integrity: PASS
+- Confidence tiers: PASS
+- Provenance: WARN (fixed nothing: `fix` applied 0 changes; left as WARN: `ServerSettings.parse_cors_origins` line 123 is not its definition (definition lines 117, 121, 124: two `@overload` stubs and the implementation); node kinds `type_alias` invalid for `LifespanFn`, `PendingTargetStateProvider`, `StableKey` (kind-at: no-match); 36 orphaned entries (member and helper entries outside `exports[]`, carried over); 12 entries have no line to check, among them the `Chunk` and `LLMResolver` entries with no source location; 0 citation findings, 141 of 187 skill citations match a map entry)
+- Diff: SKIP (gap-driven: no previous version folder)
+- Security: SKIP (SNYK_TOKEN not configured)
+- Active link: active_symlink_update: ok (1.0.0)
+- Workspace clone: not moved (gap-driven repair at the pinned commit)
+
+### Description Guard
+- Restored: false
+- Triggering tool: —
+- Original description preserved: true
+- Notes: —
+
+### Context Snippet
+- Regenerated: false
+- Triggers fired: —
+- Notes: Gap-driven repair: the DropHandle comment and the Chunk citation sit below the snippet surface, the version is unchanged and no gotcha changed.

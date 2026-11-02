@@ -11,7 +11,7 @@
   "previous_source_commit": "87c5dbf087bfccca83791861db0d33519ef09677",
   "confidence_tier": "Deep",
   "spec_version": "1.3",
-  "generation_date": "2026-11-02T19:35:22Z",
+  "generation_date": "2026-11-02T20:10:42Z",
   "update_workflow": "skf-update-skill",
   "update_trigger": "test-report test-report-oms-cocoindex-20260424T230401Z-257564-6daf.md (PASS 98.37%, 6 gaps: 2 High + 1 Medium + 1 Low + 2 Info)",
   "description": "Build data ingestion + transformation pipelines on top of cocoindex v1.0.0 — a Python framework with a Rust engine for ultra-performant, incremental data indexing. Covers the v1.0.0 component-based public API: App / Environment / EnvironmentBuilder, @lifespan and @fn decorators, mount / mount_target / mount_each, TargetState reconciliation, the connectors/* package (10 connector backends including Postgres, Qdrant, LanceDB, SurrealDB, Kafka, S3, Google Drive, etc.), the ops/* package (LiteLLM extraction, sentence-transformers embedding, text splitting, entity resolution), settings/server/CLI, and the query-handler API.",

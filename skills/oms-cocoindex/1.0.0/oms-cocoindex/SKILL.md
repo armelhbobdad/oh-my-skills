@@ -238,7 +238,7 @@ ComponentStats          # NamedTuple(num_execution_starts, num_unchanged, num_ad
 UpdateStats             # NamedTuple(by_component: dict[str, ComponentStats]). Property: total
 UpdateSnapshot[R]       # NamedTuple(stats, status, result)
 UpdateHandle[R]         # Awaitable[R]; .stats(), .watch() (AsyncIterator[UpdateSnapshot])
-DropHandle              # returned by App.drop()
+DropHandle              # Awaitable[None]; .stats(), .watch() (AsyncIterator[UpdateSnapshot[None]]). App.drop() itself returns None
 
 # Typestate (static-only — phantom types)
 PendingS                # marker for "pending" target state providers

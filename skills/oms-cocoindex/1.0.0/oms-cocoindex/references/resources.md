@@ -23,7 +23,7 @@ class Chunk:
     start: TextPosition
     end: TextPosition
 ```
-[AST:python/cocoindex/resources/chunk.py:L8] [:L25]
+`TextPosition` [AST:python/cocoindex/resources/chunk.py:L9] · `Chunk` [AST:python/cocoindex/resources/chunk.py:L26]
 
 Returned by `cocoindex.ops.text.RecursiveSplitter.split()` and `SeparatorSplitter.split()`. Always frozen; safe as a dict key when paired with `__hash__`.
 
