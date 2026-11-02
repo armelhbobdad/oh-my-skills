@@ -183,7 +183,7 @@ The `logic_tracking=` kwarg accepts a value of the public `LogicTracking` type a
 ```python
 LogicTracking: TypeAlias = Literal["full", "self"] | None
 ```
-[AST:python/cocoindex/_internal/function.py:L65]
+[SRC:python/cocoindex/_internal/function.py:L65]
 
 - `"full"` (default) — fingerprint includes the function's own code AND the code of every transitively-mounted child. A change anywhere under the component invalidates its memoized output.
 - `"self"` — fingerprint includes only the function's own code; children invalidate independently. Use when child components have their own stable memo identity (e.g., a `@coco.fn(memo=True)` chunk processor) and you want their re-runs not to invalidate the parent.

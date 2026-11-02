@@ -122,7 +122,7 @@ cocoindex update APP_TARGET [-L|--live] [--full-reprocess] [--quiet]
 cocoindex drop APP_TARGET [-f|--force] [--quiet]
 cocoindex init [PROJECT_NAME] [--dir PATH]
 ```
-[AST:python/cocoindex/cli.py:L522] [:L561] [:L652] [:L745] [:L811]
+[AST:python/cocoindex/cli.py:L522] [:L561] [:L692] [:L761] [:L819]
 
 **APP_TARGET** is a path to a `.py` file or an installed module name. `_load_app(app_target)` ([AST:python/cocoindex/cli.py:L274]) imports the module and looks for a top-level `App` instance.
 

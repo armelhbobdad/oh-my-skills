@@ -79,7 +79,7 @@ async def app_main(sourcedir: pathlib.Path) -> None:
 app = coco.App(coco.AppConfig(name="MyApp"), app_main, sourcedir=pathlib.Path("./docs"))
 ```
 
-Run with: `cocoindex update main.py` (one-shot) or `cocoindex update main.py -L` (live). Set `COCOINDEX_DB=/path/to/state.lmdb` for the local state store. Source: [AST:python/cocoindex/__init__.py:L13] · [AST:examples/text_embedding/main.py:L1]
+Run with: `cocoindex update main.py` (one-shot) or `cocoindex update main.py -L` (live). Set `COCOINDEX_DB=/path/to/state.lmdb` for the local state store. Source: [SRC:python/cocoindex/__init__.py:L13] · [AST:examples/text_embedding/main.py:L1]
 
 <!-- [MANUAL:quick-start-notes] -->
 <!-- Add custom notes here. This section is preserved during skill updates. -->
@@ -141,7 +141,7 @@ result = await coco.show_progress(handle)
 
 # Deterministic identifiers from content dependencies (memoized; idempotent)
 chunk_id   = await coco.resources.id.generate_id(_dep=chunk.text)
-chunk_uuid = await coco.resources.id.generate_uuid(_dep=chunk.text)
+chunk_uuid = coco.resources.id.generate_uuid(_dep=chunk.text)  # sync def: no await
 
 # Detect a source file's language (for splitter pipelines)
 lang = coco.ops.text.detect_code_language(filename="foo.py")
@@ -171,7 +171,7 @@ Provenance: [AST:python/cocoindex/_internal/api.py:L603] [:L608] [:L613] [:L618]
 | `LifespanFn` | type alias | `Callable[[EnvironmentBuilder], Iterator[None] \| AsyncIterator[None]]`. | [AST:python/cocoindex/_internal/environment.py:L118] |
 | `lifespan` | decorator | `@coco.lifespan` registers an environment lifespan. Optional parens. | [AST:python/cocoindex/_internal/environment.py:L452] |
 | `fn` | decorator namespace | `@coco.fn` (preserves sync/async), `@coco.fn(memo=True)`, `@coco.fn(batching=True, max_batch_size=N, runner=GPU)`, `@coco.fn(version=N, logic_tracking="full"\|"self"\|None, deps=...)`. `@coco.fn.as_async(...)` always yields async. | [AST:python/cocoindex/_internal/function.py:L1578] [AST:python/cocoindex/_internal/function.py:L1811] |
-| `LogicTracking` | type alias | `Literal["full", "self"] \| None` — value type of the `logic_tracking=` kwarg on `@coco.fn`. `"full"` (default) tracks own code + transitive children, `"self"` tracks own code only, `None` disables tracking (incompatible with `deps`). | [AST:python/cocoindex/_internal/function.py:L65] |
+| `LogicTracking` | type alias | `Literal["full", "self"] \| None` — value type of the `logic_tracking=` kwarg on `@coco.fn`. `"full"` (default) tracks own code + transitive children, `"self"` tracks own code only, `None` disables tracking (incompatible with `deps`). | [SRC:python/cocoindex/_internal/function.py:L65] |
 | `mount` | async fn | `await coco.mount(processor_fn, *args, **kwargs) -> ComponentMountHandle`. | [AST:python/cocoindex/_internal/api.py:L349] |
 | `mount_each` | async fn | `await coco.mount_each(fn, items, *args) -> ComponentMountHandle`. | [AST:python/cocoindex/_internal/api.py:L445] |
 | `mount_target` | async fn | `await coco.mount_target(target_state) -> TargetStateProvider[ValueT, OptChildHandlerT]`. | [AST:python/cocoindex/_internal/api.py:L566] |
@@ -262,7 +262,7 @@ Provenance: [AST:python/cocoindex/_internal/stable_path.py:L9] [:L16] [:L59] · 
 
 ## Architecture at a Glance
 
-- **Public API entry point:** `python/cocoindex/__init__.py` does `from ._internal.api import *` and re-exports `_internal.api.__all__` (~74 symbols). Always import as `import cocoindex as coco`. [AST:python/cocoindex/__init__.py:L13]
+- **Public API entry point:** `python/cocoindex/__init__.py` does `from ._internal.api import *` and re-exports `_internal.api.__all__` (~74 symbols). Always import as `import cocoindex as coco`. [SRC:python/cocoindex/__init__.py:L13]
 - **API hub:** `python/cocoindex/_internal/api.py` is the canonical re-export module. It defines `mount`, `mount_each`, `mount_target`, `use_mount`, `map`, `start`, `stop`, `start_blocking`, `stop_blocking`, `default_env`, `runtime`, `ComponentMountHandle`, and re-exports the rest. [AST:python/cocoindex/_internal/api.py:L669]
 - **Component runtime:** `_internal/app.py` (App, AppConfig, UpdateHandle, DropHandle, show_progress), `_internal/environment.py` (Environment, EnvironmentBuilder, lifespan, start/stop), `_internal/runner.py` (Runner, GPU singleton).
 - **Component model:** `_internal/function.py` (`@coco.fn` builder + SyncFunction/AsyncFunction Protocols), `_internal/component_ctx.py` (ComponentContext, ComponentSubpath, exception_handler, use_context).
@@ -277,7 +277,7 @@ Provenance: [AST:python/cocoindex/_internal/stable_path.py:L9] [:L16] [:L59] · 
 
 ## CLI
 
-The `cocoindex` CLI is a click group ([AST:python/cocoindex/cli.py:L505]) with five subcommands ([AST:python/cocoindex/cli.py:L522] [:L561] [:L652] [:L745] [:L811]):
+The `cocoindex` CLI is a click group ([AST:python/cocoindex/cli.py:L505]) with five subcommands ([AST:python/cocoindex/cli.py:L522] [:L561] [:L692] [:L761] [:L819]):
 
 ```sh
 cocoindex -e .env -d app_dir <subcommand> ...

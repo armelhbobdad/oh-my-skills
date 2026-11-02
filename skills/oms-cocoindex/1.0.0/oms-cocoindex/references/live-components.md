@@ -77,12 +77,14 @@ class LiveMapSubscriber(Generic[_K, _V]):
 ### Consuming a streaming source
 
 ```python
+from confluent_kafka.aio import AIOConsumer
 from cocoindex.connectors import kafka
 
 @coco.fn
 async def app_main() -> None:
     target = await postgres.mount_table_target(...)
-    feed = kafka.topic_as_map(KAFKA_KEY, topic="events", group="ingestor")  # returns LiveMapFeed
+    consumer = AIOConsumer({"bootstrap.servers": "localhost:9092", "group.id": "ingestor", "enable.auto.commit": "false"})
+    feed = kafka.topic_as_map(consumer, ["events"])  # unsubscribed consumer + topics list; returns LiveMapFeed
     await coco.mount_each(process_event, feed, target)
 
 # Run with: app.update(live=True)

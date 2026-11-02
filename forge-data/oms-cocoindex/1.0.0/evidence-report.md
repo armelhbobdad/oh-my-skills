@@ -214,3 +214,54 @@ The full v0.3.37 evidence report is preserved at `forge-data/oms-cocoindex/0.3.3
 - Regenerated: true
 - Triggers fired: headline-exports
 - Notes: `LogicTracking` promoted into the snippet's `key-types:` line — the only surface change. No version bump and no new gotchas.
+
+## Update Operation — 2026-11-02 (gap-driven)
+
+**Trigger:** test-report `test-report-oms-cocoindex-20261102T190553Z-bac8090f.md` (FAIL, hard gate blocked on 2 Critical + 2 High; 117 gaps: 2 Critical, 2 High, 4 Medium, 8 Low, 101 Info), via `skf-update-skill --from-test-report --headless` under SKF 4.0.0
+**Forge Tier:** Deep
+**Mode:** gap-driven
+**Source commit:** 5fe4f37a (read as it stands; workspace drift check ok, HEAD == pinned)
+
+### Changes Detected
+- Files modified: 0 (source not compared: same pinned commit)
+- Files added: 0
+- Files deleted: 0
+- Exports affected: 15 gaps translated (verified 2, moved 7, missing 0, re-extracted 0, rescoped 0, unknown 3; 3 forwarded: GAP-116 and GAP-117 STRUCTURAL_FIX, GAP-106 metadata update)
+- Not routed: GAP-105 (brief-scope-stale), GAP-107 (multi-denominator), 100 Info observations (documented extras, no change)
+
+### Merge Results
+- Exports updated: 3 (`topic_as_map` GAP-001, `mount_collection_target` GAP-002, `LLMResolver` → `LlmPairResolver` GAP-027); `Chunk` (GAP-007) checked against `resources/chunk.py:26`, documentation unchanged
+- Exports added: 0
+- Exports removed: 0
+- Exports moved (citations and provenance lines): 7 (`AnyCallable` 138→63, `AsyncCallable` 138→62, `TargetActionSink.from_fn` 150→151, `TargetActionSink.from_async_fn` 157→158, `cli.update` 678→692 (doc citation L652→L692), `cli.drop` 745→761, `cli.init` 811→819); `ServerSettings.parse_cors_origins` left unknown (definition lines 117, 121, 124: overloads)
+- Structural fixes: GAP-117 dropped the `await` on `generate_uuid` at SKILL.md:144 (sync `def` at `resources/id.py:61`); GAP-116 (split-body) needs no reference edit once the body matches `references/resources.md:134`
+- Metadata patch: GAP-106 left to the automatic recount (no hand patch)
+- [MANUAL] sections preserved: 3
+- Conflicts resolved: 0
+
+### Scope and Targeted Re-Extraction
+- Authoritative files: none
+- Scope reconciliation before detection: none
+- Scope reconciliation after detection: none
+- Targeted re-extraction: none
+
+### Validation Summary
+- Spec compliance: PASS (skill-check quality score 100/100, 0 errors, 0 warnings, nothing fixed)
+- [MANUAL] integrity: PASS
+- Confidence tiers: WARN (relabeled `cocoindex (package)`, `LogicTracking`, `AnyCallable`, `AsyncCallable`, `ExceptionHandler` from `direct-read` T1 to `source-read` T1-low; backfilled `signature_source: T1` on 145 legacy `ast-grep` entries)
+- Provenance: WARN (fixed 4 citation prefixes AST→SRC: SKILL.md:82, :174, :265, references/component-api.md:186; left as WARN: `ServerSettings.parse_cors_origins` line 123 is not its definition (definition lines 117, 121, 124: overloads); node kinds `type_alias` invalid for `LifespanFn`, `PendingTargetStateProvider`, `StableKey` (kind-at: no-match); 36 orphaned entries (member and helper entries outside `exports[]`, carried over); 12 entries have no line to check, among them the `Chunk` and `LLMResolver` entries this repair's apply added with no source location)
+- Diff: SKIP (gap-driven: no previous version folder)
+- Security: SKIP (SNYK_TOKEN not configured)
+- Active link: active_symlink_update: ok (1.0.0)
+- Workspace clone: not moved (gap-driven repair at the pinned commit)
+
+### Description Guard
+- Restored: false
+- Triggering tool: —
+- Original description preserved: true
+- Notes: —
+
+### Context Snippet
+- Regenerated: false
+- Triggers fired: —
+- Notes: Gap-driven repair: the corrected signatures (topic_as_map, mount_collection_target) and the LlmPairResolver rename sit below the snippet surface, the version is unchanged and no gotcha changed.

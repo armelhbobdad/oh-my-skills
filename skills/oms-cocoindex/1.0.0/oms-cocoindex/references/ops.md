@@ -185,11 +185,20 @@ async def resolve_entities(...) -> ResolvedEntities: ...   # main entry point
 ```
 [AST:python/cocoindex/ops/entity_resolution/__init__.py:L35] [:L46] [:L57] [:L70] [:L97] [:L114] [:L186]
 
-Plus `llm_resolver.py` for an LLM-based `PairResolver` implementation. [AST:python/cocoindex/ops/entity_resolution/llm_resolver.py:L1]
+Plus `llm_resolver.py` for an LLM-based `PairResolver` implementation. [AST:python/cocoindex/ops/entity_resolution/llm_resolver.py:L1] Its only export is `LlmPairResolver` (`__all__ = ["LlmPairResolver"]`); the module defines no `LLMResolver`. [SRC:python/cocoindex/ops/entity_resolution/llm_resolver.py:L19] [:L49]
 
 ```python
 from cocoindex.ops import entity_resolution as er
-from cocoindex.ops.entity_resolution.llm_resolver import LLMResolver  # signature TBD — read source
+from cocoindex.ops.entity_resolution.llm_resolver import LlmPairResolver
+
+class LlmPairResolver:                      # satisfies er.PairResolver; uses instructor + litellm
+    def __init__(self, *, model: str, entity_type: str | None = None,
+                 extra_guidance: str | None = None, retries: int = 5) -> None: ...
+    async def __call__(self, entity: str, candidates: list[str]) -> PairDecision: ...  # @coco.fn(memo=True)
+
+resolver = LlmPairResolver(model="openai/gpt-4o-mini", entity_type="person")
+resolved = await er.resolve_entities(names, embedder=embedder, resolve_pair=resolver)  # embedder: any Embedder
 ```
+[SRC:python/cocoindex/ops/entity_resolution/llm_resolver.py:L59] [:L85] · [AST:python/cocoindex/ops/entity_resolution/__init__.py:L186]
 
 The entity-resolution surface is large (363 lines in `__init__.py` alone) — when working with it, read `python/cocoindex/ops/entity_resolution/__init__.py` directly for the full type signatures of `PairDecision`, `ExistingCanonicalPolicy`, `ResolvedEntities`, and the `resolve_entities` async function.

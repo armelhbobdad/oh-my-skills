@@ -37,7 +37,7 @@ class TargetActionSink(Generic[ActionT_contra, OptChildHandlerT_co]):
     @staticmethod
     def from_async_fn(fn: AsyncTargetActionSinkFn[ActionT_contra, OptChildHandlerT_co]) -> TargetActionSink[...]: ...
 ```
-[AST:python/cocoindex/_internal/target_state.py:L143] [:L150] [:L157]
+[AST:python/cocoindex/_internal/target_state.py:L143] [:L151] [:L158]
 
 Sink-fn signature ([AST:python/cocoindex/_internal/target_state.py:L99] [:L121]):
 ```python
