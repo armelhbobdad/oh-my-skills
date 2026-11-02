@@ -153,12 +153,24 @@ Source: `code/builders/builder-vite/`. Users rarely import from here — the fra
 
 ```ts
 // code/builders/builder-vite/src/index.ts
-export async function start(options: BuilderOptions): Promise<{ bail, stats, totalTime }>;
-export async function build(options: BuilderOptions): Promise<any>;
-export async function bail(): Promise<void>;
+export async function bail(): Promise<void>;                         // L37
+export const start: ViteBuilder['start'] = async ({ startTime, options, router, server }) => …;  // L41
+export const build: ViteBuilder['build'] = async ({ options }) => …;  // L63
 export const corePresets: string[];
-export function withoutVitePlugins(config: InlineConfig): InlineConfig;
-export function hasVitePlugins(config: InlineConfig): boolean;
+export { withoutVitePlugins } from './utils/without-vite-plugins';    // L14
+export { hasVitePlugins } from './utils/has-vite-plugins';            // L15
+
+// ViteBuilder = Builder<UserConfig, ViteStats>, so start and build take ONE args object
+// (code/core/src/types/modules/core-common.ts:259), not a positional BuilderOptions:
+//   start: (args: { options: Options; startTime: ReturnType<typeof process.hrtime>; router: ServerApp;
+//                   server: HttpServer; channel: ChannelLike })
+//     => Promise<void | { stats?: ViteStats; totalTime: ReturnType<typeof process.hrtime>; bail: (e?: Error) => Promise<void> }>
+//   build: (arg: { options: Options; startTime: ReturnType<typeof process.hrtime> }) => Promise<void | ViteStats>
+
+// code/builders/builder-vite/src/utils/without-vite-plugins.ts:2
+export const withoutVitePlugins = async <TPlugin>(plugins: TPlugin[] = [], namesToRemove: string[]): Promise<TPlugin[]> => …;
+// code/builders/builder-vite/src/utils/has-vite-plugins.ts:13
+export async function hasVitePlugins(plugins: PluginOption[], names: string[]): Promise<boolean>;
 
 export type ViteBuilder = Builder<UserConfig, ViteStats>;
 export type ViteFinal = (config: InlineConfig, options: Options) => InlineConfig | Promise<InlineConfig>;
@@ -166,7 +178,9 @@ export type StorybookConfigVite = { viteFinal?: ViteFinal };
 export type BuilderOptions = { viteConfigPath?: string };
 ```
 
-`[AST:code/builders/builder-vite/src/index.ts:L1]`
+Both plugin helpers work on a plugin array (they resolve async plugins and recurse into nested arrays), not on an `InlineConfig`. The builder's own build uses them this way: `await hasVitePlugins(finalConfig.plugins, [turbosnapPluginName])` resolves to a boolean, and `finalConfig.plugins = await withoutVitePlugins(finalConfig.plugins, [turbosnapPluginName])` replaces the array with the filtered one. `[SRC:code/builders/builder-vite/src/build.ts:L82]` `[SRC:code/builders/builder-vite/src/build.ts:L89]`
+
+`[AST:code/builders/builder-vite/src/index.ts:L37]` `[AST:code/builders/builder-vite/src/index.ts:L41]` `[AST:code/builders/builder-vite/src/index.ts:L63]` `[SRC:code/builders/builder-vite/src/utils/without-vite-plugins.ts:L2]` `[SRC:code/builders/builder-vite/src/utils/has-vite-plugins.ts:L13]` `[AST:code/builders/builder-vite/src/types.ts:L10]` `[SRC:code/core/src/types/modules/core-common.ts:L259]`
 
 ## `main.ts` configuration contract
 

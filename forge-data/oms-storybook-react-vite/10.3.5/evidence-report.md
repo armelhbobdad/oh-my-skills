@@ -244,3 +244,52 @@ None matched the `tessl-dismissal-rules.md` catalog — both novel suggestions s
 
 With the stratified denominator aligned to the authoring surface (GAP-005) and the two High-severity signature gaps resolved (GAP-001, GAP-002), running `skf-test-skill` against this package should land above the 80% threshold. The rescope (GAP-007) should also recover the tessl content score from 50% toward the 70–75% range, improving the external-validation component from 90% to ~92–95%.
 
+
+## Update Operation — 2026-11-02T22:32:34Z
+
+**Trigger:** test report `test-report-oms-storybook-react-vite-20261102T220003Z-e01e5ee1.md` (FAIL, hard gate: 14 Critical, 3 High), `skf-update-skill --from-test-report --headless`
+**Forge Tier:** Deep
+**Mode:** gap-driven
+**Source commit:** e486d382 (read as it stands; workspace HEAD matches the pinned commit)
+
+### Changes Detected
+- Files modified: 0 (gap-driven: no source drift compared)
+- Files added: 0
+- Files deleted: 0
+- Exports affected: 48 (14 signature fixes, 34 provenance-line moves; 3 structural fixes and 2 metadata updates forwarded; 46 Info gaps not routed)
+
+### Merge Results
+- Exports updated: 14 (Description, Primary, Stories, Story, ColorPalette, IconGallery, start, build, hasVitePlugins, withoutVitePlugins, composeStory, composeStories, mocked, create)
+- Exports added: 0
+- Exports removed: 0
+- [MANUAL] sections preserved: 4
+- Conflicts resolved: 0
+- Structural fixes: GAP-097 StoryObj Quick Start type line (SKILL.md), GAP-098 portable-stories import (SKILL.md), GAP-099 `## Key API Summary` added to SKILL.md
+- Citation moves: 15 moved-export citations in core-api.md, addons.md and doc-blocks.md
+
+### Scope and Targeted Re-Extraction
+- Authoritative files: none
+- Scope reconciliation before detection: none
+- Scope reconciliation after detection: none
+- Targeted re-extraction: none
+
+### Validation Summary
+- Spec compliance: PASS (quality score 100/100; skill-check check --fix: 0 diagnostics, nothing fixed)
+- [MANUAL] integrity: PASS
+- Confidence tiers: WARN (130 entries relabeled: extraction_method `ast-grep-update` set to `ast-grep`; labels stay T1, no entry moved to T1-low)
+- Provenance: WARN (verifier re-run status `findings`). Fixed by this section: 174 node kinds set from `kind-at` (139 `export_statement`, 35 `export_specifier`); `fix` applied no line or prefix fix. Left for a person: 45 unverified exports whose recorded line defines nothing the rules recognize (the 18 `code/addons/docs/src/blocks.ts:1` doc blocks, the `api-stories.ts` index types, the `*_exact`/`_def` variants, the a11y preview annotations, the testing-library re-exports, definePreview, the addon-themes decorators), 2 entries citing a missing file (`composeStory`, `setProjectAnnotations` at `code/renderers/react/src/portable-stories.ts:1`; the file is `.tsx`), 3 missing (Args, DocsPage, Parameters), 143 orphaned (entries outside the 82-name exports[]), 48 node kinds kind-at could not resolve (46 no-match, 2 file-missing). Citation prefixes: 0 findings (326 scanned, 220 matched).
+- Diff: SKIP (gap-driven: no previous version folder)
+- Security: SKIP (SNYK_TOKEN not configured)
+
+### Description Guard
+- Restored: false
+- Triggering tool: —
+- Original description preserved: —
+- Notes: —
+
+### Context Snippet
+- Regenerated: false
+- Triggers fired: —
+- Notes: Gap-driven repair — the snippet's headline names are unchanged (its `composeStories()` is name-only and the React form it points to did not change; GAP-012 corrected core's storybook/preview-api listing), the version stays 10.3.5 and no gotcha changed.
+
+Active symlink: active_symlink_update: ok (10.3.5). Workspace clone: not advanced (gap-driven repair at the pinned commit; no private source tree).

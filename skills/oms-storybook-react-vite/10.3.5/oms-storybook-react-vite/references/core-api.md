@@ -9,7 +9,7 @@ Every import this skill teaches, grouped by source package and subpath. Column 3
 | Import | Kind | From (v10 consolidated) |
 |---|---|---|
 | `Meta`, `StoryObj`, `StoryFn`, `Decorator`, `Parameters`, `ArgTypes`, `Args`, `StoryContext`, `Loader`, `Preview` | type | `@storybook/react-vite` *(or `@storybook/react`)* `[AST:code/renderers/react/src/public-types.ts:L29]` |
-| `StorybookConfig`, `FrameworkOptions` | type | `@storybook/react-vite` `[AST:code/frameworks/react-vite/src/types.ts:L1]` |
+| `StorybookConfig`, `FrameworkOptions` | type | `@storybook/react-vite` `[AST:code/frameworks/react-vite/src/types.ts:L66]` `[AST:code/frameworks/react-vite/src/types.ts:L14]` |
 | `defineMain` | function | `@storybook/react-vite/node` `[AST:code/frameworks/react-vite/src/node/index.ts:L3]` |
 | `expect`, `fn`, `within`, `screen`, `waitFor`, `userEvent`, `fireEvent`, `spyOn` | runtime | `storybook/test` `[AST:code/core/src/test/index.ts:L54]` |
 | `useState`, `useArgs`, `useParameter`, `useChannel`, `useEffect`, `useGlobals`, `useCallback`, `useMemo`, `useRef`, `useReducer`, `useStoryContext` | hook | `storybook/preview-api` `[AST:code/core/src/preview-api/index.ts:L5]` |
@@ -51,7 +51,7 @@ Entry: `code/core/src/test/index.ts`. These are the `play` function utilities �
 |---|---|---|---|
 | `expect` | const | Vitest/Chai-compatible assertion function with full matcher set | `[AST:code/core/src/test/expect.ts:L139]` |
 | `fn` | function | `fn<T>(impl?: T): Mock<T>` — create a mock function for `args` | `[AST:code/core/src/test/spy.ts:L48]` |
-| `spyOn` | function | `spyOn(obj, method)` — spy on an existing method | `[AST:code/core/src/test/spy.ts]` |
+| `spyOn` | function | `spyOn(obj, method)` — spy on an existing method | `[AST:code/core/src/test/spy.ts:L41]` |
 | `within` | function | `within(element)` — scope DOM queries to a subtree | `[AST:code/core/src/test/testing-library.ts:L110]` |
 | `screen` | const proxy | Global DOM query object (warns inside docs mode) | `[AST:code/core/src/test/testing-library.ts:L107]` |
 | `waitFor` | function | Wait for an async DOM condition | `[AST:code/core/src/test/testing-library.ts:L108]` |
@@ -91,8 +91,8 @@ Entry: `code/core/src/preview-api/index.ts`. Hooks run inside decorators and `re
 | `applyHooks` | function | Apply a hooks context (experimental) | `[AST:code/core/src/preview-api/index.ts:L16]` |
 | `addons` | const | Singleton `AddonStore` — register addon types, channels | `[AST:code/core/src/preview-api/index.ts:L28]` |
 | `mockChannel` | function | Create a mock channel for unit tests | `[AST:code/core/src/preview-api/index.ts:L28]` |
-| `composeStory` | function | `composeStory(story, componentAnnotations, projectAnnotations?, exportsName?)` — compose a single story for testing. Generic form with `<TArgs extends Args = Args>` lives at `code/renderers/react/src/portable-stories.tsx:106` — see `story-types.md` "Portable stories utilities" for the full parameterized signature. | `[AST:code/core/src/preview-api/index.ts:L52]` `[AST:code/renderers/react/src/portable-stories.tsx:L106]` |
-| `composeStories` | function | `composeStories(csfExports, projectAnnotations?)` — compose all stories from a CSF module | `[AST:code/core/src/preview-api/index.ts:L51]` |
+| `composeStory` | function | Core's renderer-agnostic form: `composeStory<TRenderer extends Renderer = Renderer, TArgs extends Args = Args>(storyAnnotations: LegacyStoryAnnotationsOrFn<TRenderer>, componentAnnotations: ComponentAnnotations<TRenderer, TArgs>, projectAnnotations?: ProjectAnnotations<TRenderer>, defaultConfig?: ProjectAnnotations<TRenderer>, exportsName?: string): ComposedStoryFn<TRenderer, Partial<TArgs>>`. `exportsName` is the fifth parameter here (the fourth binds to `defaultConfig`). Story authors on React+Vite import the four-parameter React wrapper from `@storybook/react-vite` instead; see `story-types.md` "Portable stories utilities". | `[SRC:code/core/src/preview-api/modules/store/csf/portable-stories.ts:L90]` `[AST:code/core/src/preview-api/index.ts:L52]` |
+| `composeStories` | function | Core's renderer-agnostic form: `composeStories<TModule extends Store_CSFExports>(storiesImport: TModule, globalConfig: ProjectAnnotations<Renderer>, composeStoryFn: ComposeStoryFn = defaultComposeStory)`, with `globalConfig` required and no annotated return type. Story authors on React+Vite import `composeStories(csfExports, projectAnnotations?)` from `@storybook/react-vite` instead; see `story-types.md` "Portable stories utilities". | `[SRC:code/core/src/preview-api/modules/store/csf/portable-stories.ts:L274]` `[AST:code/core/src/preview-api/index.ts:L51]` |
 | `setProjectAnnotations` | function | Set global project annotations for portable stories (call once in test setup) | `[AST:code/core/src/preview-api/index.ts:L46]` |
 | `definePreview` | function | Define a typed preview (CSF factory API) | `[AST:code/core/src/preview-api/index.ts]` |
 | `decorateStory`, `defaultDecorateStory`, `combineArgs`, `combineParameters`, `composeConfigs`, `composeStepRunners`, `normalizeArrays`, `normalizeStory`, `normalizeProjectAnnotations`, `prepareStory`, `prepareMeta`, `filterArgTypes`, `sanitizeStoryContextUpdate`, `setDefaultProjectAnnotations`, `inferControls`, `userOrAutoTitleFromSpecifier`, `userOrAutoTitle`, `sortStoriesV7` | function | Internal composition utilities (rarely imported by authors) | `[AST:code/core/src/preview-api/index.ts:L46-68]` |
@@ -137,7 +137,7 @@ These mirror Vitest's `vi.*` mock helpers but are re-exported through `storybook
 | `clearAllMocks` | function | `() => void` — clear call history, keep implementations | `[AST:code/core/src/test/spy.ts:L77]` |
 | `resetAllMocks` | function | `() => void` — reset call history and return values to undefined | `[AST:code/core/src/test/spy.ts:L89]` |
 | `restoreAllMocks` | function | `() => void` — restore original implementations (undo `spyOn`) | `[AST:code/core/src/test/spy.ts:L98]` |
-| `mocked` | function | `(item: T, options?: { partial?: boolean; deep?: boolean }) => MaybeMocked<T>` — TS type assertion helper | `[AST:code/core/src/test/spy.ts:L119]` |
+| `mocked` | function | Overloaded TS type helper that returns `item` unchanged: `mocked<T>(item: T): MaybeMocked<T>`; `mocked<T>(item: T, deep?: false): MaybeMocked<T>`; `mocked<T>(item: T, deep: true): MaybeMockedDeep<T>`; `mocked<T>(item: T, options: { partial?: false; deep?: false }): MaybeMocked<T>`; `mocked<T>(item: T, options: { partial?: false; deep: true }): MaybeMockedDeep<T>`; `mocked<T>(item: T, options: { partial: true; deep?: false }): MaybePartiallyMocked<T>`; `mocked<T>(item: T, options: { partial: true; deep: true }): MaybePartiallyMockedDeep<T>` | `[AST:code/core/src/test/spy.ts:L119]` |
 | `mocks` | const | `typeof mocks` — re-exported from `@vitest/spy`, set of active mocks | `[AST:code/core/src/test/spy.ts:L17]` |
 
 ## storybook/manager-api
@@ -161,11 +161,11 @@ Entry: `code/core/src/theming/index.ts`. Emotion-based styling used by Storybook
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
 | `styled` | const | Emotion `styled` — `styled.div\`...\`` | `[AST:code/core/src/theming/index.ts:L6]` |
-| `css` | function | Emotion `css` tagged template | `[AST:code/core/src/theming/index.ts:L10]` |
-| `keyframes` | function | Emotion `keyframes` for animations | `[AST:code/core/src/theming/index.ts:L10]` |
+| `css` | function | Emotion `css` tagged template | `[AST:code/core/src/theming/index.ts:L13]` |
+| `keyframes` | function | Emotion `keyframes` for animations | `[AST:code/core/src/theming/index.ts:L16]` |
 | `Global` | component | Emotion `Global` styles | `[AST:code/core/src/theming/index.ts:L10]` |
-| `ThemeProvider` | component | Emotion `ThemeProvider` with Storybook theme type | `[AST:code/core/src/theming/index.ts:L10]` |
-| `useTheme` | hook | Access current theme | `[AST:code/core/src/theming/index.ts:L10]` |
+| `ThemeProvider` | component | Emotion `ThemeProvider` with Storybook theme type | `[AST:code/core/src/theming/index.ts:L17]` |
+| `useTheme` | hook | Access current theme | `[AST:code/core/src/theming/index.ts:L18]` |
 | `withTheme` | HOC | HOC wrapper for class components | `[AST:code/core/src/theming/index.ts:L10]` |
 | `jsx` | function | Emotion JSX runtime | `[AST:code/core/src/theming/index.ts:L10]` |
 | `CacheProvider`, `ClassNames` | component | Emotion cache/classnames | `[AST:code/core/src/theming/index.ts:L10]` |
@@ -183,7 +183,7 @@ Entry: `code/core/src/theming/create.ts`. Used in `.storybook/manager.ts` or `pr
 
 | Export | Kind | Signature | Source |
 |---|---|---|---|
-| `create` | function | `create(vars: ThemeVarsPartial, rest?: Rest): ThemeVars` — build a theme from partial vars | `[AST:code/core/src/theming/create.ts:L29]` |
+| `create` | function | `create(vars: ThemeVarsPartial = { base: preferredColorScheme }, rest?: Rest): ThemeVars` — build a theme from partial vars; `vars` is optional, so `create()` returns the theme for the preferred color scheme | `[AST:code/core/src/theming/create.ts:L29]` |
 | `themes` | const | `{ light: ThemeVars; dark: ThemeVars; normal: ThemeVars }` — built-in themes | `[AST:code/core/src/theming/create.ts:L20]` |
 
 **Example:**
@@ -205,8 +205,8 @@ Entry: `code/core/src/actions/index.ts`. The `action()` function logs events to 
 
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
-| `action` | function | `action(name: string)` — create an action logger for an arg | `[AST:code/core/src/actions/runtime/action.ts]` |
-| `configureActions` | function | Global action config (max depth, clearOnStoryChange) | `[AST:code/core/src/actions/runtime/configureActions.ts]` |
+| `action` | function | `action(name: string)` — create an action logger for an arg | `[AST:code/core/src/actions/runtime/action.ts:L50]` |
+| `configureActions` | function | Global action config (max depth, clearOnStoryChange) | `[AST:code/core/src/actions/runtime/configureActions.ts:L9]` |
 | `ActionDisplay`, `ActionsFunction`, `ActionOptions`, `ActionsMap`, `HandlerFunction` | type | Action payload types | `[AST:code/core/src/actions/models/index.ts:L1]` |
 
 **Note:** Prefer `fn()` from `storybook/test` over `action()` in v10 — `fn()` records calls AND allows assertions in `play`. Use `action()` only when the arg is a plain callback with no `play` assertions.

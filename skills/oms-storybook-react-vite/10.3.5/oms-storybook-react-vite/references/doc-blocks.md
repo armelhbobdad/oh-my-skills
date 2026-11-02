@@ -28,9 +28,9 @@ import { Meta, Canvas, Controls, Primary, Stories } from '@storybook/addon-docs/
 | Component | Props (simplified) | Purpose | Source |
 |---|---|---|---|
 | `Canvas` | `{ of, meta, sourceState, layout, source, story, withToolbar, additionalActions, className }` | Render story preview with optional source panel. `of` → story export from `import * as stories`. See [`Canvas` props detail](#canvas-props-detail) below. | `[AST:code/addons/docs/src/blocks/blocks/Canvas.tsx:L100]` |
-| `Story` | `{ of, expanded, ... }` | Render single story by import reference. | `[AST:code/addons/docs/src/blocks.ts]` |
-| `Primary` | `{ of? }` | Render the first story (or specified meta's primary). | `[AST:code/addons/docs/src/blocks.ts]` |
-| `Stories` | `{ of?, includePrimary?, title? }` | Render all stories from a CSF module as a list. | `[AST:code/addons/docs/src/blocks.ts]` |
+| `Story` | `{ of?, meta?, inline?, height?, autoplay? }` (`StoryProps`; also the internal `__forceInitialArgs?`, `__primary?`) | Render a single story by import reference (`of`; defaults to the current story). Pass `meta` (all exports of the CSF file) when the MDX page is unattached. `expanded` is a `DocsStory` prop, not a `Story` prop. | `[SRC:code/addons/docs/src/blocks/blocks/Story.tsx:L134]` |
+| `Primary` | none (`FC` with no props) | Render the primary story of the attached CSF file (`usePrimaryStory()`); it takes no `of`. | `[SRC:code/addons/docs/src/blocks/blocks/Primary.tsx:L16]` |
+| `Stories` | `{ title?: ReactElement \| string; includePrimary?: boolean }` | Render every story of the attached CSF file (`DocsContext.componentStories()`) as a list; it takes no `of`. `title` defaults to `'Stories'`, `includePrimary` to `true`. | `[SRC:code/addons/docs/src/blocks/blocks/Stories.tsx:L74]` |
 
 ### `Canvas` props detail
 
@@ -74,7 +74,7 @@ import * as ButtonStories from './Button.stories';
 | `Meta` | `{ of?, title? }` | Declare component metadata in an MDX doc — connects the MDX page to a CSF module. Required once per doc. |
 | `Title` | `{ children? }` | Render page title (defaults to `meta.title`). |
 | `Subtitle` | `{ children? }` | Render page subtitle (defaults to `parameters.docs.subtitle`). |
-| `Description` | `{ of?, markdown? }` | Render auto-generated or custom description. Pulls from component JSDoc or `parameters.docs.description`. |
+| `Description` | `{ of?: Of }` | Render the description of the resolved `of` (the attached meta when omitted): `parameters.docs.description.story` for a story, `parameters.docs.description.component` or the component's docgen description for a meta or component. There is no `markdown` prop. `[SRC:code/addons/docs/src/blocks/blocks/Description.tsx:L74]` |
 
 ## Control blocks
 
@@ -99,9 +99,9 @@ import * as ButtonStories from './Button.stories';
 | Component | Props | Purpose |
 |---|---|---|
 | `Typeset` | `{ fontSizes, fontWeight, sampleText, fontFamily }` | Font family / size display for design system docs. |
-| `ColorPalette` | `{ children: ColorItem[] }` | Color swatch collection. |
+| `ColorPalette` | `{ children?: React.ReactNode }` | Color swatch collection: pass `ColorItem` elements as its children. `[SRC:code/addons/docs/src/blocks/components/ColorPalette.tsx:L202]` |
 | `ColorItem` | `{ title, subtitle, colors }` | Single color swatch with label. |
-| `IconGallery` | `{ children: IconItem[] }` | Icon collection display. |
+| `IconGallery` | `{ children?: React.ReactNode }` | Icon grid: pass `IconItem` elements as its children. `[SRC:code/addons/docs/src/blocks/components/IconGallery.tsx:L74]` |
 | `IconItem` | `{ name, children }` | Single icon display. |
 
 ## Container blocks
@@ -127,7 +127,7 @@ import * as ButtonStories from './Button.stories';
 
 ## DocsRenderer
 
-Entry: `code/addons/docs/src/index.ts` exports `DocsRenderer` — the React component that renders an entire docs page. Rarely imported directly; registered via `addons: ['@storybook/addon-docs']` in `main.ts`. `[AST:code/addons/docs/src/index.ts:L1]`
+Entry: `code/addons/docs/src/index.ts` exports `DocsRenderer` — the React component that renders an entire docs page. Rarely imported directly; registered via `addons: ['@storybook/addon-docs']` in `main.ts`. `[AST:code/addons/docs/src/index.ts:L8]`
 
 ## Control Primitives
 

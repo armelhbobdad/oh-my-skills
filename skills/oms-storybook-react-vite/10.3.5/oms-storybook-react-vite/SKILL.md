@@ -114,13 +114,33 @@ Sources for the two templates above: `[AST:code/renderers/react/src/public-types
 `import { useState, useArgs, useParameter } from 'storybook/preview-api'` → `const [{ label }, updateArgs] = useArgs()` reads/writes current story args. `[AST:code/core/src/preview-api/index.ts:L5]`
 
 **Use a component portably in Vitest:**
-`import { composeStories } from 'storybook/preview-api'` (or `'@storybook/react'`) → `const { Primary } = composeStories(stories)` → `render(<Primary />)`. Requires `addon-vitest` + `setProjectAnnotations(projectAnnotations)` once in test setup. `[AST:code/core/src/preview-api/index.ts:L51]` `[QMD:oms-storybook-react-vite-temporal:changelog.md #28907]`
+`import { composeStories } from '@storybook/react-vite'` (re-exported from `@storybook/react`, which defines `composeStories(csfExports, projectAnnotations?)`) → `const { Primary } = composeStories(stories)` → `render(<Primary />)`. Requires `addon-vitest` + `setProjectAnnotations(projectAnnotations)` once in test setup. Do not take it from `storybook/preview-api`: that export is core's renderer-agnostic `composeStories(storiesImport, globalConfig, composeStoryFn?)`, whose `globalConfig` is required. `[AST:code/renderers/react/src/portable-stories.tsx:L148]` `[SRC:code/frameworks/react-vite/src/index.ts:L1]` `[SRC:code/core/src/preview-api/modules/store/csf/portable-stories.ts:L274]` `[QMD:oms-storybook-react-vite-temporal:changelog.md #28907]`
 
 **Author an MDX docs page:**
 `import { Meta, Canvas, Controls, Primary, Stories } from '@storybook/addon-docs/blocks'` → `<Meta of={ButtonStories} />` → `<Primary />` / `<Canvas of={ButtonStories.Secondary} />` / `<Controls />` / `<Stories />`. `[AST:code/addons/docs/src/blocks.ts:L1]`
 
 **Verify a story after writing it:**
 `npm run storybook` → open `http://localhost:6006` → confirm the story renders in the canvas with no console errors → if it has a `play` function, check the Interactions panel shows each step passing. For CI verification use `npm run test-storybook` (requires `addon-vitest` configured in `main.ts`). `[EXT:https://storybook.js.org/docs/writing-tests/test-runner]`
+
+## Key API Summary
+
+The exports a story author reaches for most, each with the import path v10 uses. Full signatures live in `references/core-api.md`, `references/story-types.md` and `references/doc-blocks.md`.
+
+| Export | Import from | Purpose and key params | Source |
+|---|---|---|---|
+| `Meta<TCmpOrArgs = Args>` | `@storybook/react-vite` | Type of the default-export meta: `const meta = { component } satisfies Meta<typeof X>` | `[AST:code/renderers/react/src/public-types.ts:L29]` |
+| `StoryObj<TMetaOrCmpOrArgs = Args>` | `@storybook/react-vite` | Type of each CSF3 story export: `type Story = StoryObj<typeof meta>` | `[AST:code/renderers/react/src/public-types.ts:L47]` |
+| `Decorator<TArgs = StrictArgs>` | `@storybook/react-vite` | `DecoratorFunction<ReactRenderer, TArgs>`: `(Story) => <Wrapper><Story /></Wrapper>` | `[AST:code/renderers/react/src/public-types.ts:L77]` |
+| `Preview` | `@storybook/react-vite` | `ProjectAnnotations<ReactRenderer>`, the `.storybook/preview.ts` default export | `[AST:code/renderers/react/src/public-types.ts:L80]` |
+| `fn` | `storybook/test` | `fn<T>(implementation?: T): Mock<T>`: mock an `args` callback, then assert on it in `play` | `[AST:code/core/src/test/spy.ts:L48]` |
+| `expect` | `storybook/test` | Vitest-compatible assertions inside `play` (`await expect(...)`) | `[AST:code/core/src/test/expect.ts:L139]` |
+| `userEvent`, `within` | `storybook/test` | Simulate user interactions; scope DOM queries to one element | `[AST:code/core/src/test/testing-library.ts:L123]` `[AST:code/core/src/test/testing-library.ts:L110]` |
+| `useArgs` | `storybook/preview-api` | `[args, updateArgs, resetArgs]` inside a decorator or `render` | `[AST:code/core/src/preview-api/index.ts:L5]` |
+| `composeStories` | `@storybook/react-vite` | `composeStories(csfExports, projectAnnotations?)`: render stories in Vitest or Jest | `[AST:code/renderers/react/src/portable-stories.tsx:L148]` |
+| `setProjectAnnotations` | `@storybook/react-vite` | Apply the `preview.ts` annotations once in test setup | `[AST:code/renderers/react/src/portable-stories.tsx:L46]` |
+| `withThemeByClassName` | `@storybook/addon-themes` | `withThemeByClassName({ themes, defaultTheme, parentSelector? })`: theme-switching decorator | `[AST:code/addons/themes/src/index.ts:L1]` |
+| `create` | `storybook/theming/create` | `create(vars?, rest?)`: build a custom manager or docs theme | `[AST:code/core/src/theming/create.ts:L29]` |
+| `Meta`, `Canvas`, `Controls`, `Primary`, `Stories` | `@storybook/addon-docs/blocks` | MDX doc blocks: `<Meta of={ButtonStories} />`, `<Canvas of={ButtonStories.Primary} />` | `[AST:code/addons/docs/src/blocks.ts:L1]` |
 
 ## v10 Import Corrections (the training-data drift this skill fixes)
 
@@ -153,15 +173,15 @@ The three types every CSF3 story file needs — just enough for the Quick Start 
 ```ts
 // @storybook/react-vite re-exports these from @storybook/react
 type Meta<TCmpOrArgs = Args>;      // component metadata — use with `satisfies Meta<typeof X>`
-type StoryObj<TMeta>;              // CSF3 story — `export const X: Story = { args: {...} }`
+type StoryObj<TMetaOrCmpOrArgs = Args>;  // CSF3 story — `type Story = StoryObj<typeof meta>`, then `export const X: Story = { args: {...} }`
 type Preview = ProjectAnnotations<ReactRenderer>;  // shape of .storybook/preview.ts default export
 ```
 
-`[AST:code/renderers/react/src/public-types.ts:L29]` `[AST:code/renderers/react/src/public-types.ts:L80]`
+`[AST:code/renderers/react/src/public-types.ts:L29]` `[AST:code/renderers/react/src/public-types.ts:L47]` `[AST:code/renderers/react/src/public-types.ts:L80]`
 
 ## Architecture at a Glance
 
-Layer model: `@storybook/react-vite` (framework) composes `@storybook/react` (renderer) + `@storybook/builder-vite` (builder). Defect localization: story render failures → renderer; Vite HMR/build failures → builder; `main.ts` framework pick or addon auto-detect → framework; `play` function assertions → `storybook/test`; addon panel missing → the specific addon package. Full layer composition, `main.ts` contract, and `preview.ts` authoring surface live in `references/framework-config.md`. `[AST:code/frameworks/react-vite/src/index.ts:L1]` `[AST:code/renderers/react/src/public-types.ts:L1]` `[AST:code/builders/builder-vite/src/index.ts:L1]`
+Layer model: `@storybook/react-vite` (framework) composes `@storybook/react` (renderer) + `@storybook/builder-vite` (builder). Defect localization: story render failures → renderer; Vite HMR/build failures → builder; `main.ts` framework pick or addon auto-detect → framework; `play` function assertions → `storybook/test`; addon panel missing → the specific addon package. Full layer composition, `main.ts` contract, and `preview.ts` authoring surface live in `references/framework-config.md`. `[SRC:code/frameworks/react-vite/src/index.ts:L1]` `[AST:code/renderers/react/src/public-types.ts:L1]` `[AST:code/builders/builder-vite/src/index.ts:L1]`
 
 ## CLI
 
