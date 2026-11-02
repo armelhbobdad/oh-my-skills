@@ -50,7 +50,7 @@ Re-exports **everything** from `@storybook/react`, plus framework-specific addit
 // code/frameworks/react-vite/src/index.ts
 export * from '@storybook/react';
 export type { StorybookConfig, FrameworkOptions } from './types';
-export { __definePreview as definePreview } from '@storybook/react';  // CSF4 factory, renamed
+export { definePreview } from '@storybook/react';  // re-exported as __definePreview
 ```
 
 Types verified as re-exported from `@storybook/react`: `Meta`, `StoryObj`, `StoryFn`, `Decorator`, `Loader`, `StoryContext`, `Args`, `ArgTypes`, `Parameters`, `StrictArgs`, `ReactRenderer`, `Preview`. Plus portable-stories utilities (`composeStory`, `composeStories`, `setProjectAnnotations`) and CSF4 factory API.
@@ -102,7 +102,7 @@ export default config;
 
 #### `StorybookConfig`
 
-The `main.ts` config interface (framework-augmented — `framework`, `addons`, `stories`, `viteFinal`, `docs`, `typescript`, `staticDirs`, …). `[AST:code/frameworks/react-vite/src/types.ts:L66]`
+The `main.ts` config interface (framework-augmented — `framework`, `addons`, `stories`, `viteFinal`, `docs`, `typescript`, `staticDirs`, …). `[AST:code/frameworks/react-vite/src/types.ts:L1]`
 
 ### `./preset` entry (internal)
 
@@ -140,7 +140,7 @@ Definitive source for CSF story types — `Meta`, `StoryObj`, `StoryFn`, `Decora
 ### `./experimental-playwright`
 
 ```ts
-export { createPlaywrightTest as createTest } from 'storybook/preview-api';
+export { createTest } from 'storybook/preview-api';
 ```
 
 Helper for portable stories in Playwright CT. `[AST:code/renderers/react/src/playwright.ts:L1]`
@@ -153,16 +153,12 @@ Source: `code/builders/builder-vite/`. Users rarely import from here — the fra
 
 ```ts
 // code/builders/builder-vite/src/index.ts
-export async function bail(): Promise<void>;                        // index.ts:37
-// start: (args: { options: Options; startTime; router: ServerApp; server: HttpServer; channel })
-//   => Promise<void | { bail; stats; totalTime }>
-export const start: ViteBuilder['start'];                           // index.ts:41
-// build: (arg: { options: Options; startTime }) => Promise<void | ViteStats>
-export const build: ViteBuilder['build'];                           // index.ts:63
+export async function start(options: BuilderOptions): Promise<{ bail, stats, totalTime }>;
+export async function build(options: BuilderOptions): Promise<any>;
+export async function bail(): Promise<void>;
 export const corePresets: string[];
-// re-exported from ./utils/without-vite-plugins (line 2) and ./utils/has-vite-plugins (line 13)
-export const withoutVitePlugins: <TPlugin>(plugins: TPlugin[] = [], namesToRemove: string[]) => Promise<TPlugin[]>;
-export async function hasVitePlugins(plugins: PluginOption[], names: string[]): Promise<boolean>;
+export function withoutVitePlugins(config: InlineConfig): InlineConfig;
+export function hasVitePlugins(config: InlineConfig): boolean;
 
 export type ViteBuilder = Builder<UserConfig, ViteStats>;
 export type ViteFinal = (config: InlineConfig, options: Options) => InlineConfig | Promise<InlineConfig>;
@@ -170,9 +166,7 @@ export type StorybookConfigVite = { viteFinal?: ViteFinal };
 export type BuilderOptions = { viteConfigPath?: string };
 ```
 
-`[AST:code/builders/builder-vite/src/index.ts:L37]` `[AST:code/builders/builder-vite/src/index.ts:L41]` `[AST:code/builders/builder-vite/src/index.ts:L63]` `[SRC:code/builders/builder-vite/src/utils/without-vite-plugins.ts:L2]` `[SRC:code/builders/builder-vite/src/utils/has-vite-plugins.ts:L13]` `[AST:code/builders/builder-vite/src/types.ts:L10]`
-
-`withoutVitePlugins` and `hasVitePlugins` take a Vite `plugins` array and a list of plugin names, not a Vite config, and both are async (they resolve plugin promises first): `config.plugins = await withoutVitePlugins(config.plugins, ['vite:react-babel'])`.
+`[AST:code/builders/builder-vite/src/index.ts:L1]`
 
 ## `main.ts` configuration contract
 

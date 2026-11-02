@@ -9,13 +9,13 @@ Every import this skill teaches, grouped by source package and subpath. Column 3
 | Import | Kind | From (v10 consolidated) |
 |---|---|---|
 | `Meta`, `StoryObj`, `StoryFn`, `Decorator`, `Parameters`, `ArgTypes`, `Args`, `StoryContext`, `Loader`, `Preview` | type | `@storybook/react-vite` *(or `@storybook/react`)* `[AST:code/renderers/react/src/public-types.ts:L29]` |
-| `StorybookConfig`, `FrameworkOptions` | type | `@storybook/react-vite` `[AST:code/frameworks/react-vite/src/types.ts:L66]` `[AST:code/frameworks/react-vite/src/types.ts:L14]` |
+| `StorybookConfig`, `FrameworkOptions` | type | `@storybook/react-vite` `[AST:code/frameworks/react-vite/src/types.ts:L1]` |
 | `defineMain` | function | `@storybook/react-vite/node` `[AST:code/frameworks/react-vite/src/node/index.ts:L3]` |
 | `expect`, `fn`, `within`, `screen`, `waitFor`, `userEvent`, `fireEvent`, `spyOn` | runtime | `storybook/test` `[AST:code/core/src/test/index.ts:L54]` |
 | `useState`, `useArgs`, `useParameter`, `useChannel`, `useEffect`, `useGlobals`, `useCallback`, `useMemo`, `useRef`, `useReducer`, `useStoryContext` | hook | `storybook/preview-api` `[AST:code/core/src/preview-api/index.ts:L5]` |
 | `addons`, `makeDecorator`, `mockChannel` | runtime | `storybook/preview-api` `[AST:code/core/src/preview-api/index.ts:L21]` |
 | `composeStories`, `composeStory`, `setProjectAnnotations` | runtime | **`@storybook/react-vite`** *(canonical for React+Vite — re-exported from `@storybook/react` where they're defined)* `[AST:code/renderers/react/src/portable-stories.tsx:L148]` |
-| `definePreview` *(CSF4 factory: `@storybook/react` exports it as `__definePreview`, and `@storybook/react-vite` re-exports that function under the name `definePreview`)* | runtime | `@storybook/react-vite` `[SRC:code/frameworks/react-vite/src/index.ts:L2]` `[AST:code/renderers/react/src/preview.tsx:L55]` |
+| `__definePreview` *(CSF4 factory — the double-underscore form is the canonical public export name in `@storybook/react-vite` / `@storybook/react`; `definePreview` is a user-facing alias in the docs but the symbol emitted from the framework package is `__definePreview`)* | runtime | `@storybook/react-vite` `[AST:code/renderers/react/src/preview.tsx:L55]` |
 | `action` | runtime | `storybook/actions` `[AST:code/core/src/actions/index.ts:L1]` |
 | `create`, `themes`, `styled`, `css`, `useTheme`, `ThemeProvider` | runtime | `storybook/theming` / `storybook/theming/create` `[AST:code/core/src/theming/create.ts:L29]` |
 | `HIGHLIGHT`, `RESET_HIGHLIGHT` | const | `storybook/highlight` `[AST:code/core/src/highlight/index.ts:L1]` |
@@ -40,10 +40,8 @@ The rest of this file documents each `storybook/*` subpath in detail. CSF types 
 - [`storybook/internal/csf`](#storybookinternalcsf) — CSF helpers
 - [`storybook/internal/preview-errors`](#storybookinternalpreview-errors) — Preview error classes
 - [`storybook/internal/server-errors`](#storybookinternalserver-errors) — Server error classes
-- [`storybook/internal/components`](#storybookinternalcomponents) — Addon panel UI components (outside this skill's scope)
+- [`storybook/internal/components`](#storybookinternalcomponents) — Addon panel UI components
 - [Infrastructure subpaths (tier C)](#infrastructure-subpaths-tier-c) — channels, router, loggers, etc.
-
-The full export lists of these subpaths, with declarations and source lines, are in `api-index-core.md` and `api-index-types.md`.
 
 ## storybook/test
 
@@ -51,17 +49,17 @@ Entry: `code/core/src/test/index.ts`. These are the `play` function utilities �
 
 | Export | Kind | Signature / Purpose | Source |
 |---|---|---|---|
-| `expect` | const | Vitest/Chai-compatible assertion function with full matcher set; the public export is the instrumented one, destructured as `export const { expect } = instrument({ expect: createExpect() }, …)` | `[SRC:code/core/src/test/index.ts:L24]` `[AST:code/core/src/test/expect.ts:L139]` |
+| `expect` | const | Vitest/Chai-compatible assertion function with full matcher set | `[AST:code/core/src/test/expect.ts:L139]` |
 | `fn` | function | `fn<T>(impl?: T): Mock<T>` — create a mock function for `args` | `[AST:code/core/src/test/spy.ts:L48]` |
-| `spyOn` | function | `spyOn(obj, method)` — spy on an existing method (typed as Vitest's `spyOn`) | `[AST:code/core/src/test/spy.ts:L41]` |
-| `within` | function | `within(element)` — scope DOM queries to a subtree; destructured from the instrumented `@testing-library/dom` namespace (`export const { …, within, … } = testingLibrary`, opened at line 39) | `[AST:code/core/src/test/testing-library.ts:L110]` |
-| `screen` | const proxy | Global DOM query object (warns inside docs mode); destructured from the same instrumented namespace | `[AST:code/core/src/test/testing-library.ts:L107]` |
-| `waitFor` | function | Wait for an async DOM condition; destructured from the same instrumented namespace | `[AST:code/core/src/test/testing-library.ts:L108]` |
-| `fireEvent` | const | Promisified `@testing-library/dom` fireEvent; destructured from the same instrumented namespace | `[AST:code/core/src/test/testing-library.ts:L43]` |
-| `userEvent` | const | Full `@testing-library/user-event` API, destructured as `export const { userEvent } = instrument({ userEvent: _userEvent.userEvent }, …)` | `[AST:code/core/src/test/testing-library.ts:L123]` |
-| `getByRole` / `findByRole` / `queryByRole` (+ 30 other `*ByText`, `*ByLabelText`, `*ByPlaceholderText`, `*ByTestId` queries) | function | DOM element query helpers, destructured from the instrumented namespace in the statement that opens at line 39 | `[AST:code/core/src/test/testing-library.ts:L39]` |
+| `spyOn` | function | `spyOn(obj, method)` — spy on an existing method | `[AST:code/core/src/test/spy.ts]` |
+| `within` | function | `within(element)` — scope DOM queries to a subtree | `[AST:code/core/src/test/testing-library.ts:L110]` |
+| `screen` | const proxy | Global DOM query object (warns inside docs mode) | `[AST:code/core/src/test/testing-library.ts:L107]` |
+| `waitFor` | function | Wait for an async DOM condition | `[AST:code/core/src/test/testing-library.ts:L108]` |
+| `fireEvent` | const | Promisified `@testing-library/dom` fireEvent | `[AST:code/core/src/test/testing-library.ts:L43]` |
+| `userEvent` | const | Full `@testing-library/user-event` API | `[AST:code/core/src/test/testing-library.ts:L123]` |
+| `getByRole` / `findByRole` / `queryByRole` (+ 30 other `*ByText`, `*ByLabelText`, `*ByPlaceholderText`, `*ByTestId` queries) | function | DOM element query helpers | `[AST:code/core/src/test/testing-library.ts:L39-112]` |
 | `sb` | const | `{ mock }` — module-level mock utilities | `[AST:code/core/src/test/index.ts:L54]` |
-| `Mock`, `MockInstance`, `MaybeMocked` | type | Mock function type helpers, re-exported from `@vitest/spy` by `export type * from '@vitest/spy'` | `[SRC:code/core/src/test/spy.ts:L15]` |
+| `Mock`, `MockInstance`, `MaybeMocked` | type | Mock function type helpers | `[AST:code/core/src/test/spy.ts]` |
 
 **Migration note:** `@storybook/test` is the v9-and-earlier package name and is **deprecated**. Always import from `storybook/test` in v10. `[QMD:oms-storybook-react-vite-temporal:issues.md #9b8716]`
 
@@ -93,10 +91,10 @@ Entry: `code/core/src/preview-api/index.ts`. Hooks run inside decorators and `re
 | `applyHooks` | function | Apply a hooks context (experimental) | `[AST:code/core/src/preview-api/index.ts:L16]` |
 | `addons` | const | Singleton `AddonStore` — register addon types, channels | `[AST:code/core/src/preview-api/index.ts:L28]` |
 | `mockChannel` | function | Create a mock channel for unit tests | `[AST:code/core/src/preview-api/index.ts:L28]` |
-| `composeStory` | function | `composeStory<TRenderer, TArgs>(storyAnnotations: LegacyStoryAnnotationsOrFn<TRenderer>, componentAnnotations: ComponentAnnotations<TRenderer, TArgs>, projectAnnotations?: ProjectAnnotations<TRenderer>, defaultConfig?: ProjectAnnotations<TRenderer>, exportsName?: string): ComposedStoryFn<TRenderer, Partial<TArgs>>` — the renderer-agnostic primitive. React+Vite story tests use the four-parameter `composeStory(story, componentAnnotations, projectAnnotations?, exportsName?)` from `@storybook/react-vite` instead (`story-types.md` "Portable stories utilities"). | `[SRC:code/core/src/preview-api/modules/store/csf/portable-stories.ts:L90]` `[AST:code/core/src/preview-api/index.ts:L52]` |
-| `composeStories` | function | `composeStories<TModule extends Store_CSFExports>(storiesImport: TModule, globalConfig: ProjectAnnotations<Renderer>, composeStoryFn: ComposeStoryFn = defaultComposeStory)` — the renderer-agnostic primitive; `globalConfig` is required. React+Vite story tests use `composeStories(csfExports, projectAnnotations?)` from `@storybook/react-vite` instead. | `[SRC:code/core/src/preview-api/modules/store/csf/portable-stories.ts:L274]` `[AST:code/core/src/preview-api/index.ts:L51]` |
+| `composeStory` | function | `composeStory(story, componentAnnotations, projectAnnotations?, exportsName?)` — compose a single story for testing. Generic form with `<TArgs extends Args = Args>` lives at `code/renderers/react/src/portable-stories.tsx:106` — see `story-types.md` "Portable stories utilities" for the full parameterized signature. | `[AST:code/core/src/preview-api/index.ts:L52]` `[AST:code/renderers/react/src/portable-stories.tsx:L106]` |
+| `composeStories` | function | `composeStories(csfExports, projectAnnotations?)` — compose all stories from a CSF module | `[AST:code/core/src/preview-api/index.ts:L51]` |
 | `setProjectAnnotations` | function | Set global project annotations for portable stories (call once in test setup) | `[AST:code/core/src/preview-api/index.ts:L46]` |
-| `definePreview` | function | **Not exported by `storybook/preview-api`.** The CSF4 factory comes from `@storybook/react-vite` (`definePreview`, the renderer's `__definePreview` re-exported under that name) for React+Vite projects; the renderer-agnostic `definePreview` is in `storybook/internal/csf` | `[SRC:code/frameworks/react-vite/src/index.ts:L2]` `[SRC:code/core/src/csf/csf-factories.ts:L45]` |
+| `definePreview` | function | Define a typed preview (CSF factory API) | `[AST:code/core/src/preview-api/index.ts]` |
 | `decorateStory`, `defaultDecorateStory`, `combineArgs`, `combineParameters`, `composeConfigs`, `composeStepRunners`, `normalizeArrays`, `normalizeStory`, `normalizeProjectAnnotations`, `prepareStory`, `prepareMeta`, `filterArgTypes`, `sanitizeStoryContextUpdate`, `setDefaultProjectAnnotations`, `inferControls`, `userOrAutoTitleFromSpecifier`, `userOrAutoTitle`, `sortStoriesV7` | function | Internal composition utilities (rarely imported by authors) | `[AST:code/core/src/preview-api/index.ts:L46-68]` |
 | `HooksContext` | type | Hooks context shape | `[AST:code/core/src/preview-api/index.ts:L17]` |
 | `DocsContext` | type | Autodocs rendering context | `[AST:code/core/src/preview-api/index.ts:L41]` |
@@ -139,7 +137,7 @@ These mirror Vitest's `vi.*` mock helpers but are re-exported through `storybook
 | `clearAllMocks` | function | `() => void` — clear call history, keep implementations | `[AST:code/core/src/test/spy.ts:L77]` |
 | `resetAllMocks` | function | `() => void` — reset call history and return values to undefined | `[AST:code/core/src/test/spy.ts:L89]` |
 | `restoreAllMocks` | function | `() => void` — restore original implementations (undo `spyOn`) | `[AST:code/core/src/test/spy.ts:L98]` |
-| `mocked` | function | overloads: `mocked<T>(item: T, deep?: false): MaybeMocked<T>`; `mocked<T>(item: T, deep: true): MaybeMockedDeep<T>`; `mocked<T>(item: T, options: { partial?: false; deep?: false }): MaybeMocked<T>`; `mocked<T>(item: T, options: { partial?: false; deep: true }): MaybeMockedDeep<T>`; `mocked<T>(item: T, options: { partial: true; deep?: false }): MaybePartiallyMocked<T>`; `mocked<T>(item: T, options: { partial: true; deep: true }): MaybePartiallyMockedDeep<T>`; `mocked<T>(item: T): MaybeMocked<T>` — TS type helper that returns `item` unchanged; the return type follows `deep` (boolean second argument or option) and `partial` | `[AST:code/core/src/test/spy.ts:L119]` |
+| `mocked` | function | `(item: T, options?: { partial?: boolean; deep?: boolean }) => MaybeMocked<T>` — TS type assertion helper | `[AST:code/core/src/test/spy.ts:L119]` |
 | `mocks` | const | `typeof mocks` — re-exported from `@vitest/spy`, set of active mocks | `[AST:code/core/src/test/spy.ts:L17]` |
 
 ## storybook/manager-api
@@ -150,10 +148,10 @@ Entry: `code/core/src/manager-api/index.ts`. Used when writing a **manager-side*
 |---|---|---|---|
 | (re-exports `./root`) | — | Full addon manager API: story selection, notifications, refs, globals, settings | `[AST:code/core/src/manager-api/index.ts]` |
 | `experimental_UniversalStore` | class | Cross-environment state store | `[AST:code/core/src/manager-api/index.ts:L3]` |
-| `experimental_useUniversalStore` | hook | Access a universal store in manager components (`useUniversalStore` exported under this name) | `[SRC:code/core/src/shared/universal-store/use-universal-store-manager.ts:L16]` |
-| `experimental_MockUniversalStore` | class | Mock store for tests (`MockUniversalStore` exported under this name) | `[SRC:code/core/src/shared/universal-store/mock.ts:L40]` |
-| `experimental_useStatusStore`, `experimental_getStatusStore` | hook/func | Status store access (panel badges, test results): `useStatusStore` and `getStatusStoreByTypeId`, destructured from the manager's status store and exported under these names | `[SRC:code/core/src/manager-api/stores/status.ts:L15]` |
-| `experimental_useTestProviderStore`, `experimental_getTestProviderStore` | hook/func | Test provider state (addon-vitest): `useTestProviderStore` and `getTestProviderStoreById`, exported under these names | `[SRC:code/core/src/manager-api/stores/test-provider.ts:L17]` |
+| `useUniversalStore` | hook | Access universal store in manager components | `[AST:code/core/src/manager-api/index.ts:L4]` |
+| `MockUniversalStore` | class | Mock store for tests | `[AST:code/core/src/manager-api/index.ts:L5]` |
+| `useStatusStore`, `experimental_getStatusStore` | hook/func | Status store access (panel badges, test results) | `[AST:code/core/src/manager-api/index.ts:L7]` |
+| `useTestProviderStore`, `experimental_getTestProviderStore` | hook/func | Test provider state (addon-vitest) | `[AST:code/core/src/manager-api/index.ts:L14]` |
 | `Tag` | enum | Story tagging system | `[AST:code/core/src/manager-api/index.ts:L26]` |
 
 ## storybook/theming
@@ -163,22 +161,21 @@ Entry: `code/core/src/theming/index.ts`. Emotion-based styling used by Storybook
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
 | `styled` | const | Emotion `styled` — `styled.div\`...\`` | `[AST:code/core/src/theming/index.ts:L6]` |
-| `css` | function | Emotion `css` tagged template (re-exported from `@emotion/react`) | `[AST:code/core/src/theming/index.ts:L13]` |
-| `keyframes` | function | Emotion `keyframes` for animations (re-exported from `@emotion/react`) | `[AST:code/core/src/theming/index.ts:L16]` |
-| `Global` | component | Emotion `Global` styles (re-exported from `@emotion/react`) | `[SRC:code/core/src/theming/index.ts:L14]` |
-| `ThemeProvider` | component | Emotion `ThemeProvider` with Storybook theme type (re-exported from `@emotion/react`) | `[AST:code/core/src/theming/index.ts:L17]` |
-| `useTheme` | hook | Access current theme (re-exported from `@emotion/react`) | `[AST:code/core/src/theming/index.ts:L18]` |
-| `withTheme` | HOC | HOC wrapper for class components (re-exported from `@emotion/react`) | `[SRC:code/core/src/theming/index.ts:L19]` |
-| `jsx` | function | Emotion JSX runtime (re-exported from `@emotion/react`) | `[SRC:code/core/src/theming/index.ts:L15]` |
-| `CacheProvider`, `ClassNames` | component | Emotion cache/classnames (re-exported from `@emotion/react`) | `[SRC:code/core/src/theming/index.ts:L11]` `[SRC:code/core/src/theming/index.ts:L12]` |
+| `css` | function | Emotion `css` tagged template | `[AST:code/core/src/theming/index.ts:L10]` |
+| `keyframes` | function | Emotion `keyframes` for animations | `[AST:code/core/src/theming/index.ts:L10]` |
+| `Global` | component | Emotion `Global` styles | `[AST:code/core/src/theming/index.ts:L10]` |
+| `ThemeProvider` | component | Emotion `ThemeProvider` with Storybook theme type | `[AST:code/core/src/theming/index.ts:L10]` |
+| `useTheme` | hook | Access current theme | `[AST:code/core/src/theming/index.ts:L10]` |
+| `withTheme` | HOC | HOC wrapper for class components | `[AST:code/core/src/theming/index.ts:L10]` |
+| `jsx` | function | Emotion JSX runtime | `[AST:code/core/src/theming/index.ts:L10]` |
+| `CacheProvider`, `ClassNames` | component | Emotion cache/classnames | `[AST:code/core/src/theming/index.ts:L10]` |
 | `createCache` | function | Create an emotion cache | `[AST:code/core/src/theming/index.ts:L33]` |
 | `isPropValid` | function | `@emotion/is-prop-valid` filter | `[AST:code/core/src/theming/index.ts:L34]` |
 | `createGlobal`, `createReset`, `srOnlyStyles` | function/const | Global style helpers | `[AST:code/core/src/theming/index.ts:L36]` |
 | `lighten`, `darken`, `getPreferredColorScheme` | function | Color utilities | `[AST:code/core/src/theming/index.ts:L41]` |
 | `ignoreSsrWarning` | const | SSR warning suppression string | `[AST:code/core/src/theming/index.ts:L43]` |
 | `Theme` | type | Augmented theme type | `[AST:code/core/src/theming/index.ts:L50]` |
-| `CSSObject`, `Keyframes` | type | Emotion types, re-exported by `export type { CSSObject, Keyframes } from '@emotion/react'` | `[SRC:code/core/src/theming/index.ts:L21]` |
-| `Interpolation`, `FunctionInterpolation`, `StyledComponent` | type | Emotion types with Storybook theme binding (`StyledComponent` from `@emotion/styled`) | `[SRC:code/core/src/theming/index.ts:L25]` `[SRC:code/core/src/theming/index.ts:L8]` |
+| `CSSObject`, `Keyframes`, `Interpolation`, `FunctionInterpolation`, `StyledComponent` | type | Emotion types with Storybook theme binding | `[AST:code/core/src/theming/index.ts:L21-28]` |
 
 ## storybook/theming/create
 
@@ -186,7 +183,7 @@ Entry: `code/core/src/theming/create.ts`. Used in `.storybook/manager.ts` or `pr
 
 | Export | Kind | Signature | Source |
 |---|---|---|---|
-| `create` | function | `create = (vars: ThemeVarsPartial = { base: preferredColorScheme }, rest?: Rest): ThemeVars` — build a theme from partial vars; `vars` is optional and defaults to `{ base: preferredColorScheme }` (`'light'` or `'dark'`, as the OS prefers) | `[AST:code/core/src/theming/create.ts:L29]` |
+| `create` | function | `create(vars: ThemeVarsPartial, rest?: Rest): ThemeVars` — build a theme from partial vars | `[AST:code/core/src/theming/create.ts:L29]` |
 | `themes` | const | `{ light: ThemeVars; dark: ThemeVars; normal: ThemeVars }` — built-in themes | `[AST:code/core/src/theming/create.ts:L20]` |
 
 **Example:**
@@ -208,8 +205,8 @@ Entry: `code/core/src/actions/index.ts`. The `action()` function logs events to 
 
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
-| `action` | function | `action(name: string, options: ActionOptions = {}): HandlerFunction` — create an action logger for an arg; `options` overrides the global action config for this handler | `[AST:code/core/src/actions/runtime/action.ts:L50]` |
-| `configureActions` | function | Global action config (max depth, clearOnStoryChange) | `[AST:code/core/src/actions/runtime/configureActions.ts:L9]` |
+| `action` | function | `action(name: string)` — create an action logger for an arg | `[AST:code/core/src/actions/runtime/action.ts]` |
+| `configureActions` | function | Global action config (max depth, clearOnStoryChange) | `[AST:code/core/src/actions/runtime/configureActions.ts]` |
 | `ActionDisplay`, `ActionsFunction`, `ActionOptions`, `ActionsMap`, `HandlerFunction` | type | Action payload types | `[AST:code/core/src/actions/models/index.ts:L1]` |
 
 **Note:** Prefer `fn()` from `storybook/test` over `action()` in v10 — `fn()` records calls AND allows assertions in `play`. Use `action()` only when the arg is a plain callback with no `play` assertions.
@@ -309,25 +306,37 @@ Entry: `code/core/src/server-errors.ts`. Server-side error classes (60+ total) �
 
 ## storybook/internal/components
 
-Entry: `code/core/src/components/index.ts`. UI components used by Storybook's own manager UI and by addon panels, imported when building manager-side addon UI and never in story files. Its source, `code/core/src/components/**`, is outside this skill's scope (the skill brief's `scope.exclude`, amended for GAP-005: addon-panel UI primitives are not story-authoring surface), so its exports are not documented here.
+Entry: `code/core/src/components/index.ts`. **80+ UI components** used by Storybook's own manager UI and by addon panels. Imported when building manager-side addon UI. Never imported in story files.
+
+Categories:
+- **Typography:** `A`, `Blockquote`, `Code`, `Div`, `H1`–`H6`, `HR`, `P`, `Pre`, `Span`, `Table`, `UL`, `OL`, `LI`, `DL`, `Badge`
+- **UI controls:** `Button`, `IconButton`, `ToggleButton`, `Select`, `Form`
+- **Panels:** `AddonPanel`, `Card`, `Modal`, `Collapsible`, `ScrollArea`
+- **Tabs system:** `Tabs`, `TabBar`, `TabButton`, `TabWrapper`, `TabList`, `TabPanel`, `TabsView`, `useTabsState`
+- **Overlays:** `Popover`, `PopoverProvider`, `Tooltip`, `TooltipNote`, `WithTooltip`, `TooltipLinkList`
+- **Bars:** `Bar`, `FlexBar`, `Toolbar`, `ActionBar`, `ActionList`
+- **Utilities:** `ErrorFormatter`, `SyntaxHighlighter`, `Placeholder`, `Zoom`, `Spaced`, `getStoryHref`
+- **Brand:** `StorybookLogo`, `StorybookIcon`
+
+`[AST:code/core/src/components/index.ts:L1]`
 
 ## Infrastructure subpaths (tier C)
 
-These are imported when building **custom addons**, NOT when authoring stories. Listed for completeness. The rows marked "outside this skill's scope" are subpaths whose source the skill brief excludes (`scope.exclude`, GAP-005 amendment): their exports are not documented in this skill.
+These are imported when building **custom addons**, NOT when authoring stories. Listed for completeness:
 
 | Subpath | Purpose | Source |
 |---|---|---|
 | `storybook/internal/common` | Preset / config helpers (`loadMainConfig`, `normalizeStories`, `getStorybookInfo`) | `[AST:code/core/src/common/index.ts]` |
-| `storybook/internal/channels` | Addon channel and transports (source outside this skill's scope) | — |
-| `storybook/internal/core-events` | 100+ event constants: `CHANNEL_CREATED`, `STORY_SPECIFIED`, `STORY_PREPARED`, `STORY_RENDERED`, `UPDATE_STORY_ARGS`, `GLOBALS_UPDATED`, `SELECT_STORY`, `PREVIEW_INITIALIZED`, etc., declared in the `events` enum and destructured as `export const { CHANNEL_CREATED, … } = events` | `[SRC:code/core/src/core-events/index.ts:L110]` |
+| `storybook/internal/channels` | `Channel`, `PostMessageTransport`, `WebsocketTransport`, `createBrowserChannel` | `[AST:code/core/src/channels/index.ts:L5]` |
+| `storybook/internal/core-events` | 100+ event constants: `CHANNEL_CREATED`, `STORY_SPECIFIED`, `STORY_PREPARED`, `STORY_RENDERED`, `UPDATE_STORY_ARGS`, `GLOBALS_UPDATED`, `SELECT_STORY`, `PREVIEW_INITIALIZED`, etc. | `[AST:code/core/src/core-events/index.ts]` |
 | `storybook/internal/instrumenter` | `instrument()` wraps functions for tracking in `play` | `[AST:code/core/src/instrumenter/index.ts:L1]` |
-| `storybook/internal/router` | Router utilities (source outside this skill's scope) | — |
+| `storybook/internal/router` | Router utilities | `[AST:code/core/src/router/index.ts]` |
 | `storybook/internal/client-logger` | `logger`, `once`, `deprecate`, `pretty` — browser-side logging | `[AST:code/core/src/client-logger/index.ts:L23]` |
-| `storybook/internal/node-logger` | Node-side logger and CLI prompt helpers (source outside this skill's scope) | — |
-| `storybook/internal/telemetry` | Telemetry collection (source outside this skill's scope) | — |
-| `storybook/internal/csf-tools` | CSF and main-config parsing and transforms (source outside this skill's scope) | — |
+| `storybook/internal/node-logger` | Node-side logger + CLI helpers (`prompt`, `logTracker`, `colors`) | `[AST:code/core/src/node-logger/index.ts:L67]` |
+| `storybook/internal/telemetry` | `telemetry`, `getStorybookMetadata`, `getSessionId`, `addToGlobalContext` | `[AST:code/core/src/telemetry/index.ts:L31]` |
+| `storybook/internal/csf-tools` | `CsfFile`, `ConfigFile`, `babelParse`, `enrichCsf`, `getStorySortParameter`, `vitestTransform`, `componentTransform` | `[AST:code/core/src/csf-tools/index.ts:L1]` |
 | `storybook/internal/docs-tools` | ArgTypes utilities, shared docgen helpers | `[AST:code/core/src/docs-tools/index.ts]` |
-| `storybook/internal/mocking-utils` | Module-mocking helpers behind `sb.mock`, re-exported with `export *` from six submodules; its exports are listed in `api-index-core.md` | `[AST:code/core/src/mocking-utils/index.ts:L1]` |
-| `storybook/internal/core-server` | Dev-server internals (source outside this skill's scope) | — |
+| `storybook/internal/mocking-utils` | `automock`, `extract`, `resolve`, `esmWalker`, `runtime`, `redirect` | `[AST:code/core/src/mocking-utils/index.ts:L1]` |
+| `storybook/internal/core-server` | `StoryIndexGenerator`, `generateStoryFile`, `experimental_loadStorybook`, `getPreviewHeadTemplate`, `getPreviewBodyTemplate` | `[AST:code/core/src/core-server/index.ts:L3]` |
 | `storybook/internal/cli` | Framework detection, project type detection, ESLint plugin integration | `[AST:code/core/src/cli/index.ts]` |
-| `storybook/internal/babel` | Babel and recast re-exports (source outside this skill's scope) | — |
+| `storybook/internal/babel` | Babel core (`core`, `generate`, `traverse`, `types`, `parser`, `transformSync`), `recast`, `BabelFile`, `NodePath` | `[AST:code/core/src/babel/index.ts:L35]` |

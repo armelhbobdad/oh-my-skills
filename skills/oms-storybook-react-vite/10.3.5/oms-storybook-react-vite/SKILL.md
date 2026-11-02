@@ -114,7 +114,7 @@ Sources for the two templates above: `[AST:code/renderers/react/src/public-types
 `import { useState, useArgs, useParameter } from 'storybook/preview-api'` → `const [{ label }, updateArgs] = useArgs()` reads/writes current story args. `[AST:code/core/src/preview-api/index.ts:L5]`
 
 **Use a component portably in Vitest:**
-`import { composeStories } from '@storybook/react-vite'` (re-exported from `@storybook/react`, which defines `composeStories(csfExports, projectAnnotations?)`) → `const { Primary } = composeStories(stories)` → `render(<Primary />)`. Requires `addon-vitest` + `setProjectAnnotations(projectAnnotations)` once in test setup. Do not import `composeStories` from `storybook/preview-api` in story tests: that is the renderer-agnostic primitive, `composeStories(storiesImport, globalConfig, composeStoryFn?)`, and its `globalConfig` argument is required. `[AST:code/renderers/react/src/portable-stories.tsx:L148]` `[SRC:code/core/src/preview-api/modules/store/csf/portable-stories.ts:L274]` `[QMD:oms-storybook-react-vite-temporal:changelog.md #28907]`
+`import { composeStories } from 'storybook/preview-api'` (or `'@storybook/react'`) → `const { Primary } = composeStories(stories)` → `render(<Primary />)`. Requires `addon-vitest` + `setProjectAnnotations(projectAnnotations)` once in test setup. `[AST:code/core/src/preview-api/index.ts:L51]` `[QMD:oms-storybook-react-vite-temporal:changelog.md #28907]`
 
 **Author an MDX docs page:**
 `import { Meta, Canvas, Controls, Primary, Stories } from '@storybook/addon-docs/blocks'` → `<Meta of={ButtonStories} />` → `<Primary />` / `<Canvas of={ButtonStories.Secondary} />` / `<Controls />` / `<Stories />`. `[AST:code/addons/docs/src/blocks.ts:L1]`
@@ -145,22 +145,6 @@ The full import surface (CSF types, test utilities, preview-api hooks, addon exp
 - **`setProjectAnnotations` expanded** (PR #28907): available across more renderers/frameworks for portable stories. Always call it once in your Vitest/Jest setup — otherwise `composeStories` will miss project-level decorators and parameters. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]`
 - **Component manifest default changed in 10.3.5** (PR #34408): `docs.componentManifest` is now disabled by default. If your project uses `@storybook/addon-mcp < 0.5.0`, upgrade it — the MCP docs toolset re-enables manifests. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]`
 - **`addon-a11y` test flake fix** (PR #34203, v10.3.4): status transition timer is now cleared on unmount. If you saw intermittent a11y test failures on older 10.3.x, upgrading resolves them. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]`
-
-## Key API Summary
-
-The exports a story author reaches for, by import path. Every other public export of the packages in scope is listed, with its declaration and source line, in `references/api-index-core.md`, `references/api-index-types.md` and `references/api-index-packages.md`.
-
-| Import path | Key exports | Purpose |
-|---|---|---|
-| `@storybook/react-vite` | `Meta`, `StoryObj`, `StoryFn`, `Decorator`, `Loader`, `StoryContext`, `Preview`, `StorybookConfig` | CSF3 story and config types (re-exported from `@storybook/react`) `[AST:code/renderers/react/src/public-types.ts:L29]` |
-| `@storybook/react-vite` | `composeStories`, `composeStory`, `setProjectAnnotations`, `definePreview` | Portable stories for Vitest/Jest; CSF4 factory (`definePreview` is `__definePreview` re-exported under that name) `[AST:code/renderers/react/src/portable-stories.tsx:L148]` `[SRC:code/frameworks/react-vite/src/index.ts:L2]` |
-| `storybook/test` | `fn`, `expect`, `spyOn`, `userEvent`, `within`, `waitFor`, `screen`, `fireEvent` | Mocks, assertions and DOM interaction in `play` functions `[AST:code/core/src/test/spy.ts:L48]` `[SRC:code/core/src/test/index.ts:L24]` |
-| `storybook/preview-api` | `useArgs`, `useGlobals`, `useParameter`, `useState`, `useEffect`, `useChannel`, `makeDecorator` | Hooks and helpers for decorators and `render` functions `[AST:code/core/src/preview-api/index.ts:L5]` |
-| `storybook/actions` | `action` | Log a callback to the Actions panel (prefer `fn()`) `[AST:code/core/src/actions/runtime/action.ts:L50]` |
-| `storybook/theming` / `storybook/theming/create` | `create`, `themes`, `styled`, `css`, `useTheme`, `ThemeProvider` | Custom manager/docs themes and Emotion styling `[AST:code/core/src/theming/create.ts:L29]` |
-| `@storybook/addon-docs/blocks` | `Meta`, `Canvas`, `Controls`, `Primary`, `Stories`, `Story`, `Description`, `Source`, `ArgTypes` | MDX doc blocks `[AST:code/addons/docs/src/blocks.ts:L1]` |
-| `@storybook/addon-themes` | `withThemeByClassName`, `withThemeByDataAttribute`, `withThemeFromJSXProvider` | Theme-switching decorators for `preview.ts` `[AST:code/addons/themes/src/index.ts:L1]` |
-| `@storybook/addon-a11y` | `A11yParameters`, `PARAM_KEY` | `parameters.a11y` shape for axe-core checks `[AST:code/addons/a11y/src/params.ts:L20]` |
 
 ## Key Types (quick-start essentials)
 
@@ -197,7 +181,7 @@ npx storybook@latest upgrade  # version bump + automigrations
 
 ## Full API Reference
 
-The authoring surface is documented in `references/core-api.md`, `references/story-types.md`, `references/doc-blocks.md`, and `references/addons.md`, each entry with `[AST:...]` or `[SRC:...]` provenance and marked as authoring surface, type surface, or infrastructure. Every other public export of the in-scope entry points (the `storybook/internal/*` subpaths included, which are part of the package's `exports` contract) is indexed with its declaration and source line in `references/api-index-core.md` (`storybook/*` runtime subpaths), `references/api-index-types.md` (`storybook/internal/types`) and `references/api-index-packages.md` (framework, renderer, builder and addon packages). T1 source: `[AST:code/core/src/test/index.ts:L1]` `[AST:code/core/src/preview-api/index.ts:L1]` `[AST:code/core/src/manager-api/index.ts:L1]` `[AST:code/core/src/theming/index.ts:L1]` `[AST:code/renderers/react/src/public-types.ts:L1]` `[AST:code/addons/docs/src/blocks.ts:L1]`.
+The complete public API surface — ~430 extracted exports across core (`storybook` 28 subpaths ≈ 350 exports), framework/renderer/builder (~42 exports), and 4 addons (~65 exports) — lives in `references/core-api.md`, `references/story-types.md`, `references/doc-blocks.md`, and `references/addons.md`. Each entry carries `[AST:...]` provenance and indicates whether it is authoring surface (tier A), type surface (tier B), or infrastructure (tier C). T1 source: `[AST:code/core/src/test/index.ts:L1]` `[AST:code/core/src/preview-api/index.ts:L1]` `[AST:code/core/src/manager-api/index.ts:L1]` `[AST:code/core/src/theming/index.ts:L1]` `[AST:code/renderers/react/src/public-types.ts:L1]` `[AST:code/addons/docs/src/blocks.ts:L1]`.
 
 ## Full Type Definitions
 
