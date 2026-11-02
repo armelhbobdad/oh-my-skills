@@ -154,3 +154,56 @@ All 6 findings trace to extraction bugs during the original `skf-create-skill` r
 - Triggering tool: —
 - Original description preserved: true (no SKILL.md frontmatter touch in this run)
 - Notes: —
+
+## Update Operation — 2026-11-02T19:35:59Z
+
+**Trigger:** manual (gap-driven, `--from-test-report --headless`), test report `test-report-oms-uitripled-20261102T190559Z-00c1915d.md` (FAIL, hard gate on 1 Critical)
+**Forge Tier:** Deep
+**Mode:** gap-driven (SKF 4.0.0)
+**Source commit:** a5ffb45b (read as it stands; workspace HEAD verified at the pinned commit)
+
+### Changes Detected
+- Files modified: 0 (gap-driven: no source drift detection)
+- Files added: 0
+- Files deleted: 0
+- Exports affected: 291 (293 gaps translated, 10 not routed)
+
+### Merge Results
+- Exports updated: 2 (`getGapSliderIndex` param `value` → `gapValue`, GAP-001; `RegistryItemType` reworded as the registry.json `type` field values, GAP-287)
+- Exports added: 285 (GAP-002 to GAP-286: 255 component, primitive and data exports, 30 props types)
+- Exports removed: 0
+- Exports moved: 4 (`Component` L25→L24, `ThemeProvider` L17→L18, `UILibraryProvider` L32→L31, `useTheme` L37→L35; GAP-295 to GAP-298)
+- Structural fix: `fetchComponent` usage example and the `add` / `fetchComponent` signatures at references/catalog.md (GAP-299)
+- Metadata patch: GAP-293 counts reconciled by the automatic recount (311 documented = 311 provenance entries = 311 confidence total)
+- New reference files: references/ui-primitives.md, references/native-components.md, references/motion-components.md, references/blocks-and-sections.md
+- [MANUAL] sections preserved: 4
+- Conflicts resolved: 0
+
+### Scope and Targeted Re-Extraction
+- Authoritative files: none
+- Scope reconciliation before detection: none
+- Scope reconciliation after detection: none
+- Targeted re-extraction: none
+
+### Validation Summary
+- Spec compliance: PASS (skill-check quality score 100/100, 0 errors, 0 warnings, nothing to fix)
+- [MANUAL] integrity: PASS
+- Confidence tiers: WARN (relabeled to their `source-read` labels: `createPage`, `extractSavedPages`, `countSavedProjectComponents`, `initializeCells`, `getCellKey`, `isCellInSelection` T1 → T1-low; `useTheme` ast_node_type cleared)
+- Provenance: WARN (fixed 20 citation prefixes and 18 node kinds, all `export_statement` via kind-at; re-run: 0 missing, 0 stale, 0 citation and 0 node-kind findings. WARN: 14 orphaned entries, in the map and not in `exports[]`, the same 14 before this run: Component, ComponentCategory, THEME_STORAGE_KEY, ThemeMode, UILibrary, countSavedProjectComponents, createPage, extractSavedPages, fetchComponent, getCellKey, getGapSliderIndex, getGapValueFromIndex, initializeCells, isCellInSelection. WARN: `RegistryItemType` holds an entry with no source line, the GAP-287 stale-documentation export the source does not define. WARN: the `getGapSliderIndex` entry keeps `params: [value: number]`, as a verified entry is not rewritten)
+- Diff: SKIP
+- Security: SKIP (SNYK_TOKEN not configured)
+
+### Description Guard
+- Restored: false
+- Triggering tool: —
+- Original description preserved: —
+- Notes: —
+
+### Context Snippet
+- Regenerated: false
+- Triggers fired: —
+- Notes: Gap-driven repair — the headline API (providers and utils), the version and the gotchas did not change.
+
+### Active Link
+- active_symlink_update: ok (0.1.0)
+- Workspace clone: not moved (gap-driven repair at the pinned commit)

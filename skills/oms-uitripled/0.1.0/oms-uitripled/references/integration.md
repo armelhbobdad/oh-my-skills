@@ -27,7 +27,7 @@
 - `ThemeProvider` is a thin wrapper over `next-themes`' provider (with `attribute="class"` hardcoded). It mounts synchronously and sets the `class` attribute on `html` before children render.
 - `UILibraryProvider` gates rendering on `isHydrated` — it returns `null` from the first render until a `useEffect` reads `localStorage`. If it sits outside `ThemeProvider`, the theme attribute is injected into a subtree that hasn't mounted yet, which triggers a flash of unthemed content when the library provider hydrates.
 
-`[SRC:packages/components/react-shadcn/src/components/theme-provider.tsx:L17]` `[SRC:packages/components/react-shadcn/src/ui-library-provider.tsx:L32]`
+`[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L18]` `[AST:packages/components/react-shadcn/src/ui-library-provider.tsx:L31]`
 
 ## Subpath import patterns
 
@@ -111,7 +111,7 @@ Two CLI paths exist — both consume the same `registry.json` but via different 
 | `--overwrite` flag | via shadcn's defaults | explicit flag |
 | Authoritative per project docs | **yes** | alternative |
 
-`[SRC:packages/uitripled/src/commands/add.ts:L8]` `[SRC:packages/uitripled/src/utils/registry.ts:L3]` `[QMD:oms-uitripled-temporal:prs.md]` `[QMD:oms-uitripled-docs:llms-full.md]`
+`[AST:packages/uitripled/src/commands/add.ts:L8]` `[SRC:packages/uitripled/src/utils/registry.ts:L3]` `[QMD:oms-uitripled-temporal:prs.md]` `[QMD:oms-uitripled-docs:llms-full.md]`
 
 ## next-themes integration
 

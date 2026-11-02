@@ -11,7 +11,7 @@
 ## ThemeProvider
 
 **Source:** `packages/components/react-shadcn/src/components/theme-provider.tsx`
-**Provenance:** `[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L17]`
+**Provenance:** `[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L18]`
 
 Wraps `next-themes`' `ThemeProvider` with project-opinionated defaults.
 
@@ -40,7 +40,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 ## useTheme
 
 **Source:** `packages/components/react-shadcn/src/components/theme-provider.tsx`
-**Provenance:** `[SRC:packages/components/react-shadcn/src/components/theme-provider.tsx:L37]`
+**Provenance:** `[SRC:packages/components/react-shadcn/src/components/theme-provider.tsx:L35]`
 
 Extends `next-themes` `useTheme()` with a `toggleTheme` helper.
 
@@ -53,7 +53,7 @@ const { theme, setTheme, resolvedTheme, systemTheme, toggleTheme } = useTheme();
 ## UILibraryProvider
 
 **Source:** `packages/components/react-shadcn/src/ui-library-provider.tsx`
-**Provenance:** `[AST:packages/components/react-shadcn/src/ui-library-provider.tsx:L32]`
+**Provenance:** `[AST:packages/components/react-shadcn/src/ui-library-provider.tsx:L31]`
 
 Tracks which design system variant is active (shadcn/Base UI/Carbon). Hydration-safe: returns `null` until localStorage is read.
 

@@ -64,8 +64,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
 }
 ```
 
-`[SRC:packages/components/react-shadcn/src/components/theme-provider.tsx:L17]`
-`[SRC:packages/components/react-shadcn/src/ui-library-provider.tsx:L32]`
+`[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L18]`
+`[AST:packages/components/react-shadcn/src/ui-library-provider.tsx:L31]`
 
 **Use a component.** Every installed component requires `"use client"` because
 all 171 shadcn entries depend on `framer-motion` and `react`:
@@ -97,10 +97,10 @@ export default function Page() {
 `UILibraryProvider (default shadcnui) → useUILibrary() → setSelectedLibrary("baseui" | "carbon")` — persists to `localStorage` under key `uitripled-selected-library` `[SRC:packages/components/react-shadcn/src/ui-library-provider.tsx:L13]`
 
 **Toggle dark mode:**
-`ThemeProvider → useTheme() → toggleTheme()` — wraps `next-themes`, persists to `uitripled-theme` key `[SRC:packages/components/react-shadcn/src/components/theme-provider.tsx:L11]`
+`ThemeProvider → useTheme() → toggleTheme()` — wraps `next-themes`, persists to `uitripled-theme` key `[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L11]`
 
 **Merge Tailwind classes in copied components:**
-`cn(className, "extra-classes")` from `@uitripled/utils` — thin wrapper over `clsx` + `tailwind-merge` `[SRC:packages/utils/src/cn.ts:L4]`
+`cn(className, "extra-classes")` from `@uitripled/utils` — thin wrapper over `clsx` + `tailwind-merge` `[AST:packages/utils/src/cn.ts:L4]`
 
 ## Component Catalog
 
@@ -135,14 +135,14 @@ type ThemeMode = "light" | "dark" | "system";
 type UILibrary = "shadcnui" | "baseui" | "carbon" | "react";
 // NOTE: UILibraryProvider (react-shadcn package) only reaches "shadcnui" | "baseui" | "carbon" at runtime
 
-// registry.json entry types
-type RegistryItemType = "registry:page" | "registry:block" | "registry:component" | "registry:ui";
+// registry.json entry `type` values: a JSON field, not an exported TypeScript type
+// "registry:page" | "registry:block" | "registry:component" | "registry:ui"
 
 // Tailwind class composer return
 cn(...inputs: ClassValue[]): string
 ```
 
-`[SRC:packages/components/react-shadcn/src/components/theme-provider.tsx:L9]` `[SRC:packages/utils/src/types.ts:L3]` `[SRC:packages/registry/registry.json:L1]` `[SRC:packages/utils/src/cn.ts:L4]`
+`[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L9]` `[AST:packages/utils/src/types.ts:L3]` `[SRC:packages/registry/registry.json:L1]` `[AST:packages/utils/src/cn.ts:L4]`
 
 Representative component Props interfaces (e.g., `NativeHoverCardProps` with `imageSrc`, `name`, `size: "sm"|"md"|"lg"|"xl"`), the full `Component` shapes from `@uitripled/utils` and `@uitripled/registry`, and the Landing Builder types (`BuilderComponent`, `SavedProject`, `GridCell`, etc.) are documented in `references/types.md`.
 
@@ -180,7 +180,9 @@ The standalone CLI fetches JSON from `https://ui.tripled.work/r/{component}.json
 
 ## Full API Reference
 
-Detailed provider signatures, prop tables, hook return shapes, hydration behavior, and usage examples live in `references/setup.md` (`ThemeProvider`, `useTheme`, `UILibraryProvider`, `useUILibrary`) and `references/utils.md` (`cn` + Landing Builder helpers: `sanitizeSlug`, `generateUniqueSlug`, `GAP_VALUES`, `generateGridCode`, `initializeCells`, `mergeComponentImports`). The standalone `uitripled add` CLI implementation notes (interactive prompt, install-path priority `src/components` → `app/components` → `components`, `--overwrite` semantics, dependency hinting) and the `fetchComponent` helper pulling `https://ui.tripled.work/r/{name}.json` are in `references/catalog.md`. T1 provenance: `[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L17]` `[AST:packages/components/react-shadcn/src/ui-library-provider.tsx:L32]` `[AST:packages/utils/src/cn.ts:L4]` `[AST:packages/uitripled/src/commands/add.ts:L8]`.
+Detailed provider signatures, prop tables, hook return shapes, hydration behavior, and usage examples live in `references/setup.md` (`ThemeProvider`, `useTheme`, `UILibraryProvider`, `useUILibrary`) and `references/utils.md` (`cn` + Landing Builder helpers: `sanitizeSlug`, `generateUniqueSlug`, `GAP_VALUES`, `generateGridCode`, `initializeCells`, `mergeComponentImports`). The standalone `uitripled add` CLI implementation notes (interactive prompt, install-path priority `src/components` → `app/components` → `components`, `--overwrite` semantics, dependency hinting) and the `fetchComponent` helper pulling `https://ui.tripled.work/r/{name}.json` are in `references/catalog.md`. T1 provenance: `[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L18]` `[AST:packages/components/react-shadcn/src/ui-library-provider.tsx:L31]` `[AST:packages/utils/src/cn.ts:L4]` `[AST:packages/uitripled/src/commands/add.ts:L8]`.
+
+**Component API.** Every other export of `@uitripled/react-shadcn` `src/`, with its signature copied from the source, its install id and its purpose, is in four files: `references/ui-primitives.md` (the shadcn/ui primitives: `Avatar`, `Badge`, `Checkbox`, `Dialog*`, `DropdownMenu*`, `Select*`, `Tabs*`, `Tooltip*`, `badgeVariants`, `buttonVariants`, ...), `references/native-components.md` (the `Native*` components, `VerifiedBadge`, `SocialLoginButton`), `references/motion-components.md` (motion-core and category components, the Grid Generator panels) and `references/blocks-and-sections.md` (sections, blocks and composite components such as `AIChatInterface` and `KanbanBoard`). `bentoPresets` is in `references/utils.md`, and the `@uitripled/registry` arrays (`componentsRegistry`, `nativeComponents`, `uiComponents`) are in `references/catalog.md`. `[SRC:packages/components/react-shadcn/src/components/components/chat/ai-chat-interface.tsx:L54]` `[SRC:packages/registry/src/index.tsx:L8]`
 
 <!-- [MANUAL:additional-notes-reference] -->
 <!-- Add custom notes here. This section is preserved during skill updates. -->
@@ -188,7 +190,7 @@ Detailed provider signatures, prop tables, hook return shapes, hydration behavio
 
 ## Full Type Definitions
 
-Full field details for `Component` (both the `@uitripled/utils` and `@uitripled/registry` variants), `BuilderComponent`, `BuilderProjectPage`, `SavedProject`, `GridCell`, `BentoPreset`, the full `UILibrary`/`ComponentCategory` enumerations, and the complete `registry.json` schema (including `registryDependencies` vs `dependencies` distinction and the upstream shadcn/ui `button`/`card` resolution) live in `references/types.md`. All T1, cited from `packages/utils/src/types.ts`, `packages/components/react-shadcn/src/types.ts`, and `packages/registry/registry.json`.
+Full field details for `Component` (both the `@uitripled/utils` and `@uitripled/registry` variants), `BuilderComponent`, `BuilderProjectPage`, `SavedProject`, `GridCell`, `BentoPreset`, the full `UILibrary`/`ComponentCategory` enumerations, and the complete `registry.json` schema (including `registryDependencies` vs `dependencies` distinction and the upstream shadcn/ui `button`/`card` resolution) live in `references/types.md`. All T1, cited from `packages/utils/src/types.ts`, `packages/components/react-shadcn/src/types.ts`, and `packages/registry/registry.json`. The props types the components take (`NativeButtonProps`, `NativeNotchProps`, `SocialProvider`, `GridPreviewProps`, `BadgeProps`, `ButtonProps`, ...) are in its "Component props types" section, copied from `packages/components/react-shadcn/src/`.
 
 ## Full Integration Patterns
 

@@ -6,17 +6,32 @@
   "source_commit": "a5ffb45be05335d2c547436664cfbfb8c22d04df",
   "source_ref": "HEAD",
   "generated_at": "2026-04-11T00:00:00Z",
-  "last_update": "2026-04-11T11:33:03Z",
-  "update_type": "incremental-gap-driven",
+  "last_update": "2026-11-02T19:35:59Z",
+  "update_type": "gap-driven",
   "update_operations": [
     {
       "date": "2026-04-11T11:33:03Z",
       "workflow": "skf-update-skill",
       "trigger": "test-report (gap-driven)",
       "test_report": "forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled.md",
-      "gaps_addressed": ["GAP-001", "GAP-002", "GAP-003", "GAP-004", "GAP-005", "GAP-006"],
-      "exports_signature_fixed": ["initializeCells", "getCellKey", "isCellInSelection"],
-      "exports_added": ["createPage", "extractSavedPages", "countSavedProjectComponents"],
+      "gaps_addressed": [
+        "GAP-001",
+        "GAP-002",
+        "GAP-003",
+        "GAP-004",
+        "GAP-005",
+        "GAP-006"
+      ],
+      "exports_signature_fixed": [
+        "initializeCells",
+        "getCellKey",
+        "isCellInSelection"
+      ],
+      "exports_added": [
+        "createPage",
+        "extractSavedPages",
+        "countSavedProjectComponents"
+      ],
       "manual_sections_preserved": 4,
       "confidence_tier": "Deep"
     }
@@ -26,13 +41,15 @@
       "export_name": "ThemeProvider",
       "export_type": "function",
       "source_library": "@uitripled/react-shadcn",
-      "params": ["{ children, defaultTheme = \"system\" }: ThemeProviderProps"],
+      "params": [
+        "{ children, defaultTheme = \"system\" }: ThemeProviderProps"
+      ],
       "return_type": "JSX.Element",
       "source_file": "packages/components/react-shadcn/src/components/theme-provider.tsx",
-      "source_line": 17,
+      "source_line": 18,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function_declaration",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -42,10 +59,10 @@
       "params": [],
       "return_type": "{ theme, setTheme, resolvedTheme, systemTheme, toggleTheme }",
       "source_file": "packages/components/react-shadcn/src/components/theme-provider.tsx",
-      "source_line": 37,
+      "source_line": 35,
       "confidence": "T1-low",
       "extraction_method": "source-read",
-      "ast_node_type": "export_const_arrow_function",
+      "ast_node_type": null,
       "signature_source": "T1-low"
     },
     {
@@ -58,7 +75,7 @@
       "source_line": 11,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_const_declaration",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -71,20 +88,22 @@
       "source_line": 9,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_type_alias",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
       "export_name": "UILibraryProvider",
       "export_type": "function",
       "source_library": "@uitripled/react-shadcn",
-      "params": ["{ children }: { children: React.ReactNode }"],
+      "params": [
+        "{ children }: { children: React.ReactNode }"
+      ],
       "return_type": "JSX.Element | null",
       "source_file": "packages/components/react-shadcn/src/ui-library-provider.tsx",
-      "source_line": 32,
+      "source_line": 31,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function_declaration",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -97,86 +116,100 @@
       "source_line": 23,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function_declaration",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
       "export_name": "cn",
       "export_type": "function",
       "source_library": "@uitripled/utils",
-      "params": ["...inputs: ClassValue[]"],
+      "params": [
+        "...inputs: ClassValue[]"
+      ],
       "return_type": "string",
       "source_file": "packages/utils/src/cn.ts",
       "source_line": 4,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function_declaration",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
       "export_name": "sanitizeSlug",
       "export_type": "const",
       "source_library": "@uitripled/utils",
-      "params": ["value: string"],
+      "params": [
+        "value: string"
+      ],
       "return_type": "string",
       "source_file": "packages/utils/src/builder-utils.ts",
       "source_line": 7,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_const_arrow_function",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
       "export_name": "generateUniqueSlug",
       "export_type": "function",
       "source_library": "@uitripled/utils",
-      "params": ["baseName: string", "existingSlugs: string[]"],
+      "params": [
+        "baseName: string",
+        "existingSlugs: string[]"
+      ],
       "return_type": "string",
       "source_file": "packages/utils/src/builder-utils.ts",
       "source_line": 14,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function_declaration",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
       "export_name": "createPage",
       "export_type": "function",
       "source_library": "@uitripled/utils",
-      "params": ["name: string", "existingSlugs: string[]"],
+      "params": [
+        "name: string",
+        "existingSlugs: string[]"
+      ],
       "return_type": "BuilderProjectPage",
       "source_file": "packages/utils/src/builder-utils.ts",
       "source_line": 33,
-      "confidence": "T1",
+      "confidence": "T1-low",
       "extraction_method": "source-read",
-      "ast_node_type": "export_function_declaration",
-      "signature_source": "T1"
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "extractSavedPages",
       "export_type": "function",
       "source_library": "@uitripled/utils",
-      "params": ["project: SavedProject"],
+      "params": [
+        "project: SavedProject"
+      ],
       "return_type": "SavedProjectPage[]",
       "source_file": "packages/utils/src/builder-utils.ts",
       "source_line": 52,
-      "confidence": "T1",
+      "confidence": "T1-low",
       "extraction_method": "source-read",
-      "ast_node_type": "export_function_declaration",
-      "signature_source": "T1"
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "countSavedProjectComponents",
       "export_type": "function",
       "source_library": "@uitripled/utils",
-      "params": ["project: SavedProject"],
+      "params": [
+        "project: SavedProject"
+      ],
       "return_type": "number",
       "source_file": "packages/utils/src/builder-utils.ts",
       "source_line": 70,
-      "confidence": "T1",
+      "confidence": "T1-low",
       "extraction_method": "source-read",
-      "ast_node_type": "export_function_declaration",
-      "signature_source": "T1"
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "GAP_VALUES",
@@ -188,33 +221,37 @@
       "source_line": 23,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_const_declaration",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
       "export_name": "getGapSliderIndex",
       "export_type": "const",
       "source_library": "@uitripled/utils",
-      "params": ["value: number"],
+      "params": [
+        "value: number"
+      ],
       "return_type": "number",
       "source_file": "packages/utils/src/grid-utils.ts",
       "source_line": 32,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_const_arrow_function",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
       "export_name": "getGapValueFromIndex",
       "export_type": "const",
-      "params": ["index: number"],
+      "params": [
+        "index: number"
+      ],
       "return_type": "number",
       "source_library": "@uitripled/utils",
       "source_file": "packages/utils/src/grid-utils.ts",
       "source_line": 40,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_const_arrow_function",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -227,59 +264,71 @@
       "source_line": 47,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_const_arrow_function",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
       "export_name": "initializeCells",
       "export_type": "const",
-      "params": ["cols: number", "rows: number"],
+      "params": [
+        "cols: number",
+        "rows: number"
+      ],
       "return_type": "GridCell[]",
       "source_library": "@uitripled/utils",
       "source_file": "packages/utils/src/grid-utils.ts",
       "source_line": 76,
-      "confidence": "T1",
+      "confidence": "T1-low",
       "extraction_method": "source-read",
-      "ast_node_type": "export_const_arrow_function",
-      "signature_source": "T1"
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "getCellKey",
       "export_type": "const",
-      "params": ["row: number", "col: number"],
+      "params": [
+        "row: number",
+        "col: number"
+      ],
       "return_type": "string",
       "source_library": "@uitripled/utils",
       "source_file": "packages/utils/src/grid-utils.ts",
       "source_line": 101,
-      "confidence": "T1",
+      "confidence": "T1-low",
       "extraction_method": "source-read",
-      "ast_node_type": "export_const_arrow_function",
-      "signature_source": "T1"
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "isCellInSelection",
       "export_type": "const",
-      "params": ["row: number", "col: number", "selectedCells: string[]"],
+      "params": [
+        "row: number",
+        "col: number",
+        "selectedCells: string[]"
+      ],
       "return_type": "boolean",
       "source_library": "@uitripled/utils",
       "source_file": "packages/utils/src/grid-utils.ts",
       "source_line": 106,
-      "confidence": "T1",
+      "confidence": "T1-low",
       "extraction_method": "source-read",
-      "ast_node_type": "export_const_arrow_function",
-      "signature_source": "T1"
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "mergeComponentImports",
       "export_type": "function",
-      "params": ["code: string"],
+      "params": [
+        "code: string"
+      ],
       "return_type": "string",
       "source_library": "@uitripled/utils",
       "source_file": "packages/utils/src/merge-imports.ts",
       "source_line": 6,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function_declaration",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -292,7 +341,7 @@
       "source_line": 3,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_type_alias",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -305,7 +354,7 @@
       "source_line": 12,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_type_alias",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -315,37 +364,3540 @@
       "return_type": "{ id: string; name: string; description: string; category: ComponentCategory; tags: string[]; component: ComponentType<any>; ... }",
       "source_library": "@uitripled/utils",
       "source_file": "packages/utils/src/types.ts",
-      "source_line": 25,
+      "source_line": 24,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_type_alias",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
       "export_name": "add",
       "export_type": "function",
       "source_library": "uitripled",
-      "params": ["componentName: string | undefined", "options: { overwrite: boolean }"],
+      "params": [
+        "componentName: string | undefined",
+        "options: { overwrite: boolean }"
+      ],
       "return_type": "Promise<void>",
       "source_file": "packages/uitripled/src/commands/add.ts",
       "source_line": 8,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function_declaration",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
       "export_name": "fetchComponent",
       "export_type": "function",
       "source_library": "uitripled",
-      "params": ["componentName: string"],
+      "params": [
+        "componentName: string"
+      ],
       "return_type": "Promise<unknown | null>",
       "source_file": "packages/uitripled/src/utils/registry.ts",
       "source_line": 5,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function_declaration",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
+    },
+    {
+      "export_name": "AIChatInterface",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/chat/ai-chat-interface.tsx",
+      "source_line": 54,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AIGlowInput",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ placeholder = \"Ask AI anything…\", onValueChange, glowColor }: AIGlowInputProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/ai-glow-input.tsx",
+      "source_line": 25,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AILoadingSkeleton",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ lines = 4 }: AILoadingSkeletonProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/ai-loading-skeleton.tsx",
+      "source_line": 41,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AIResponseTyping",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ text = \"Hello! I'm an AI assistant. I can help you with questions, provide information, and assist with various tasks. Feel free to ask me anything!\", speed = 30, showCursor = true, onComplete, thinkingState = \"typing\" }: AIResponseTypingProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/ai-response-typing.tsx",
+      "source_line": 14,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AIUnlockAnimation",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ autoPlay = true }: AIUnlockAnimationProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/ai-unlock-animation.tsx",
+      "source_line": 10,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AboutUsPage",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/page/about/about-us-page.tsx",
+      "source_line": 131,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AboutUsSection",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/about-us-section.tsx",
+      "source_line": 35,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedAccordion",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/disclosure/animated-accordion.tsx",
+      "source_line": 25,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedCardStack",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/cards/shadcnui/animated-card-stack.tsx",
+      "source_line": 18,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedCheckbox",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/forms/animated-checkbox.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedDialog",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/modals/animated-dialog.tsx",
+      "source_line": 8,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedList",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/lists/animated-list.tsx",
+      "source_line": 43,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedNavbar",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/navigation/animated-navbar.tsx",
+      "source_line": 8,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedPagination",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/navigation/animated-pagination.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedProfileMenu",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/navigation/animated-profile-menu.tsx",
+      "source_line": 74,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedProgress",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/data/progress/animated-progress.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedQuoteBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ quote = \"The only way to do great work is to love what you do.\", author = \"Steve Jobs\", typingSpeed = 50 }: AnimatedQuoteBlockProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/animated-quote-block.tsx",
+      "source_line": 12,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedRadio",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/forms/animated-radio.tsx",
+      "source_line": 8,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedSelect",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/forms/animated-select.tsx",
+      "source_line": 9,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedSidebar",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/navigation/animated-sidebar.tsx",
+      "source_line": 14,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedTabs",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/tabs/animated-tabs.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnimatedTooltip",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/tooltips/animated-tooltip.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AutoRevealingHeading",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ text = \"Auto Revealing Heading\", splitBy = \"word\", delay = 0.1, className = \"\" }: AutoRevealingHeadingProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/auto-revealing-heading.tsx",
+      "source_line": 13,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Avatar",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/avatar.tsx",
+      "source_line": 50,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AvatarFallback",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/avatar.tsx",
+      "source_line": 50,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AvatarGroup",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/avatars/avatar-group.tsx",
+      "source_line": 27,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AvatarImage",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/avatar.tsx",
+      "source_line": 50,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Badge",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ className, variant, ...props }: BadgeProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/ui/badge.tsx",
+      "source_line": 34,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "BadgeProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/badge.tsx",
+      "source_line": 24,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "BentoGridBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/bento-grid-block.tsx",
+      "source_line": 125,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "BlogBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/blog-block.tsx",
+      "source_line": 55,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "BlogTypography",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/blog/blog-typography.tsx",
+      "source_line": 132,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "BottomModal",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/modals/bottom-modal.tsx",
+      "source_line": 8,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "BrowseFolder",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/browse-folder.tsx",
+      "source_line": 111,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ButtonProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/button.tsx",
+      "source_line": 35,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CTABannerSection",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ motionPreset = \"smooth\", className }: CTABannerSectionProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/sections/cta-banner-section.tsx",
+      "source_line": 35,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CTABlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/cta-block.tsx",
+      "source_line": 8,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CTAHeroBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/cta-hero-block.tsx",
+      "source_line": 17,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CardDescription",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/card.tsx",
+      "source_line": 81,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CardFooter",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/card.tsx",
+      "source_line": 82,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CardTitle",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/card.tsx",
+      "source_line": 84,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CardsSlider",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/sliders/cards-slider.tsx",
+      "source_line": 87,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CashFlowChart",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/data/charts/cash-flow-chart.tsx",
+      "source_line": 135,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ChatApp",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/chat/chat-app.tsx",
+      "source_line": 39,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Checkbox",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/checkbox.tsx",
+      "source_line": 30,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CinemaTicket",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/cinema-ticket.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CodeOutput",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ code, copied, onCopyCode, options }: CodeOutputProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/grid/code-output.tsx",
+      "source_line": 14,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CommandPalette",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/search/command-palette.tsx",
+      "source_line": 49,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CommentThread",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/comments/comment-thread.tsx",
+      "source_line": 533,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ConferenceTicket",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/conference-ticket.tsx",
+      "source_line": 8,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ContactBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/contact-block.tsx",
+      "source_line": 32,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ContactFormSection",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/contact-form-section.tsx",
+      "source_line": 38,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ContextMenu",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/navigation/context-menu.tsx",
+      "source_line": 14,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ContextMenuBubble",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ items = [{ label: \"Edit\", icon: <Edit className=\"h-4 w-4\" />, onClick: () => {} }, { label: \"Copy\", icon: <Copy className=\"h-4 w-4\" />, onClick: () => {} }, { label: \"Share\", icon: <Share2 className=\"h-4 w-4\" />, onClick: () => {} }, { label: \"Delete\", icon: <Trash2 className=\"h-4 w-4\" />, onClick: () => {}, danger: true }] }: ContextMenuBubbleProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/context-menu-bubble.tsx",
+      "source_line": 18,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CourseContentPage",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/course-content/course-content-page.tsx",
+      "source_line": 786,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CreditCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ cardNumber = \"4532 1234 5678 9010\", cardholderName = \"JORDAN PARK\", expiryDate = \"09/27\", cvv = \"123\" }: CreditCardProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/components/cards/shadcnui/credit-card.tsx",
+      "source_line": 31,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CurrencyConverterCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/currency-converter-card.tsx",
+      "source_line": 41,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DashboardPage",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/stocks-dashboard/dashboard.tsx",
+      "source_line": 605,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DetailTaskCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/cards/shadcnui/detail-task.tsx",
+      "source_line": 115,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DialogClose",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dialog.tsx",
+      "source_line": 113,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DialogDescription",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dialog.tsx",
+      "source_line": 115,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DialogFooter",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ className, ...props }: React.HTMLAttributes<HTMLDivElement>"
+      ],
+      "source_file": "packages/components/react-shadcn/src/ui/dialog.tsx",
+      "source_line": 116,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DialogHeader",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ className, ...props }: React.HTMLAttributes<HTMLDivElement>"
+      ],
+      "source_file": "packages/components/react-shadcn/src/ui/dialog.tsx",
+      "source_line": 117,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DialogOverlay",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dialog.tsx",
+      "source_line": 118,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DialogPortal",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dialog.tsx",
+      "source_line": 119,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DialogTitle",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dialog.tsx",
+      "source_line": 120,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DialogTrigger",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dialog.tsx",
+      "source_line": 121,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DragToConfirmSlider",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ onConfirm, label = \"Drag to confirm\", confirmText = \"Confirmed!\" }: DragToConfirmSliderProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/drag-to-confirm-slider.tsx",
+      "source_line": 13,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DraggableList",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/lists/draggable-list.tsx",
+      "source_line": 14,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenu",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 185,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenuCheckboxItem",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 186,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenuContent",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 187,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenuGroup",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 188,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenuItem",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 189,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenuLabel",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 190,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenuPortal",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 191,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenuRadioGroup",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 192,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenuRadioItem",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 193,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenuSeparator",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 194,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenuShortcut",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ className, ...props }: React.HTMLAttributes<HTMLSpanElement>"
+      ],
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 195,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenuSub",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 196,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenuSubContent",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 197,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenuSubTrigger",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 198,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DropdownMenuTrigger",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/dropdown-menu.tsx",
+      "source_line": 199,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DynamicSpotlightCTA",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ text = \"Unlock Your Motion Power\", intensity = 0.85, radius = 240, showBlur = true }: DynamicSpotlightCTAProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/dynamic-spotlight-cta.tsx",
+      "source_line": 22,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DynamicTagCloud",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ tags = [{ id: \"1\", label: \"React\" }, { id: \"2\", label: \"TypeScript\" }, { id: \"3\", label: \"Framer Motion\" }, { id: \"4\", label: \"TailwindCSS\" }, { id: \"5\", label: \"Next.js\" }, { id: \"6\", label: \"Design\" }] }: DynamicTagCloudProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/dynamic-tag-cloud.tsx",
+      "source_line": 15,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "EcommerceHighlightCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/cards/shadcnui/ecommerce-highlight-card.tsx",
+      "source_line": 64,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ElasticSwitch",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/micro/toggles/elastic-switch.tsx",
+      "source_line": 6,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ExpandingSearchDock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ onSearch, placeholder = \"Search...\" }: ExpandingSearchDockProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/expanding-search-dock.tsx",
+      "source_line": 12,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "FAQAccordionBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/faq-accordion-block.tsx",
+      "source_line": 43,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "FAQSection",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/faq-section.tsx",
+      "source_line": 36,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "FadeSlideModal",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/modal/fade-slide.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "FeatureCardsBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/feature-cards-block.tsx",
+      "source_line": 6,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "FeatureComparisonBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/feature-comparison-block.tsx",
+      "source_line": 90,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "FeatureGridSection",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/feature-grid-section.tsx",
+      "source_line": 47,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "FloatingChatWidget",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/chat/floating-chat-widget.tsx",
+      "source_line": 112,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "FloatingGradient",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/decorative/background/floating-gradient.tsx",
+      "source_line": 5,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "FloatingInfoPanel",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ title = \"Info Panel\", description = \"This is a floating information panel that gently drifts\", icon }: FloatingInfoPanelProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/floating-info-panel.tsx",
+      "source_line": 12,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "FloatingLabelInput",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/inputs/floating-label-input.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "FluidModalTransition",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ trigger, title = \"Modal Title\", children }: FluidModalTransitionProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/fluid-modal-transition.tsx",
+      "source_line": 13,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "FolderBrowser",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ folders = [], initialFolder }: FolderBrowserProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/sections/browse-folder.tsx",
+      "source_line": 21,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "FooterBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/footer-block.tsx",
+      "source_line": 47,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GalleryGridBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/gallery-grid-block.tsx",
+      "source_line": 49,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassAccountSettingsCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/forms/glass-account-settings.tsx",
+      "source_line": 17,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassBlogCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ title = defaultPost.title, excerpt = defaultPost.excerpt, image = defaultPost.image, author = defaultPost.author, date = defaultPost.date, readTime = defaultPost.readTime, tags = defaultPost.tags, className }: GlassBlogCardProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/components/cards/shadcnui/glass-blog-card.tsx",
+      "source_line": 39,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassCheckoutCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ amount = 85.8, className }: GlassCheckoutCardProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/components/cards/shadcnui/glass-checkout-card.tsx",
+      "source_line": 17,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassForgotPasswordCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/forms/glass-forgot-password.tsx",
+      "source_line": 9,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassOrderSummary",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ items = defaultItems, subtotal = 78.0, tax = 7.8, shipping = 0, total = 85.8, className }: GlassOrderSummaryProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/components/cards/shadcnui/glass-order-summary.tsx",
+      "source_line": 49,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassProfileSettingsCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/forms/glass-profile-settings.tsx",
+      "source_line": 14,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassSignInCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/forms/glass-sign-in.tsx",
+      "source_line": 17,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassSignUpCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/forms/glass-sign-up.tsx",
+      "source_line": 17,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassVerificationCodeCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/forms/glass-verification-code.tsx",
+      "source_line": 10,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassWalletCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ balance = defaultWallet.balance, currency = defaultWallet.currency, address = defaultWallet.address, trend = defaultWallet.trend, trendUp = defaultWallet.trendUp, cardHolder = defaultWallet.cardHolder, expiry = defaultWallet.expiry, className }: GlassWalletCardProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/components/cards/shadcnui/glass-wallet-card.tsx",
+      "source_line": 36,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassmorphismCTABlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/glassmorphism-cta-block.tsx",
+      "source_line": 6,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassmorphismHeroBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/glassmorphism-hero-block.tsx",
+      "source_line": 6,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassmorphismLaunchTimelineBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/glassmorphism-launch-timeline-block.tsx",
+      "source_line": 65,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassmorphismListenAppBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/glassmorphism-listen-app-block.tsx",
+      "source_line": 78,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassmorphismLogoShowcaseBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/glassmorphism-logo-showcase-block.tsx",
+      "source_line": 26,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassmorphismMinimalMetricsBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/glassmorphism-minimal-metrics-block.tsx",
+      "source_line": 42,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassmorphismPortfolioBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/glassmorphism-portfolio-block.tsx",
+      "source_line": 95,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassmorphismPricingBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/glassmorphism-pricing-block.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassmorphismProductUpdateBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/glassmorphism-product-update-block.tsx",
+      "source_line": 37,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassmorphismStatisticsCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/glassmorphism-statistics-card.tsx",
+      "source_line": 22,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlassmorphismTestimonialsBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/glassmorphism-testimonials-block.tsx",
+      "source_line": 6,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GlowyWavesHero",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/glowy-waves-hero.tsx",
+      "source_line": 61,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GradientAnimation",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/decorative/backgrounds/gradient-animation.tsx",
+      "source_line": 5,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GridPreview",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ cells, cols, rows, gap, selectedCells, onPointerDown, onPointerEnter, onPointerUp, onPointerLeave, onAddCell, onResetGrid, onUndo, onRedo, canUndo, canRedo }: GridPreviewProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/grid/grid-preview.tsx",
+      "source_line": 28,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "GridPreviewProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/grid/grid-preview.tsx",
+      "source_line": 10,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "HeartFavorite",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/micro/icons/heart-favorite.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "HeroBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/hero-block.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "HolographicWall",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ intensity = 0.8, radius = 200 }: HolographicWallProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/holographic-wall.tsx",
+      "source_line": 35,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "HoverExpandCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/cards/shadcnui/hover-expand.tsx",
+      "source_line": 6,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ImageSliderCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/cards/image-slider-card.tsx",
+      "source_line": 43,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "InputProps",
+      "export_type": "type",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/input.tsx",
+      "source_line": 4,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "InteractiveLogsTable",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/interactive-logs-table.tsx",
+      "source_line": 398,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "InteractiveTimeline",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ items = [{ id: \"1\", title: \"Started\", description: \"Project began\", date: \"2024\" }, { id: \"2\", title: \"Development\", description: \"Active development phase\", date: \"2024\" }, { id: \"3\", title: \"Launch\", description: \"Project launched\", date: \"2024\" }] }: InteractiveTimelineProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/interactive-timeline.tsx",
+      "source_line": 64,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "KanbanBoard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/kanban/kanban-board.tsx",
+      "source_line": 142,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Label",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/label.tsx",
+      "source_line": 22,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "LabelProps",
+      "export_type": "type",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/label.tsx",
+      "source_line": 4,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "LikeUser",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-likes-counter-shadcnui.tsx",
+      "source_line": 9,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "LiquidCursor",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/liquid-cursor.tsx",
+      "source_line": 25,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ListItem",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-nested-list-shadcnui.tsx",
+      "source_line": 11,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "MacSearchbar",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/search/mac-searchbar.tsx",
+      "source_line": 16,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "MagneticAvatarGroup",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ avatars = [{ id: \"1\", name: \"John Doe\", initials: \"JD\", color: \"bg-primary\" }, { id: \"2\", name: \"Jane Smith\", initials: \"JS\", color: \"bg-primary/80\" }, { id: \"3\", name: \"Bob Wilson\", initials: \"BW\", color: \"bg-primary/60\" }, { id: \"4\", name: \"Alice Brown\", initials: \"AB\", color: \"bg-primary/40\" }], maxVisible = 4 }: MagneticAvatarGroupProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/magnetic-avatar-group.tsx",
+      "source_line": 18,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Messenger",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/chat/messenger.tsx",
+      "source_line": 162,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "MinimalResume",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/resumes/shadcnui/minimal-resume.tsx",
+      "source_line": 83,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "MoodGradientButton",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ children = \"Hover Me\", onClick, className = \"\" }: MoodGradientButtonProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/mood-gradient-button.tsx",
+      "source_line": 12,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "MorphingButtonAction",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-morphing-button-shadcnui.tsx",
+      "source_line": 14,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "MultipleAccounts",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/account-switcher/multiple-accounts.tsx",
+      "source_line": 42,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "N8nWorkflowBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/n8n-workflow-block.tsx",
+      "source_line": 161,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeAvatarExpand",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ src, name, size = \"md\", className, avatarClassName, nameClassName }: NativeAvatarExpandProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-avatar-expand-shadcnui.tsx",
+      "source_line": 55,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeAvatarExpandProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-avatar-expand-shadcnui.tsx",
+      "source_line": 8,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeAvatarProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-avatar-with-name-shadcnui.tsx",
+      "source_line": 8,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeAvatarWithName",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ src, name, fallback, size = \"md\", direction = \"bottom\", className, nameClassName, motionClassName }: NativeAvatarProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-avatar-with-name-shadcnui.tsx",
+      "source_line": 59,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeButton",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ className, variant = \"default\", size = \"lg\", children, loading = false, glow = false, disabled, ...props }: NativeButtonProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-button-shadcnui.tsx",
+      "source_line": 88,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeButtonProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-button-shadcnui.tsx",
+      "source_line": 9,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeCounterUp",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ value, duration = 2, prefix = \"\", suffix = \"\", decimals = 0, label, autoStart = true, className }: NativeCounterUpProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-counter-up-shadcnui.tsx",
+      "source_line": 42,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeCounterUpProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-counter-up-shadcnui.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeDelete",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ onConfirm, onDelete, buttonText = \"Delete\", confirmText = \"Confirm\", size = \"md\", showIcon = true, className, disabled = false }: NativeDeleteProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-delete-shadcnui.tsx",
+      "source_line": 73,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeDeleteProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-delete-shadcnui.tsx",
+      "source_line": 9,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeDialog",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-dialog-shadcnui.tsx",
+      "source_line": 86,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeDialogClose",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-dialog-shadcnui.tsx",
+      "source_line": 87,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeDialogContent",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-dialog-shadcnui.tsx",
+      "source_line": 88,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeDialogDescription",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-dialog-shadcnui.tsx",
+      "source_line": 89,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeDialogFooter",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-dialog-shadcnui.tsx",
+      "source_line": 90,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeDialogHeader",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-dialog-shadcnui.tsx",
+      "source_line": 91,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeDialogOverlay",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-dialog-shadcnui.tsx",
+      "source_line": 92,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeDialogPortal",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-dialog-shadcnui.tsx",
+      "source_line": 93,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeDialogTitle",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-dialog-shadcnui.tsx",
+      "source_line": 94,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeDialogTrigger",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-dialog-shadcnui.tsx",
+      "source_line": 95,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeFlipText",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ words, duration = 2000, className }: NativeFlipTextProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-flip-text-shadcnui.tsx",
+      "source_line": 20,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeImageCheckbox",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ src, alt, selected, onSelect, size = \"md\", className, imageClassName }: NativeImageCheckboxProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-image-checkbox-shadcnui.tsx",
+      "source_line": 63,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeImageCheckboxProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-image-checkbox-shadcnui.tsx",
+      "source_line": 8,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeLikesCounter",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ count, users = [], variant = \"default\", size = \"default\", liked = false, onLike, onLoadMore, hasMore = false, maxAvatars = 5, maxVisibleInPopup = 5, className }: NativeLikesCounterProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-likes-counter-shadcnui.tsx",
+      "source_line": 56,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeLikesCounterProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-likes-counter-shadcnui.tsx",
+      "source_line": 15,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeLiquidButton",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ children, className, variant = \"default\", size = \"default\", progress = 0, loading = false, onClick, disabled, liquidVariant = \"default\", liquidColor, showPercentage = false, autoSimulate = false, success = false, error = false, ...props }: NativeLiquidButtonProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-liquid-button-shadcnui.tsx",
+      "source_line": 61,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeLiquidButtonProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-liquid-button-shadcnui.tsx",
+      "source_line": 12,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeMagnetic",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ children, strength = 0.3, stiffness = 300, damping = 30, scaleOnHover = true, as = \"div\", href, onClick, className }: NativeMagneticProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-magnetic-shadcnui.tsx",
+      "source_line": 61,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeMagneticProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-magnetic-shadcnui.tsx",
+      "source_line": 14,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeMorphingButton",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ actions, position = \"bottom-right\", fixed = false, icon, closeIcon, className }: NativeMorphingButtonProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-morphing-button-shadcnui.tsx",
+      "source_line": 69,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeMorphingButtonProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-morphing-button-shadcnui.tsx",
+      "source_line": 29,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeNestedList",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ items, activeId, onItemClick, size = \"md\", showExpandIcon = true, defaultExpanded = false, className, indentSize = 16 }: NativeNestedListProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-nested-list-shadcnui.tsx",
+      "source_line": 230,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeNestedListProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-nested-list-shadcnui.tsx",
+      "source_line": 43,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeNotch",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ children, collapsedIcon, size = \"md\", position = { top: 32, align: \"center\" }, draggable = true, defaultExpanded = false, expanded: controlledExpanded, onExpandedChange, onClick, className }: NativeNotchProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-notch-shadcnui.tsx",
+      "source_line": 106,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeNotchProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-notch-shadcnui.tsx",
+      "source_line": 39,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeNotificationBell",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ count = 0, showBadge, onClick, onRing, icon, size = \"md\", className }: NativeNotificationBellProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-notification-bell-shadcnui.tsx",
+      "source_line": 68,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeNotificationBellProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-notification-bell-shadcnui.tsx",
+      "source_line": 8,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeProfileNotch",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ imageSrc, name, username, children, size = \"md\", className, variant = \"default\" }: NativeProfileNotchProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-profile-notch-shadcnui.tsx",
+      "source_line": 44,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeProfileNotchProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-profile-notch-shadcnui.tsx",
+      "source_line": 9,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeStartNow",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ onStart, label = \"Start Now\", loadingLabel = \"Starting...\", successLabel = \"Let's Go!\", size = \"md\", showRocket = true, icon, className, disabled = false, variant = \"gradient\" }: NativeStartNowProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-start-now-shadcnui.tsx",
+      "source_line": 78,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeStartNowProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-start-now-shadcnui.tsx",
+      "source_line": 9,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeTabs",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ items, defaultValue, className }: NativeTabsProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-tabs-shadcnui.tsx",
+      "source_line": 18,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeTooltip",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ content, children, animation, ...props }: React.ComponentProps<typeof TooltipPrimitive.Root> & { content?: React.ReactNode; animation?: \"blur\" | \"scale\"; }"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-tooltip-shadcnui.tsx",
+      "source_line": 92,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeTooltipContent",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-tooltip-shadcnui.tsx",
+      "source_line": 93,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeTooltipProvider",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ delayDuration = 100, ...props }: React.ComponentProps<typeof TooltipPrimitive.Provider>"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-tooltip-shadcnui.tsx",
+      "source_line": 94,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeTooltipTrigger",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-tooltip-shadcnui.tsx",
+      "source_line": 95,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeTypewriter",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ content, speed = \"medium\", cursor = true, loop = false, startDelay = 0, morph = true, className }: NativeTypewriterProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-typewriter-shadcnui.tsx",
+      "source_line": 43,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeUserCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ imageSrc, name, handle, href = \"#\", onClick, className }: NativeUserCardProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-user-card-shadcnui.tsx",
+      "source_line": 19,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NewHeroSection",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/new-hero-section.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NewsFeed",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/news-feed/news-feed.tsx",
+      "source_line": 243,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NewsletterSignupBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/newsletter-signup-block.tsx",
+      "source_line": 11,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NotchPosition",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-notch-shadcnui.tsx",
+      "source_line": 24,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NotchSize",
+      "export_type": "type",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-notch-shadcnui.tsx",
+      "source_line": 19,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NotificationCenter",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/notifications/notification-center.tsx",
+      "source_line": 86,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NotionBlogPage",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/notion-blog-page.tsx",
+      "source_line": 62,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "OurPartnersSection",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/our-partners-section.tsx",
+      "source_line": 15,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "OurServicesSection",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/our-services-section.tsx",
+      "source_line": 61,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "PasswordInput",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/inputs/password-input.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "PasswordInputProps",
+      "export_type": "type",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/password-input.tsx",
+      "source_line": 9,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "PresetsPanel",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ onApplyPreset }: PresetsPanelProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/grid/presets-panel.tsx",
+      "source_line": 12,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "PreviewDetailsCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/micro/links/preview-details-card.tsx",
+      "source_line": 19,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "PricingSection",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/pricing-section.tsx",
+      "source_line": 61,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ProfessionalResume",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/resumes/shadcnui/professional-resume.tsx",
+      "source_line": 59,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ProfilePage",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/profile/profile-page.tsx",
+      "source_line": 16,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ProjectCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ title = defaultProject.title, description = defaultProject.description, tags = defaultProject.tags, image = defaultProject.image, links = defaultProject.links, className }: ProjectCardProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/components/cards/shadcnui/project-card.tsx",
+      "source_line": 31,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ProjectsBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/projects-block.tsx",
+      "source_line": 18,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ReactiveBackgroundGrid",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ dots = true, density = 20 }: ReactiveBackgroundGridProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/reactive-background-grid.tsx",
+      "source_line": 11,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ResumeCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/resumes/shadcnui/resume-card.tsx",
+      "source_line": 138,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "RippleClickButton",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/micro/buttons/ripple-click.tsx",
+      "source_line": 12,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ScaleHoverButton",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/micro/buttons/scale-hover.tsx",
+      "source_line": 5,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ScrollArea",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/scroll-area.tsx",
+      "source_line": 32,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ScrollBar",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/scroll-area.tsx",
+      "source_line": 32,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ScrollProgressTracker",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ sections = [], height = 4 }: ScrollProgressTrackerProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/scroll-progress-tracker.tsx",
+      "source_line": 11,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ScrollReveal",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ motionPreset = \"smooth\", className }: ScrollRevealProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/sections/scroll-reveal.tsx",
+      "source_line": 47,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Select",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ ...props }: React.ComponentProps<typeof SelectPrimitive.Root>"
+      ],
+      "source_file": "packages/components/react-shadcn/src/ui/select.tsx",
+      "source_line": 175,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SelectContent",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ className, children, position = \"popper\", align = \"center\", ...props }: React.ComponentProps<typeof SelectPrimitive.Content>"
+      ],
+      "source_file": "packages/components/react-shadcn/src/ui/select.tsx",
+      "source_line": 176,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SelectGroup",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ ...props }: React.ComponentProps<typeof SelectPrimitive.Group>"
+      ],
+      "source_file": "packages/components/react-shadcn/src/ui/select.tsx",
+      "source_line": 177,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SelectItem",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ className, children, ...props }: React.ComponentProps<typeof SelectPrimitive.Item>"
+      ],
+      "source_file": "packages/components/react-shadcn/src/ui/select.tsx",
+      "source_line": 178,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SelectLabel",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ className, ...props }: React.ComponentProps<typeof SelectPrimitive.Label>"
+      ],
+      "source_file": "packages/components/react-shadcn/src/ui/select.tsx",
+      "source_line": 179,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SelectScrollDownButton",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ className, ...props }: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>"
+      ],
+      "source_file": "packages/components/react-shadcn/src/ui/select.tsx",
+      "source_line": 180,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SelectScrollUpButton",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ className, ...props }: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>"
+      ],
+      "source_file": "packages/components/react-shadcn/src/ui/select.tsx",
+      "source_line": 181,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SelectSeparator",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ className, ...props }: React.ComponentProps<typeof SelectPrimitive.Separator>"
+      ],
+      "source_file": "packages/components/react-shadcn/src/ui/select.tsx",
+      "source_line": 182,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SelectTrigger",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ className, size = \"default\", children, ...props }: React.ComponentProps<typeof SelectPrimitive.Trigger> & { size?: \"sm\" | \"default\"; }"
+      ],
+      "source_file": "packages/components/react-shadcn/src/ui/select.tsx",
+      "source_line": 183,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SelectValue",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ ...props }: React.ComponentProps<typeof SelectPrimitive.Value>"
+      ],
+      "source_file": "packages/components/react-shadcn/src/ui/select.tsx",
+      "source_line": 184,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Separator",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/separator.tsx",
+      "source_line": 31,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ServicesGridBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/services-grid-block.tsx",
+      "source_line": 92,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SettingsPanel",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ cols, maxCols = 12, maxGap = 12, gap, onColsChange, onGapChange }: SettingsPanelProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/grid/settings-panel.tsx",
+      "source_line": 15,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ShimmerButton",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/micro/buttons/shimmer-button.tsx",
+      "source_line": 6,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SimpleCalendar",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/forms/simple-calendar.tsx",
+      "source_line": 10,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Slider",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/slider.tsx",
+      "source_line": 28,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SmartHoverCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ title = \"Smart Hover Card\", description = \"Hover from different directions to see content reveal\", children }: SmartHoverCardProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/smart-hover-card.tsx",
+      "source_line": 14,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SocialAnimation",
+      "export_type": "type",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/social-login-button-shadcnui.tsx",
+      "source_line": 8,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SocialLoginButton",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ className, provider, animation = \"none\", children, ...props }: SocialLoginButtonProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/social-login-button-shadcnui.tsx",
+      "source_line": 127,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SocialLoginButtonProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/social-login-button-shadcnui.tsx",
+      "source_line": 10,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SocialProvider",
+      "export_type": "type",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/social-login-button-shadcnui.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SpotlightSection",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ children = (<div className=\"text-center\"> <h3 className=\"text-xl font-semibold\">Spotlight Section</h3> <p className=\"mt-2 text-sm text-muted-foreground\"> Move your mouse around to see the spotlight effect </p> </div>), intensity = 0.6, size = 300 }: SpotlightSectionProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/spotlight-section.tsx",
+      "source_line": 12,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "StackedCardCarousel",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ cards = [{ id: \"1\", title: \"Card One\", description: \"Description for card one\", color: \"bg-primary\" }, { id: \"2\", title: \"Card Two\", description: \"Description for card two\", color: \"bg-primary/80\" }, { id: \"3\", title: \"Card Three\", description: \"Description for card three\", color: \"bg-primary/60\" }] }: StackedCardCarouselProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/stacked-card-carousel.tsx",
+      "source_line": 17,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "StaggeredDropdown",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/dropdown/staggered-items.tsx",
+      "source_line": 9,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "StaggeredHero",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/page/hero/staggered-text.tsx",
+      "source_line": 30,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "StandardResume",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/resumes/shadcnui/standard-resume.tsx",
+      "source_line": 98,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "StatsCounterBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/stats-counter-block.tsx",
+      "source_line": 82,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "StatsSection",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/stats-section.tsx",
+      "source_line": 40,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "StocksDashboard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/components/stocks-dashboard/stocks-dashboard.tsx",
+      "source_line": 454,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Switch",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/switch.tsx",
+      "source_line": 29,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SyncedLyricCaptions",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ script = DEFAULT_SCRIPT, audioSrc, title = \"Enhanced Synced Captions\" }: SyncedLyricCaptionsProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/motion-core/synced-lyric-captions.tsx",
+      "source_line": 66,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Tabs",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/tabs.tsx",
+      "source_line": 54,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "TabsContent",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/tabs.tsx",
+      "source_line": 54,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "TabsList",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/tabs.tsx",
+      "source_line": 54,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "TabsTrigger",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/tabs.tsx",
+      "source_line": 54,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "TeamSectionBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/team-section-block.tsx",
+      "source_line": 326,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "TestimonialSection",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/testimonial-section.tsx",
+      "source_line": 41,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "TestimonialsBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/testimonials-block.tsx",
+      "source_line": 55,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Textarea",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/textarea.tsx",
+      "source_line": 22,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "TextareaProps",
+      "export_type": "type",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/textarea.tsx",
+      "source_line": 4,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "TheaterTicket",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/theater-ticket.tsx",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "TimelineBlock",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/timeline-block.tsx",
+      "source_line": 47,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ToastNotification",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/page/notifications/toast-notification.tsx",
+      "source_line": 9,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Tooltip",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/tooltip.tsx",
+      "source_line": 32,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "TooltipContent",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/tooltip.tsx",
+      "source_line": 32,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "TooltipProvider",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/tooltip.tsx",
+      "source_line": 32,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "TooltipTrigger",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/tooltip.tsx",
+      "source_line": 32,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "TweetCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ author, content, url, className }: TweetCardProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/components/cards/tweet-card.tsx",
+      "source_line": 17,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "VerifiedBadge",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ variant = \"default\", size = \"md\", className, showLabel = false, label = \"Verified\", icon, tooltip }: VerifiedBadgeProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-verified-badge-shadcnui.tsx",
+      "source_line": 104,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "VerifiedBadgeOutline",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ variant = \"default\", size = \"md\", className, icon, tooltip }: Omit<VerifiedBadgeProps, \"showLabel\" | \"label\">"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-verified-badge-shadcnui.tsx",
+      "source_line": 162,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "VerifiedShieldBadge",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ variant = \"default\", size = \"md\", className, icon, tooltip }: Omit<VerifiedBadgeProps, \"showLabel\" | \"label\">"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-verified-badge-shadcnui.tsx",
+      "source_line": 247,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "VolumeComponent",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ min = 0, max = 100, step = 1, defaultValue = 0, onChange, className, label = \"Volume\" }: SliderProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/components/sliders/volume-component.tsx",
+      "source_line": 17,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "WeatherDashboard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "return_type": "React.ReactElement",
+      "source_file": "packages/components/react-shadcn/src/components/components/weather/weather-dashboard.tsx",
+      "source_line": 390,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "WebPerformancePage",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/web-performance/web-performance-page.tsx",
+      "source_line": 394,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "WizardForm",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/forms/wizard-form.tsx",
+      "source_line": 165,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "badgeVariants",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/badge.tsx",
+      "source_line": 34,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "bentoPresets",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/lib/grid-presets.ts",
+      "source_line": 7,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "buttonVariants",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/ui/button.tsx",
+      "source_line": 55,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "componentsRegistry",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/registry/src/index.tsx",
+      "source_line": 8,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "nativeComponents",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/registry/src/registry/native.tsx",
+      "source_line": 218,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "uiComponents",
+      "export_type": "const",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/registry/src/registry/ui.tsx",
+      "source_line": 179,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "RegistryItemType",
+      "source_library": "@uitripled/react-shadcn",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     }
-  ]
+  ],
+  "test_report_run_id": "20261102T190559Z-00c1915d",
+  "files_changed": 203,
+  "exports_affected": 291,
+  "confidence_tier": "Deep",
+  "manual_sections_preserved": 4
 }

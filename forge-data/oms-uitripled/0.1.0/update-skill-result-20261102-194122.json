@@ -1,0 +1,97 @@
+{
+  "skill": "skf-update-skill",
+  "status": "success",
+  "outputs": [
+    {
+      "type": "skill",
+      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/SKILL.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/catalog.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/types.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/utils.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/setup.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/integration.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/ui-primitives.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/native-components.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/motion-components.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/references/blocks-and-sections.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json"
+    },
+    {
+      "type": "skill",
+      "path": "forge-data/oms-uitripled/0.1.0/provenance-map.json"
+    },
+    {
+      "type": "skill",
+      "path": "forge-data/oms-uitripled/0.1.0/evidence-report.md"
+    }
+  ],
+  "summary": {
+    "update_status": "success",
+    "exports_affected": 293,
+    "files_modified": 13,
+    "validation_status": "warnings"
+  },
+  "timestamp": "2026-11-02T19:41:22Z",
+  "run_id": "YdDHTXDD",
+  "headless_decisions": [
+    {
+      "gate": "init.update-confirmation",
+      "default_action": "C",
+      "taken_action": "C",
+      "reason": "headless: no user to prompt"
+    },
+    {
+      "gate": "merge.clean-merge-gate",
+      "default_action": "C",
+      "taken_action": "C",
+      "reason": "headless: clean merge, no conflicts to resolve"
+    }
+  ],
+  "warnings": [
+    "customization_resolver_unavailable: not found",
+    "test-report: not routed: GAP-291 (denominator-inflation)",
+    "test-report: not routed: GAP-292 (brief-scope-stale)",
+    "test-report: not routed: GAP-288 (observation)",
+    "test-report: not routed: GAP-289 (observation)",
+    "test-report: not routed: GAP-290 (observation)",
+    "test-report: not routed: GAP-294 (multi-denominator)",
+    "test-report: not routed: GAP-300 (observation)",
+    "test-report: not routed: GAP-301 (observation)",
+    "test-report: not routed: GAP-302 (observation)",
+    "test-report: not routed: GAP-303 (observation)",
+    "provenance: getGapSliderIndex: verified",
+    "provenance: 14 orphaned entries (in provenance-map.json, not in metadata exports[]; the same set before this run): Component, ComponentCategory, THEME_STORAGE_KEY, ThemeMode, UILibrary, countSavedProjectComponents, createPage, extractSavedPages, fetchComponent, getCellKey, getGapSliderIndex, getGapValueFromIndex, initializeCells, isCellInSelection",
+    "provenance: RegistryItemType has a provenance entry and an exports[] row with no source_file/source_line (GAP-287 stale-documentation routed MODIFIED_EXPORT, verification unknown); the source exports no such name and SKILL.md no longer documents it",
+    "provenance: getGapSliderIndex map entry keeps params [value: number] (verified, no_reextraction); the documentation now reads gapValue"
+  ]
+}
