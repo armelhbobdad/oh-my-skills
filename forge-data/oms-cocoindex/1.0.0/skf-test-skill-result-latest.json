@@ -5,14 +5,14 @@
   "verdict": "FAIL",
   "score": null,
   "threshold": null,
-  "report_path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261102T190553Z-bac8090f.md",
+  "report_path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261102T194626Z-f0fcead7.md",
   "next_workflow": "update-skill",
   "exit_code": 2,
   "halt_reason": "hard-gate-blocked",
   "outputs": [
     {
       "type": "report",
-      "path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261102T190553Z-bac8090f.md"
+      "path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261102T194626Z-f0fcead7.md"
     }
   ],
   "summary": {
@@ -22,18 +22,18 @@
     "testMode": "naive",
     "activeCategories": [],
     "gapCounts": {
-      "Critical": 2,
-      "High": 2,
-      "Medium": 4,
-      "Low": 8,
-      "Info": 101
+      "Critical": 0,
+      "High": 1,
+      "Medium": 3,
+      "Low": 1,
+      "Info": 103
     },
     "hardGate": "blocked"
   },
-  "runId": "20261102T190553Z-bac8090f",
+  "runId": "20261102T194626Z-f0fcead7",
   "healthCheckDispatched": true,
-  "timestamp": "2026-11-02T19:23:13Z",
-  "run_id": "20261102T190553Z-bac8090f",
+  "timestamp": "2026-11-02T20:00:28Z",
+  "run_id": "20261102T194626Z-f0fcead7",
   "headless_decisions": [],
   "warnings": [
     "customization_resolver_unavailable: not found"
