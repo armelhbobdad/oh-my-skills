@@ -1,0 +1,41 @@
+{
+  "skill": "skf-test-skill",
+  "status": "error",
+  "skill_name": "oms-uitripled",
+  "verdict": "FAIL",
+  "score": null,
+  "threshold": null,
+  "report_path": "forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled-20261102T190559Z-00c1915d.md",
+  "next_workflow": "update-skill",
+  "exit_code": 2,
+  "halt_reason": "hard-gate-blocked",
+  "outputs": [
+    {
+      "type": "report",
+      "path": "forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled-20261102T190559Z-00c1915d.md"
+    }
+  ],
+  "summary": {
+    "score": null,
+    "threshold": null,
+    "result": "FAIL",
+    "testMode": "naive",
+    "activeCategories": [],
+    "gapCounts": {
+      "Critical": 1,
+      "High": 0,
+      "Medium": 290,
+      "Low": 4,
+      "Info": 8
+    },
+    "hardGate": "blocked"
+  },
+  "runId": "20261102T190559Z-00c1915d",
+  "healthCheckDispatched": true,
+  "timestamp": "2026-11-02T19:14:54Z",
+  "run_id": "20261102T190559Z-00c1915d",
+  "headless_decisions": [],
+  "warnings": [
+    "customization_resolver_unavailable: not found"
+  ]
+}
