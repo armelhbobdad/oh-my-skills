@@ -4,11 +4,7 @@
   "outputs": [
     {
       "type": "skill",
-      "path": "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/doc-blocks.md"
-    },
-    {
-      "type": "skill",
-      "path": "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/core-api.md"
+      "path": "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/references/csf3-patterns.md"
     },
     {
       "type": "skill",
@@ -25,12 +21,12 @@
   ],
   "summary": {
     "update_status": "success",
-    "exports_affected": 9,
-    "files_modified": 5,
+    "exports_affected": 2,
+    "files_modified": 4,
     "validation_status": "warnings"
   },
-  "timestamp": "2026-11-02T20:32:35Z",
-  "run_id": "P4j1FARf",
+  "timestamp": "2026-11-02T21:04:42Z",
+  "run_id": "GXUFEi75",
   "headless_decisions": [
     {
       "gate": "init.update-confirmation",
@@ -47,7 +43,15 @@
   ],
   "warnings": [
     "customization_resolver_unavailable: not found",
-    "test-report: not routed: GAP-010 (multi-denominator)",
+    "test-report: not routed: GAP-002 (multi-denominator)",
+    "test-report: not routed: GAP-003 (provenance-unverified)",
+    "test-report: not routed: GAP-004 (provenance-unverified)",
+    "test-report: not routed: GAP-005 (provenance-unverified)",
+    "test-report: not routed: GAP-006 (provenance-unverified)",
+    "test-report: not routed: GAP-007 (provenance-unverified)",
+    "test-report: not routed: GAP-008 (provenance-unverified)",
+    "test-report: not routed: GAP-009 (provenance-unverified)",
+    "test-report: not routed: GAP-010 (provenance-unverified)",
     "test-report: not routed: GAP-011 (provenance-unverified)",
     "test-report: not routed: GAP-012 (provenance-unverified)",
     "test-report: not routed: GAP-013 (provenance-unverified)",
@@ -90,23 +94,11 @@
     "test-report: not routed: GAP-050 (provenance-unverified)",
     "test-report: not routed: GAP-051 (provenance-unverified)",
     "test-report: not routed: GAP-052 (provenance-unverified)",
-    "test-report: not routed: GAP-053 (provenance-unverified)",
-    "test-report: not routed: GAP-054 (provenance-unverified)",
-    "test-report: not routed: GAP-055 (provenance-unverified)",
-    "test-report: not routed: GAP-056 (provenance-unverified)",
-    "test-report: not routed: GAP-057 (provenance-unverified)",
-    "test-report: not routed: GAP-058 (provenance-unverified)",
-    "test-report: not routed: GAP-059 (provenance-unverified)",
-    "test-report: not routed: GAP-060 (provenance-unverified)",
-    "provenance: DocsContainer: verified",
-    "provenance: Source: verified",
-    "provenance: Subtitle: verified",
-    "provenance: Title: verified",
-    "metadata-patch: GAP-009 (recount the exports, correct the diverging counts) applied through the step 5 recount: exports_public_api 1335 and exports_internal 1874 from the recipe runner, exports_documented 1027 from the provenance map; exports[] now lists 887 names, so stats.exports_public_api (1335) still differs from exports[].length (887): the barrel and the documented list measure different sets, and neither is hand-edited",
+    "metadata-patch: GAP-001 (recount the exports, correct the diverging counts) applied through the step 5 recount only: exports_public_api 1335 and exports_internal 1874 from the recipe runner, exports_documented 1027 from the provenance map; exports[] (built by apply, never patched) still lists 887 names, so stats.exports_public_api (1335) still differs from exports[].length (887) by 34% and the Medium metadata-drift gap stays open",
     "provenance: missing: documented exports with no provenance entry: Args, DocsPage, Parameters",
     "provenance: orphaned: 143 provenance entries whose names metadata exports[] does not list (exports[] lags the map)",
-    "provenance: file-missing: composeStory (code/renderers/react/src/portable-stories.ts:1); setProjectAnnotations (code/renderers/react/src/portable-stories.ts:1): file not at the pinned commit; left for a person (needs-decision)",
-    "provenance: unverified: 50 entries whose line the rules find no definition line for (barrel or destructured forms): A11yGlobals_exact, A11yReport_exact, ArgTypes, Canvas, ColorPalette, ComponentEntry, Controls, Description, DocsContainer, DocsContext, DocsEntry, GroupEntry, HashEntry, IconGallery, IndexHash, LeafEntry, Markdown, Primary, RootEntry, Source, Stories, Story, StoryEntry, Subtitle, ThemesGlobals_def, Title, Typeset, Unstyled, a11y_decorators, a11y_initialGlobals, a11y_parameters, definePreview, experimental_useStatusStore, experimental_useTestProviderStore, fireEvent, merge, mockChannel_def, module.exports, screen, useOf, userEvent, versions, waitFor, withThemeByClassName, withThemeByClassName_exact, withThemeByDataAttribute, withThemeByDataAttribute_exact, withThemeFromJSXProvider, withThemeFromJSXProvider_exact, within",
-    "provenance: node kinds: 48 invalid-kind ast_node_type values left as is: kind-at found no match for 46, and could not read portable-stories.ts for composeStory and setProjectAnnotations"
+    "provenance: unverified: 50 entries whose cited line is not a definition and the rules found none (line-not-definition, empty definition_lines): A11yGlobals_exact, A11yReport_exact, ArgTypes, Canvas, ColorPalette, ComponentEntry, Controls, Description, DocsContainer, DocsContext, DocsEntry, GroupEntry, HashEntry, IconGallery, IndexHash, LeafEntry, Markdown, Primary, RootEntry, Source, Stories, Story, StoryEntry, Subtitle, ThemesGlobals_def, Title, Typeset, Unstyled, a11y_decorators, a11y_initialGlobals, a11y_parameters, definePreview, experimental_useStatusStore, experimental_useTestProviderStore, fireEvent, merge, mockChannel_def, module.exports, screen, useOf, userEvent, versions, waitFor, withThemeByClassName, withThemeByClassName_exact, withThemeByDataAttribute, withThemeByDataAttribute_exact, withThemeFromJSXProvider, withThemeFromJSXProvider_exact, within",
+    "provenance: file-missing: composeStory (code/renderers/react/src/portable-stories.ts:1); setProjectAnnotations (code/renderers/react/src/portable-stories.ts:1)",
+    "provenance: node kinds: 48 ast-grep entries with an invalid kind; kind-at found none (46 no-match, 2 source file not found), left unchanged"
   ]
 }

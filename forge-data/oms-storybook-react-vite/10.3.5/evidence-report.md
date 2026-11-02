@@ -340,3 +340,52 @@ _active_symlink_update: ok (10.3.5) (no-op, gap-driven repair keeps the version)
 - Notes: Gap-driven repair — the 8 corrected signatures are doc-block and theming/test helpers outside the snippet's headline exports; version and gotchas unchanged
 
 _active_symlink_update: ok (10.3.5) (no-op, gap-driven repair keeps the version); workspace clone not moved (gap-driven: no source tree prepared)._
+
+## Update Operation — 2026-11-02T21:00:52Z (gap-driven repair, SKF 4.0.0)
+
+**Trigger:** test report `test-report-oms-storybook-react-vite-20261102T203834Z-bc762c0c.md` (FAIL: hard gate on 1 High), `skf-update-skill --from-test-report --headless`
+**Forge Tier:** Deep
+**Mode:** gap-driven
+**Source commit:** e486d382 (read as it stands; workspace HEAD verified equal to the pinned commit)
+
+### Changes Detected
+- Files modified: 0 (gap-driven: no source drift detection)
+- Files added: 0
+- Files deleted: 0
+- Exports affected: 2 gaps translated (1 High split-body-mismatch: definePreview; 1 Medium metadata-drift); 51 gaps not routed (50 provenance-unverified, 1 multi-denominator)
+
+### Merge Results
+- Exports updated: 0
+- Exports added: 0
+- Exports removed: 0
+- [MANUAL] sections preserved: 4
+- Conflicts resolved: 0
+- Structural fix: GAP-053, `references/csf3-patterns.md:207` now says the CSF4 `./preview` is built with `definePreview(...)` from `@storybook/react-vite` (the renderer's `__definePreview` re-exported under that name), matching the SKILL.md Key API Summary; no provenance entry changed
+- Metadata patch: GAP-001 applied through the stats recount only; stats.exports_public_api (1335) still differs from exports[].length (887), since apply builds exports[] and the recount owns the stats counts
+
+### Scope and Targeted Re-Extraction
+- Authoritative files: none
+- Scope reconciliation before detection: none
+- Scope reconciliation after detection: none
+- Targeted re-extraction: none
+
+### Validation Summary
+- Spec compliance: PASS (quality score 100/100, skill-check: 0 errors, 0 warnings, nothing to fix)
+- [MANUAL] integrity: PASS
+- Confidence tiers: PASS
+- Provenance: WARN (findings). Fixed: nothing (fix applied no citation or line change; kind-at matched none of the 48 node kinds). Left: 3 missing (Args, DocsPage, Parameters), 143 orphaned (metadata exports[] lags the map), 50 unverified citations with no definition line, 2 file-missing (composeStory, setProjectAnnotations cite portable-stories.ts), 48 invalid node kinds (46 no-match, 2 file-missing); 0 citation-prefix findings (912 of 1031 skill citations matched a map entry)
+- Diff: SKIP
+- Security: SKIP (SNYK_TOKEN not configured)
+
+### Description Guard
+- Restored: false
+- Triggering tool: —
+- Original description preserved: —
+- Notes: —
+
+### Context Snippet
+- Regenerated: false
+- Triggers fired: —
+- Notes: Gap-driven repair — the definePreview fix edits references/csf3-patterns.md only; headline exports, version and gotchas unchanged
+
+_active_symlink_update: ok (10.3.5) (no-op, gap-driven repair keeps the version); workspace clone not moved (gap-driven: no source tree prepared)._

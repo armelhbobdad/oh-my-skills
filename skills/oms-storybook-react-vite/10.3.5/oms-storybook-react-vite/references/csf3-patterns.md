@@ -204,7 +204,7 @@ export const Context: StoryObj<typeof Component> = {
 
 ## Sample 6: CSF4 factory API
 
-See Sample 2 above — `preview.meta(...)` and `Default.test(...)` are the CSF4 factory syntax. The key import is `import preview from './preview'` where `./preview` exports a `ReactPreview` built with `definePreview(...)` from `@storybook/react`.
+See Sample 2 above — `preview.meta(...)` and `Default.test(...)` are the CSF4 factory syntax. The key import is `import preview from './preview'` where `./preview` exports a `ReactPreview` built with `definePreview(...)` from `@storybook/react-vite` (the renderer's `__definePreview`, re-exported under that name; the template's own `./preview` imports `__definePreview` from `@storybook/react`).
 
 ## Common CSF3 vs CSF2 pitfalls
 
