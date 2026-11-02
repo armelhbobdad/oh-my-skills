@@ -115,7 +115,7 @@ export const Primary: Story = { args: { label: 'Click me' } };
 ## `StoryFn<T>`
 
 ```ts
-// code/renderers/react/src/public-types.ts
+// code/renderers/react/src/public-types.ts:38
 export type StoryFn<TCmpOrArgs = Args> = [TCmpOrArgs] extends [ComponentType<any>]
   ? AnnotatedStoryFn<ReactRenderer, ComponentProps<TCmpOrArgs>>
   : AnnotatedStoryFn<ReactRenderer, TCmpOrArgs>;
@@ -126,7 +126,7 @@ The **CSF2** story function type. Still exported for backwards compat and for st
 ## `Decorator<T>`
 
 ```ts
-// code/renderers/react/src/public-types.ts
+// code/renderers/react/src/public-types.ts:77
 export type Decorator<TArgs = StrictArgs> = DecoratorFunction<ReactRenderer, TArgs>;
 ```
 
@@ -150,7 +150,7 @@ const withPadding: Decorator = (Story) => <div style={{ padding: 16 }}><Story />
 export type Loader<TArgs = StrictArgs> = LoaderFunction<ReactRenderer, TArgs>;
 ```
 
-Async function called before a story renders. Returns an object merged into the story context's `loaded` field. Used for fetching data, mocking API state, seeding fixtures. `[AST:code/renderers/react/src/public-types.ts]`
+Async function called before a story renders. Returns an object merged into the story context's `loaded` field. Used for fetching data, mocking API state, seeding fixtures. `[AST:code/renderers/react/src/public-types.ts:L78]`
 
 ## `StoryContext<T>`
 
@@ -158,11 +158,11 @@ Async function called before a story renders. Returns an object merged into the 
 export type StoryContext<TArgs = StrictArgs> = GenericStoryContext<ReactRenderer, TArgs>;
 ```
 
-The full context object passed to `play`, `render`, `loaders`, and decorators. Fields include: `id`, `name`, `title`, `componentId`, `kind`, `args`, `argTypes`, `globals`, `parameters`, `viewMode`, `hooks`, `originalStoryFn`, `canvasElement`, `abortSignal`, `loaded`, `canvas` (testing-library query object), `mount` (for component testing), `step`, `userEvent`, `playUntil`, and more. `[AST:code/renderers/react/src/public-types.ts]`
+The full context object passed to `play`, `render`, `loaders`, and decorators. Fields include: `id`, `name`, `title`, `componentId`, `kind`, `args`, `argTypes`, `globals`, `parameters`, `viewMode`, `hooks`, `originalStoryFn`, `canvasElement`, `abortSignal`, `loaded`, `canvas` (testing-library query object), `mount` (for component testing), `step`, `userEvent`, `playUntil`, and more. `[AST:code/renderers/react/src/public-types.ts:L79]`
 
 ## `ReactRenderer`
 
-The renderer type parameter for React. It binds `storyResult` to `ReactNode`, `canvasElement` to `HTMLElement`, etc. Exported for users who need to type generic helpers but rarely referenced in story files. `[AST:code/renderers/react/src/types.ts]`
+The renderer type parameter for React. It binds `storyResult` to `ReactNode`, `canvasElement` to `HTMLElement`, etc. Exported for users who need to type generic helpers but rarely referenced in story files. `[AST:code/renderers/react/src/types.ts:L8]`
 
 ## `Args`, `ArgTypes`, `Parameters`, `StrictArgs`
 
@@ -178,7 +178,7 @@ type Parameters = { [name: string]: any };
 
 ## Portable stories utilities
 
-**Canonical import path:** these symbols are **defined** in `code/renderers/react/src/portable-stories.tsx` (the renderer package) and re-exported from `@storybook/react`, `@storybook/react-vite`, *and* `storybook/preview-api`. For story-authoring code on a React+Vite project, prefer `import { composeStories, setProjectAnnotations } from '@storybook/react-vite'` — framework-aligned and stable across renderer upgrades. The `storybook/preview-api` re-export exists but is not framework-specific and should only be used by non-renderer infrastructure code.
+**Canonical import path:** these symbols are **defined** in `code/renderers/react/src/portable-stories.tsx` (the renderer package) and re-exported from `@storybook/react` and `@storybook/react-vite`. Import them from `@storybook/react-vite`, as SKILL.md's portable-stories workflow does: `import { composeStories, setProjectAnnotations } from '@storybook/react-vite'`. `storybook/preview-api` exports renderer-agnostic primitives of the same names with different signatures (`composeStories(storiesImport, globalConfig, composeStoryFn?)`, whose `globalConfig` is required; a five-parameter `composeStory`): do not use them in story tests. `[SRC:code/core/src/preview-api/modules/store/csf/portable-stories.ts:L274]`
 
 ```ts
 // code/renderers/react/src/portable-stories.tsx:46
@@ -211,7 +211,7 @@ export const INTERNAL_DEFAULT_PROJECT_ANNOTATIONS: ProjectAnnotations<ReactRende
 **Usage (Vitest setup once):**
 ```ts
 // test-setup.ts
-import { setProjectAnnotations } from '@storybook/react';
+import { setProjectAnnotations } from '@storybook/react-vite';
 import * as projectAnnotations from './.storybook/preview';
 
 setProjectAnnotations([projectAnnotations]);
@@ -219,7 +219,7 @@ setProjectAnnotations([projectAnnotations]);
 
 **Usage (per test file):**
 ```ts
-import { composeStories } from '@storybook/react';
+import { composeStories } from '@storybook/react-vite';
 import * as stories from './Button.stories';
 const { Primary } = composeStories(stories);
 
@@ -251,18 +251,18 @@ These types are needed when you're **writing a manager-side addon** — a toolba
 
 ### Story hierarchy (index hash)
 
-Every story/doc/component in the manager is represented as a `HashEntry` keyed by ID. Walking this tree is how toolbar filters, sidebar rendering, and story-picker UIs work.
+Every story/doc/component in the manager is represented as a `HashEntry` keyed by ID. Walking this tree is how toolbar filters, sidebar rendering, and story-picker UIs work. `storybook/manager-api` exports these names as type aliases of the `API_*` interfaces of `storybook/internal/types` (`export type { API_IndexHash as IndexHash, API_RootEntry as RootEntry, … }`, `root.tsx:302-315`): each row cites the alias line and the interface it names.
 
 | Export | Kind | Signature | Source |
 |---|---|---|---|
-| `IndexHash` | interface | `{ [id: string]: API_HashEntry }` — flat manager-side story index | `[AST:code/core/src/types/modules/api-stories.ts:L80]` |
-| `HashEntry` | type | `RootEntry \| GroupEntry \| ComponentEntry \| DocsEntry \| StoryEntry \| TestEntry` — union of all entry kinds | `[AST:code/core/src/types/modules/api-stories.ts:L67]` |
-| `LeafEntry` | type | `DocsEntry \| StoryEntry \| TestEntry` — entries with no children | `[AST:code/core/src/types/modules/api-stories.ts:L66]` |
-| `RootEntry` | interface | `extends API_BaseEntry { type: 'root'; … }` — top of the hierarchy | `[AST:code/core/src/types/modules/api-stories.ts:L15]` |
-| `GroupEntry` | interface | `extends API_BaseEntry { type: 'group'; … }` — folder/group node | `[AST:code/core/src/types/modules/api-stories.ts:L21]` |
-| `ComponentEntry` | interface | `extends API_BaseEntry { type: 'component'; … }` — component node grouping its stories | `[AST:code/core/src/types/modules/api-stories.ts:L27]` |
-| `DocsEntry` | interface | `extends API_BaseEntry { type: 'docs'; … }` — MDX / Autodocs entry | `[AST:code/core/src/types/modules/api-stories.ts:L34]` |
-| `StoryEntry` | interface | `extends API_BaseEntry { type: 'story'; … }` — single story | `[AST:code/core/src/types/modules/api-stories.ts:L45]` |
+| `IndexHash` | interface (alias of `API_IndexHash`) | `{ [id: string]: API_HashEntry }` — flat manager-side story index | `[SRC:code/core/src/manager-api/root.tsx:L305]` `[AST:code/core/src/types/modules/api-stories.ts:L80]` |
+| `HashEntry` | type (alias of `API_HashEntry`) | `RootEntry \| GroupEntry \| ComponentEntry \| DocsEntry \| StoryEntry \| TestEntry` — union of all entry kinds | `[SRC:code/core/src/manager-api/root.tsx:L311]` `[AST:code/core/src/types/modules/api-stories.ts:L67]` |
+| `LeafEntry` | type (alias of `API_LeafEntry`) | `DocsEntry \| StoryEntry \| TestEntry` — entries with no children | `[SRC:code/core/src/manager-api/root.tsx:L312]` `[AST:code/core/src/types/modules/api-stories.ts:L66]` |
+| `RootEntry` | interface (alias of `API_RootEntry`) | `extends API_BaseEntry { type: 'root'; … }` — top of the hierarchy | `[SRC:code/core/src/manager-api/root.tsx:L306]` `[AST:code/core/src/types/modules/api-stories.ts:L15]` |
+| `GroupEntry` | interface (alias of `API_GroupEntry`) | `extends API_BaseEntry { type: 'group'; … }` — folder/group node | `[SRC:code/core/src/manager-api/root.tsx:L307]` `[AST:code/core/src/types/modules/api-stories.ts:L21]` |
+| `ComponentEntry` | interface (alias of `API_ComponentEntry`) | `extends API_BaseEntry { type: 'component'; … }` — component node grouping its stories | `[SRC:code/core/src/manager-api/root.tsx:L308]` `[AST:code/core/src/types/modules/api-stories.ts:L27]` |
+| `DocsEntry` | interface (alias of `API_DocsEntry`) | `extends API_BaseEntry { type: 'docs'; … }` — MDX / Autodocs entry | `[SRC:code/core/src/manager-api/root.tsx:L309]` `[AST:code/core/src/types/modules/api-stories.ts:L34]` |
+| `StoryEntry` | interface (alias of `API_StoryEntry`) | `extends API_BaseEntry { type: 'story'; … }` — single story | `[SRC:code/core/src/manager-api/root.tsx:L310]` `[AST:code/core/src/types/modules/api-stories.ts:L45]` |
 
 ### Viewport types (`storybook/viewport`)
 
@@ -299,7 +299,7 @@ export interface ReactStory<T, TInput> extends Story<T, TInput> {
 **Usage (CSF4):**
 ```ts
 // .storybook/preview.ts
-import { definePreview } from '@storybook/react';
+import { definePreview } from '@storybook/react-vite'; // `__definePreview` re-exported under this name
 const preview = definePreview({ /* config */ });
 export default preview;
 
@@ -316,4 +316,4 @@ Primary.test('clicks', async ({ canvas, userEvent, args }) => {
 });
 ```
 
-`[AST:code/renderers/react/src/preview.tsx]` `[AST:code/renderers/react/template/stories/test-fn.stories.tsx:L1]`
+`[AST:code/renderers/react/src/preview.tsx:L55]` `[AST:code/renderers/react/src/preview.tsx:L102]` `[AST:code/renderers/react/src/preview.tsx:L147]` `[AST:code/renderers/react/src/preview.tsx:L249]` `[SRC:code/frameworks/react-vite/src/index.ts:L2]` `[AST:code/renderers/react/template/stories/test-fn.stories.tsx:L1]`

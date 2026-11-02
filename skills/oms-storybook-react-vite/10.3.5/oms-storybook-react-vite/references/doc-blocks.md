@@ -28,9 +28,9 @@ import { Meta, Canvas, Controls, Primary, Stories } from '@storybook/addon-docs/
 | Component | Props (simplified) | Purpose | Source |
 |---|---|---|---|
 | `Canvas` | `{ of, meta, sourceState, layout, source, story, withToolbar, additionalActions, className }` | Render story preview with optional source panel. `of` → story export from `import * as stories`. See [`Canvas` props detail](#canvas-props-detail) below. | `[AST:code/addons/docs/src/blocks/blocks/Canvas.tsx:L100]` |
-| `Story` | `{ of, expanded, ... }` | Render single story by import reference. | `[AST:code/addons/docs/src/blocks.ts]` |
-| `Primary` | `{ of? }` | Render the first story (or specified meta's primary). | `[AST:code/addons/docs/src/blocks.ts]` |
-| `Stories` | `{ of?, includePrimary?, title? }` | Render all stories from a CSF module as a list. | `[AST:code/addons/docs/src/blocks.ts]` |
+| `Story` | `FC<StoryProps>`, `StoryProps = { of?: ModuleExport; meta?: ModuleExports } & { inline?: boolean; height?: string; autoplay?: boolean }` | Render single story by import reference. `expanded` is not a `Story` prop: it belongs to the internal `DocsStory`. | `[SRC:code/addons/docs/src/blocks/blocks/Story.tsx:L134]` `[AST:code/addons/docs/src/blocks.ts]` |
+| `Primary` | `FC` (no props) | Render the attached meta's primary (first) story. It takes no `of`: use `<Canvas of={...} />` or `<Story of={...} />` to render a specific story. | `[SRC:code/addons/docs/src/blocks/blocks/Primary.tsx:L16]` `[AST:code/addons/docs/src/blocks.ts]` |
+| `Stories` | `FC<StoriesProps>`, `StoriesProps = { title?: ReactElement \| string; includePrimary?: boolean }` | Render all stories of the attached CSF file as a list. It takes no `of`. | `[SRC:code/addons/docs/src/blocks/blocks/Stories.tsx:L74]` `[AST:code/addons/docs/src/blocks.ts]` |
 
 ### `Canvas` props detail
 
@@ -74,7 +74,7 @@ import * as ButtonStories from './Button.stories';
 | `Meta` | `{ of?, title? }` | Declare component metadata in an MDX doc — connects the MDX page to a CSF module. Required once per doc. |
 | `Title` | `{ children? }` | Render page title (defaults to `meta.title`). |
 | `Subtitle` | `{ children? }` | Render page subtitle (defaults to `parameters.docs.subtitle`). |
-| `Description` | `{ of?, markdown? }` | Render auto-generated or custom description. Pulls from component JSDoc or `parameters.docs.description`. |
+| `Description` | `FC<DescriptionProps>`, `DescriptionProps = { of?: Of }` | Render the description of a component, CSF file or story (`of`), else of the attached meta. Pulls from JSDoc or `parameters.docs.description`; it has no `markdown` prop (use `<Markdown>` for custom text). `[SRC:code/addons/docs/src/blocks/blocks/Description.tsx:L74]` |
 
 ## Control blocks
 
@@ -108,7 +108,7 @@ import * as ButtonStories from './Button.stories';
 
 | Component | Props | Purpose |
 |---|---|---|
-| `Docs` | `{ context }` | Root docs container — rarely used directly. |
+| `Docs` | `Docs<TRenderer>({ context, docsParameter }: DocsProps<TRenderer>)`, `DocsProps = { docsParameter: Parameters; context: DocsContextProps<TRenderer> }` | Root docs container — rarely used directly. `docsParameter` is required: its `container`, `page` and `theme` pick the container and page it renders. `[SRC:code/addons/docs/src/blocks/blocks/Docs.tsx:L17]` |
 | `DocsPage` | — | Default Autodocs layout function. |
 | `DocsContainer` | `{ context, children }` | MDX docs wrapper (provides context). |
 | `DocsStory` | `{ of, expanded?, withToolbar? }` | Internal story renderer used by `Primary`/`Stories`. |
@@ -127,7 +127,7 @@ import * as ButtonStories from './Button.stories';
 
 ## DocsRenderer
 
-Entry: `code/addons/docs/src/index.ts` exports `DocsRenderer` — the React component that renders an entire docs page. Rarely imported directly; registered via `addons: ['@storybook/addon-docs']` in `main.ts`. `[AST:code/addons/docs/src/index.ts:L1]`
+Entry: `code/addons/docs/src/index.ts` exports `DocsRenderer` — the React component that renders an entire docs page. Rarely imported directly; registered via `addons: ['@storybook/addon-docs']` in `main.ts`. `[AST:code/addons/docs/src/index.ts:L8]`
 
 ## Control Primitives
 
@@ -170,8 +170,8 @@ The primitive control components that back `Controls` / `ArgTypes` panels. Impor
 |---|---|---|---|
 | `BooleanProps` | type | `ControlProps<BooleanValue> & BooleanConfig` | `[AST:code/addons/docs/src/blocks/controls/Boolean.tsx:L104]` |
 | `BooleanControl` | component | `(props: BooleanProps) => JSX.Element` — toggle switch | `[AST:code/addons/docs/src/blocks/controls/Boolean.tsx:L117]` |
-| `ColorControlProps` | type | `ControlProps<ColorValue> & ColorConfig` | `[AST:code/addons/docs/src/blocks/controls/Color.tsx:L360]` |
-| `ColorControl` | component | `(props: ColorControlProps) => JSX.Element` — color picker with color-space cycling | `[AST:code/addons/docs/src/blocks/controls/Color.tsx:L361]` |
+| `ColorControlProps` | type | `ControlProps<ColorValue> & ColorConfig`. Not exported from `@storybook/addon-docs/blocks`: the blocks entry exports it as `ColorProps` (`export type ColorProps = ColorControlProps`, `controls/index.tsx:10`) | `[AST:code/addons/docs/src/blocks/controls/Color.tsx:L360]` |
+| `ColorControl` | component | `(props: ColorControlProps) => JSX.Element` — color picker with color-space cycling. The blocks entry exports a lazy-loading wrapper of the same name (`controls/index.tsx:14`) | `[AST:code/addons/docs/src/blocks/controls/Color.tsx:L361]` |
 | `DateProps` | type | `ControlProps<DateValue> & DateConfig` | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L68]` |
 | `DateControl` | component | `(props: DateProps) => JSX.Element` — date + time picker | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L69]` |
 | `parseDate` | function | `(value: string) => Date` — YYYY-MM-DD parse helper | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L11]` |
@@ -190,8 +190,8 @@ The primitive control components that back `Controls` / `ArgTypes` panels. Impor
 | `TextControl` | component | `(props: TextProps) => JSX.Element` — textarea with max-length | `[AST:code/addons/docs/src/blocks/controls/Text.tsx:L23]` |
 | `OptionsProps` | type | `ControlProps<OptionsSelection> & OptionsConfig` | `[AST:code/addons/docs/src/blocks/controls/options/Options.tsx:L40]` |
 | `OptionsControl` | component | `(props: OptionsProps) => JSX.Element` — dispatcher → CheckboxControl / RadioControl / SelectControl | `[AST:code/addons/docs/src/blocks/controls/options/Options.tsx:L41]` |
-| `CheckboxControl` | component | `(props: CheckboxProps) => JSX.Element` — multi-select checkbox group | `[AST:code/addons/docs/src/blocks/controls/options/Checkbox.tsx:L57]` |
-| `RadioControl` | component | `(props: RadioProps) => JSX.Element` — single-select radio group | `[AST:code/addons/docs/src/blocks/controls/options/Radio.tsx:L57]` |
-| `SelectControl` | component | `(props: SelectProps) => JSX.Element` — dropdown select (single or multi) | `[AST:code/addons/docs/src/blocks/controls/options/Select.tsx:L170]` |
+| `CheckboxControl` | component | `(props: CheckboxProps) => JSX.Element` — multi-select checkbox group. Internal renderer `OptionsControl` dispatches to: `controls/options/index.ts` exports only `./Options`, so it is not importable from `@storybook/addon-docs/blocks` | `[AST:code/addons/docs/src/blocks/controls/options/Checkbox.tsx:L57]` |
+| `RadioControl` | component | `(props: RadioProps) => JSX.Element` — single-select radio group. Internal renderer, not importable from `@storybook/addon-docs/blocks` | `[AST:code/addons/docs/src/blocks/controls/options/Radio.tsx:L57]` |
+| `SelectControl` | component | `(props: SelectProps) => JSX.Element` — dropdown select (single or multi). Internal renderer, not importable from `@storybook/addon-docs/blocks` | `[AST:code/addons/docs/src/blocks/controls/options/Select.tsx:L170]` |
 
 **Custom controls panel usage:** You rarely need to import these individually — the `Controls` doc-block handles dispatching automatically based on `argTypes[key].control.type`. Reach for the primitives only when building an addon that renders its own controls UI (e.g., a visual-testing panel that needs inline range sliders).

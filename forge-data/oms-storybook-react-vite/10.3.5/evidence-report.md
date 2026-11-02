@@ -244,3 +244,51 @@ None matched the `tessl-dismissal-rules.md` catalog — both novel suggestions s
 
 With the stratified denominator aligned to the authoring surface (GAP-005) and the two High-severity signature gaps resolved (GAP-001, GAP-002), running `skf-test-skill` against this package should land above the 80% threshold. The rescope (GAP-007) should also recover the tessl content score from 50% toward the 70–75% range, improving the external-validation component from 90% to ~92–95%.
 
+
+## Update Operation — 2026-11-02T19:47:10Z (gap-driven repair, SKF 4.0.0)
+
+**Trigger:** test report `test-report-oms-storybook-react-vite-20261102T190557Z-c5dc5bb7.md` (FAIL: hard gate on 26 Critical and 2 High), `skf-update-skill --from-test-report --headless`
+**Forge Tier:** Deep
+**Mode:** gap-driven
+**Source commit:** e486d382 (read as it stands; workspace HEAD verified equal to the pinned commit)
+
+### Changes Detected
+- Files modified: 0 (gap-driven: no source drift detection)
+- Files added: 0
+- Files deleted: 0
+- Exports affected: 875 gaps translated (26 Critical, 2 High, 693 missing-export/missing-type, 117 stale-documentation, 34 provenance-line, 3 metadata-drift); 76 gaps not routed (45 provenance-unverified, 29 observation, 1 denominator-inflation, 1 multi-denominator)
+
+### Merge Results
+- Exports updated: 57 (26 Critical signature and fabricated-signature gaps; 31 Medium stale-documentation rows corrected)
+- Exports added: 693 (689 in the new `references/api-index-core.md`, `api-index-types.md`, `api-index-packages.md`; 4 renamed manager-api rows in `core-api.md`)
+- Exports removed: 78 names of scope-excluded subpaths (`components`, `channels`, `csf-tools`, `core-server`, `telemetry`, `node-logger`, `babel`) dropped from the documentation; no provenance row removed
+- Citations moved: 39
+- [MANUAL] sections preserved: 4
+- Conflicts resolved: 0
+
+### Scope and Targeted Re-Extraction
+- Authoritative files: none
+- Scope reconciliation before detection: none
+- Scope reconciliation after detection: none
+- Targeted re-extraction: {"resolved_count": 5, "files_scanned": 11, "exports_matched": 5, "tier": "Deep"}
+
+### Validation Summary
+- Spec compliance: PASS (quality score 100/100, skill-check: 0 errors, 0 warnings, nothing to fix)
+- [MANUAL] integrity: PASS
+- Confidence tiers: WARN (130 entries carried `extraction_method: ast-grep-update` from SKF 1.0.0 and were relabeled `ast-grep`)
+- Provenance: WARN (findings). Fixed: 174 node kinds (139 export_statement, 35 export_specifier, via kind-at); 130 legacy ast-grep-update labels relabeled ast-grep; fix applied no citation or line change. Left: 3 missing (Args, DocsPage, Parameters), 143 orphaned (metadata exports[] lags the map), 50 unverified citations with no definition line, 2 file-missing (composeStory, setProjectAnnotations cite portable-stories.ts), 48 node kinds kind-at could not match; 87 bare entries apply added for stale-documentation gaps (no source_file)
+- Diff: SKIP
+- Security: SKIP (SNYK_TOKEN not configured)
+
+### Description Guard
+- Restored: false
+- Triggering tool: —
+- Original description preserved: —
+- Notes: —
+
+### Context Snippet
+- Regenerated: true
+- Triggers fired: gotchas
+- Notes: Gap-driven repair corrected the portable-stories import path (GAP-012, GAP-950), added as a third gotcha; headline exports and version unchanged
+
+_active_symlink_update: ok (10.3.5) (no-op, gap-driven repair keeps the version); workspace clone not moved (gap-driven: no source tree prepared)._
