@@ -180,3 +180,54 @@
 
 - Active symlink: active_symlink_update: flipped (1.0.0 -> 1.6.2); verify: ok (1.6.2)
 - Workspace clone: source_tree_advance: advanced 3c048aa -> ba3631f
+
+## Update Operation — 2026-11-02
+
+**Trigger:** gap-driven repair from test report `test-report-oms-cognee-20261102T190545Z-5d320e4a.md` (FAIL, hard gate on 1 Critical), headless (`--from-test-report --headless`), SKF 4.0.0
+**Forge Tier:** Deep
+**Mode:** gap-driven
+**Source commit:** ba3631f2 (read as it stands; workspace_drift_check: ok, full match)
+
+### Changes Detected
+- Files modified: 0 (gap-driven: no source drift detection)
+- Files added: 0
+- Files deleted: 0
+- Exports affected: 34 gaps translated of 77 (1 Critical MODIFIED_EXPORT, 29 Medium NEW_EXPORT, 3 Medium MODIFIED_EXPORT stale-documentation, 1 Medium metadata update); 43 not routed (GAP-075 brief-scope-stale, GAP-077 multi-denominator, 41 Info observations)
+
+### Merge Results
+- Exports updated: 4 (`recall` signature completed to all 29 source params, GAP-001; `run_migrations` row notes the shim's missing return annotation, GAP-066; `start_visualization_server`, GAP-068, and `DataPoint`, GAP-037, verified against the pinned source and left unchanged)
+- Exports added: 29 (28 `cognee.migration` names in a new Key API Summary table plus a migration workflow, GAP-002..GAP-026 and GAP-028..GAP-030; `cognee.logger`, GAP-027), each cited `[SRC:file:Lline]` at the line the spot-check pinned
+- Exports removed: 0
+- [MANUAL] sections preserved: 2 (quick-start-notes, additional-notes — byte-identical)
+- Conflicts resolved: 0
+- references/full-api-reference.md: the out-of-scope list no longer names `logger` and the `migration` module
+- Metadata patch (GAP-076, recount the diverging export counts): left to the automatic recount, which owns `stats` and `exports[]`; exports[] 56 → 86, exports_public_api 64 → 102
+- Provenance: 30 entries added by `apply` (29 `source-read` T1-low entries at the pinned lines; `DataPoint` with no source line, as `apply` writes an unknown Medium MODIFIED_EXPORT the map does not hold)
+
+### Scope and Targeted Re-Extraction
+- Authoritative files: none
+- Scope reconciliation before detection: none
+- Scope reconciliation after detection: none
+- Targeted re-extraction: none
+
+### Validation Summary
+- Spec compliance: WARN (quality score 90/100: frontmatter 30, description 30, body 10, links 10, file 10; 0 errors, 1 warning: body.max_tokens, body token estimate 5646 exceeds max 5000; nothing to --fix; no split: §7 splits only on body.max_lines)
+- [MANUAL] integrity: PASS (2/2 blocks byte-identical; staged and in-place checks both ok)
+- Confidence tiers: PASS (no label violation; t1 42, t1_low 44)
+- Provenance: PASS (86/86 entries, 0 missing/orphaned/stale, 0 citation-prefix findings, 42 node kinds checked; 85 lines checked, 3 module/alias line checks skipped; `DataPoint` has no source line: unverified, a Medium stale-documentation gap the map did not hold)
+- Diff: SKIP (gap-driven: no previous version folder)
+- Security: SKIP (SNYK_TOKEN not configured)
+
+### Description Guard
+- Restored: false
+- Triggering tool: —
+- Original description preserved: true
+- Notes: —
+
+### Context Snippet
+- Regenerated: true
+- Triggers fired: headline-exports
+- Notes: The cognee.migration sources (Mem0Source/ZepSource/LettaSource/COGXArchiveSource → remember()) joined the api-v2 line; version and gotchas unchanged.
+
+- Active symlink: active_symlink_update: ok (1.6.2); verify: ok (1.6.2)
+- Workspace clone: not moved (gap-driven: the repair read the pinned commit ba3631f, which the clone already holds)

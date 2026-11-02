@@ -12,18 +12,6 @@
     },
     {
       "type": "skill",
-      "path": "skills/oms-cognee/1.6.2/oms-cognee/references/core-workflow.md"
-    },
-    {
-      "type": "skill",
-      "path": "skills/oms-cognee/1.6.2/oms-cognee/references/pipelines-and-datapoints.md"
-    },
-    {
-      "type": "skill",
-      "path": "skills/oms-cognee/1.6.2/oms-cognee/references/config.md"
-    },
-    {
-      "type": "skill",
       "path": "skills/oms-cognee/1.6.2/oms-cognee/metadata.json"
     },
     {
@@ -31,29 +19,82 @@
       "path": "skills/oms-cognee/1.6.2/oms-cognee/context-snippet.md"
     },
     {
-      "type": "provenance",
+      "type": "skill",
       "path": "forge-data/oms-cognee/1.6.2/provenance-map.json"
     },
     {
-      "type": "report",
+      "type": "skill",
       "path": "forge-data/oms-cognee/1.6.2/evidence-report.md"
     }
   ],
   "summary": {
     "update_status": "success",
-    "exports_affected": 69,
-    "files_modified": 9,
+    "exports_affected": 34,
+    "files_modified": 6,
     "validation_status": "warnings"
   },
-  "timestamp": "2026-10-07T08:09:38Z",
-  "run_id": "gUWw8Y3Z",
-  "headless_decisions": [],
+  "timestamp": "2026-11-02T19:45:26Z",
+  "run_id": "8WKJEC8q",
+  "headless_decisions": [
+    {
+      "gate": "init.update-confirmation",
+      "default_action": "C",
+      "taken_action": "C",
+      "reason": "headless: no user to prompt"
+    },
+    {
+      "gate": "merge.clean-merge-gate",
+      "default_action": "C",
+      "taken_action": "C",
+      "reason": "headless: clean merge, no conflicts to resolve"
+    }
+  ],
   "warnings": [
     "customization_resolver_unavailable: not found",
-    "unconsumed-test-report: /home/armel/Projects/OSS/oh-my-skills/forge-data/oms-cognee/1.0.0/test-report-oms-cognee-20261006T155152Z-0731f756.md",
-    "legacy-provenance-map: forge-data/oms-cognee/1.0.0/provenance-map.json has no file_entries field (pre-file_entries SKF); by user decision Category D ran against a run-folder copy with file_entries: [] (nothing tracked) instead of halting at detect-changes:category-d",
-    "category-d-scoped: the documented unscoped detector pipe listed 317 repo-wide scripts/assets as NEW against the legacy map's empty file_entries; Category D instead used the detector scoped to the brief's scope.include (create-skill extract.md 4c semantics), which found 2 files, cognee/api/v1/tools/__init__.py and tools.py, matched only by the tools/ directory convention: both are Python modules Category A already sends to code extraction (public export tools), so they were set aside; no scripts or assets are added",
-    "detect-changes-kl11-correction: the first Category B pass left Known Limitation #11 forms out of export-details.json (__version__ variable, visualize alias, session SimpleNamespace, pipelines and tools module namespaces), so the diff listed __version__, visualize, session and pipelines as deleted; they were read by eye (T1-low), and the structural diff, Category C, the deletion ratio and the change manifest were re-run",
-    "provenance-public-surface: by user decision, write.md 3 apply ran on run-folder copies of the change manifest, records, extraction and export details filtered to the top-level public surface (56 entries: 29 updated, 4 unchanged, 23 new); applied literally it would have added 437 entries (REST router DTOs, CLI/nvm helpers, pipeline and visualization internals from the brief's broad cognee/api/v1/** and cognee/modules/** globs) against a 64-name public API"
+    "test-report: not routed: GAP-075 (brief-scope-stale)",
+    "test-report: not routed: GAP-031 (observation)",
+    "test-report: not routed: GAP-032 (observation)",
+    "test-report: not routed: GAP-033 (observation)",
+    "test-report: not routed: GAP-034 (observation)",
+    "test-report: not routed: GAP-035 (observation)",
+    "test-report: not routed: GAP-036 (observation)",
+    "test-report: not routed: GAP-038 (observation)",
+    "test-report: not routed: GAP-039 (observation)",
+    "test-report: not routed: GAP-040 (observation)",
+    "test-report: not routed: GAP-041 (observation)",
+    "test-report: not routed: GAP-042 (observation)",
+    "test-report: not routed: GAP-043 (observation)",
+    "test-report: not routed: GAP-044 (observation)",
+    "test-report: not routed: GAP-045 (observation)",
+    "test-report: not routed: GAP-046 (observation)",
+    "test-report: not routed: GAP-047 (observation)",
+    "test-report: not routed: GAP-048 (observation)",
+    "test-report: not routed: GAP-049 (observation)",
+    "test-report: not routed: GAP-050 (observation)",
+    "test-report: not routed: GAP-051 (observation)",
+    "test-report: not routed: GAP-052 (observation)",
+    "test-report: not routed: GAP-053 (observation)",
+    "test-report: not routed: GAP-054 (observation)",
+    "test-report: not routed: GAP-055 (observation)",
+    "test-report: not routed: GAP-056 (observation)",
+    "test-report: not routed: GAP-057 (observation)",
+    "test-report: not routed: GAP-058 (observation)",
+    "test-report: not routed: GAP-059 (observation)",
+    "test-report: not routed: GAP-060 (observation)",
+    "test-report: not routed: GAP-061 (observation)",
+    "test-report: not routed: GAP-062 (observation)",
+    "test-report: not routed: GAP-063 (observation)",
+    "test-report: not routed: GAP-064 (observation)",
+    "test-report: not routed: GAP-065 (observation)",
+    "test-report: not routed: GAP-067 (observation)",
+    "test-report: not routed: GAP-069 (observation)",
+    "test-report: not routed: GAP-070 (observation)",
+    "test-report: not routed: GAP-071 (observation)",
+    "test-report: not routed: GAP-072 (observation)",
+    "test-report: not routed: GAP-073 (observation)",
+    "test-report: not routed: GAP-074 (observation)",
+    "test-report: not routed: GAP-077 (multi-denominator)",
+    "provenance: DataPoint has no source line (unknown Medium stale-documentation gap GAP-037; apply added it with no source_file)",
+    "skill-check: quality score 90/100, body.max_tokens warn (body token estimate 5646 exceeds max 5000); was 100/100 before this repair"
   ]
 }

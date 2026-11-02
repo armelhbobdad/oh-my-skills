@@ -619,6 +619,6 @@ Provenance: `[SRC:pyproject.toml:L22]` · `[SRC:AGENTS.md:L51]`
 - `cognee-frontend/` — Next.js UI that the `cognee.start_ui` function can launch.
 - `cognee-cli` — terminal CLI (`add/cognify/search/-ui`).
 - `cognee.api.client:app` — FastAPI application for HTTP REST access.
-- Top-level bootstrap names not covered here: `load_env_file` and `describe_resolution` `[SRC:cognee/__init__.py:L27]`, `setup_logging` `[SRC:cognee/__init__.py:L32]`, `logger` `[SRC:cognee/__init__.py:L34]`, `wait_for_background_tasks` `[SRC:cognee/__init__.py:L94]`, the `migration` module `[SRC:cognee/__init__.py:L98]`.
+- Top-level bootstrap names not covered here: `load_env_file` and `describe_resolution` `[SRC:cognee/__init__.py:L27]`, `setup_logging` `[SRC:cognee/__init__.py:L32]`, `wait_for_background_tasks` `[SRC:cognee/__init__.py:L94]`. The `logger` it binds `[SRC:cognee/__init__.py:L34]` and the `cognee.migration` module `[SRC:cognee/__init__.py:L98]` are summarized in SKILL.md's Key API Summary.
 
 This skill only covers the Python API — use the upstream docs for those other surfaces.
