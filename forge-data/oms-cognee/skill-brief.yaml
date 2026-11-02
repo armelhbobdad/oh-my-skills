@@ -1,61 +1,162 @@
 ---
-name: "oms-cognee"
-version: "0.5.8"
-source_type: "source"
-source_repo: "https://github.com/topoteretes/cognee"
-language: "Python"
-description: "Public API skill for cognee — the knowledge-graph memory engine for AI agents. Covers the top-level exports from cognee/__init__.py (add, cognify, search, memify, pipelines, config, tracing, visualization) for building apps on top of cognee v0.5.8."
-forge_tier: "Deep"
-created: "2026-04-10"
-created_by: "armel"
+name: oms-cognee
+version: 0.5.8
+source_type: source
+source_repo: https://github.com/topoteretes/cognee
+language: Python
+description: Public API skill for cognee — the knowledge-graph memory engine for AI
+  agents. Covers the top-level exports from cognee/__init__.py (add, cognify, search,
+  memify, pipelines, config, tracing, visualization) for building apps on top of cognee
+  v0.5.8.
+forge_tier: Deep
+created: '2026-04-10'
+created_by: armel
 scope:
-  type: "public-api"
+  type: public-api
   include:
-    - "cognee/__init__.py"
-    - "cognee/version.py"
-    - "cognee/pipelines.py"
-    - "cognee/low_level.py"
-    - "cognee/api/v1/**"
-    - "cognee/modules/memify/**"
-    - "cognee/modules/run_custom_pipeline/**"
-    - "cognee/modules/pipelines/**"
-    - "cognee/modules/visualization/**"
-    - "cognee/modules/observability/trace_context/**"
-    - "cognee/exceptions/**"
-    - "cognee/skill.md"
-    - "README.md"
-    - "AGENTS.md"
-    - "CLAUDE.md"
-    - "pyproject.toml"
+  - cognee/__init__.py
+  - cognee/version.py
+  - cognee/pipelines.py
+  - cognee/low_level.py
+  - cognee/api/v1/**
+  - cognee/modules/memify/**
+  - cognee/modules/run_custom_pipeline/**
+  - cognee/modules/pipelines/**
+  - cognee/modules/visualization/**
+  - cognee/modules/observability/trace_context/**
+  - cognee/exceptions/**
+  - cognee/skill.md
+  - README.md
+  - AGENTS.md
+  - CLAUDE.md
+  - pyproject.toml
+  - cognee/api/v1/agents/agents.py
+  - cognee/api/v1/push/push.py
+  - cognee/api/v1/validate/validate.py
+  - cognee/api/v1/visualize/memory_provenance.py
+  - cognee/memory/entries.py
+  - cognee/modules/migration/export.py
+  - cognee/modules/session_lifecycle/models.py
   exclude:
-    - "cognee/tests/**"
-    - "cognee/infrastructure/**"
-    - "cognee/shared/**"
-    - "cognee/cli/**"
-    - "cognee/alembic/**"
-    - "cognee/eval_framework/**"
-    - "cognee/memify_pipelines/**"
-    - "cognee/get_token.py"
-    - "cognee/context_global_variables.py"
-    - "cognee/root_dir.py"
-    - "cognee/base_config.py"
-    - "cognee/run_migrations.py"
-    - "cognee-mcp/**"
-    - "cognee-frontend/**"
-    - "cognee-starter-kit/**"
-    - "distributed/**"
-    - "evals/**"
-    - "examples/**"
-    - "notebooks/**"
-    - "deployment/**"
-    - "tools/**"
-    - "bin/**"
-    - "working_dir_error_replication/**"
-    - "assets/**"
-    - "logs/**"
-    - "licenses/**"
-  notes: "Public API surface curated by maintainers in cognee/__init__.py. cognee/skill.md is maintainer-authored AI-agent guidance — treat as authoritative T1 alongside __init__.py during compilation. Large backend dependency surface (neo4j, lancedb, kuzu, networkx, litellm, fastapi) is documented as integration points, not as included internals. Skill name uses oms- prefix per oh-my-skills repo convention."
+  - cognee/tests/**
+  - cognee/infrastructure/**
+  - cognee/shared/**
+  - cognee/cli/**
+  - cognee/alembic/**
+  - cognee/eval_framework/**
+  - cognee/memify_pipelines/**
+  - cognee/get_token.py
+  - cognee/context_global_variables.py
+  - cognee/root_dir.py
+  - cognee/base_config.py
+  - cognee/run_migrations.py
+  - cognee-mcp/**
+  - cognee-frontend/**
+  - cognee-starter-kit/**
+  - distributed/**
+  - evals/**
+  - examples/**
+  - notebooks/**
+  - deployment/**
+  - tools/**
+  - bin/**
+  - working_dir_error_replication/**
+  - assets/**
+  - logs/**
+  - licenses/**
+  notes: Public API surface curated by maintainers in cognee/__init__.py. cognee/skill.md
+    is maintainer-authored AI-agent guidance — treat as authoritative T1 alongside
+    __init__.py during compilation. Large backend dependency surface (neo4j, lancedb,
+    kuzu, networkx, litellm, fastapi) is documented as integration points, not as
+    included internals. Skill name uses oms- prefix per oh-my-skills repo convention.
+  amendments:
+  - path: cognee/api/v1/agents/agents.py
+    action: promoted
+    category: scope-expansion
+    evidence: exports `agents` through `cognee/__init__.py`
+    reason: 'out-of-scope new public API: drift report drift-report-20261007-000457.md'
+    date: '2026-10-07'
+    workflow: skf-update-skill
+  - path: cognee/api/v1/push/push.py
+    action: promoted
+    category: scope-expansion
+    evidence: exports `PushResult` through `cognee/__init__.py`
+    reason: 'out-of-scope new public API: drift report drift-report-20261007-000457.md'
+    date: '2026-10-07'
+    workflow: skf-update-skill
+  - path: cognee/api/v1/validate/validate.py
+    action: promoted
+    category: scope-expansion
+    evidence: exports `ValidationIssue`, `ValidationReport`, `ValidationStatus` through
+      `cognee/__init__.py`
+    reason: 'out-of-scope new public API: drift report drift-report-20261007-000457.md'
+    date: '2026-10-07'
+    workflow: skf-update-skill
+  - path: cognee/api/v1/visualize/memory_provenance.py
+    action: promoted
+    category: scope-expansion
+    evidence: exports `get_memory_provenance_graph`, `visualize_memory_provenance`
+      through `cognee/__init__.py`
+    reason: 'out-of-scope new public API: drift report drift-report-20261007-000457.md'
+    date: '2026-10-07'
+    workflow: skf-update-skill
+  - path: cognee/memory/entries.py
+    action: promoted
+    category: scope-expansion
+    evidence: exports `FeedbackEntry`, `MemoryEntry`, `QAEntry`, `TraceEntry` through
+      `cognee/__init__.py`
+    reason: 'out-of-scope new public API: drift report drift-report-20261007-000457.md'
+    date: '2026-10-07'
+    workflow: skf-update-skill
+  - path: cognee/modules/migration/export.py
+    action: promoted
+    category: scope-expansion
+    evidence: exports `ExportResult` through `cognee/__init__.py`
+    reason: 'out-of-scope new public API: drift report drift-report-20261007-000457.md'
+    date: '2026-10-07'
+    workflow: skf-update-skill
+  - path: cognee/modules/session_lifecycle/models.py
+    action: promoted
+    category: scope-expansion
+    evidence: exports `SessionModelUsage`, `SessionRecord` through `cognee/__init__.py`
+    reason: 'out-of-scope new public API: drift report drift-report-20261007-000457.md'
+    date: '2026-10-07'
+    workflow: skf-update-skill
+  - path: cognee/version.py
+    action: promoted
+    category: scope-expansion
+    evidence: exports `get_cognee_version` through `cognee/__init__.py`
+    reason: 'out-of-scope new public API: drift report drift-report-20261007-000457.md'
+    date: '2026-10-07'
+    workflow: skf-update-skill
+  - path: cognee/infrastructure/background_tasks.py
+    action: skipped
+    category: scope-expansion
+    evidence: exports `wait_for_background_tasks` through `cognee/__init__.py`
+    reason: 'user declined promotion at update-skill §1c: path is under a scope.exclude
+      glob, so a promotion would not take effect; widen the brief''s excludes to document
+      it'
+    date: '2026-10-07'
+    workflow: skf-update-skill
+  - path: cognee/shared/env_file.py
+    action: skipped
+    category: scope-expansion
+    evidence: exports `describe_resolution`, `load_env_file` through `cognee/__init__.py`
+    reason: 'user declined promotion at update-skill §1c: path is under a scope.exclude
+      glob, so a promotion would not take effect; widen the brief''s excludes to document
+      it'
+    date: '2026-10-07'
+    workflow: skf-update-skill
+  - path: cognee/shared/logging_utils.py
+    action: skipped
+    category: scope-expansion
+    evidence: exports `setup_logging` through `cognee/__init__.py`
+    reason: 'user declined promotion at update-skill §1c: path is under a scope.exclude
+      glob, so a promotion would not take effect; widen the brief''s excludes to document
+      it'
+    date: '2026-10-07'
+    workflow: skf-update-skill
 doc_urls:
-  - url: "https://docs.cognee.ai/"
-    label: "Official cognee documentation"
-source_authority: "community"
+- url: https://docs.cognee.ai/
+  label: Official cognee documentation
+source_authority: community

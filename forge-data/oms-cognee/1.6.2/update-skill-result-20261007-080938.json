@@ -1,0 +1,59 @@
+{
+  "skill": "skf-update-skill",
+  "status": "success",
+  "outputs": [
+    {
+      "type": "skill",
+      "path": "skills/oms-cognee/1.6.2/oms-cognee/SKILL.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-cognee/1.6.2/oms-cognee/references/full-api-reference.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-cognee/1.6.2/oms-cognee/references/core-workflow.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-cognee/1.6.2/oms-cognee/references/pipelines-and-datapoints.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-cognee/1.6.2/oms-cognee/references/config.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-cognee/1.6.2/oms-cognee/metadata.json"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-cognee/1.6.2/oms-cognee/context-snippet.md"
+    },
+    {
+      "type": "provenance",
+      "path": "forge-data/oms-cognee/1.6.2/provenance-map.json"
+    },
+    {
+      "type": "report",
+      "path": "forge-data/oms-cognee/1.6.2/evidence-report.md"
+    }
+  ],
+  "summary": {
+    "update_status": "success",
+    "exports_affected": 69,
+    "files_modified": 9,
+    "validation_status": "warnings"
+  },
+  "timestamp": "2026-10-07T08:09:38Z",
+  "run_id": "gUWw8Y3Z",
+  "headless_decisions": [],
+  "warnings": [
+    "customization_resolver_unavailable: not found",
+    "unconsumed-test-report: /home/armel/Projects/OSS/oh-my-skills/forge-data/oms-cognee/1.0.0/test-report-oms-cognee-20261006T155152Z-0731f756.md",
+    "legacy-provenance-map: forge-data/oms-cognee/1.0.0/provenance-map.json has no file_entries field (pre-file_entries SKF); by user decision Category D ran against a run-folder copy with file_entries: [] (nothing tracked) instead of halting at detect-changes:category-d",
+    "category-d-scoped: the documented unscoped detector pipe listed 317 repo-wide scripts/assets as NEW against the legacy map's empty file_entries; Category D instead used the detector scoped to the brief's scope.include (create-skill extract.md 4c semantics), which found 2 files, cognee/api/v1/tools/__init__.py and tools.py, matched only by the tools/ directory convention: both are Python modules Category A already sends to code extraction (public export tools), so they were set aside; no scripts or assets are added",
+    "detect-changes-kl11-correction: the first Category B pass left Known Limitation #11 forms out of export-details.json (__version__ variable, visualize alias, session SimpleNamespace, pipelines and tools module namespaces), so the diff listed __version__, visualize, session and pipelines as deleted; they were read by eye (T1-low), and the structural diff, Category C, the deletion ratio and the change manifest were re-run",
+    "provenance-public-surface: by user decision, write.md 3 apply ran on run-folder copies of the change manifest, records, extraction and export details filtered to the top-level public surface (56 entries: 29 updated, 4 unchanged, 23 new); applied literally it would have added 437 entries (REST router DTOs, CLI/nvm helpers, pipeline and visualization internals from the brief's broad cognee/api/v1/** and cognee/modules/** globs) against a 64-name public API"
+  ]
+}
