@@ -4,19 +4,7 @@
   "outputs": [
     {
       "type": "skill",
-      "path": "skills/oms-cognee/1.6.2/oms-cognee/context-snippet.md"
-    },
-    {
-      "type": "skill",
-      "path": "skills/oms-cocoindex/1.0.0/oms-cocoindex/context-snippet.md"
-    },
-    {
-      "type": "skill",
       "path": "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/context-snippet.md"
-    },
-    {
-      "type": "skill",
-      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/context-snippet.md"
     },
     {
       "type": "config",
@@ -29,21 +17,15 @@
   ],
   "summary": {
     "skills": [
-      "oms-cognee",
-      "oms-cocoindex",
-      "oms-storybook-react-vite",
-      "oms-uitripled"
+      "oms-storybook-react-vite"
     ],
-    "always_on_tokens": 1054,
+    "always_on_tokens": 1067,
     "on_trigger_tokens": {
-      "oms-cognee": 15127,
-      "oms-cocoindex": 8239,
-      "oms-storybook-react-vite": 4062,
-      "oms-uitripled": 3268
+      "oms-storybook-react-vite": 4123
     }
   },
-  "timestamp": "2026-11-02T21:38:59Z",
-  "run_id": "Ezfm85YH",
+  "timestamp": "2026-11-02T23:39:31Z",
+  "run_id": "YZtYUkhp",
   "headless_decisions": [
     {
       "gate": "load-skill.confirmation",
