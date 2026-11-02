@@ -1,42 +1,64 @@
 {
   "skill": "skf-export-skill",
   "status": "success",
-  "timestamp": "2026-04-25T00:25:04Z",
   "outputs": [
-    {"type": "snippet", "path": "skills/oms-cocoindex/1.0.0/oms-cocoindex/context-snippet.md"},
-    {"type": "snippet", "path": "skills/oms-cognee/1.0.0/oms-cognee/context-snippet.md"},
-    {"type": "snippet", "path": "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/context-snippet.md"},
-    {"type": "snippet", "path": "skills/oms-uitripled/0.1.0/oms-uitripled/context-snippet.md"},
-    {"type": "config", "path": "CLAUDE.md"},
-    {"type": "manifest", "path": "skills/.export-manifest.json"},
-    {"type": "config", "path": "_bmad/skf/config.yaml"}
+    {
+      "type": "skill",
+      "path": "skills/oms-cognee/1.6.2/oms-cognee/context-snippet.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-cocoindex/1.0.0/oms-cocoindex/context-snippet.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/context-snippet.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/context-snippet.md"
+    },
+    {
+      "type": "config",
+      "path": "CLAUDE.md"
+    },
+    {
+      "type": "manifest",
+      "path": "skills/.export-manifest.json"
+    }
   ],
   "summary": {
-    "skill_name": "oms-cocoindex",
-    "version": "1.0.0",
-    "skill_type": "single",
-    "source_authority": "community",
-    "confidence_tier": "Deep",
-    "case": 3,
-    "ides_written": ["claude-code"],
-    "context_files_written": ["CLAUDE.md"],
-    "skills_in_managed_section": 4,
-    "stack_skills_in_managed_section": 0,
-    "always_on_tokens": 601,
-    "on_trigger_tokens": 4144,
-    "snippet_tokens": 179,
-    "package_total_tokens": 13068,
-    "expanded_scope": {
-      "reason": "snippet_skill_root_override added during this run; rewrote root: line in 3 sibling snippets to make CLAUDE.md fully coherent",
-      "snippets_root_rewritten": ["oms-cognee", "oms-storybook-react-vite", "oms-uitripled"]
-    },
-    "config_changes": {
-      "snippet_skill_root_override_added": "skills/"
-    },
-    "test_report": {
-      "result": "pass",
-      "score": "99.00%",
-      "report": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20260424T235130Z-281688-535f.md"
+    "skills": [
+      "oms-cognee",
+      "oms-cocoindex",
+      "oms-storybook-react-vite",
+      "oms-uitripled"
+    ],
+    "always_on_tokens": 1054,
+    "on_trigger_tokens": {
+      "oms-cognee": 15127,
+      "oms-cocoindex": 8239,
+      "oms-storybook-react-vite": 4062,
+      "oms-uitripled": 3268
     }
-  }
+  },
+  "timestamp": "2026-11-02T21:38:59Z",
+  "run_id": "Ezfm85YH",
+  "headless_decisions": [
+    {
+      "gate": "load-skill.confirmation",
+      "default_action": "C",
+      "taken_action": "C",
+      "reason": "headless: auto-continue past skill confirmation"
+    },
+    {
+      "gate": "update-context.write-confirmation",
+      "default_action": "C",
+      "taken_action": "C",
+      "reason": "headless: auto-approve context file update"
+    }
+  ],
+  "warnings": [
+    "customization_resolver_unavailable: not found"
+  ]
 }

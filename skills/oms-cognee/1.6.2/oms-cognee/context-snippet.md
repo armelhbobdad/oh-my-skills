@@ -1,7 +1,6 @@
 [oms-cognee v1.6.2]|root: skills/oms-cognee/
-|IMPORTANT: oms-cognee v1.6.2 — read SKILL.md before writing cognee code. Do NOT rely on training data.
+|IMPORTANT: oms-cognee v1.6.2 — read SKILL.md before writing oms-cognee code. Do NOT rely on training data.
 |quick-start:SKILL.md#quick-start
-|api-v1: add(), cognify(), search(), memify(), update(), run_custom_pipeline(), visualize_graph(), datasets, agents, prune, config, SearchType, report(), validate(), get_schema_inventory(), pipelines, Drop, run_migrations(), session, tools, tracing
-|api-v2: remember()→RememberResult, recall(), improve(), forget(), serve()/disconnect(), push()→PushResult, export()→GraphSnapshot/ExportResult, visualize(), visualize_memory_provenance(), @agent_memory, MemoryEntry (QAEntry/TraceEntry/FeedbackEntry), cognee.migration sources (Mem0Source/ZepSource/LettaSource/COGXArchiveSource → remember())
-|key-types:SKILL.md#key-types — SearchType: HYBRID_COMPLETION (default), GRAPH_COMPLETION, RAG_COMPLETION, CHUNKS, CHUNKS_LEXICAL, SUMMARIES, TEMPORAL, CODING_RULES, CYPHER, AGENTIC_COMPLETION, SKILLS (+9 more); Task, Drop, RememberResult, DataPoint, ValidationReport, 5 Cognee* exceptions
+|api: add(), cognify(), search(), memify(), remember(), recall(), improve(), forget(), serve(), run_migrations()
+|key-types:SKILL.md#key-types — SearchType (20 modes, HYBRID_COMPLETION default), RememberResult, DataPoint, Drop
 |gotchas: cognee.run_startup_migrations is GONE in v1.6.2 (AttributeError) — use cognee.run_migrations(); search() now defaults to HYBRID_COMPLETION (pin query_type when the result shape matters); low_level is not a top-level name but `from cognee.low_level import DataPoint, setup` still works; a bare cognee.serve() runs the Auth0 device flow only when a device client ID is configured, else raises CogneeConfigurationError; agent_memory's save_traces is now save_session_traces; cognee.delete is DEPRECATED since v0.3.9 (use cognee.forget or cognee.datasets.delete_data); cognee.start_ui is sync and needs pid_callback; add/cognify/search/memify/remember/recall/improve/forget/serve/push/export/report/validate are async — always await.
