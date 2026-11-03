@@ -203,14 +203,14 @@
       "export_type": "function",
       "source_library": "@storybook/react",
       "params": [
-        "projectAnnotations: ProjectAnnotations<ReactRenderer> | ProjectAnnotations<ReactRenderer>[]"
+        "projectAnnotations: NamedOrDefaultProjectAnnotations<any> | NamedOrDefaultProjectAnnotations<any>[]"
       ],
-      "return_type": "ProjectAnnotations<ReactRenderer>",
-      "source_file": "code/renderers/react/src/portable-stories.ts",
-      "source_line": 1,
+      "return_type": "NormalizedProjectAnnotations<ReactRenderer>",
+      "source_file": "code/renderers/react/src/portable-stories.tsx",
+      "source_line": 46,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
