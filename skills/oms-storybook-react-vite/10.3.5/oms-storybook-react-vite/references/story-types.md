@@ -178,7 +178,7 @@ type Parameters = { [name: string]: any };
 
 ## Portable stories utilities
 
-**Canonical import path:** these symbols are **defined** in `code/renderers/react/src/portable-stories.tsx` (the renderer package) and re-exported from `@storybook/react`, `@storybook/react-vite`, *and* `storybook/preview-api`. For story-authoring code on a React+Vite project, prefer `import { composeStories, setProjectAnnotations } from '@storybook/react-vite'` — framework-aligned and stable across renderer upgrades. The `storybook/preview-api` re-export exists but is not framework-specific and should only be used by non-renderer infrastructure code.
+**Canonical import path:** these symbols are **defined** in `code/renderers/react/src/portable-stories.tsx` (the renderer package) and re-exported from `@storybook/react` (`code/renderers/react/src/index.ts:5`) and `@storybook/react-vite` (`code/frameworks/react-vite/src/index.ts:1`). For story-authoring code on a React+Vite project, prefer `import { composeStories, setProjectAnnotations } from '@storybook/react-vite'` — framework-aligned and stable across renderer upgrades. `storybook/preview-api` does not re-export these: its `composeStory`, `composeStories` and `setProjectAnnotations` are core's renderer-agnostic functions (`code/core/src/preview-api/index.ts:51-62`), with different signatures (see `core-api.md`), meant for non-renderer infrastructure code.
 
 ```ts
 // code/renderers/react/src/portable-stories.tsx:46
@@ -299,7 +299,7 @@ export interface ReactStory<T, TInput> extends Story<T, TInput> {
 **Usage (CSF4):**
 ```ts
 // .storybook/preview.ts
-import { definePreview } from '@storybook/react';
+import { definePreview } from '@storybook/react-vite';  // @storybook/react exports it only as __definePreview
 const preview = definePreview({ /* config */ });
 export default preview;
 

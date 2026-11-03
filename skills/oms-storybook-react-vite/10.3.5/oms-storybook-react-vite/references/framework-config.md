@@ -49,9 +49,12 @@ Re-exports **everything** from `@storybook/react`, plus framework-specific addit
 ```ts
 // code/frameworks/react-vite/src/index.ts
 export * from '@storybook/react';
-export type { StorybookConfig, FrameworkOptions } from './types';
-export { definePreview } from '@storybook/react';  // re-exported as __definePreview
+export { __definePreview as definePreview } from '@storybook/react';
+
+export * from './types';
 ```
+
+`definePreview` is the framework's name for the renderer's `__definePreview`; `@storybook/react` itself exports only `__definePreview`. `./types` supplies `StorybookConfig` and `FrameworkOptions`.
 
 Types verified as re-exported from `@storybook/react`: `Meta`, `StoryObj`, `StoryFn`, `Decorator`, `Loader`, `StoryContext`, `Args`, `ArgTypes`, `Parameters`, `StrictArgs`, `ReactRenderer`, `Preview`. Plus portable-stories utilities (`composeStory`, `composeStories`, `setProjectAnnotations`) and CSF4 factory API.
 
