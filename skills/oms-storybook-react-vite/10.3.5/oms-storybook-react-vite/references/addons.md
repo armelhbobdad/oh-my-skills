@@ -111,8 +111,8 @@ Theme switching decorators. Register once in `preview.ts` and toggle themes from
 | `DataAttributeStrategyConfiguration` | interface | `{ themes: Record<string, string>; defaultTheme: string; parentSelector?: string; attributeName?: string }` | `[AST:code/addons/themes/src/decorators/data-attribute.decorator.tsx:L8]` |
 | `withThemeFromJSXProvider` | const | `<R extends Renderer = any>(config: ProviderStrategyConfiguration) => DecoratorFunction<R>` — wraps story in a JSX provider (emotion / styled-components / MUI ThemeProvider) | `[AST:code/addons/themes/src/decorators/provider.decorator.tsx:L23]` |
 | `ProviderStrategyConfiguration` | interface | `{ Provider?: any; GlobalStyles?: any; defaultTheme?: string; themes?: ThemeMap }` | `[AST:code/addons/themes/src/decorators/provider.decorator.tsx:L13]` |
-| `ThemeAddonState` | interface | `{ themesList: string[]; themeDefault?: string }` — registered theme state | `[AST:code/addons/themes/src/types.ts:L1]` |
-| `ThemesParameters` | interface | `{ themes?: { disable?: boolean; themeOverride?: string } }` — per-story theme override | `[AST:code/addons/themes/src/types.ts:L6]` |
+| `ThemeAddonState` | interface | `{ themesList: string[]; themeDefault?: string }` — registered theme state. Declared in `types.ts` but not re-exported: `@storybook/addon-themes` exports only the `ThemesGlobals` and `ThemesTypes` types (`index.ts:L6`) | `[AST:code/addons/themes/src/types.ts:L1]` |
+| `ThemesParameters` | interface | `{ themes?: { disable?: boolean; themeOverride?: string } }` — per-story theme override. Declared in `types.ts` but not re-exported; reach it as `ThemesTypes['parameters']` | `[AST:code/addons/themes/src/types.ts:L6]` |
 | `ThemesGlobals` | interface | `{ theme?: string }` — global toolbar selection | `[AST:code/addons/themes/src/types.ts:L20]` |
 | `ThemesTypes` | interface | `{ parameters: ThemesParameters; globals: ThemesGlobals }` — bundle | `[AST:code/addons/themes/src/types.ts:L25]` |
 
@@ -123,7 +123,7 @@ Exposed as the `DecoratorHelpers` namespace export from `@storybook/addon-themes
 | Helper | Kind | Signature | Source |
 |---|---|---|---|
 | `pluckThemeFromContext` | function | `({ globals }: StoryContext) => string` — extract current theme key from globals | `[AST:code/addons/themes/src/decorators/helpers.ts:L16]` |
-| `useThemeParameters` | function | `(context?: StoryContext) => ThemesParameters['themes']` — returns the inner `{ disable?: boolean; themeOverride?: string } \| undefined` (the helper's local alias `ThemesParameters = Parameters['themes']`, `helpers.ts:L10`), not the exported `ThemesParameters` interface above (deprecated — prefer `context.parameters.themes` directly) | `[AST:code/addons/themes/src/decorators/helpers.ts:L20]` |
+| `useThemeParameters` | function | `(context?: StoryContext) => ThemesParameters['themes']` — returns the inner `{ disable?: boolean; themeOverride?: string } \| undefined` (the helper's local alias `ThemesParameters = Parameters['themes']`, `helpers.ts:L10`), not the `ThemesParameters` interface declared at `types.ts:L6` (deprecated — prefer `context.parameters.themes` directly) | `[AST:code/addons/themes/src/decorators/helpers.ts:L20]` |
 | `initializeThemeState` | function | `(themeNames: string[], defaultTheme: string) => void` — register the themes list with the toolbar channel | `[AST:code/addons/themes/src/decorators/helpers.ts:L34]` |
 
 ### Usage

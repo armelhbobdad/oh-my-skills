@@ -284,16 +284,21 @@ export function __definePreview<Addons extends PreviewAddon<never>[]>(
   input: { addons: Addons } & ProjectAnnotations<ReactTypes & InferTypes<Addons>>
 ): ReactPreview<ReactTypes & InferTypes<Addons>>;
 
-export interface ReactPreview<T extends AddonTypes> {
-  type<R>(): NarrowedPreview;
-  meta<TArgs, Decorators, TMetaArgs>(config): ReactMeta<T, TMetaArgs>;
+export interface ReactPreview<T extends AddonTypes> extends Preview<ReactTypes & T> {  // :102
+  type<R>(): ReactPreview<T & R>;  // narrows the preview with extra types, e.g. args not inferred from the component
+  meta<TArgs extends Args, Decorators extends DecoratorFunction<ReactTypes & T, any>, TMetaArgs extends Partial<TArgs & T['args']>>(
+    meta: { render?; component?: ComponentType<TArgs>; decorators?: Decorators | Decorators[]; args?: TMetaArgs }
+      & Omit<ComponentAnnotations<ReactTypes & T, TArgs>, 'decorators' | 'component' | 'args' | 'render'>
+  ): ReactMeta<InferReactTypes<T, TArgs, Decorators>, /* component annotations with the meta's args */>;
 }
 
-export interface ReactMeta<T, MetaInput> {
-  story(config): ReactStory<T, TInput>;  // multiple overloads
+export interface ReactMeta<T extends ReactTypes, MetaInput extends ComponentAnnotations<T>>  // :147
+  extends Meta<T, MetaInput> {
+  story(/* a story object or a render function */): ReactStory<T, /* the story input */>;  // several overloads
 }
 
-export interface ReactStory<T, TInput> extends Story<T, TInput> {
+export interface ReactStory<T extends ReactTypes, TInput extends StoryAnnotations<T, T['args']>>  // :249
+  extends Story<T, TInput> {
   Component: ComponentType<Partial<T['args']>>;  // for portable stories
 }
 ```
