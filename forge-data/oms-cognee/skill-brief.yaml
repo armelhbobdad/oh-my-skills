@@ -16,14 +16,16 @@ scope:
   include:
   - cognee/__init__.py
   - cognee/version.py
-  - cognee/pipelines.py
+  - cognee/pipelines/**
   - cognee/low_level.py
   - cognee/api/v1/**
   - cognee/modules/memify/**
   - cognee/modules/run_custom_pipeline/**
   - cognee/modules/pipelines/**
   - cognee/modules/visualization/**
-  - cognee/modules/observability/trace_context/**
+  - cognee/modules/observability/trace_context.py
+  - cognee/modules/search/types/SearchType.py
+  - cognee/modules/agent_memory/decorator.py
   - cognee/exceptions/**
   - cognee/skill.md
   - README.md

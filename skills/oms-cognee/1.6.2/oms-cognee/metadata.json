@@ -107,8 +107,8 @@
     "skf": "3.0.0"
   },
   "confidence_distribution": {
-    "t1": 41,
-    "t1_low": 45,
+    "t1": 37,
+    "t1_low": 49,
     "t2": 0,
     "t3": 0
   },
