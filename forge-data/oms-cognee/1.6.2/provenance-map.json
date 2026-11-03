@@ -397,14 +397,15 @@
       "export_type": "class",
       "source_library": "cognee",
       "params": [
-        "list_datasets(user=None)",
-        "discover_datasets(directory_path)",
-        "list_data(dataset_id, user=None)",
-        "has_data(dataset_id, user=None)",
-        "get_status(dataset_ids)",
-        "empty_dataset(dataset_id, user=None)",
-        "delete_data(dataset_id, data_id, user=None, mode=\"soft\", delete_dataset_if_empty=False)",
-        "delete_all(user=None)"
+        "list_datasets(user: User | None = None)",
+        "discover_datasets(directory_path: str)",
+        "list_data(dataset_id: UUID, user: User | None = None)",
+        "has_data(dataset_id: str, user: User | None = None) -> bool",
+        "get_status(dataset_ids: list[UUID], pipeline_names: list[str] | None = None) -> dict",
+        "get_progress(dataset_ids: list[UUID], pipeline_names: list[str] | None = None) -> dict",
+        "empty_dataset(dataset_id: UUID, user: User | None = None)",
+        "delete_data(dataset_id: UUID, data_id: UUID, user: User | None = None, mode: str = \"soft\", delete_dataset_if_empty: bool = False)",
+        "delete_all(user: User | None = None)"
       ],
       "return_type": null,
       "source_file": "cognee/api/v1/datasets/datasets.py",
@@ -412,7 +413,7 @@
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "class_definition",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "prune",
