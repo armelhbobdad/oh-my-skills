@@ -119,10 +119,7 @@
     "public_api_coverage": 0.167,
     "total_coverage": 0.0695,
     "scripts_count": 0,
-    "assets_count": 0,
-    "effective_denominator": 280,
-    "effective_denominator_source": "provenance-map canonicalized count (ThemesGlobals_def folds with ThemesGlobals under _def convention)",
-    "reconciliation_note": "Reconciled 2026-04-11T22:30Z from GAP-006: exports[] reflects canonicalized provenance-map surface after scope narrowing. Prior values (320/430 = 74.42%) were derived before GAP-005 scope narrowing and counted addon-panel UI primitives, babel/csf-tools/core-server infrastructure that are out of authoring scope. See skill-brief.yaml amendments for exclude list."
+    "assets_count": 0
   },
   "generated_by": "create-skill",
   "dependencies": [
