@@ -1,44 +1,39 @@
 {
   "skill": "skf-test-skill",
-  "status": "success",
+  "status": "error",
   "skill_name": "oms-storybook-react-vite",
-  "verdict": "PASS",
-  "score": 95.17,
-  "threshold": 80,
-  "report_path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261102T231406Z-a5890950.md",
-  "next_workflow": "export-skill",
-  "exit_code": 0,
-  "halt_reason": null,
+  "verdict": "FAIL",
+  "score": null,
+  "threshold": null,
+  "report_path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261103T065503Z-bad58550.md",
+  "next_workflow": "update-skill",
+  "exit_code": 2,
+  "halt_reason": "hard-gate-blocked",
   "outputs": [
     {
       "type": "report",
-      "path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261102T231406Z-a5890950.md"
+      "path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261103T065503Z-bad58550.md"
     }
   ],
   "summary": {
-    "score": 95.17,
-    "threshold": 80,
-    "result": "PASS",
+    "score": null,
+    "threshold": null,
+    "result": "FAIL",
     "testMode": "naive",
-    "activeCategories": [
-      "exportCoverage",
-      "signatureAccuracy",
-      "typeCoverage",
-      "externalValidation"
-    ],
+    "activeCategories": [],
     "gapCounts": {
-      "Critical": 0,
-      "High": 0,
-      "Medium": 1,
+      "Critical": 17,
+      "High": 1,
+      "Medium": 205,
       "Low": 0,
-      "Info": 47
+      "Info": 151
     },
-    "hardGate": "passed"
+    "hardGate": "blocked"
   },
-  "runId": "20261102T231406Z-a5890950",
+  "runId": "20261103T065503Z-bad58550",
   "healthCheckDispatched": true,
-  "timestamp": "2026-11-02T23:30:57Z",
-  "run_id": "20261102T231406Z-a5890950",
+  "timestamp": "2026-11-03T07:09:34Z",
+  "run_id": "20261103T065503Z-bad58550",
   "headless_decisions": [],
   "warnings": [
     "customization_resolver_unavailable: not found"
