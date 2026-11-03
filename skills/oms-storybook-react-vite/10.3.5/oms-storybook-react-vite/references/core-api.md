@@ -50,8 +50,8 @@ Entry: `code/core/src/test/index.ts`. These are the `play` function utilities �
 | Export | Kind | Signature / Purpose | Source |
 |---|---|---|---|
 | `expect` | const | Vitest/Chai-compatible assertion function with full matcher set | `[AST:code/core/src/test/expect.ts:L139]` |
-| `fn` | function | `fn<T>(impl?: T): Mock<T>` — create a mock function for `args` | `[AST:code/core/src/test/spy.ts:L48]` |
-| `spyOn` | function | `spyOn(obj, method)` — spy on an existing method | `[AST:code/core/src/test/spy.ts:L41]` |
+| `fn` | function | `fn<T>(implementation?: T): Mock<T>` — create a mock function for `args` | `[AST:code/core/src/test/spy.ts:L48]` |
+| `spyOn` | function | Declared `spyOn: typeof vitestSpyOn` (`@vitest/spy` 3.2.4), so it has vitest's overloads and return types: `spyOn(obj: T, methodName: M)` for a method or class, `spyOn(obj: T, methodName: S, accessType: 'get')` for a getter and `spyOn(obj: T, methodName: G, accessType: 'set')` for a setter — spy on an existing member | `[AST:code/core/src/test/spy.ts:L41]` |
 | `within` | function | `within(element)` — scope DOM queries to a subtree | `[AST:code/core/src/test/testing-library.ts:L110]` |
 | `screen` | const proxy | Global DOM query object (warns inside docs mode) | `[AST:code/core/src/test/testing-library.ts:L107]` |
 | `waitFor` | function | Wait for an async DOM condition | `[AST:code/core/src/test/testing-library.ts:L108]` |
@@ -111,7 +111,7 @@ The re-export table above lists the public surface; the rows below pin each symb
 | `combineParameters` | const | `(...parameterSets: (Parameters \| undefined)[]) => Parameters` — recursively merge parameter bags preserving plain objects | `[AST:code/core/src/preview-api/modules/store/parameters.ts:L11]` |
 | `composeConfigs` | function | `<R extends Renderer>(moduleExportList: ModuleExports[]) => NormalizedProjectAnnotations<R>` — fold config modules into a single normalized ProjectAnnotations | `[AST:code/core/src/preview-api/modules/store/csf/composeConfigs.ts:L43]` |
 | `composeStepRunners` | function | `<R>(stepRunners: StepRunner<R>[]) => StepRunner<R>` — sequence step runners into one | `[AST:code/core/src/preview-api/modules/store/csf/stepRunners.ts:L27]` |
-| `filterArgTypes` | const | `(argTypes: StrictArgTypes, include?: PropDescriptor, exclude?: PropDescriptor) => StrictArgTypes` — filter by regex array or name list | `[AST:code/core/src/preview-api/modules/store/filterArgTypes.ts:L10]` |
+| `filterArgTypes` | const | `(argTypes: StrictArgTypes, include?: PropDescriptor, exclude?: PropDescriptor) => StrictArgTypes \| Partial<StrictArgTypes>` (return type not annotated, inferred) — returns `argTypes` itself when neither `include` nor `exclude` is given, else `argTypes && pickBy(argTypes, ...)` (es-toolkit, typed `Partial<T>`), keeping each arg type whose `name` (or key) matches `include` and not `exclude`; `PropDescriptor = string[] \| RegExp` | `[AST:code/core/src/preview-api/modules/store/filterArgTypes.ts:L10]` |
 | `inferControls` | const | `ArgTypesEnhancer<Renderer>` — auto-pick control types from runtime arg values + matchers | `[AST:code/core/src/preview-api/modules/store/inferControls.ts:L66]` |
 | `normalizeStory` | function | `<R>(key: StoryId, storyAnnotations: StoryAnnotationsOrFn<R>, meta: NormalizedComponentAnnotations<R>) => NormalizedStoryAnnotations<R>` | `[AST:code/core/src/preview-api/modules/store/csf/normalizeStory.ts:L25]` |
 | `normalizeArrays` | const | `<T>(array: T[] \| T \| undefined) => T[]` — coerce single/undefined to array | `[AST:code/core/src/preview-api/modules/store/csf/normalizeArrays.ts:L1]` |

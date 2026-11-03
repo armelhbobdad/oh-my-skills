@@ -108,7 +108,7 @@ Sources for the two templates above: `[AST:code/renderers/react/src/public-types
 `play: async ({ canvas, userEvent, args }) => { ... }` — destructure from `storybook/test` context. Use `canvas.getByRole` / `findByRole`, `await userEvent.click(...)`, `await expect(...)`. `[AST:code/renderers/react/template/stories/test-fn.stories.tsx:L1]`
 
 **Add a theme decorator globally:**
-`decorators: [withThemeByClassName({ themes, defaultTheme })]` in `preview.ts` — or `withThemeByDataAttribute` / `withThemeFromJSXProvider` for CSS-in-JS providers. `[AST:code/addons/themes/src/index.ts:L1]`
+`decorators: [withThemeByClassName({ themes, defaultTheme })]` in `preview.ts` — or `withThemeByDataAttribute({ themes, defaultTheme })` to set a `data-*` attribute (default `data-theme`) on the parent element instead of a class, or `withThemeFromJSXProvider` to wrap stories in a CSS-in-JS theme provider. `[AST:code/addons/themes/src/index.ts:L1]` `[AST:code/addons/themes/src/decorators/data-attribute.decorator.tsx:L19]` `[AST:code/addons/themes/src/decorators/provider.decorator.tsx:L23]`
 
 **Use preview-api hooks inside a decorator or render:**
 `import { useState, useArgs, useParameter } from 'storybook/preview-api'` → `const [{ label }, updateArgs] = useArgs()` reads/writes current story args. `[AST:code/core/src/preview-api/index.ts:L5]`

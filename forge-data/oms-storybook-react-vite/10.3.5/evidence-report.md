@@ -342,3 +342,55 @@ Active symlink: active_symlink_update: ok (10.3.5). Workspace clone: not advance
 - Notes: Gap-driven repair — neither `Docs` nor `action` is a headline export of the snippet, the version stays 10.3.5 and no gotcha changed.
 
 Active symlink: active_symlink_update: ok (10.3.5). Workspace clone: not advanced (gap-driven repair at the pinned commit; no private source tree).
+
+## Update Operation — 2026-11-03T08:27:32Z
+
+**Trigger:** test report `test-report-oms-storybook-react-vite-20261103T073923Z-970f8905.md` (FAIL, hard gate: 24 Critical signature-mismatch + 2 High split-body-mismatch), `skf-update-skill --from-test-report --headless`
+**Forge Tier:** Deep
+**Mode:** gap-driven
+**Source commit:** e486d382 (read as it stands; workspace HEAD matches the pinned commit)
+
+### Changes Detected
+- Files modified: 0 (gap-driven: no source drift compared)
+- Files added: 0
+- Files deleted: 0
+- Exports affected: 24 (24 signature-mismatch gaps; 2 split-body structural fixes and 1 metadata update forwarded; 45 Info gaps not routed: GAP-026 multi-denominator, GAP-027 to GAP-070 provenance-unverified)
+
+### Merge Results
+- Exports updated: 22 (references/doc-blocks.md: `Anchor`, `DocsContainer`, `DocsStory`, `Heading`, `Markdown`, `Meta`, `Source` (with a new `Source` props detail table), `Subheading`, `Subtitle`, `Title`, `Unstyled`, `PureArgsTable` and the eight `FC<P>` controls `BooleanControl`, `DateControl`, `FilesControl`, `NumberControl`, `ObjectControl`, `RangeControl`, `TextControl`, `OptionsControl`; references/core-api.md: `spyOn`, `filterArgTypes`)
+- Unchanged after the fresh read: `Canvas` (references/doc-blocks.md:30-51 already documents the nine `CanvasProps` fields; the gap compared SKILL.md's brief usage line) and `composeStories` (the documented React form matches `code/renderers/react/src/portable-stories.tsx:148`; core's form, which the gap cited, is already documented at references/core-api.md under `storybook/preview-api`)
+- Exports added: 0
+- Exports removed: 0
+- [MANUAL] sections preserved: 4
+- Conflicts resolved: 0
+- Structural fix: GAP-071 `fn` parameter renamed `impl` → `implementation` at references/core-api.md:53 (matches the SKILL.md body and `code/core/src/test/spy.ts:48`)
+- Structural fix: GAP-072 `withThemeByDataAttribute` role corrected at SKILL.md:111 per the gap's remediation (it sets a `data-*` attribute, default `data-theme`, on the parent element; `withThemeFromJSXProvider` is the CSS-in-JS provider decorator); references/addons.md:110 already said so and is unchanged
+- Metadata patch queued: GAP-025 recount the exports and correct the diverging counts (carried by the automatic stat recount)
+- Provenance: 5 entries added, all source-read (T1-low): `Anchor` (`code/addons/docs/src/blocks/blocks/Anchor.tsx:10`), `DocsStory` (`code/addons/docs/src/blocks/blocks/DocsStory.tsx:42`), `Heading` (`code/addons/docs/src/blocks/blocks/Heading.tsx:33`), `Subheading` (`code/addons/docs/src/blocks/blocks/Subheading.tsx:23`), `PureArgsTable` (`code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:320`, traced through the `ArgsTable as PureArgsTable` re-export at `code/addons/docs/src/blocks.ts:3`)
+
+### Scope and Targeted Re-Extraction
+- Authoritative files: none
+- Scope reconciliation before detection: none
+- Scope reconciliation after detection: none
+- Targeted re-extraction: {"resolved_count": 1, "files_scanned": 1, "exports_matched": 1, "tier": "Deep"}
+
+### Validation Summary
+- Spec compliance: PASS (quality score 100/100; skill-check check --fix: 0 diagnostics, nothing fixed)
+- [MANUAL] integrity: PASS
+- Confidence tiers: PASS (no label violation; no entry relabeled)
+- Provenance: WARN (verifier re-run status `findings`). Fixed by this section: nothing (`fix` applied no line or prefix fix; `kind-at` resolved no node kind). The repaired exports the map now holds resolve as follows: `Anchor`, `DocsStory`, `Heading`, `Subheading` (new `[SRC:]` entries at their declaration lines) verify clean; `PureArgsTable` (new entry at `code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:320`) is unverified, since the line declares `ArgsTable`, which `code/addons/docs/src/blocks.ts:3` re-exports under the `PureArgsTable` name. Left for a person: 45 unverified exports whose recorded line defines nothing the rules recognize (the 18 `code/addons/docs/src/blocks.ts:1` doc blocks, the `api-stories.ts` index types, the `*_exact`/`_def` variants, the a11y preview annotations, the testing-library re-exports, the addon-themes decorators, and `PureArgsTable`), 1 entry citing a missing file (`setProjectAnnotations` at `code/renderers/react/src/portable-stories.ts:1`; the file is `.tsx`), 3 missing (Args, DocsPage, Parameters), 143 orphaned (entries outside the 88-name exports[]), 46 node kinds kind-at could not resolve (45 no-match, 1 file-missing). Citation prefixes: 0 findings (358 scanned, 228 matched).
+- Diff: SKIP (gap-driven: no previous version folder)
+- Security: SKIP (SNYK_TOKEN not configured)
+
+### Description Guard
+- Restored: false
+- Triggering tool: —
+- Original description preserved: —
+- Notes: —
+
+### Context Snippet
+- Regenerated: false
+- Triggers fired: —
+- Notes: Gap-driven repair — the snippet's headline names are unchanged (its `fn()` and `composeStories()` are name-only; the `Meta` it lists is the CSF type, not the doc block repaired here), the version stays 10.3.5 and no gotcha changed.
+
+Active symlink: active_symlink_update: ok (10.3.5). Workspace clone: not advanced (gap-driven repair at the pinned commit; no private source tree).
