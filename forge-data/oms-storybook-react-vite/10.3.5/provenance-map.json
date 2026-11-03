@@ -218,15 +218,15 @@
       "export_type": "function",
       "source_library": "@storybook/react",
       "params": [
-        "input: PreviewInput"
+        "input: { addons: Addons } & ProjectAnnotations<ReactTypes & InferTypes<Addons>>"
       ],
-      "return_type": "ReactPreview<Addons>",
+      "return_type": "ReactPreview<ReactTypes & InferTypes<Addons>>",
       "source_file": "code/renderers/react/src/preview.tsx",
       "source_line": 55,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "ReactPreview",

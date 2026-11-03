@@ -117,11 +117,11 @@ import * as ButtonStories from './Button.stories';
 
 | Component | Props | Purpose |
 |---|---|---|
-| `Typeset` | `{ fontSizes, fontWeight, sampleText, fontFamily }` | Font family / size display for design system docs. |
+| `Typeset` | `{ fontSizes: (string \| number)[]; fontFamily?: string; fontWeight?: number; sampleText?: string }` (only `fontSizes` is required) | Font family / size display for design system docs. `[SRC:code/addons/docs/src/blocks/components/Typeset.tsx:L39]` |
 | `ColorPalette` | `{ children?: React.ReactNode }` | Color swatch collection: pass `ColorItem` elements as its children. `[SRC:code/addons/docs/src/blocks/components/ColorPalette.tsx:L202]` |
 | `ColorItem` | `{ title, subtitle, colors }` | Single color swatch with label. |
 | `IconGallery` | `{ children?: React.ReactNode }` | Icon grid: pass `IconItem` elements as its children. `[SRC:code/addons/docs/src/blocks/components/IconGallery.tsx:L74]` |
-| `IconItem` | `{ name, children }` | Single icon display. |
+| `IconItem` | `{ name: string; children?: React.ReactNode }` | Single icon display: a caption (`name`) and the icon passed as `children`. `[SRC:code/addons/docs/src/blocks/components/IconGallery.tsx:L62]` |
 
 ## Container blocks
 

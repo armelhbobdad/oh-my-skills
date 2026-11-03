@@ -280,7 +280,9 @@ CSF4 (introduced in v10) offers a factory-based alternative to the CSF3 object f
 
 ```ts
 // code/renderers/react/src/preview.tsx
-export function __definePreview<Addons>(input: PreviewInput): ReactPreview<Addons>;
+export function __definePreview<Addons extends PreviewAddon<never>[]>(
+  input: { addons: Addons } & ProjectAnnotations<ReactTypes & InferTypes<Addons>>
+): ReactPreview<ReactTypes & InferTypes<Addons>>;
 
 export interface ReactPreview<T extends AddonTypes> {
   type<R>(): NarrowedPreview;

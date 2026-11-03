@@ -123,7 +123,7 @@ Exposed as the `DecoratorHelpers` namespace export from `@storybook/addon-themes
 | Helper | Kind | Signature | Source |
 |---|---|---|---|
 | `pluckThemeFromContext` | function | `({ globals }: StoryContext) => string` — extract current theme key from globals | `[AST:code/addons/themes/src/decorators/helpers.ts:L16]` |
-| `useThemeParameters` | function | `(context?: StoryContext) => ThemesParameters` — read parameters bag (deprecated — prefer context directly) | `[AST:code/addons/themes/src/decorators/helpers.ts:L20]` |
+| `useThemeParameters` | function | `(context?: StoryContext) => ThemesParameters['themes']` — returns the inner `{ disable?: boolean; themeOverride?: string } \| undefined` (the helper's local alias `ThemesParameters = Parameters['themes']`, `helpers.ts:L10`), not the exported `ThemesParameters` interface above (deprecated — prefer `context.parameters.themes` directly) | `[AST:code/addons/themes/src/decorators/helpers.ts:L20]` |
 | `initializeThemeState` | function | `(themeNames: string[], defaultTheme: string) => void` — register the themes list with the toolbar channel | `[AST:code/addons/themes/src/decorators/helpers.ts:L34]` |
 
 ### Usage
