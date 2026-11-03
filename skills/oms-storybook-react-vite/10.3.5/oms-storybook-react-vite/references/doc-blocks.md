@@ -140,7 +140,7 @@ import * as ButtonStories from './Button.stories';
 | `DocsContext` | React context | Provides story/component metadata to blocks. Access via `const ctx = useContext(DocsContext)`. |
 | `PureArgsTable` | component | ArgsTable without Storybook integration: the `ArgsTable` component (`FC<ArgsTableProps>`), re-exported under this name. `ArgsTableProps = ArgsTableOptionProps & (ArgsTableDataProps \| ArgsTableErrorProps \| ArgsTableLoadingProps)`. Options, all optional: `{ children?: ReactNode; updateArgs?: (args: Args) => void; resetArgs?: (argNames?: string[]) => void; compact?: boolean; inAddonPanel?: boolean; inTabPanel?: boolean; initialExpandedArgs?: boolean; isLoading?: boolean; sort?: SortType }` (`sort` defaults to `'none'`). Plus one of: `{ rows: ArgTypes; args?: Args; globals?: Globals }` (the table data), `{ error: ArgsTableError }` or `{ isLoading: boolean }`. `[SRC:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L320]` `[AST:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L197]` `[AST:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L222]` `[SRC:code/addons/docs/src/blocks.ts:L3]` |
 | `TableOfContents` | component | Auto-generated TOC from docs headings. Enable via `parameters.docs.toc`. |
-| `SortType` | type | `'alpha' \| 'requiredFirst' \| 'none' \| ((a, b) => number)` for `sort` prop on `Controls`/`ArgTypes`. |
+| `SortType` | type | `'alpha' \| 'requiredFirst' \| 'none'` (no function form) for the `sort` prop on `Controls`/`ArgTypes` (`code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:186`). |
 
 `[AST:code/addons/docs/src/blocks.ts]`
 
@@ -209,8 +209,8 @@ The primitive control components that back `Controls` / `ArgTypes` panels. Impor
 | `TextControl` | component | `FC<TextProps>` — textarea with max-length | `[AST:code/addons/docs/src/blocks/controls/Text.tsx:L23]` |
 | `OptionsProps` | type | `ControlProps<OptionsSelection> & OptionsConfig` | `[AST:code/addons/docs/src/blocks/controls/options/Options.tsx:L40]` |
 | `OptionsControl` | component | `FC<OptionsProps>` — dispatcher → CheckboxControl / RadioControl / SelectControl | `[AST:code/addons/docs/src/blocks/controls/options/Options.tsx:L41]` |
-| `CheckboxControl` | component | `(props: CheckboxProps) => JSX.Element` — multi-select checkbox group | `[AST:code/addons/docs/src/blocks/controls/options/Checkbox.tsx:L57]` |
-| `RadioControl` | component | `(props: RadioProps) => JSX.Element` — single-select radio group | `[AST:code/addons/docs/src/blocks/controls/options/Radio.tsx:L57]` |
-| `SelectControl` | component | `(props: SelectProps) => JSX.Element` — dropdown select (single or multi) | `[AST:code/addons/docs/src/blocks/controls/options/Select.tsx:L170]` |
+| `CheckboxControl` | component (internal, not importable) | `FC<CheckboxProps>` (module-local props) — multi-select checkbox group that `OptionsControl` renders for `check` / `inline-check`. The controls barrel re-exports only `OptionsControl` and `OptionsProps` from `options/` (`controls/options/index.ts:1` → `Options.tsx`). | `[AST:code/addons/docs/src/blocks/controls/options/Checkbox.tsx:L57]` |
+| `RadioControl` | component (internal, not importable) | `FC<RadioProps>` (module-local props) — single-select radio group that `OptionsControl` renders for `radio` / `inline-radio`; import `OptionsControl` instead. | `[AST:code/addons/docs/src/blocks/controls/options/Radio.tsx:L57]` |
+| `SelectControl` | component (internal, not importable) | `FC<SelectProps>` (module-local props) — dropdown that `OptionsControl` renders for `select` / `multi-select`; import `OptionsControl` instead. | `[AST:code/addons/docs/src/blocks/controls/options/Select.tsx:L170]` |
 
 **Custom controls panel usage:** You rarely need to import these individually — the `Controls` doc-block handles dispatching automatically based on `argTypes[key].control.type`. Reach for the primitives only when building an addon that renders its own controls UI (e.g., a visual-testing panel that needs inline range sliders).
