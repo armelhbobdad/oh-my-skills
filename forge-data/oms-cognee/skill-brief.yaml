@@ -167,9 +167,10 @@ scope:
       cognee/modules/search/types/SearchType.py and cognee/modules/agent_memory/decorator.py
       were added because they define documented exports (commit 87b7590).'
     reason: 'With every glob matching, the stale-scope guard no longer restores the
-      whole cognee/__init__.py barrel, so the denominator went from 92 to 66: 32 root
-      exports sit outside scope.include (the 28 cognee.migration names, run_migrations
-      and others), all still documented.'
+      whole cognee/__init__.py barrel, so the denominator went from 92 to 66: 26 names
+      from cognee/modules/migration moved out of scope. With the 6 the brief already
+      left out (run_migrations among them), 32 root exports sit outside scope.include,
+      all still documented.'
     date: '2026-11-03'
     workflow: manual
 doc_urls:

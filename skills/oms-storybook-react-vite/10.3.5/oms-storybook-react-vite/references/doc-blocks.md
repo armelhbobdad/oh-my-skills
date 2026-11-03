@@ -27,7 +27,7 @@ import { Meta, Canvas, Controls, Primary, Stories } from '@storybook/addon-docs/
 
 | Component | Props (simplified) | Purpose | Source |
 |---|---|---|---|
-| `Canvas` | `{ of, meta, sourceState, layout, source, story, withToolbar, additionalActions, className }` | Render story preview with optional source panel. `of` → story export from `import * as stories`. See [`Canvas` props detail](#canvas-props-detail) below. | `[AST:code/addons/docs/src/blocks/blocks/Canvas.tsx:L100]` |
+| `Canvas` | `{ of?, meta?, sourceState?, layout?, source?, story?, withToolbar?, additionalActions?, className? }` (all optional) | Render story preview with optional source panel. `of` → story export from `import * as stories`. See [`Canvas` props detail](#canvas-props-detail) below. | `[AST:code/addons/docs/src/blocks/blocks/Canvas.tsx:L100]` |
 | `Story` | `{ of?, meta?, inline?, height?, autoplay? }` (`StoryProps`; also the internal `__forceInitialArgs?`, `__primary?`) | Render a single story by import reference (`of`; defaults to the current story). Pass `meta` (all exports of the CSF file) when the MDX page is unattached. `expanded` is a `DocsStory` prop, not a `Story` prop. | `[SRC:code/addons/docs/src/blocks/blocks/Story.tsx:L134]` |
 | `Primary` | none (`FC` with no props) | Render the primary story of the attached CSF file (`usePrimaryStory()`); it takes no `of`. | `[SRC:code/addons/docs/src/blocks/blocks/Primary.tsx:L16]` |
 | `Stories` | `{ title?: ReactElement \| string; includePrimary?: boolean }` | Render every story of the attached CSF file (`DocsContext.componentStories()`) as a list; it takes no `of`. `title` defaults to `'Stories'`, `includePrimary` to `true`. | `[SRC:code/addons/docs/src/blocks/blocks/Stories.tsx:L74]` |
