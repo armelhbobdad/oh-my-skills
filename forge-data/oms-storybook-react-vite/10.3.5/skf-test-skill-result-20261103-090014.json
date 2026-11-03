@@ -1,0 +1,41 @@
+{
+  "skill": "skf-test-skill",
+  "status": "error",
+  "skill_name": "oms-storybook-react-vite",
+  "verdict": "FAIL",
+  "score": null,
+  "threshold": null,
+  "report_path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261103T084026Z-c861c18d.md",
+  "next_workflow": "update-skill",
+  "exit_code": 2,
+  "halt_reason": "hard-gate-blocked",
+  "outputs": [
+    {
+      "type": "report",
+      "path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261103T084026Z-c861c18d.md"
+    }
+  ],
+  "summary": {
+    "score": null,
+    "threshold": null,
+    "result": "FAIL",
+    "testMode": "naive",
+    "activeCategories": [],
+    "gapCounts": {
+      "Critical": 8,
+      "High": 0,
+      "Medium": 1,
+      "Low": 0,
+      "Info": 46
+    },
+    "hardGate": "blocked"
+  },
+  "runId": "20261103T084026Z-c861c18d",
+  "healthCheckDispatched": true,
+  "timestamp": "2026-11-03T09:00:14Z",
+  "run_id": "20261103T084026Z-c861c18d",
+  "headless_decisions": [],
+  "warnings": [
+    "customization_resolver_unavailable: not found"
+  ]
+}
