@@ -192,7 +192,7 @@ Provenance: [AST:python/cocoindex/_internal/api.py:L603] [:L608] [:L613] [:L618]
 | `TargetStateProvider[ValueT, OptChildHandlerT, MaybePendingS]` | class | Provider for target states. `target_state(key, value)`, `attachment(att_type)`, `memo_key`. | [AST:python/cocoindex/_internal/target_state.py:L208] |
 | `TargetHandler[ValueT_contra, TrackingRecordT, OptChildHandlerT_co]` | Protocol | `reconcile(key, desired_target_state, prev_possible_records, prev_may_be_missing) -> TargetReconcileOutput \| None`. | [AST:python/cocoindex/_internal/target_state.py:L197] |
 | `TargetActionSink[ActionT, OptChildHandlerT]` | class | Wraps a sink fn. `from_fn(fn)` / `from_async_fn(fn)` static constructors. | [AST:python/cocoindex/_internal/target_state.py:L143] |
-| `TargetReconcileOutput[ActionT, TrackingRecordT, OptChildHandlerT]` | NamedTuple | `(action, sink, tracking_record, child_invalidation)`. | [AST:python/cocoindex/_internal/target_state.py:L188] |
+| `TargetReconcileOutput[ActionT, TrackingRecordT, OptChildHandlerT]` | NamedTuple | `(action, sink, tracking_record, child_invalidation: Literal["destructive", "lossy"] \| None = None)`. | [AST:python/cocoindex/_internal/target_state.py:L188] |
 | `declare_target_state(target_state)` | fn | Declare a state in the current component context. | [AST:python/cocoindex/_internal/target_state.py:L265] |
 | `declare_target_state_with_child(target_state)` | fn | Declare with a child handler; returns `PendingTargetStateProvider[ValueT, OptChildHandlerT]`. | [AST:python/cocoindex/_internal/target_state.py:L282] |
 | `register_root_target_states_provider(name, handler)` | fn | Register a root provider; returns `TargetStateProvider`. | [AST:python/cocoindex/_internal/target_state.py:L305] |
