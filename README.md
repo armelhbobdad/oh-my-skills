@@ -24,7 +24,7 @@ Your AI coding assistant doesn't read documentation. It pattern-matches against 
 
 This repository is the antidote. Not more curation. **Compilation.** Each skill is built from a specific upstream commit, every documented symbol cites its source file and line with a tag that says how it was read (`[AST:]` when an ast-grep rule matched the definition, `[SRC:]` when the source was read by eye), and every claim can be audited against the upstream in under 60 seconds. When we're wrong, the test report says we're wrong.
 
-This repo is what [Skill Forge](https://github.com/armelhbobdad/bmad-module-skill-forge) produces. Four libraries today, all Deep-tier, all passing Skill Forge 4.0.0's test gate at **95.17%–100%** against their own source trees. The receipts are below — so is the demo, the dare, and the points we lost.
+This repo is what [Skill Forge](https://github.com/armelhbobdad/bmad-module-skill-forge) produces. Four libraries today, all Deep-tier. **Two pass Skill Forge 4.0.0's test gate** on a strict reading of its signature rules, against their own source trees: cocoindex at **100%** and cognee at **99%**. Both passes turn on borderline calls that the reports write down. The other two are blocked. uitripled is blocked by one false positive in Skill Forge's own comparison. Storybook is blocked by two false positives and two real errors we have not fixed yet. We used to publish 95.17%–100% for all four. Three of those runs read the signature rules leniently, and we say exactly what changed. A few errors the reports record without blocking are still open ([#17](https://github.com/armelhbobdad/oh-my-skills/issues/17)). The receipts are below — so is the demo, the dare, and the points we lost.
 
 > **Who this is for:** devs tired of debugging hallucinated imports · library maintainers who want their users' agents to stop getting the API wrong · skeptical staff engineers who want evidence, not vibes.
 
@@ -60,10 +60,10 @@ No hallucinations. No guesswork. Just real code, cited by file and line.
 
 | If you're writing... | Version | Test score | Upstream source | Pinned at |
 |---|---|---|---|---|
-| [**cocoindex**](skills/oms-cocoindex/1.0.0/oms-cocoindex/SKILL.md) (Python) | 1.0.0 | [**100%**](forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261102T201851Z-bf06d70f.md) | [`cocoindex-io/cocoindex`](https://github.com/cocoindex-io/cocoindex) | [`5fe4f37a`](https://github.com/cocoindex-io/cocoindex/commit/5fe4f37a526e51516655832ec9814e7ca24ade9a) · 2026-04-22 |
-| [**cognee**](skills/oms-cognee/1.6.2/oms-cognee/SKILL.md) (Python) | 1.6.2 | [**99.00%**](forge-data/oms-cognee/1.6.2/test-report-oms-cognee-20261102T194852Z-d56413cb.md) | [`topoteretes/cognee`](https://github.com/topoteretes/cognee) | [`ba3631f2`](https://github.com/topoteretes/cognee/commit/ba3631f2ed363a6ea50d649c34c56885af6b36fe) · 2026-09-29 |
-| [**Storybook**](skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/SKILL.md) (React + Vite, TS) | 10.3.5 | [**95.17%**](forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261102T231406Z-a5890950.md) | [`storybookjs/storybook`](https://github.com/storybookjs/storybook) | [`e486d382`](https://github.com/storybookjs/storybook/commit/e486d3826bcd40c52db1c766966d1c8ec16df6cb) · 2026-04-07 |
-| [**uitripled**](skills/oms-uitripled/0.1.0/oms-uitripled/SKILL.md) (TS) | 0.1.0 | [**100%**](forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled-20261102T194714Z-aff41a98.md) | [`moumen-soliman/uitripled`](https://github.com/moumen-soliman/uitripled) | [`a5ffb45b`](https://github.com/moumen-soliman/uitripled/commit/a5ffb45be05335d2c547436664cfbfb8c22d04df) · 2026-03-22 |
+| [**cocoindex**](skills/oms-cocoindex/1.0.0/oms-cocoindex/SKILL.md) (Python) | 1.0.0 | [**100%**](forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261103T131524Z-5907fba9.md) | [`cocoindex-io/cocoindex`](https://github.com/cocoindex-io/cocoindex) | [`5fe4f37a`](https://github.com/cocoindex-io/cocoindex/commit/5fe4f37a526e51516655832ec9814e7ca24ade9a) · 2026-04-22 |
+| [**cognee**](skills/oms-cognee/1.6.2/oms-cognee/SKILL.md) (Python) | 1.6.2 | [**99%**](forge-data/oms-cognee/1.6.2/test-report-oms-cognee-20261103T134151Z-12e5ccdf.md) | [`topoteretes/cognee`](https://github.com/topoteretes/cognee) | [`ba3631f2`](https://github.com/topoteretes/cognee/commit/ba3631f2ed363a6ea50d649c34c56885af6b36fe) · 2026-09-29 |
+| [**Storybook**](skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/SKILL.md) (React + Vite, TS) | 10.3.5 | [**blocked, unscored**](forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261103T131516Z-6e2b972a.md) | [`storybookjs/storybook`](https://github.com/storybookjs/storybook) | [`e486d382`](https://github.com/storybookjs/storybook/commit/e486d3826bcd40c52db1c766966d1c8ec16df6cb) · 2026-04-07 |
+| [**uitripled**](skills/oms-uitripled/0.1.0/oms-uitripled/SKILL.md) (TS) | 0.1.0 | [**blocked, unscored**](forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled-20261103T100001Z-981f84e6.md) | [`moumen-soliman/uitripled`](https://github.com/moumen-soliman/uitripled) | [`a5ffb45b`](https://github.com/moumen-soliman/uitripled/commit/a5ffb45be05335d2c547436664cfbfb8c22d04df) · 2026-03-22 |
 
 **Staleness has a date.** Every row above carries the upstream's own commit date. Your `.cursorrules` file doesn't. When upstream ships, we recompile and publish a new skill version next to the old one — never in place.
 
@@ -151,7 +151,7 @@ For the deeper trails — extraction rules, evidence reports, per-skill denomina
 
 **A promise of perfection is suspicious. A promise of visible fallibility is trustworthy.**
 
-The lowest test score in this repo is **95.17%**. The highest is **100%**. All four reports come from Skill Forge 4.0.0, whose [provenance checks](https://armelhbobdad.github.io/bmad-module-skill-forge/verifying-a-skill/#workflow-time-enforcement) also require every label in a skill's provenance map to match the tool that produced it. The score is a weighted average of four deterministic measurements (Coherence is redistributed because each skill runs in naive mode):
+Two skills score **99%** and **100%** on a strict test of the version that ships; the other two are **blocked** by the hard gate and have no score (see below). All four reports come from Skill Forge 4.0.0, whose [provenance checks](https://armelhbobdad.github.io/bmad-module-skill-forge/verifying-a-skill/#workflow-time-enforcement) also require every label in a skill's provenance map to match the tool that produced it. When a run gets past the gate, its score is a weighted average of four deterministic measurements (Coherence is redistributed because each skill runs in naive mode):
 
 | Weight  | Dimension             | What it measures                                                                                                    |
 | ------- | --------------------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -160,9 +160,17 @@ The lowest test score in this repo is **95.17%**. The highest is **100%**. All f
 | **20%** | Type Coverage         | Are the types and interfaces referenced in exports fully documented?                                                |
 | **10%** | External Validation   | [`skill-check`](https://github.com/thedaviddias/skill-check) quality score, averaged with the [`tessl`](https://tessl.io) content score when Tessl Review is configured (it was off for these four reports) |
 
-Pass threshold is 80% — anything below fails the gate and triggers `update-skill`, not `export-skill`. The full arithmetic, per-skill denominators, and reproducibility steps live in [TRUST.md](TRUST.md#how-the-99-is-computed).
+Pass threshold is 80% — anything below fails the gate and triggers `update-skill`, not `export-skill`. A Critical or High gap blocks a run before it is scored. The full arithmetic, per-skill denominators, and reproducibility steps live in [TRUST.md](TRUST.md#how-the-score-is-computed).
 
-**The points we lost.** `oms-cognee` scores **99.00%**: skill-check rates its `SKILL.md` body at about 5,646 tokens, over its 5,000-token budget, so External Validation is 90%. `oms-storybook-react-vite` scores **95.17%**: its brief names the story-authoring entry points as the skill's authored tier (280 public names), and 91 of that tier's 120 types are documented, so Type Coverage is 75.83%. The report also discloses that its Export Coverage reads 100% only because Skill Forge's count credits every documented name: 207 of the 280 authored names are documented. Every report also lists the gaps that cost no points, such as a brief glob that no longer matches a file. Both are discussed in [TRUST.md](TRUST.md#the-points-we-lost). We didn't hide the rough edges. We wrote them down.
+**The points we lost.** We used to publish 100% for `oms-cocoindex`, 99.00% for `oms-cognee`, 100% for `oms-uitripled` and 95.17% for `oms-storybook-react-vite`. Three of those runs read Skill Forge's signature rules leniently. A short `SKILL.md` signature that left out parameters its reference lists counted as a match, and so did a `dict` where the source says `dict[str, Any]` or a prop list missing optional props. Strict re-tests, which apply the written rule and write down how they read the cases it does not settle, blocked all four at first. They found real errors: misnamed parameters in `oms-cocoindex`, parameters in the wrong order and missing defaults in `oms-cognee`, and wrong import paths, prop lists missing optional props and a misnamed `fn` parameter in `oms-storybook-react-vite`. We fixed them against the pinned source, by hand where Skill Forge's own repair could not do it.
+
+Where each skill stands, on a strict test of exactly what ships:
+- `oms-cocoindex`: **100%**. The report records nine borderline calls it did not count. Counted, they would block the gate.
+- `oms-cognee`: **99%**. skill-check rates its `SKILL.md` body over its 5,000-token budget, which costs one point. The pass also turns on four borderline calls the report writes down. An earlier strict run counted three of them as Critical gaps and was blocked, and the fourth would also block the gate if counted.
+- `oms-uitripled`: blocked by one gap we judge to be a false positive.
+- `oms-storybook-react-vite`: blocked by two false positives, and by two older real errors in its reference files that we have not fixed yet.
+
+Errors the reports record without blocking on them are tracked in [#17](https://github.com/armelhbobdad/oh-my-skills/issues/17), with Storybook's two blocking ones. For Storybook, the list of authored names its coverage is counted against is itself incomplete. Against a fuller list of 391 names, our own count puts coverage between about 64% and 70%. Signature judging can vary between runs, and Skill Forge's main branch has since changed how it grades some of these cases. Every report, failing ones included, is in `forge-data/` or, for the reverted storybook repair, in git history, and all of it is laid out in [TRUST.md](TRUST.md#the-points-we-lost). We didn't hide the rough edges. We wrote them down.
 
 ---
 
@@ -176,7 +184,7 @@ This is not a hypothetical — it is what already happened to `oms-cognee`, twic
 skills/oms-cognee/
   0.5.8/oms-cognee/   ← still pinned to b51dcce1 (v0.5.8)
   1.0.0/oms-cognee/   ← still pinned to 3c048aa4 (v1.0.0, 2026-04-11)
-  1.6.2/oms-cognee/   ← pinned to ba3631f2 (v1.6.2, 2026-09-29), current, scoring 99.00%
+  1.6.2/oms-cognee/   ← pinned to ba3631f2 (v1.6.2, 2026-09-29), current
   active              → symlink to the current version
 ```
 
