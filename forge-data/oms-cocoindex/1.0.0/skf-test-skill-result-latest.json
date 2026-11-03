@@ -1,44 +1,39 @@
 {
   "skill": "skf-test-skill",
-  "status": "success",
+  "status": "error",
   "skill_name": "oms-cocoindex",
-  "verdict": "PASS",
-  "score": 100,
-  "threshold": 80,
-  "report_path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261102T201851Z-bf06d70f.md",
-  "next_workflow": "export-skill",
-  "exit_code": 0,
-  "halt_reason": null,
+  "verdict": "FAIL",
+  "score": null,
+  "threshold": null,
+  "report_path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261103T095959Z-0d19098f.md",
+  "next_workflow": "update-skill",
+  "exit_code": 2,
+  "halt_reason": "hard-gate-blocked",
   "outputs": [
     {
       "type": "report",
-      "path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261102T201851Z-bf06d70f.md"
+      "path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261103T095959Z-0d19098f.md"
     }
   ],
   "summary": {
-    "score": 100,
-    "threshold": 80,
-    "result": "PASS",
+    "score": null,
+    "threshold": null,
+    "result": "FAIL",
     "testMode": "naive",
-    "activeCategories": [
-      "exportCoverage",
-      "signatureAccuracy",
-      "typeCoverage",
-      "externalValidation"
-    ],
+    "activeCategories": [],
     "gapCounts": {
       "Critical": 0,
-      "High": 0,
+      "High": 7,
       "Medium": 2,
       "Low": 1,
-      "Info": 105
+      "Info": 102
     },
-    "hardGate": "passed"
+    "hardGate": "blocked"
   },
-  "runId": "20261102T201851Z-bf06d70f",
+  "runId": "20261103T095959Z-0d19098f",
   "healthCheckDispatched": true,
-  "timestamp": "2026-11-02T20:30:46Z",
-  "run_id": "20261102T201851Z-bf06d70f",
+  "timestamp": "2026-11-03T10:18:37Z",
+  "run_id": "20261103T095959Z-0d19098f",
   "headless_decisions": [],
   "warnings": [
     "customization_resolver_unavailable: not found"
