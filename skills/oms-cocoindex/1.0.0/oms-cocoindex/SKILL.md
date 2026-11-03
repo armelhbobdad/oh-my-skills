@@ -94,16 +94,16 @@ Run with: `cocoindex update main.py` (one-shot) or `cocoindex update main.py -L`
 `@coco.lifespan` decorates a function `(EnvironmentBuilder) -> Iterator[None] | AsyncIterator[None]`. Use `builder.provide(KEY, value)` (or `provide_async_with(KEY, async_cm)`) to register resources. Retrieve with `coco.use_context(KEY)` from inside any `@coco.fn`. [AST:python/cocoindex/_internal/environment.py:L452] · [AST:python/cocoindex/_internal/component_ctx.py:L273]
 
 **Mount a sub-component:**
-`await coco.mount(process_fn, *args)` — runs in background, returns `ComponentMountHandle`.
+`await coco.mount(process_fn, *args, **kwargs)` — runs in background, returns `ComponentMountHandle`.
 `await coco.mount_each(process_fn, items, ...)` — one component per item; `items` is `Iterable[(key, value)]`, `AsyncIterable`, `LiveMapFeed`, or `LiveMapView`.
-`result = await coco.use_mount(processor_fn, *args)` — mount and wait for the result; the child cannot refresh independently of the parent.
+`result = await coco.use_mount(processor_fn, *args, **kwargs)` — mount and wait for the result; the child cannot refresh independently of the parent.
 [AST:python/cocoindex/_internal/api.py:L349] · [:L445] · [:L245]
 
 **Mount a target (declarative state reconciliation):**
 `provider = await coco.mount_target(target_state)` — sugar over `use_mount` + `declare_target_state_with_child`. Connector-specific helpers (`postgres.mount_table_target`, `qdrant.mount_collection_target`, `lancedb.mount_table_target`, …) wrap this. [AST:python/cocoindex/_internal/api.py:L566]
 
 **Concurrent map (no component, no checkpoint):**
-`await coco.map(fn, items, *passthrough)` — pure async TaskGroup over an iterable; results returned as a list. Use when you need parallelism but not memoization or sub-component lifecycle. [AST:python/cocoindex/_internal/api.py:L532]
+`await coco.map(fn, items, *args, **kwargs)` — pure async TaskGroup over an iterable; results returned as a list. Use when you need parallelism but not memoization or sub-component lifecycle. [AST:python/cocoindex/_internal/api.py:L532]
 
 **LLM extraction (LiteLLM-based):**
 `from cocoindex.ops.litellm import LiteLLMEmbedder; embedder = LiteLLMEmbedder("text-embedding-ada-002")`. Replaces v0.3.37's `cocoindex.functions.ExtractByLlm` + `LlmSpec`. [AST:python/cocoindex/ops/litellm.py:L22]
@@ -167,16 +167,16 @@ Provenance: [AST:python/cocoindex/_internal/api.py:L603] [:L608] [:L613] [:L618]
 | `App[P, R]` | class | Top-level pipeline runner. `App(name_or_config, main_fn, *args, **kwargs)`. Methods: `update()`, `update_blocking()`, `drop()`, `drop_blocking()`. | [AST:python/cocoindex/_internal/app.py:L208] |
 | `AppConfig` | dataclass | `AppConfig(name, environment=default_env, max_inflight_components=None)`. | [AST:python/cocoindex/_internal/app.py:L202] |
 | `Environment` | class | CocoIndex runtime environment. Owns settings, context provider, event loop, and exception handler. `__init__(settings, *, name=None, context_provider=None, event_loop=None, exception_handler=None, info=None)`. | [AST:python/cocoindex/_internal/environment.py:L183] |
-| `EnvironmentBuilder` | class | Lifespan builder. `provide(key, value)`, `provide_with(key, ctxmgr)`, `provide_async_with(key, async_ctxmgr)`, `set_exception_handler(handler)`. | [AST:python/cocoindex/_internal/environment.py:L87] |
+| `EnvironmentBuilder` | class | Lifespan builder. `provide(key, value)`, `provide_with(key, cm)`, `provide_async_with(key, cm)` (async), `set_exception_handler(handler)`. | [AST:python/cocoindex/_internal/environment.py:L87] |
 | `LifespanFn` | type alias | `Callable[[EnvironmentBuilder], Iterator[None] \| AsyncIterator[None]]`. | [AST:python/cocoindex/_internal/environment.py:L118] |
 | `lifespan` | decorator | `@coco.lifespan` registers an environment lifespan. Optional parens. | [AST:python/cocoindex/_internal/environment.py:L452] |
 | `fn` | decorator namespace | `@coco.fn` (preserves sync/async), `@coco.fn(memo=True)`, `@coco.fn(batching=True, max_batch_size=N, runner=GPU)`, `@coco.fn(version=N, logic_tracking="full"\|"self"\|None, deps=...)`. `@coco.fn.as_async(...)` always yields async. | [AST:python/cocoindex/_internal/function.py:L1578] [AST:python/cocoindex/_internal/function.py:L1811] |
 | `LogicTracking` | type alias | `Literal["full", "self"] \| None` — value type of the `logic_tracking=` kwarg on `@coco.fn`. `"full"` (default) tracks own code + transitive children, `"self"` tracks own code only, `None` disables tracking (incompatible with `deps`). | [SRC:python/cocoindex/_internal/function.py:L65] |
 | `mount` | async fn | `await coco.mount(processor_fn, *args, **kwargs) -> ComponentMountHandle`. | [AST:python/cocoindex/_internal/api.py:L349] |
-| `mount_each` | async fn | `await coco.mount_each(fn, items, *args) -> ComponentMountHandle`. | [AST:python/cocoindex/_internal/api.py:L445] |
+| `mount_each` | async fn | `await coco.mount_each(fn, items, *args, **kwargs) -> ComponentMountHandle`. | [AST:python/cocoindex/_internal/api.py:L445] |
 | `mount_target` | async fn | `await coco.mount_target(target_state) -> TargetStateProvider[ValueT, OptChildHandlerT]`. | [AST:python/cocoindex/_internal/api.py:L566] |
-| `use_mount` | async fn | `result = await coco.use_mount(processor_fn, *args) -> R`. Result-bearing mount. | [AST:python/cocoindex/_internal/api.py:L245] |
-| `map` | async fn | `await coco.map(fn, items, *args) -> list[R]`. Concurrent fan-out, no component. | [AST:python/cocoindex/_internal/api.py:L532] |
+| `use_mount` | async fn | `result = await coco.use_mount(processor_fn, *args, **kwargs) -> ReturnT`. Result-bearing mount. | [AST:python/cocoindex/_internal/api.py:L245] |
+| `map` | async fn | `await coco.map(fn, items, *args, **kwargs) -> list[ReturnT]`. Concurrent fan-out, no component. | [AST:python/cocoindex/_internal/api.py:L532] |
 | `start` / `stop` | async fns | Start/stop the default environment. | [AST:python/cocoindex/_internal/api.py:L603] [:L608] |
 | `start_blocking` / `stop_blocking` | fns | Sync variants. | [AST:python/cocoindex/_internal/api.py:L613] [:L618] |
 | `runtime()` | dual-mode ctxmgr | `with coco.runtime(): ...` or `async with coco.runtime(): ...`. | [AST:python/cocoindex/_internal/api.py:L655] |
@@ -184,13 +184,13 @@ Provenance: [AST:python/cocoindex/_internal/api.py:L603] [:L608] [:L613] [:L618]
 | `TargetState[OptChildHandlerT]` | class | Bundled (provider, key, value) triple. Built via `TargetStateProvider.target_state(key, value)`. | [AST:python/cocoindex/_internal/target_state.py:L248] |
 | `TargetStateProvider[ValueT, OptChildHandlerT, MaybePendingS]` | class | Provider for target states. `target_state(key, value)`, `attachment(att_type)`, `memo_key`. | [AST:python/cocoindex/_internal/target_state.py:L208] |
 | `TargetHandler[ValueT_contra, TrackingRecordT, OptChildHandlerT_co]` | Protocol | `reconcile(key, desired_target_state, prev_possible_records, prev_may_be_missing) -> TargetReconcileOutput \| None`. | [AST:python/cocoindex/_internal/target_state.py:L197] |
-| `TargetActionSink[ActionT, OptChildHandlerT]` | class | Wraps a sink fn. `from_fn(fn)` / `from_async_fn(async_fn)` static constructors. | [AST:python/cocoindex/_internal/target_state.py:L143] |
+| `TargetActionSink[ActionT, OptChildHandlerT]` | class | Wraps a sink fn. `from_fn(fn)` / `from_async_fn(fn)` static constructors. | [AST:python/cocoindex/_internal/target_state.py:L143] |
 | `TargetReconcileOutput[ActionT, TrackingRecordT, OptChildHandlerT]` | NamedTuple | `(action, sink, tracking_record, child_invalidation)`. | [AST:python/cocoindex/_internal/target_state.py:L188] |
 | `declare_target_state(target_state)` | fn | Declare a state in the current component context. | [AST:python/cocoindex/_internal/target_state.py:L265] |
 | `declare_target_state_with_child(target_state)` | fn | Declare with a child handler; returns `PendingTargetStateProvider[ValueT, OptChildHandlerT]`. | [AST:python/cocoindex/_internal/target_state.py:L282] |
 | `register_root_target_states_provider(name, handler)` | fn | Register a root provider; returns `TargetStateProvider`. | [AST:python/cocoindex/_internal/target_state.py:L305] |
 | `LiveComponent` | runtime Protocol | `process()` and `process_live(operator)` methods. | [AST:python/cocoindex/_internal/live_component.py:L28] |
-| `LiveComponentOperator` | class | `update_full()`, `update(subpath, fn, *args)`, `delete(subpath)`, `mark_ready()`. | [AST:python/cocoindex/_internal/live_component.py:L46] |
+| `LiveComponentOperator` | class | `update_full()`, `update(subpath, processor_fn, *args, **kwargs)`, `delete(subpath)`, `mark_ready()`. | [AST:python/cocoindex/_internal/live_component.py:L46] |
 | `LiveMapFeed[K, V]` / `LiveMapView[K, V]` | runtime Protocols | `watch(subscriber)`; `LiveMapView` adds `__aiter__`. | [AST:python/cocoindex/_internal/live_component.py:L108] [:L119] |
 | `LiveMapSubscriber[K, V]` | class | `update_all`, `mark_ready`, `update(key, value)`, `delete(key)`. | [AST:python/cocoindex/_internal/live_component.py:L130] |
 | `ComponentContext` | dataclass | Internal context (frozen, slots). Use `coco.get_component_context()` to obtain; `ctx.attach()` to re-bind on another thread. | [AST:python/cocoindex/_internal/component_ctx.py:L55] |
@@ -200,7 +200,7 @@ Provenance: [AST:python/cocoindex/_internal/api.py:L603] [:L608] [:L613] [:L618]
 | `get_component_context()` | fn | Get current `ComponentContext`. Raises `RuntimeError` outside a component. | [AST:python/cocoindex/_internal/component_ctx.py:L305] |
 | `exception_handler(handler)` | async ctxmgr | Push an exception handler for background-mounted components within scope. | [AST:python/cocoindex/_internal/component_ctx.py:L331] |
 | `ContextKey[T]` | class | Generic `ContextKey` parametrized by `T`; constructor takes `(key: str, *, detect_change: bool = False)`. Keys are globally unique per process. | [AST:python/cocoindex/_internal/context_keys.py:L99] |
-| `ContextProvider` | class | Internal — owned by `Environment`. `provide(key, value)`, `get(key)`, `provide_with`, `provide_async_with`. | [AST:python/cocoindex/_internal/context_keys.py:L124] |
+| `ContextProvider` | class | Internal — owned by `Environment`. `provide(key, value)`, `get(key, t=None)`, `provide_with(key, cm)`, `provide_async_with(key, cm)`. | [AST:python/cocoindex/_internal/context_keys.py:L124] |
 | `Settings` | dataclass | `Settings(db_path=None, global_execution_options=None, lmdb_max_dbs=1024, lmdb_map_size=4 GiB)`. `Settings.from_env(db_path=None)` reads `COCOINDEX_*` env vars. | [AST:python/cocoindex/setting.py:L44] |
 | `ServerSettings` | dataclass | `ServerSettings(address="127.0.0.1:49344", cors_origins=None)`. `from_env()` and static `parse_cors_origins(s)`. | [AST:python/cocoindex/setting.py:L93] |
 | `GlobalExecutionOptions` | dataclass | `(source_max_inflight_rows=1024, source_max_inflight_bytes=None)`. | [AST:python/cocoindex/setting.py:L12] |

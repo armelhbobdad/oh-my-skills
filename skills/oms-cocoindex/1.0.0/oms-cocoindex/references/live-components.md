@@ -37,7 +37,7 @@ class LiveComponentOperator:
 [AST:python/cocoindex/_internal/live_component.py:L63] [:L70] [:L93] [:L102]
 
 - `update_full()` — re-runs the component's `process()` (full sweep). Blocks until fully ready.
-- `update(subpath, fn, *args)` — incremental update; mounts/refreshes a single sub-component at `subpath`. Cannot pass a `LiveComponent` class — `mount()` is for nested live components.
+- `update(subpath, processor_fn, *args, **kwargs)` — incremental update; mounts/refreshes a single sub-component at `subpath`. Cannot pass a `LiveComponent` class — `mount()` is for nested live components.
 - `delete(subpath)` — incremental deletion of a sub-component.
 - `mark_ready()` — signals readiness. **In catch-up mode, this never returns** (terminates `process_live`). Always reachable from live mode.
 
