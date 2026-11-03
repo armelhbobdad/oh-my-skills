@@ -119,7 +119,8 @@
     "public_api_coverage": 0.167,
     "total_coverage": 0.0695,
     "scripts_count": 0,
-    "assets_count": 0
+    "assets_count": 0,
+    "effective_denominator": 280
   },
   "generated_by": "create-skill",
   "dependencies": [
