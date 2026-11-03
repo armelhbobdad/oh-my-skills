@@ -26,6 +26,8 @@ scope:
   - cognee/modules/observability/trace_context.py
   - cognee/modules/search/types/SearchType.py
   - cognee/modules/agent_memory/decorator.py
+  - cognee/migration/**
+  - cognee/modules/migration/**
   - cognee/exceptions/**
   - cognee/skill.md
   - README.md
@@ -171,6 +173,18 @@ scope:
       from cognee/modules/migration moved out of scope. With the 6 the brief already
       left out (run_migrations among them), 32 root exports sit outside scope.include,
       all still documented.'
+    date: '2026-11-03'
+    workflow: manual
+  - path: cognee/migration/**, cognee/modules/migration/**
+    action: promoted
+    category: scope-expansion
+    evidence: exports the cognee.migration names (COGX*, GraphEdge, GraphSnapshot, the
+      *Source classes, IMPORT_MODES, build_snapshot, datapoint_registry, read_archive,
+      read_manifest, rehydrate_node) through `cognee/__init__.py` (`from . import migration`)
+    reason: 'Keep the 26 cognee.migration names measured, as the published 99.00% run
+      did: the stale-glob correction above had moved them out of scope without anyone
+      deciding to. With both globs, the barrel denominator is 92 again and only the 6
+      long-excluded names sit outside scope.include.'
     date: '2026-11-03'
     workflow: manual
 doc_urls:
