@@ -6,7 +6,7 @@ v1.0.0 replaces v0.3.37's `cocoindex.functions.*` namespace with `cocoindex.ops.
 # cocoindex/ops/__init__.py
 __all__ = ["litellm", "sentence_transformers", "text"]
 ```
-[AST:python/cocoindex/ops/__init__.py:L1]
+[SRC:python/cocoindex/ops/__init__.py:L7]
 
 (Note: `entity_resolution` is a sub-package, not exported by `ops/__init__.py`. Import it as `from cocoindex.ops.entity_resolution import ...`.)
 
@@ -15,7 +15,7 @@ __all__ = ["litellm", "sentence_transformers", "text"]
 ```python
 __all__ = ["detect_code_language", "SeparatorSplitter", "CustomLanguageConfig", "RecursiveSplitter"]
 ```
-[AST:python/cocoindex/ops/text.py:L6]
+[SRC:python/cocoindex/ops/text.py:L6]
 
 ### detect_code_language
 
@@ -107,7 +107,7 @@ chunks = splitter.split("A---B---C", chunk_size=10, language="myformat")
 ```python
 __all__ = ["SentenceTransformerEmbedder"]
 ```
-[AST:python/cocoindex/ops/sentence_transformers.py:L9]
+[SRC:python/cocoindex/ops/sentence_transformers.py:L9]
 
 ```python
 class SentenceTransformerEmbedder(VectorSchemaProvider):
@@ -122,7 +122,7 @@ class SentenceTransformerEmbedder(VectorSchemaProvider):
     async def __coco_vector_schema__(self) -> VectorSchema: ...   # auto-discovers dim + dtype
     async def embed(self, text: str) -> NDArray: ...
 ```
-[AST:python/cocoindex/ops/sentence_transformers.py:L25] [:L52]
+[AST:python/cocoindex/ops/sentence_transformers.py:L25] [SRC:python/cocoindex/ops/sentence_transformers.py:L52]
 
 Replaces v0.3.37's `cocoindex.functions.SentenceTransformerEmbed`. Implements `VectorSchemaProvider` (`cocoindex.resources.schema.VectorSchemaProvider`), so connectors can derive vector column dimensions automatically — no need to pass dim/dtype manually.
 
@@ -145,7 +145,7 @@ class DocEmbedding:
 ```python
 __all__ = ["LiteLLMEmbedder", "litellm"]
 ```
-[AST:python/cocoindex/ops/litellm.py:L9]
+[SRC:python/cocoindex/ops/litellm.py:L9]
 
 ```python
 class LiteLLMEmbedder(VectorSchemaProvider):
@@ -155,7 +155,7 @@ class LiteLLMEmbedder(VectorSchemaProvider):
 ```
 [AST:python/cocoindex/ops/litellm.py:L22]
 
-Replaces v0.3.37's `cocoindex.functions.ExtractByLlm` + `LlmSpec` + `LlmApiType` + provider-specific config classes (`OpenAiConfig`, `AzureOpenAiConfig`, `VertexAiConfig`). Now uses LiteLLM's model-string convention:
+An embedding provider only. Replaces v0.3.37's `cocoindex.functions.EmbedText(api_type=LlmApiType..., model=...)` and, for embeddings, its provider-specific config classes (`OpenAiConfig`, `AzureOpenAiConfig`, `VertexAiConfig`). v0.3.37's `cocoindex.functions.ExtractByLlm` has **no built-in replacement**: `cocoindex.ops` has no LLM-extraction op, so call LiteLLM's completion API yourself inside a `@coco.fn` (as `examples/hn_trending_topics` does with `acompletion`, [SRC:examples/hn_trending_topics/main.py:L99]). Embeddings use LiteLLM's model-string convention:
 
 ```python
 LiteLLMEmbedder("text-embedding-ada-002")                          # OpenAI
@@ -165,13 +165,13 @@ LiteLLMEmbedder("voyage/voyage-3", api_key=...)                    # Voyage
 LiteLLMEmbedder("cohere/embed-english-v3.0", api_key=...)          # Cohere
 ```
 
-Provider configuration flows through `**kwargs` to `litellm.aembedding`. Common kwargs: `api_key`, `api_base`, `api_version`, `dimensions`, `input_type` (Voyage/Cohere). Internally uses `@coco.fn.as_async(batching=True, max_batch_size=64)` for batched embedding ([AST:python/cocoindex/ops/litellm.py:L81]).
+Provider configuration flows through `**kwargs` to `litellm.aembedding`. Common kwargs: `api_key`, `api_base`, `api_version`, `dimensions`, `input_type` (Voyage/Cohere). Internally uses `@coco.fn.as_async(batching=True, max_batch_size=64)` for batched embedding ([SRC:python/cocoindex/ops/litellm.py:L82]).
 
 The `litellm` symbol in `__all__` is the underlying `litellm` library, re-exported for convenience (lets users access `litellm.completion`, `litellm.acompletion`, etc. without a separate import).
 
 ## Entity Resolution — `cocoindex.ops.entity_resolution`
 
-Sub-package (not in `ops/__init__.py`'s `__all__` — import explicitly). [AST:python/cocoindex/ops/entity_resolution/__init__.py:L1]
+Sub-package (not in `ops/__init__.py`'s `__all__` — import explicitly). [SRC:python/cocoindex/ops/entity_resolution/__init__.py:L1]
 
 ```python
 class CanonicalSide(StrEnum): ...
@@ -185,7 +185,7 @@ async def resolve_entities(...) -> ResolvedEntities: ...   # main entry point
 ```
 [AST:python/cocoindex/ops/entity_resolution/__init__.py:L35] [:L46] [:L57] [:L70] [:L97] [:L114] [:L186]
 
-Plus `llm_resolver.py` for an LLM-based `PairResolver` implementation. [AST:python/cocoindex/ops/entity_resolution/llm_resolver.py:L1] Its only export is `LlmPairResolver` (`__all__ = ["LlmPairResolver"]`); the module defines no `LLMResolver`. [SRC:python/cocoindex/ops/entity_resolution/llm_resolver.py:L19] [:L49]
+Plus `llm_resolver.py` for an LLM-based `PairResolver` implementation. [SRC:python/cocoindex/ops/entity_resolution/llm_resolver.py:L1] Its only export is `LlmPairResolver` (`__all__ = ["LlmPairResolver"]`); the module defines no `LLMResolver`. [SRC:python/cocoindex/ops/entity_resolution/llm_resolver.py:L19] [:L49]
 
 ```python
 from cocoindex.ops import entity_resolution as er

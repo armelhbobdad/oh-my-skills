@@ -63,7 +63,6 @@
       "export_type": "method",
       "source_library": "cocoindex",
       "params": [
-        "/",
         "*",
         "full_reprocess: bool = False",
         "live: bool = False"
@@ -71,17 +70,16 @@
       "return_type": "UpdateHandle[R]",
       "source_file": "python/cocoindex/_internal/app.py",
       "source_line": 299,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "App.update_blocking",
       "export_type": "method",
       "source_library": "cocoindex",
       "params": [
-        "/",
         "*",
         "report_to_stdout: bool = False",
         "full_reprocess: bool = False",
@@ -90,10 +88,10 @@
       "return_type": "R",
       "source_file": "python/cocoindex/_internal/app.py",
       "source_line": 335,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "App.drop",
@@ -103,27 +101,26 @@
       "return_type": "None",
       "source_file": "python/cocoindex/_internal/app.py",
       "source_line": 368,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "App.drop_blocking",
       "export_type": "method",
       "source_library": "cocoindex",
       "params": [
-        "/",
         "*",
         "report_to_stdout: bool = False"
       ],
       "return_type": "None",
       "source_file": "python/cocoindex/_internal/app.py",
       "source_line": 380,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "AppConfig",
@@ -233,10 +230,10 @@
       "return_type": "Any",
       "source_file": "python/cocoindex/_internal/environment.py",
       "source_line": 103,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "EnvironmentBuilder.provide_with",
@@ -249,10 +246,10 @@
       "return_type": "Any",
       "source_file": "python/cocoindex/_internal/environment.py",
       "source_line": 106,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "EnvironmentBuilder.provide_async_with",
@@ -265,11 +262,11 @@
       "return_type": "Any",
       "source_file": "python/cocoindex/_internal/environment.py",
       "source_line": 109,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "note": "async",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "EnvironmentBuilder.set_exception_handler",
@@ -281,10 +278,10 @@
       "return_type": "None",
       "source_file": "python/cocoindex/_internal/environment.py",
       "source_line": 114,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "LifespanFn",
@@ -292,11 +289,11 @@
       "source_library": "cocoindex",
       "source_file": "python/cocoindex/_internal/environment.py",
       "source_line": 118,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "type_alias",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "value": "Callable[[EnvironmentBuilder], Iterator[None]] | Callable[[EnvironmentBuilder], AsyncIterator[None]]",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "lifespan",
@@ -332,12 +329,12 @@
       "source_library": "cocoindex",
       "source_file": "python/cocoindex/_internal/runner.py",
       "source_line": 282,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "assignment",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "value": "GPURunner()",
       "note": "Singleton instance — pass runner=GPU to @coco.fn for GPU isolation",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "fn",
@@ -345,12 +342,12 @@
       "source_library": "cocoindex",
       "source_file": "python/cocoindex/_internal/function.py",
       "source_line": 1811,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "assignment",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "value": "_FunctionDecorator()",
       "note": "Singleton; class definition at L1578. Exposes @coco.fn(...) and @coco.fn.as_async(...)",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "_FunctionDecorator.__call__",
@@ -371,10 +368,10 @@
       "return_type": "Any",
       "source_file": "python/cocoindex/_internal/function.py",
       "source_line": 1626,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "_FunctionDecorator.as_async",
@@ -395,10 +392,10 @@
       "return_type": "Any",
       "source_file": "python/cocoindex/_internal/function.py",
       "source_line": 1754,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "create_core_component_processor",
@@ -484,27 +481,29 @@
       "return_type": "None",
       "source_file": "python/cocoindex/_internal/api.py",
       "source_line": 184,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "note": "async",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "use_mount",
       "export_type": "function",
       "source_library": "cocoindex",
       "params": [
-        "*pos_args: Any",
-        "**kwargs: Any"
+        "subpath: ComponentSubpath",
+        "processor_fn: AsyncCallable[P, ResolvesTo[ReturnT]]",
+        "*args: P.args",
+        "**kwargs: P.kwargs"
       ],
-      "return_type": "Any",
+      "return_type": "ReturnT",
       "source_file": "python/cocoindex/_internal/api.py",
-      "source_line": 245,
+      "source_line": 194,
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "function_definition",
-      "note": "async; 8 overloads at L193-L244 cover (subpath?, processor_fn, *args, **kwargs) -> ReturnT for AsyncCallable/Callable × ResolvesTo[ReturnT]/ReturnT × subpath/no-subpath",
+      "note": "8 @overload signatures at api.py:194, 201, 208, 215 (leading subpath: ComponentSubpath) and 222, 228, 234, 240 (no subpath); processor_fn is AsyncCallable or Callable returning ResolvesTo[ReturnT] or ReturnT; all return ReturnT. Implementation at api.py:245 is (*pos_args: Any, **kwargs: Any) -> Any",
       "signature_source": "T1"
     },
     {
@@ -512,16 +511,18 @@
       "export_type": "function",
       "source_library": "cocoindex",
       "params": [
-        "*pos_args: Any",
-        "**kwargs: Any"
+        "subpath: ComponentSubpath",
+        "processor_fn: AnyCallable[P, Any]",
+        "*args: P.args",
+        "**kwargs: P.kwargs"
       ],
       "return_type": "ComponentMountHandle",
       "source_file": "python/cocoindex/_internal/api.py",
-      "source_line": 349,
+      "source_line": 333,
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "function_definition",
-      "note": "async; overloads at L332/L341",
+      "note": "@overload signatures at api.py:333 (leading subpath: ComponentSubpath) and :342 (processor_fn: AnyCallable[P, Any], *args, **kwargs); implementation at api.py:349 is (*pos_args: Any, **kwargs: Any) -> ComponentMountHandle",
       "signature_source": "T1"
     },
     {
@@ -529,16 +530,19 @@
       "export_type": "function",
       "source_library": "cocoindex",
       "params": [
-        "*pos_args: Any",
-        "**kwargs: Any"
+        "subpath: ComponentSubpath",
+        "fn: AnyCallable[Concatenate[T, P], Any]",
+        "items: _ItemsType[T]",
+        "*args: P.args",
+        "**kwargs: P.kwargs"
       ],
       "return_type": "ComponentMountHandle",
       "source_file": "python/cocoindex/_internal/api.py",
-      "source_line": 445,
+      "source_line": 427,
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "function_definition",
-      "note": "async; overloads at L426/L436; items: Iterable[(StableKey, T)] | AsyncIterable[(StableKey, T)] | LiveMapFeed[StableKey, T]",
+      "note": "@overload signatures at api.py:427 (leading subpath: ComponentSubpath) and :437 (fn, items, *args, **kwargs); implementation at api.py:445 is (*pos_args: Any, **kwargs: Any) -> ComponentMountHandle",
       "signature_source": "T1"
     },
     {
@@ -684,10 +688,10 @@
       "return_type": "TargetReconcileOutput[Any, TrackingRecordT, OptChildHandlerT_co] | None",
       "source_file": "python/cocoindex/_internal/target_state.py",
       "source_line": 198,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "TargetState",
@@ -734,10 +738,10 @@
       "return_type": "TargetState[OptChildHandlerT]",
       "source_file": "python/cocoindex/_internal/target_state.py",
       "source_line": 222,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "TargetStateProvider.attachment",
@@ -749,10 +753,10 @@
       "return_type": "TargetStateProvider",
       "source_file": "python/cocoindex/_internal/target_state.py",
       "source_line": 229,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "PendingTargetStateProvider",
@@ -760,11 +764,11 @@
       "source_library": "cocoindex",
       "source_file": "python/cocoindex/_internal/target_state.py",
       "source_line": 243,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "type_alias",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "value": "TargetStateProvider[ValueT, OptChildHandlerT, PendingS]",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "TargetReconcileOutput",
@@ -809,10 +813,10 @@
       "return_type": "TargetActionSink[...]",
       "source_file": "python/cocoindex/_internal/target_state.py",
       "source_line": 151,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "TargetActionSink.from_async_fn",
@@ -824,10 +828,10 @@
       "return_type": "TargetActionSink[...]",
       "source_file": "python/cocoindex/_internal/target_state.py",
       "source_line": 158,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "ChildTargetDef",
@@ -929,11 +933,11 @@
       "return_type": "None",
       "source_file": "python/cocoindex/_internal/live_component.py",
       "source_line": 63,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "note": "async",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "LiveComponentOperator.update",
@@ -948,11 +952,11 @@
       "return_type": "Any",
       "source_file": "python/cocoindex/_internal/live_component.py",
       "source_line": 70,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "note": "async; returns ComponentMountHandle",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "LiveComponentOperator.delete",
@@ -964,11 +968,11 @@
       "return_type": "Any",
       "source_file": "python/cocoindex/_internal/live_component.py",
       "source_line": 93,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "note": "async",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "LiveComponentOperator.mark_ready",
@@ -978,11 +982,11 @@
       "return_type": "None",
       "source_file": "python/cocoindex/_internal/live_component.py",
       "source_line": 102,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "note": "async; in catch-up mode never returns (terminates process_live)",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "LiveMapFeed",
@@ -1215,11 +1219,11 @@
       "source_library": "cocoindex",
       "source_file": "python/cocoindex/_internal/stable_path.py",
       "source_line": 59,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "assignment",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "value": "StablePath()",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "Symbol",
@@ -1227,11 +1231,11 @@
       "source_library": "cocoindex",
       "source_file": "python/cocoindex/_internal/stable_path.py",
       "source_line": 7,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "assignment",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "value": "core.Symbol",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "StableKey",
@@ -1239,11 +1243,11 @@
       "source_library": "cocoindex",
       "source_file": "python/cocoindex/_internal/stable_path.py",
       "source_line": 9,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "type_alias",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "value": "None | bool | int | str | bytes | uuid.UUID | Symbol | tuple[StableKey, ...]",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "NonExistenceType",
@@ -1263,11 +1267,11 @@
       "source_library": "cocoindex",
       "source_file": "python/cocoindex/_internal/typing.py",
       "source_line": 60,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "assignment",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "value": "NonExistenceType()",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "is_non_existence",
@@ -1395,11 +1399,11 @@
       "source_library": "cocoindex",
       "source_file": "python/cocoindex/_internal/pending_marker.py",
       "source_line": 115,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "assignment",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "value": "TypeVar(\"MaybePendingS\", PendingS, ResolvedS, default=ResolvedS)",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "ResolvesTo",
@@ -1498,12 +1502,12 @@
         "lmdb_map_size: int = 0x1_0000_0000"
       ],
       "return_type": null,
-      "source_file": "python/cocoindex/setting.py",
-      "source_line": 44,
+      "source_file": "python/cocoindex/_internal/setting.py",
+      "source_line": 56,
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "class_definition",
-      "note": "BREAKING from v0.3.37: Postgres backend → LMDB. db_path is required at Environment construction (raises ValueError if None). Also exists at python/cocoindex/_internal/setting.py:L56",
+      "note": "coco.Settings is re-exported from _internal/setting.py (api.py:149); python/cocoindex/setting.py:44 defines a separate class object with the same fields",
       "signature_source": "T1"
     },
     {
@@ -1515,13 +1519,13 @@
         "db_path: os.PathLike[str] | None = None"
       ],
       "return_type": "Self",
-      "source_file": "python/cocoindex/setting.py",
-      "source_line": 53,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
+      "source_file": "python/cocoindex/_internal/setting.py",
+      "source_line": 65,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "note": "Reads COCOINDEX_SOURCE_MAX_INFLIGHT_ROWS, COCOINDEX_SOURCE_MAX_INFLIGHT_BYTES, COCOINDEX_LMDB_MAX_DBS, COCOINDEX_LMDB_MAP_SIZE",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "GlobalExecutionOptions",
@@ -1566,10 +1570,10 @@
       "return_type": "Self",
       "source_file": "python/cocoindex/setting.py",
       "source_line": 103,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "ServerSettings.parse_cors_origins",
@@ -1580,11 +1584,12 @@
       ],
       "return_type": "list[str] | None",
       "source_file": "python/cocoindex/setting.py",
-      "source_line": 123,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "source_line": 124,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low",
+      "note": "Overloads at setting.py:117 (s: str) -> list[str] and :121 (s: str | None) -> list[str] | None; implementation at :124 matches the recorded signature"
     },
     {
       "export_name": "QueryHandlerInfo",
@@ -1752,11 +1757,11 @@
       "return_type": "App[Any, Any]",
       "source_file": "python/cocoindex/cli.py",
       "source_line": 274,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "note": "internal — loads APP_TARGET module and finds top-level App instance",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "connectors.amazon_s3",
@@ -1764,9 +1769,9 @@
       "source_library": "cocoindex.connectors",
       "source_file": "python/cocoindex/connectors/amazon_s3/__init__.py",
       "source_line": 1,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "module",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "exports": [
         "S3File",
         "S3FilePath",
@@ -1776,7 +1781,7 @@
         "read"
       ],
       "all_source": "python/cocoindex/connectors/amazon_s3/_source.py:L12",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "connectors.doris",
@@ -1784,9 +1789,9 @@
       "source_library": "cocoindex.connectors",
       "source_file": "python/cocoindex/connectors/doris/__init__.py",
       "source_line": 1,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "module",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "exports": [
         "ColumnDef",
         "connect",
@@ -1806,7 +1811,7 @@
         "VectorIndexDef"
       ],
       "all_source": "python/cocoindex/connectors/doris/_target.py:L1373",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "connectors.google_drive",
@@ -1814,9 +1819,9 @@
       "source_library": "cocoindex.connectors",
       "source_file": "python/cocoindex/connectors/google_drive/__init__.py",
       "source_line": 1,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "module",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "exports": [
         "DriveFile",
         "DriveFileInfo",
@@ -1825,7 +1830,7 @@
         "list_files"
       ],
       "all_source": "python/cocoindex/connectors/google_drive/_source.py:L247",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "connectors.kafka",
@@ -1833,9 +1838,9 @@
       "source_library": "cocoindex.connectors",
       "source_file": "python/cocoindex/connectors/kafka/__init__.py",
       "source_line": 1,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "module",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "exports": [
         "IsDeleteFn",
         "topic_as_map",
@@ -1847,7 +1852,7 @@
       ],
       "all_source": "python/cocoindex/connectors/kafka/_source.py:L391 + _target.py:L327",
       "note": "topic_as_map returns LiveMapFeed[K, V] — requires app.update(live=True)",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "connectors.lancedb",
@@ -1855,9 +1860,9 @@
       "source_library": "cocoindex.connectors",
       "source_file": "python/cocoindex/connectors/lancedb/__init__.py",
       "source_line": 1,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "module",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "exports": [
         "ColumnDef",
         "LanceAsyncConnection",
@@ -1872,7 +1877,7 @@
         "table_target"
       ],
       "all_source": "python/cocoindex/connectors/lancedb/_target.py:L914",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "connectors.localfs",
@@ -1880,9 +1885,9 @@
       "source_library": "cocoindex.connectors",
       "source_file": "python/cocoindex/connectors/localfs/__init__.py",
       "source_line": 1,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "module",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "exports": [
         "FilePath",
         "walk_dir",
@@ -1896,7 +1901,7 @@
       ],
       "all_source": "python/cocoindex/connectors/localfs/_common.py:L78 + _source.py:L263 + _target.py:L500",
       "note": "walk_dir returns LiveMapView — supports both one-shot and live modes",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "connectors.postgres",
@@ -1904,9 +1909,9 @@
       "source_library": "cocoindex.connectors",
       "source_file": "python/cocoindex/connectors/postgres/__init__.py",
       "source_line": 1,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "module",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "exports": [
         "ColumnDef",
         "ValueEncoder",
@@ -1922,7 +1927,7 @@
         "RowFetcher"
       ],
       "all_source": "python/cocoindex/connectors/postgres/_target.py:L1378 + _source.py:L230",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "connectors.qdrant",
@@ -1930,9 +1935,9 @@
       "source_library": "cocoindex.connectors",
       "source_file": "python/cocoindex/connectors/qdrant/__init__.py",
       "source_line": 1,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "module",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "exports": [
         "CollectionSchema",
         "CollectionTarget",
@@ -1944,7 +1949,7 @@
         "mount_collection_target"
       ],
       "all_source": "python/cocoindex/connectors/qdrant/_target.py:L643",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "connectors.sqlite",
@@ -1952,9 +1957,9 @@
       "source_library": "cocoindex.connectors",
       "source_file": "python/cocoindex/connectors/sqlite/__init__.py",
       "source_line": 1,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "module",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "exports": [
         "ColumnDef",
         "ManagedConnection",
@@ -1970,7 +1975,7 @@
         "mount_table_target"
       ],
       "all_source": "python/cocoindex/connectors/sqlite/_target.py:L1344",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "connectors.surrealdb",
@@ -1978,9 +1983,9 @@
       "source_library": "cocoindex.connectors",
       "source_file": "python/cocoindex/connectors/surrealdb/__init__.py",
       "source_line": 1,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "module",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "exports": [
         "ColumnDef",
         "ConnectionFactory",
@@ -1997,7 +2002,7 @@
         "table_target"
       ],
       "all_source": "python/cocoindex/connectors/surrealdb/_target.py:L1411",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "ops.text.detect_code_language",
@@ -2082,10 +2087,10 @@
       "return_type": "list[Chunk]",
       "source_file": "python/cocoindex/ops/text.py",
       "source_line": 154,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "ops.sentence_transformers.SentenceTransformerEmbedder",
@@ -2129,9 +2134,9 @@
       "source_library": "cocoindex.ops",
       "source_file": "python/cocoindex/ops/entity_resolution/__init__.py",
       "source_line": 1,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "module",
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
       "exports": [
         "CanonicalSide",
         "PairDecision",
@@ -2142,7 +2147,7 @@
         "resolve_entities"
       ],
       "note": "Plus llm_resolver.py for LLMResolver",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "resources.chunk.Chunk",

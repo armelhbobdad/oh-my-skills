@@ -31,7 +31,7 @@ class App(Generic[P, R]):
     async def drop(self) -> None: ...
     def drop_blocking(self, *, report_to_stdout: bool = False) -> None: ...
 ```
-[AST:python/cocoindex/_internal/app.py:L208] [:L299] [:L335] [:L368] [:L380]
+[AST:python/cocoindex/_internal/app.py:L208] [SRC:python/cocoindex/_internal/app.py:L299] [:L335] [:L368] [:L380]
 
 - A `str` for `name_or_config` is shorthand for `AppConfig(name=name_or_config)`.
 - `update()` returns an `UpdateHandle[R]` that is also `Awaitable[R]` — `result = await app.update()` works as a one-liner. Use `handle.stats()` for a snapshot or `async for snap in handle.watch():` to follow progress.
@@ -77,7 +77,7 @@ class Environment:
 
     def get_context(self, key: ContextKey[T]) -> T: ...
 ```
-[AST:python/cocoindex/_internal/environment.py:L212] [:L247–:L278]
+[SRC:python/cocoindex/_internal/environment.py:L212] [:L248–:L272]
 
 `Settings.db_path` is **required** — Environment construction raises `ValueError` if it's `None`. Set `COCOINDEX_DB=/path/to/state.lmdb` and use `Settings.from_env()`.
 
@@ -109,7 +109,7 @@ def lifespan(fn: LifespanFn) -> LifespanFn: ...
 def lifespan(fn: None) -> Callable[[LifespanFn], LifespanFn]: ...
 def lifespan(fn: LifespanFn | None = None) -> Any: ...
 ```
-[AST:python/cocoindex/_internal/environment.py:L118] [:L452]
+[SRC:python/cocoindex/_internal/environment.py:L118] [AST:python/cocoindex/_internal/environment.py:L452]
 
 Pattern:
 ```python
@@ -151,7 +151,7 @@ async with coco.runtime():
 
 ## @coco.fn
 
-`coco.fn` is a singleton instance of `_FunctionDecorator`. It exposes both the decorator namespace (`@coco.fn(...)`) and an `as_async` variant. [AST:python/cocoindex/_internal/function.py:L1578] [:L1811]
+`coco.fn` is a singleton instance of `_FunctionDecorator`. It exposes both the decorator namespace (`@coco.fn(...)`) and an `as_async` variant. [SRC:python/cocoindex/_internal/function.py:L1578] [:L1811]
 
 ```python
 # All overloads
@@ -213,7 +213,7 @@ class ComponentMountHandle:
 async def mount(processor_fn: AnyCallable[P, Any], *args, **kwargs) -> ComponentMountHandle: ...
 async def mount(subpath: ComponentSubpath, processor_fn: AnyCallable[P, Any], *args, **kwargs) -> ComponentMountHandle: ...
 ```
-[AST:python/cocoindex/_internal/api.py:L349]
+[AST:python/cocoindex/_internal/api.py:L333] [:L342] (implementation `mount(*pos_args: Any, **kwargs: Any)` at [:L349])
 
 Mounts a processing unit in the background. Subpath defaults to `Symbol(processor_fn.__name__)` when omitted. Pass a `LiveComponent` class to mount a live component; for regular functions a normal processing unit is created.
 
@@ -224,7 +224,7 @@ async def mount_each(fn: AnyCallable[Concatenate[T, P], Any], items: _ItemsType[
 async def mount_each(subpath, fn, items, *args, **kwargs) -> ComponentMountHandle: ...
 # items: Iterable[(StableKey, T)] | AsyncIterable[(StableKey, T)] | LiveMapFeed[StableKey, T]
 ```
-[AST:python/cocoindex/_internal/api.py:L445] [:L419]
+[AST:python/cocoindex/_internal/api.py:L427] [:L437] (implementation `mount_each(*pos_args: Any, **kwargs: Any)` at [:L445]) · `_ItemsType` [SRC:python/cocoindex/_internal/api.py:L419]
 
 One independent component per item. When `items` is a `LiveMapFeed`/`LiveMapView`, an internal `LiveComponent` is created automatically; you must run with `app.update(live=True)` for `LiveMapFeed` (no scannable snapshot).
 
@@ -234,7 +234,7 @@ One independent component per item. When `items` is a `LiveMapFeed`/`LiveMapView
 async def use_mount(processor_fn: AnyCallable[P, ResolvesTo[ReturnT] | ReturnT], *args, **kwargs) -> ReturnT: ...
 async def use_mount(subpath: ComponentSubpath, processor_fn, *args, **kwargs) -> ReturnT: ...
 ```
-[AST:python/cocoindex/_internal/api.py:L245] (8 overloads at [:L193]–[:L244])
+[AST:python/cocoindex/_internal/api.py:L194] (8 overloads at [:L194]–[:L240]; implementation `use_mount(*pos_args: Any, **kwargs: Any)` at [:L245])
 
 Mount a dependent unit and return its result. The child cannot refresh independently — re-executing the child requires re-executing the parent. The return-type bridge `ResolvesTo[T]` lets a child return a `Pending`-state provider while `use_mount` returns the resolved variant.
 
@@ -280,7 +280,7 @@ def component_subpath(*key_parts: StableKey) -> ComponentSubpath: ...
 Two usage modes:
 
 ```python
-# (1) As first arg to mount / use_mount
+# (1) As first arg to mount / mount_each / use_mount
 await coco.mount(coco.component_subpath("process", filename), process_file, file, target)
 
 # (2) As a context manager — applies the subpath to all nested mount calls
@@ -311,6 +311,6 @@ with ThreadPoolExecutor() as executor:
             ...
     executor.submit(task)
 ```
-[AST:python/cocoindex/_internal/component_ctx.py:L103]
+[SRC:python/cocoindex/_internal/component_ctx.py:L104]
 
 `exception_handler` pushes a handler for background-mounted components within a dynamic scope. The handler signature is `Callable[[BaseException, ExceptionContext], None | Awaitable[None]]`. Multiple handlers form a chain — innermost runs first; if a handler raises, the next outer handler runs with the new exception.

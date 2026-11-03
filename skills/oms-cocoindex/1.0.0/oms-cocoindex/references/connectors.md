@@ -12,9 +12,9 @@ Each package's `__init__.py` does `from ._source import *` and/or `from ._target
 
 ## Postgres — `cocoindex.connectors.postgres`
 
-`__init__.py` re-exports both `_source` and `_target`. [AST:python/cocoindex/connectors/postgres/__init__.py:L1]
+`__init__.py` re-exports both `_source` and `_target`. [SRC:python/cocoindex/connectors/postgres/__init__.py:L1]
 
-**Target** ([AST:python/cocoindex/connectors/postgres/_target.py:L1378]):
+**Target** ([SRC:python/cocoindex/connectors/postgres/_target.py:L1378]):
 ```python
 __all__ = [
     "ColumnDef", "ValueEncoder", "PgType", "TableSchema", "TableTarget",
@@ -22,7 +22,7 @@ __all__ = [
 ]
 ```
 
-**Source** ([AST:python/cocoindex/connectors/postgres/_source.py:L230]):
+**Source** ([SRC:python/cocoindex/connectors/postgres/_source.py:L230]):
 ```python
 __all__ = ["PgSourceSpec", "PgTableSource", "RowFetcher"]
 ```
@@ -45,7 +45,7 @@ target.declare_row(row=DocEmbedding(...))          # called from inside @coco.fn
 
 ## Qdrant — `cocoindex.connectors.qdrant`
 
-Target only. [AST:python/cocoindex/connectors/qdrant/_target.py:L643]
+Target only. [SRC:python/cocoindex/connectors/qdrant/_target.py:L643]
 ```python
 __all__ = [
     "CollectionSchema", "CollectionTarget", "PointStruct", "QdrantVectorDef",
@@ -80,7 +80,7 @@ target = await qdrant.mount_collection_target(QDRANT_KEY, "docs", schema)
 
 ## LanceDB — `cocoindex.connectors.lancedb`
 
-Target only. [AST:python/cocoindex/connectors/lancedb/_target.py:L914]
+Target only. [SRC:python/cocoindex/connectors/lancedb/_target.py:L914]
 ```python
 __all__ = [
     "ColumnDef", "LanceAsyncConnection", "LanceType", "TableSchema",
@@ -92,7 +92,7 @@ __all__ = [
 
 ## SurrealDB — `cocoindex.connectors.surrealdb`
 
-Target only. Supports both table and relation targets. [AST:python/cocoindex/connectors/surrealdb/_target.py:L1411]
+Target only. Supports both table and relation targets. [SRC:python/cocoindex/connectors/surrealdb/_target.py:L1411]
 ```python
 __all__ = [
     "ColumnDef", "ConnectionFactory",
@@ -105,7 +105,7 @@ __all__ = [
 
 ## SQLite — `cocoindex.connectors.sqlite`
 
-Target only. Supports `Vec0TableDef` for sqlite-vec extension. [AST:python/cocoindex/connectors/sqlite/_target.py:L1344]
+Target only. Supports `Vec0TableDef` for sqlite-vec extension. [SRC:python/cocoindex/connectors/sqlite/_target.py:L1344]
 ```python
 __all__ = [
     "ColumnDef", "ManagedConnection", "ValueEncoder",
@@ -117,7 +117,7 @@ __all__ = [
 
 ## Doris — `cocoindex.connectors.doris`
 
-Target only. Supports inverted indexes + vector search. [AST:python/cocoindex/connectors/doris/_target.py:L1373]
+Target only. Supports inverted indexes + vector search. [SRC:python/cocoindex/connectors/doris/_target.py:L1373]
 ```python
 __all__ = [
     "ColumnDef", "connect", "connect_async",
@@ -134,12 +134,12 @@ __all__ = [
 
 Both source and target.
 
-**Source** ([AST:python/cocoindex/connectors/kafka/_source.py:L391]):
+**Source** ([SRC:python/cocoindex/connectors/kafka/_source.py:L391]):
 ```python
 __all__ = ["IsDeleteFn", "topic_as_map"]
 ```
 
-**Target** ([AST:python/cocoindex/connectors/kafka/_target.py:L327]):
+**Target** ([SRC:python/cocoindex/connectors/kafka/_target.py:L327]):
 ```python
 __all__ = [
     "DeletionValueFn", "KafkaTopicTarget",
@@ -172,16 +172,16 @@ await coco.mount_each(process_event, feed, target)
 
 ## Local filesystem — `cocoindex.connectors.localfs`
 
-Both source and target. [AST:python/cocoindex/connectors/localfs/__init__.py:L1]
+Both source and target. [SRC:python/cocoindex/connectors/localfs/__init__.py:L1]
 
-**Common** ([AST:python/cocoindex/connectors/localfs/_common.py:L78]): `__all__ = ["FilePath"]`
+**Common** ([SRC:python/cocoindex/connectors/localfs/_common.py:L78]): `__all__ = ["FilePath"]`
 
-**Source** ([AST:python/cocoindex/connectors/localfs/_source.py:L263]):
+**Source** ([SRC:python/cocoindex/connectors/localfs/_source.py:L263]):
 ```python
 __all__ = ["walk_dir", "File", "DirWalker"]
 ```
 
-**Target** ([AST:python/cocoindex/connectors/localfs/_target.py:L500]):
+**Target** ([SRC:python/cocoindex/connectors/localfs/_target.py:L500]):
 ```python
 __all__ = [
     "DirTarget", "declare_dir_target", "declare_file",
@@ -205,7 +205,7 @@ await coco.mount_each(process_file, files.items(), target)
 
 ## Amazon S3 — `cocoindex.connectors.amazon_s3`
 
-Source only. [AST:python/cocoindex/connectors/amazon_s3/_source.py:L12]
+Source only. [SRC:python/cocoindex/connectors/amazon_s3/_source.py:L12]
 ```python
 __all__ = ["S3File", "S3FilePath", "S3Walker", "get_object", "list_objects", "read"]
 ```
@@ -214,7 +214,7 @@ __all__ = ["S3File", "S3FilePath", "S3Walker", "get_object", "list_objects", "re
 
 ## Google Drive — `cocoindex.connectors.google_drive`
 
-Source only. [AST:python/cocoindex/connectors/google_drive/_source.py:L247]
+Source only. [SRC:python/cocoindex/connectors/google_drive/_source.py:L247]
 ```python
 __all__ = [
     "DriveFile", "DriveFileInfo",

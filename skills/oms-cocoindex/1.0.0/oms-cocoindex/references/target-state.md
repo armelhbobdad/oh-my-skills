@@ -37,7 +37,7 @@ class TargetActionSink(Generic[ActionT_contra, OptChildHandlerT_co]):
     @staticmethod
     def from_async_fn(fn: AsyncTargetActionSinkFn[ActionT_contra, OptChildHandlerT_co]) -> TargetActionSink[...]: ...
 ```
-[AST:python/cocoindex/_internal/target_state.py:L143] [:L151] [:L158]
+[AST:python/cocoindex/_internal/target_state.py:L143] [SRC:python/cocoindex/_internal/target_state.py:L151] [:L158]
 
 Sink-fn signature ([AST:python/cocoindex/_internal/target_state.py:L99] [:L121]):
 ```python
@@ -77,7 +77,7 @@ class TargetStateProvider(
 ```python
 PendingTargetStateProvider: TypeAlias = TargetStateProvider[ValueT, OptChildHandlerT, PendingS]
 ```
-[AST:python/cocoindex/_internal/target_state.py:L243]
+[SRC:python/cocoindex/_internal/target_state.py:L243]
 
 ```python
 class TargetState(Generic[OptChildHandlerT]):
@@ -173,4 +173,4 @@ async def mount_table_target(db_key, *, table_name, table_schema):
 
 ## Auto-deserialization
 
-The internal `_TypedTargetHandlerWrapper` ([AST:python/cocoindex/_internal/target_state.py:L56]) introspects your `TargetHandler.reconcile` signature, reads the type annotation on `prev_possible_records` (parameter index 3), and auto-deserializes raw stored values into typed objects. You don't need to do this yourself — write `prev_possible_records: Collection[MyTrackingRecord]` and the wrapper takes care of the rest.
+The internal `_TypedTargetHandlerWrapper` ([SRC:python/cocoindex/_internal/target_state.py:L56]) introspects your `TargetHandler.reconcile` signature, reads the type annotation on `prev_possible_records` (parameter index 3), and auto-deserializes raw stored values into typed objects. You don't need to do this yourself — write `prev_possible_records: Collection[MyTrackingRecord]` and the wrapper takes care of the rest.

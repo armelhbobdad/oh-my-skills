@@ -7,7 +7,7 @@ First-class data types referenced throughout cocoindex. Not a "subset of interna
 ```python
 __all__ = ["Chunk", "TextPosition"]
 ```
-[AST:python/cocoindex/resources/chunk.py:L5]
+[SRC:python/cocoindex/resources/chunk.py:L5]
 
 ```python
 @dataclass(frozen=True, slots=True)
@@ -36,7 +36,7 @@ __all__ = [
     "MatchAllFilePathMatcher", "PatternFilePathMatcher",
 ]
 ```
-[AST:python/cocoindex/resources/file.py:L5]
+[SRC:python/cocoindex/resources/file.py:L5]
 
 ### FileMetadata
 
@@ -117,7 +117,7 @@ Used in `@coco.fn` signatures so user code can write `filename: pathlib.PurePath
 ```python
 __all__ = ["IdGenerator", "UuidGenerator", "generate_id", "generate_uuid"]
 ```
-[AST:python/cocoindex/resources/id.py:L20]
+[SRC:python/cocoindex/resources/id.py:L20]
 
 Two patterns for stable IDs.
 
@@ -175,7 +175,7 @@ __all__ = [
     "get_multi_vector_schema", "get_vector_schema",
 ]
 ```
-[AST:python/cocoindex/resources/schema.py:L67]
+[SRC:python/cocoindex/resources/schema.py:L67]
 
 ```python
 @runtime_checkable
@@ -210,7 +210,7 @@ class SentenceTransformerEmbedder(VectorSchemaProvider):
 ```python
 __all__ = ["Embedder"]
 ```
-[AST:python/cocoindex/resources/embedder.py:L11]
+[SRC:python/cocoindex/resources/embedder.py:L11]
 
 ```python
 @runtime_checkable
