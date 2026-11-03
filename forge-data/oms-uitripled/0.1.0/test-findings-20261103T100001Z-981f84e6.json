@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "run_id": "20261103T100001Z-981f84e6",
+  "stages": [
+    "coverage-check",
+    "coherence-check",
+    "external-validators"
+  ],
+  "records": [
+    {
+      "id": "GAP-001",
+      "severity": "Critical",
+      "category": "signature-mismatch",
+      "group": "Coverage",
+      "title": "Signature mismatch: cn",
+      "source": "packages/components/react-shadcn/src/lib/utils.ts:3",
+      "remediation": "Update the documented signature of `cn` from `cn(...inputs: ClassValue[]): string` to `cn(...inputs: any[]) (no return annotation; returns baseCn(...inputs), the @uitripled/utils cn, so string)`, the signature the source defines at `packages/components/react-shadcn/src/lib/utils.ts:3`.",
+      "issue": "documented `cn(...inputs: ClassValue[]): string`, source `cn(...inputs: any[]) (no return annotation; returns baseCn(...inputs), the @uitripled/utils cn, so string)`: parameter 'inputs' type differs: source any[], documented ClassValue[]. The declaration at this line is the react-shadcn wrapper (lib/utils.ts imports cn as baseCn from @uitripled/utils); the skill documents and cites the @uitripled/utils cn (packages/utils/src/cn.ts:4, (...inputs: ClassValue[]), which matches) and calls this file an identical implementation (references/utils.md:36), importing it in references/integration.md:54",
+      "export": "cn",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-002",
+      "severity": "Medium",
+      "category": "brief-scope-stale",
+      "group": "Coverage",
+      "title": "stale brief scope: scope.include globs match no source file",
+      "source": "forge-data/oms-uitripled/skill-brief.yaml",
+      "remediation": "Edit `scope.include` in `forge-data/oms-uitripled/skill-brief.yaml` by hand so each glob matches the files it meant in this version of the source (update-skill does not rewrite an include glob), and add to `scope.exclude` any restored file the brief meant to leave out.",
+      "issue": "the `scope.include` globs `apps/docs/app/**/page.mdx`, `apps/docs/components/demos/**` match no file in the source tested; no root export was restored",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-003",
+      "severity": "Medium",
+      "category": "metadata-drift",
+      "group": "Coverage",
+      "title": "metadata drift — barrel export counts diverge",
+      "source": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json",
+      "remediation": "Recount the exports and correct the diverging counts in `skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json`; update-skill applies it as a metadata update.",
+      "issue": "stats.exports_public_api=445, exports[].length=297 → 33% drift",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-004",
+      "severity": "Info",
+      "category": "multi-denominator",
+      "group": "Coverage",
+      "title": "multi-denominator reporting — barrel vs documented surface",
+      "source": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json",
+      "remediation": "No action required: the barrel and the documented surface measure different sets by design, and the report records both counts.",
+      "issue": "barrel=445, documented=311",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-005",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Subpath import of HeroSection names files that do not exist",
+      "source": "references/integration.md:45",
+      "remediation": "In references/integration.md lines 45 and 48, change the HeroSection import paths to @uitripled/react-shadcn/components/sections/hero-section and @uitripled/react-shadcn/src/components/sections/hero-section, matching packages/components/react-shadcn/src/components/sections/hero-section.tsx:7.",
+      "issue": "references/integration.md:45 and :48 import HeroSection from @uitripled/react-shadcn/components/page/hero/hero-section and @uitripled/react-shadcn/src/components/page/hero-section; neither file exists at a5ffb45 (src/components/page/hero/ holds only staggered-text.tsx); HeroSection is defined at packages/components/react-shadcn/src/components/sections/hero-section.tsx:7",
+      "export": "HeroSection",
+      "stage": "coherence-check"
+    },
+    {
+      "id": "GAP-006",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "HeroSection, NativeHoverCard and the GridCell component lack a component reference row",
+      "source": "SKILL.md:185",
+      "remediation": "Add `export function HeroSection()` with install id @uitripled/hero-section-shadcnui to the Sections and blocks list of references/blocks-and-sections.md, the NativeHoverCard signature from packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx:81 with install id @uitripled/native-hover-card-shadcnui to references/native-components.md, and the GridCell component from packages/components/react-shadcn/src/components/grid/grid-cell.tsx:14 to the Grid Generator panels of references/motion-components.md.",
+      "issue": "SKILL.md:185 says every other react-shadcn src/ export is in the four component reference files with its signature and install id, but HeroSection (src/components/sections/hero-section.tsx:7, install id hero-section-shadcnui), NativeHoverCard (src/components/native/native-hover-card-shadcnui.tsx:81, install id native-hover-card-shadcnui) and the GridCell component (src/components/grid/grid-cell.tsx:14) have no signature line or table row there; the skill names the first two only in examples",
+      "stage": "coherence-check"
+    },
+    {
+      "id": "GAP-007",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "SKILL.md points to a NativeHoverCardProps entry types.md lacks",
+      "source": "SKILL.md:147",
+      "remediation": "Add a NativeHoverCardProps entry to the Component props types section of references/types.md, copied from packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx:9 (11 fields, size optional), and change `size:` to `size?:` in SKILL.md line 147.",
+      "issue": "SKILL.md:147 says NativeHoverCardProps (with imageSrc, name, size: \"sm\"|\"md\"|\"lg\"|\"xl\") is documented in references/types.md, which has no such entry; the interface is at packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx:9 with 11 fields, and size is optional there (size?)",
+      "export": "NativeHoverCardProps",
+      "stage": "coherence-check"
+    },
+    {
+      "id": "GAP-008",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "types.md points to a SKILL.md Registry schema table that does not exist",
+      "source": "references/types.md:192",
+      "remediation": "In references/types.md line 192, replace the pointer with the registry.json entry fields (type, registryDependencies, dependencies, files) read from packages/registry/registry.json, or remove the sentence that names the SKILL.md table.",
+      "issue": "references/types.md:192 sends the reader to SKILL.md \"Full API Reference -> Registry schema\" for the registry.json table form; SKILL.md's Full API Reference section has no such table",
+      "stage": "coherence-check"
+    },
+    {
+      "id": "GAP-009",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "utils.md calls the react-shadcn cn an identical implementation",
+      "source": "references/utils.md:36",
+      "remediation": "In references/utils.md line 36, say that packages/components/react-shadcn/src/lib/utils.ts defines `cn(...inputs: any[])`, a wrapper that calls the @uitripled/utils cn it imports, so the copied helper still depends on @uitripled/utils.",
+      "issue": "references/utils.md:36 says packages/components/react-shadcn/src/lib/utils.ts ships an identical cn and removes the need for @uitripled/utils; that file is a wrapper that imports cn as baseCn from @uitripled/utils and types its inputs any[] (lib/utils.ts:1-4)",
+      "export": "cn",
+      "stage": "coherence-check"
+    },
+    {
+      "id": "GAP-010",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "The react-shadcn UILibrary restriction is described as runtime-only",
+      "source": "references/setup.md:96",
+      "remediation": "In references/setup.md line 96 and SKILL.md line 136, say that useUILibrary's UILibrary is the 3-member type of packages/components/react-shadcn/src/types.ts:1 (\"shadcnui\" | \"baseui\" | \"carbon\"), imported at ui-library-provider.tsx:3, so the restriction is in the type.",
+      "issue": "references/setup.md:96 and SKILL.md:136 say UILibraryProvider and useUILibrary reach only shadcnui, baseui and carbon at runtime even though the @uitripled/utils UILibrary includes react; the provider imports the 3-member UILibrary of packages/components/react-shadcn/src/types.ts:1 (ui-library-provider.tsx:3), so setSelectedLibrary(\"react\") is a type error, not only a runtime limit",
+      "export": "useUILibrary",
+      "stage": "coherence-check"
+    }
+  ]
+}

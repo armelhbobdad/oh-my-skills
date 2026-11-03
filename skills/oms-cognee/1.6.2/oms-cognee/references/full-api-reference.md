@@ -484,7 +484,7 @@ async def validate(
 
 Read-only cross-check of a dataset's graph and vector stores through the standard adapter interfaces, so it works against every graph/vector backend. It reports orphaned edges (an endpoint id missing from the node set), identity-id mismatches (an `Entity`/`EntityType` node whose id differs from the id its identity fields derive) and missing vector entries (an `Entity`/`DocumentChunk` node with no point in its `{type}_{field}` collection). `[SRC:cognee/api/v1/validate/validate.py:L11-L30]` The first accessible dataset determines which graph is read; if any named dataset is not found or not readable it raises `DatasetNotFoundError`. `[SRC:cognee/api/v1/validate/validate.py:L220-L227]` · `[AST:cognee/api/v1/validate/validate.py:L198]`
 
-- `ValidationReport` — `status: ValidationStatus`, `summary: dict` (`graph_nodes`, `graph_edges`, `node_type_distribution`), `issues: list[ValidationIssue]`. `[AST:cognee/api/v1/validate/validate.py:L105]`
+- `ValidationReport` — `status: ValidationStatus`, `summary: dict[str, Any]` (`graph_nodes`, `graph_edges`, `node_type_distribution`), `issues: list[ValidationIssue]`. `[AST:cognee/api/v1/validate/validate.py:L105]` · `[SRC:cognee/api/v1/validate/validate.py:L106-L108]`
 - `ValidationIssue` — `severity` (`error` or `warning`), `type` (`orphaned_edge`, `identity_id_mismatch`, `missing_vector_entry`), `detail: str`. `[AST:cognee/api/v1/validate/validate.py:L99]`
 - `ValidationStatus` — `str` enum: `HEALTHY`, `DEGRADED` (warnings only), `UNHEALTHY` (any error). `[AST:cognee/api/v1/validate/validate.py:L93]` · `[SRC:cognee/api/v1/validate/validate.py:L248-L255]`
 
@@ -507,14 +507,14 @@ Generates a Markdown Graph Insight Report — hub ("god") nodes, surprising cros
 
 | Function | Signature | Purpose |
 |---|---|---|
-| `register_sql_connection` | `(name: str, connection_string: str, *, provider=None, allowed_tables=None, max_rows=None, description=None, allow_writes: bool = False, user=None) -> dict` | Register (or replace) a connection. The connection string is encrypted at rest and never returned; use a SELECT-only role. `allow_writes=True` opts into approval-gated write-back. `[AST:cognee/api/v1/tools/tools.py:L27]` |
-| `list_sql_connections` | `(user=None) -> list[dict]` | The user's connections plus deployment-level ones, without secrets `[AST:cognee/api/v1/tools/tools.py:L65]` |
-| `remove_sql_connection` | `(name: str, user=None) -> bool` | Remove a connection; `False` when nothing matched `[AST:cognee/api/v1/tools/tools.py:L73]` |
-| `propose_sql_write` | `(connection: str, instruction: str, *, evidence=None, user=None) -> dict` | Draft a correction UPDATE as a reviewable proposal with a dry-run affected-row estimate; nothing executes. Needs `TOOL_WRITE_CALLS_ENABLED=true` and an `allow_writes=True` connection. `[AST:cognee/api/v1/tools/tools.py:L81]` |
-| `propose_corrections` | `(connection: str, *, limit: int = 10, user=None) -> list[dict]` | Draft one proposal per graph `contradicts` edge that is correctable in the database `[AST:cognee/api/v1/tools/tools.py:L101]` |
-| `list_write_proposals` | `(status=None, user=None) -> list[dict]` | The user's write proposals, optionally filtered by status `[AST:cognee/api/v1/tools/tools.py:L119]` |
-| `apply_write_proposal` | `(proposal_id, user=None) -> dict` | The only path that commits a write; rolls back (and marks the proposal failed) when the affected rowcount exceeds the cap or no longer matches the dry-run estimate `[AST:cognee/api/v1/tools/tools.py:L129]` |
-| `reject_write_proposal` | `(proposal_id, user=None) -> dict` | Mark a proposal rejected so it can never be applied `[AST:cognee/api/v1/tools/tools.py:L146]` |
+| `register_sql_connection` | `(name: str, connection_string: str, *, provider: str \| None = None, allowed_tables: list[str] \| None = None, max_rows: int \| None = None, description: str \| None = None, allow_writes: bool = False, user: object \| None = None) -> dict[str, Any]` | Register (or replace) a connection. The connection string is encrypted at rest and never returned; use a SELECT-only role. `allow_writes=True` opts into approval-gated write-back. `[AST:cognee/api/v1/tools/tools.py:L27]` |
+| `list_sql_connections` | `(user: object \| None = None) -> list[dict[str, Any]]` | The user's connections plus deployment-level ones, without secrets `[AST:cognee/api/v1/tools/tools.py:L65]` |
+| `remove_sql_connection` | `(name: str, user: object \| None = None) -> bool` | Remove a connection; `False` when nothing matched `[AST:cognee/api/v1/tools/tools.py:L73]` |
+| `propose_sql_write` | `(connection: str, instruction: str, *, evidence: dict[str, Any] \| None = None, user: object \| None = None) -> dict[str, Any]` | Draft a correction UPDATE as a reviewable proposal with a dry-run affected-row estimate; nothing executes. Needs `TOOL_WRITE_CALLS_ENABLED=true` and an `allow_writes=True` connection. `[AST:cognee/api/v1/tools/tools.py:L81]` |
+| `propose_corrections` | `(connection: str, *, limit: int = 10, user: object \| None = None) -> list[dict[str, Any]]` | Draft one proposal per graph `contradicts` edge that is correctable in the database `[AST:cognee/api/v1/tools/tools.py:L101]` |
+| `list_write_proposals` | `(status: str \| None = None, user: object \| None = None) -> list[dict[str, Any]]` | The user's write proposals, optionally filtered by status `[AST:cognee/api/v1/tools/tools.py:L119]` |
+| `apply_write_proposal` | `(proposal_id, user: object \| None = None) -> dict[str, Any]` | The only path that commits a write; rolls back (and marks the proposal failed) when the affected rowcount exceeds the cap or no longer matches the dry-run estimate `[AST:cognee/api/v1/tools/tools.py:L129]` |
+| `reject_write_proposal` | `(proposal_id, user: object \| None = None) -> dict[str, Any]` | Mark a proposal rejected so it can never be applied `[AST:cognee/api/v1/tools/tools.py:L146]` |
 
 ### Version — `cognee.get_cognee_version`
 
@@ -577,9 +577,9 @@ Imported from `cognee.modules.pipelines.models.PipelineRunInfo`. Subclasses yiel
 
 Typed payloads for `cognee.remember()`, each with a literal `type` discriminator. `MemoryEntry` is the union `QAEntry | TraceEntry | FeedbackEntry | SkillRunEntry`; `SkillRunEntry` is not a top-level `cognee` name (import it from `cognee.memory`). `[SRC:cognee/memory/entries.py:L129]` · `[SRC:cognee/__init__.py:L90]`
 
-- `QAEntry` — `type="qa"`, `question: str`, `answer: str`, `context: str = ""`, `feedback_text: str | None`, `feedback_score: int | None`, `used_graph_element_ids: dict | None`. A Q&A turn for the session cache. `[AST:cognee/memory/entries.py:L24]`
-- `TraceEntry` — `type="trace"`, `origin_function: str`, `status: "success" | "error" = "success"`, `method_params: dict | None`, `method_return_value: Any | None`, `memory_query: str = ""`, `memory_context: str = ""`, `error_message: str = ""`, `generate_feedback_with_llm: bool = False`. One agent trace step. `[AST:cognee/memory/entries.py:L40]`
-- `FeedbackEntry` — `type="feedback"`, `qa_id: str` (the `entry_id` of a previous QA remember call), `feedback_text: str | None`, `feedback_score: int | None`. Feedback on an existing QA entry. `[AST:cognee/memory/entries.py:L62]`
+- `QAEntry` — `type: Literal["qa"] = "qa"`, `question: str`, `answer: str`, `context: str = ""`, `feedback_text: str | None = None`, `feedback_score: int | None = None`, `used_graph_element_ids: dict | None = None`; only `question` and `answer` are required. A Q&A turn for the session cache. `[AST:cognee/memory/entries.py:L24]` · `[SRC:cognee/memory/entries.py:L31-L37]`
+- `TraceEntry` — `type: Literal["trace"] = "trace"`, `origin_function: str`, `status: Literal["success", "error"] = "success"`, `method_params: dict | None = None`, `method_return_value: Any | None = None`, `memory_query: str = ""`, `memory_context: str = ""`, `error_message: str = ""`, `generate_feedback_with_llm: bool = False`; only `origin_function` is required. One agent trace step. `[AST:cognee/memory/entries.py:L40]` · `[SRC:cognee/memory/entries.py:L48-L59]`
+- `FeedbackEntry` — `type: Literal["feedback"] = "feedback"`, `qa_id: str` (the `entry_id` of a previous QA remember call), `feedback_text: str | None = None`, `feedback_score: int | None = None`; only `qa_id` is required. Feedback on an existing QA entry. `[AST:cognee/memory/entries.py:L62]` · `[SRC:cognee/memory/entries.py:L70-L79]`
 
 ### Session lifecycle models — `cognee.SessionRecord` and `cognee.SessionModelUsage`
 

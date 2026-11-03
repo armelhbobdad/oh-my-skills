@@ -9,7 +9,7 @@
   "source_ref": "v10.3.5",
   "confidence_tier": "Deep",
   "spec_version": "1.3",
-  "generation_date": "2026-11-02T23:04:37Z",
+  "generation_date": "2026-11-03T08:27:32Z",
   "update_mode": "gap-driven",
   "update_source": "test-report oms-storybook-react-vite 79.68% FAIL (2nd gap-driven pass)",
   "description": "Authors Storybook v10 stories using the consolidated `storybook` package import surface for React plus Vite. Use when writing or editing *.stories.tsx, preview.ts, or .storybook/main.ts files on a Storybook 10.3+ project, including CSF3 story syntax, play functions with storybook/test, preview-api hooks, theming, MDX doc blocks from @storybook/addon-docs/blocks, and the a11y, themes, and vitest addons. Covers the @storybook/react-vite framework, @storybook/react renderer, and @storybook/builder-vite layer model so defects can be located at the right layer. Do NOT use for first-time project setup, framework selection, or upgrade migration.",
@@ -98,7 +98,12 @@
     "ReactPreview",
     "ReactMeta",
     "ReactStory",
-    "Docs"
+    "Docs",
+    "Anchor",
+    "DocsStory",
+    "Heading",
+    "Subheading",
+    "PureArgsTable"
   ],
   "tool_versions": {
     "ast_grep": "0.42.0",
@@ -106,23 +111,21 @@
     "skf": "1.0.0"
   },
   "confidence_distribution": {
-    "t1": 222,
-    "t1_low": 1,
+    "t1": 220,
+    "t1_low": 8,
     "t2": 0,
     "t3": 0
   },
   "stats": {
-    "exports_documented": 223,
+    "exports_documented": 228,
     "exports_public_api": 1335,
     "exports_internal": 1874,
     "exports_total": 3209,
-    "public_api_coverage": 0.167,
-    "total_coverage": 0.0695,
+    "public_api_coverage": 0.1708,
+    "total_coverage": 0.0711,
     "scripts_count": 0,
     "assets_count": 0,
-    "effective_denominator": 280,
-    "effective_denominator_source": "provenance-map canonicalized count (ThemesGlobals_def folds with ThemesGlobals under _def convention)",
-    "reconciliation_note": "Reconciled 2026-04-11T22:30Z from GAP-006: exports[] reflects canonicalized provenance-map surface after scope narrowing. Prior values (320/430 = 74.42%) were derived before GAP-005 scope narrowing and counted addon-panel UI primitives, babel/csf-tools/core-server infrastructure that are out of authoring scope. See skill-brief.yaml amendments for exclude list."
+    "effective_denominator": 280
   },
   "generated_by": "create-skill",
   "dependencies": [

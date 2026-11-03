@@ -1,0 +1,2145 @@
+{
+  "what": "An estimate, made by oh-my-skills and not by Skill Forge, of the authored surface oms-storybook-react-vite's brief (scope.tier_a_include) should yield, and how much of it the skill documents.",
+  "inputs": {
+    "extractor": "skf-extract-public-api.py --mode full --head-cap 0 --brief forge-data/oms-storybook-react-vite/skill-brief.yaml (SKF 4.0.0)",
+    "source": "storybookjs/storybook e486d3826bcd40c52db1c766966d1c8ec16df6cb",
+    "tier_a_set": "load-coverage-inputs.py surface: sets.tier_a_include",
+    "fuller_list": "the tier A set, plus every name the 17 tier A entry files export (traced through their export chains), plus the export const { ... } bindings at code/core/src/test/testing-library.ts:39-111 and :123 and code/core/src/test/index.ts:24"
+  },
+  "readings": {
+    "strict": "a provenance-map entry, or the name inside a backtick span of SKILL.md or references/*.md",
+    "loose": "a provenance-map entry, or the name as a whole word anywhere in SKILL.md or references/*.md (also matches English words such as color or config)"
+  },
+  "counts": {
+    "tier_a_set": 280,
+    "missing_from_set": 111,
+    "missing_by_reason": {
+      "defined in a tier A file but credited to another file's declaration of the same name (#830)": 13,
+      "destructured export the 4.0.0 extractor cannot read (#786)": 74,
+      "re-export the extractor records without a defining file": 20,
+      "re-exported by a tier A entry from a definition outside tier A (counted at that definition, as Skill Forge's protocol says)": 4
+    },
+    "fuller_list": 391,
+    "documented_strict": {
+      "tier_a_set": 223,
+      "missing": 45,
+      "total": 268,
+      "percent_of_fuller_list": 68.54,
+      "percent_of_tier_a_set": 79.64
+    },
+    "documented_loose": {
+      "tier_a_set": 228,
+      "missing": 47,
+      "total": 275,
+      "percent_of_fuller_list": 70.33,
+      "percent_of_tier_a_set": 81.43
+    },
+    "skf_measured_tier_a_set": "Skill Forge's own inventory credited 204 of the 280 (72.86%) in re-test 20261103T073923Z-970f8905, before the last repairs; the final run names no tier A export",
+    "skf_inventory_combined": {
+      "formula": "204 (Skill Forge's own inventory count for the 280, re-test 20261103T073923Z-970f8905) + 45 (missing names the strict reading finds documented)",
+      "total": 249,
+      "percent_of_fuller_list": 63.68,
+      "caveat": "mixes a count taken before the last repairs (204) with one taken after them"
+    }
+  },
+  "tier_a_set_names": [
+    {
+      "name": "A11Y_ADDON_ID",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "A11Y_PANEL_ID",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "A11yGlobals",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "A11yParameters",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "A11yReport",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "A11yTypes",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ActionDisplay",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ActionOptions",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ActionsFunction",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ActionsMap",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "AddContext",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "Anchor",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "AnchorMdx",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "AnchorProps",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Animation",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ArgTypes",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Background",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "BooleanConfig",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "BooleanControl",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "BooleanProps",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "BooleanValue",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Brand",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "BuilderOptions",
+      "documented_strict": false,
+      "documented_loose": true
+    },
+    {
+      "name": "CLEAR_ID",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "CYCLIC_KEY",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "Canvas",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ClassNameStrategyConfiguration",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ClickEventDetails",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "CodeOrSourceMdx",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "Color",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ColorConfig",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ColorControl",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ColorItem",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ColorPalette",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ColorProps",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "ColorValue",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Component",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ContextObjectWithoutNode",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ContextSpecWithoutNode",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Control",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ControlProps",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ControlType",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Controls",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DEFAULT_VIEWPORT",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "DataAttributeStrategyConfiguration",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DateConfig",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DateControl",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DateProps",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DateValue",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DecoratorFunction",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Description",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DescriptionType",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "Docs",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DocsContainer",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DocsContainerProps",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DocsContext",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DocsPage",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DocsProps",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DocsRenderer",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DocsStory",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DocsStoryProps",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DocsTypes",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "EVENT_ID",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "Easing",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "ExternalDocs",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "ExternalDocsContainer",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "ExternalDocsProps",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "FilesControl",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "FilesControlProps",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "FunctionInterpolation",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "GlobalState",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "GlobalStateUpdate",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "HIGHLIGHT",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "HandlerFunction",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "HeaderMdx",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "HeadersMdx",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "Heading",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "HeadingProps",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "HighlightMenuItem",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "HighlightOptions",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "HighlightTypes",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "HooksContext",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "INITIAL_VIEWPORTS",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "INTERNAL_DEFAULT_PROJECT_ANNOTATIONS",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "IconGallery",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "IconItem",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "InitialViewportKeys",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Interpolation",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "MINIMAL_VIEWPORTS",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "Markdown",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Meta",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "NormalizedOptionsConfig",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "NumberConfig",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "NumberControl",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "NumberValue",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ObjectConfig",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ObjectControl",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ObjectProps",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ObjectValue",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Of",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Options",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "OptionsArray",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "OptionsConfig",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "OptionsControl",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "OptionsControlType",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "OptionsMultiSelection",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "OptionsObject",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "OptionsProps",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "OptionsSelection",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "OptionsSingleSelection",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "PANEL_ID",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "PARAM_KEY",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "PRIMARY_STORY",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "PresetColor",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Preview",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "PreviewWeb",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "PreviewWithSelection",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Primary",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "PropDescriptor",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ProviderStrategyConfiguration",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "PureArgsTable",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "REMOVE_HIGHLIGHT",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "RESET_HIGHLIGHT",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "RangeConfig",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "RangeControl",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ReactMeta",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ReactPreview",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ReactRenderer",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ReactStory",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ReactTypes",
+      "documented_strict": false,
+      "documented_loose": true
+    },
+    {
+      "name": "Report",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "ReporterAPI",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "SCROLL_INTO_VIEW",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "SelectionStore",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "SelectorWithoutNode",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "SortType",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Source",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "SourceContainer",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "SourceContext",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "SourceContextProps",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "SourceItem",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "SourceParameters",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "SourceProps",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Stories",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Story",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "StoryProps",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "StorySources",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "StoryStore",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "StorybookConfigVite",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "StorybookTheme",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Subheading",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Subtitle",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "TOOL_ID",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "TableOfContents",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Tag",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "TextConfig",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "TextControl",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "TextProps",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "TextSize",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "TextValue",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ThemeVars",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ThemeVarsColors",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ThemeVarsPartial",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ThemesGlobals",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ThemesTypes",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Title",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Typeset",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Typography",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "UNKNOWN_ARGS_HASH",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "Unstyled",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "UrlStore",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "UserEvent",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "UserEventObject",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "View",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "Viewport",
+      "documented_strict": false,
+      "documented_loose": true
+    },
+    {
+      "name": "ViewportGlobals",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "ViewportMap",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ViewportParameters",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ViewportStyles",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ViewportType",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ViewportTypes",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "ViteBuilder",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ViteFinal",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "WebView",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Wrapper",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "action",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "actions",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "anchorBlockIdFromId",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "applyHooks",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "argsHash",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "assertIsFn",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "background",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "clearAllMocks",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "color",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "combineArgs",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "combineParameters",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "composeConfigs",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "composeStepRunners",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "composeStories",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "composeStory",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "config",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "configureActions",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "create",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "createGlobal",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "createPlaywrightTest",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "createReset",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "darken",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "decorateStory",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "defaultDecorateStory",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "emitTransformCode",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "ensure",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "extractTitle",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "filterArgTypes",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "fn",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "format",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "formatDate",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "formatTime",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "getCsfFactoryAnnotations",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getPreferredColorScheme",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "getStoryId",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getStoryProps",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "hasVitePlugins",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ignoreSsrWarning",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "inferControls",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "initializeThemeState",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "lighten",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "makeDecorator",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "mockChannel",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "mocked",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "normalizeArrays",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "normalizeProjectAnnotations",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "normalizeStory",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "onMockCall",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "parse",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "parseDate",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "parseTime",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "pauseAnimations",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "pluckThemeFromContext",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "prepareMeta",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "prepareStory",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "resetAllMocks",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "responsiveViewport",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "restoreAllMocks",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "sanitizeStoryContextUpdate",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "sb",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "setDefaultProjectAnnotations",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "setProjectAnnotations",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "simulateDOMContentLoaded",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "simulatePageLoad",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "slugs",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "sortStoriesV7",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "spyOn",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "srOnlyStyles",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "storybookTest",
+      "documented_strict": false,
+      "documented_loose": true
+    },
+    {
+      "name": "themes",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "tokens",
+      "documented_strict": false,
+      "documented_loose": true
+    },
+    {
+      "name": "typography",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "uninstrumentedUserEvent",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "useArgs",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "useCallback",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "useChannel",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "useEffect",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "useGlobals",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "useMemo",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "useOf",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "useParameter",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "useReducer",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "useRef",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "useSourceProps",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "useState",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "useStoryContext",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "useThemeParameters",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "userOrAutoTitle",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "userOrAutoTitleFromSpecifier",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "waitForAnimations",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "withActions",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "withThemeByClassName",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "withThemeByDataAttribute",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "withThemeFromJSXProvider",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "withoutVitePlugins",
+      "documented_strict": true,
+      "documented_loose": true
+    }
+  ],
+  "missing_names": [
+    {
+      "name": "ADDON_ID",
+      "credited_to": "code/addons/vitest/src/constants.ts",
+      "why_missing": "defined in a tier A file but credited to another file's declaration of the same name (#830)",
+      "defined_at": "code/addons/a11y/src/constants.ts:1",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "AddMocks",
+      "credited_to": "code/renderers/preact/src/public-types.ts",
+      "why_missing": "defined in a tier A file but credited to another file's declaration of the same name (#830)",
+      "defined_at": "code/renderers/react/src/public-types.ts:69",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Args",
+      "credited_to": "code/core/src/csf/story.ts",
+      "why_missing": "defined in a tier A file but credited to another file's declaration of the same name (#830)",
+      "defined_at": "code/addons/docs/src/blocks/components/ArgsTable/types.ts:66",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "CSSObject",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "CacheProvider",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ClassNames",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Decorator",
+      "credited_to": "code/frameworks/angular/src/client/public-types.ts",
+      "why_missing": "defined in a tier A file but credited to another file's declaration of the same name (#830)",
+      "defined_at": "code/renderers/react/src/public-types.ts:77",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DecoratorHelpers",
+      "credited_to": "code/addons/themes/src/decorators/helpers.ts",
+      "why_missing": "re-exported by a tier A entry from a definition outside tier A (counted at that definition, as Skill Forge's protocol says)",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "DocsContextProps",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "FrameworkOptions",
+      "credited_to": "code/frameworks/angular/src/types.ts",
+      "why_missing": "defined in a tier A file but credited to another file's declaration of the same name (#830)",
+      "defined_at": "code/frameworks/react-vite/src/types.ts:14",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Global",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Keyframes",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Loader",
+      "credited_to": "code/core/src/components/components/Loader/Loader.tsx",
+      "why_missing": "defined in a tier A file but credited to another file's declaration of the same name (#830)",
+      "defined_at": "code/renderers/react/src/public-types.ts:78",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Parameters",
+      "credited_to": "code/core/src/csf/story.ts",
+      "why_missing": "re-exported by a tier A entry from a definition outside tier A (counted at that definition, as Skill Forge's protocol says)",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "StoryContext",
+      "credited_to": "code/core/src/csf/story.ts",
+      "why_missing": "defined in a tier A file but credited to another file's declaration of the same name (#830)",
+      "defined_at": "code/renderers/react/src/public-types.ts:79",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "StoryFn",
+      "credited_to": "code/core/src/csf/story.ts",
+      "why_missing": "defined in a tier A file but credited to another file's declaration of the same name (#830)",
+      "defined_at": "code/renderers/react/src/public-types.ts:38",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "StoryObj",
+      "credited_to": "code/frameworks/angular/src/client/public-types.ts",
+      "why_missing": "defined in a tier A file but credited to another file's declaration of the same name (#830)",
+      "defined_at": "code/renderers/react/src/public-types.ts:47",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "StorybookConfig",
+      "credited_to": "code/frameworks/angular/src/types.ts",
+      "why_missing": "defined in a tier A file but credited to another file's declaration of the same name (#830)",
+      "defined_at": "code/frameworks/react-vite/src/types.ts:66",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "StrictArgs",
+      "credited_to": "code/core/src/csf/story.ts",
+      "why_missing": "re-exported by a tier A entry from a definition outside tier A (counted at that definition, as Skill Forge's protocol says)",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "StyledComponent",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "Theme",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "ThemeProvider",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "__definePreview",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "addons",
+      "credited_to": "code/addons/docs/src/preset.ts",
+      "why_missing": "defined in a tier A file but credited to another file's declaration of the same name (#830)",
+      "defined_at": "code/core/src/preview-api/modules/addons/main.ts:51",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "buildQueries",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "configure",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": true
+    },
+    {
+      "name": "convert",
+      "credited_to": "code/core/src/docs-tools/argTypes/convert/index.ts",
+      "why_missing": "defined in a tier A file but credited to another file's declaration of the same name (#830)",
+      "defined_at": "code/core/src/theming/convert.ts:78",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "createCache",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "createEvent",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "css",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "defineMain",
+      "credited_to": "code/frameworks/angular/src/node/index.ts",
+      "why_missing": "defined in a tier A file but credited to another file's declaration of the same name (#830)",
+      "defined_at": "code/frameworks/react-vite/src/node/index.ts:3",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "definePreview",
+      "credited_to": "code/frameworks/angular/src/client/preview.ts",
+      "why_missing": "re-exported by a tier A entry from a definition outside tier A (counted at that definition, as Skill Forge's protocol says)",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "expect",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "findAllByAltText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "findAllByDisplayValue",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "findAllByLabelText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "findAllByPlaceholderText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "findAllByRole",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "findAllByTestId",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "findAllByText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "findAllByTitle",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "findByAltText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "findByDisplayValue",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "findByLabelText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "findByPlaceholderText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "findByRole",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "findByTestId",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "findByText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "findByTitle",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "fireEvent",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "getAllByAltText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getAllByDisplayValue",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getAllByLabelText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getAllByPlaceholderText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getAllByRole",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getAllByTestId",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getAllByText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getAllByTitle",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getByAltText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getByDisplayValue",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getByLabelText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getByPlaceholderText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getByRole",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "getByTestId",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getByText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getByTitle",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getConfig",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getDefaultNormalizer",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getElementError",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getNodeText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getQueriesForElement",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getRoles",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "getSuggestedQuery",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "isInaccessible",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "isMockFunction",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "isPropValid",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "jsx",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "keyframes",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "logDOM",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "logRoles",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "mocks",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "prettyDOM",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "prettyFormat",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queries",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": true
+    },
+    {
+      "name": "queryAllByAltText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryAllByAttribute",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryAllByDisplayValue",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryAllByLabelText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryAllByPlaceholderText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryAllByRole",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryAllByTestId",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryAllByText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryAllByTitle",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryByAltText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryByAttribute",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryByDisplayValue",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryByLabelText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryByPlaceholderText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryByRole",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "queryByTestId",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryByText",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryByTitle",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "queryHelpers",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "screen",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "styled",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "useTheme",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "userEvent",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "waitFor",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "waitForElementToBeRemoved",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": false,
+      "documented_loose": false
+    },
+    {
+      "name": "withTheme",
+      "why_missing": "re-export the extractor records without a defining file",
+      "documented_strict": true,
+      "documented_loose": true
+    },
+    {
+      "name": "within",
+      "why_missing": "destructured export the 4.0.0 extractor cannot read (#786)",
+      "documented_strict": true,
+      "documented_loose": true
+    }
+  ]
+}

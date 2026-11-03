@@ -169,17 +169,17 @@
       "export_type": "function",
       "source_library": "@storybook/react",
       "params": [
-        "story: Story<TArgs>",
-        "componentAnnotations: TMeta",
+        "story: StoryAnnotationsOrFn<ReactRenderer, TArgs>",
+        "componentAnnotations: Meta<TArgs | any>",
         "projectAnnotations?: ProjectAnnotations<ReactRenderer>",
         "exportsName?: string"
       ],
-      "return_type": "ComposedStoryFn<ReactRenderer, TArgs>",
-      "source_file": "code/renderers/react/src/portable-stories.ts",
-      "source_line": 1,
+      "return_type": "ComposedStoryFn<ReactRenderer, Partial<TArgs>>",
+      "source_file": "code/renderers/react/src/portable-stories.tsx",
+      "source_line": 106,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -203,14 +203,14 @@
       "export_type": "function",
       "source_library": "@storybook/react",
       "params": [
-        "projectAnnotations: ProjectAnnotations<ReactRenderer> | ProjectAnnotations<ReactRenderer>[]"
+        "projectAnnotations: NamedOrDefaultProjectAnnotations<any> | NamedOrDefaultProjectAnnotations<any>[]"
       ],
-      "return_type": "ProjectAnnotations<ReactRenderer>",
-      "source_file": "code/renderers/react/src/portable-stories.ts",
-      "source_line": 1,
+      "return_type": "NormalizedProjectAnnotations<ReactRenderer>",
+      "source_file": "code/renderers/react/src/portable-stories.tsx",
+      "source_line": 46,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -218,15 +218,15 @@
       "export_type": "function",
       "source_library": "@storybook/react",
       "params": [
-        "input: PreviewInput"
+        "input: { addons: Addons } & ProjectAnnotations<ReactTypes & InferTypes<Addons>>"
       ],
-      "return_type": "ReactPreview<Addons>",
+      "return_type": "ReactPreview<ReactTypes & InferTypes<Addons>>",
       "source_file": "code/renderers/react/src/preview.tsx",
       "source_line": 55,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "ReactPreview",
@@ -713,17 +713,17 @@
     {
       "export_name": "definePreview",
       "export_type": "function",
-      "source_library": "storybook",
+      "source_library": "@storybook/react-vite",
       "params": [
-        "input: PreviewInput"
+        "input: { addons: Addons } & ProjectAnnotations<ReactTypes & InferTypes<Addons>>"
       ],
-      "return_type": "Preview",
-      "source_file": "code/core/src/preview-api/index.ts",
-      "source_line": 1,
+      "return_type": "ReactPreview<ReactTypes & InferTypes<Addons>>",
+      "source_file": "code/frameworks/react-vite/src/index.ts",
+      "source_line": 2,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
-      "signature_source": "T1"
+      "ast_node_type": "export_specifier",
+      "signature_source": "T1-low"
     },
     {
       "export_name": "action",
@@ -926,11 +926,11 @@
         "{ of, meta, sourceState, withToolbar, className }"
       ],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/Canvas.tsx",
+      "source_line": 100,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -941,11 +941,11 @@
         "{ of, include, exclude, sort }"
       ],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/Controls.tsx",
+      "source_line": 109,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -956,11 +956,11 @@
         "{ of? }"
       ],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/Primary.tsx",
+      "source_line": 16,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -971,11 +971,11 @@
         "{ of?, includePrimary?, title? }"
       ],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/Stories.tsx",
+      "source_line": 74,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -986,11 +986,11 @@
         "{ of, expanded, ... }"
       ],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/Story.tsx",
+      "source_line": 134,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1001,11 +1001,11 @@
         "{ of?, include, exclude, sort }"
       ],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/ArgTypes.tsx",
+      "source_line": 108,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1016,11 +1016,11 @@
         "{ of?, code?, language?, dark? }"
       ],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/Source.tsx",
+      "source_line": 181,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1031,11 +1031,11 @@
         "{ of? }"
       ],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/Description.tsx",
+      "source_line": 74,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1044,11 +1044,11 @@
       "source_library": "@storybook/addon-docs",
       "params": [],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/Title.tsx",
+      "source_line": 55,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1057,11 +1057,11 @@
       "source_library": "@storybook/addon-docs",
       "params": [],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/Subtitle.tsx",
+      "source_line": 55,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1072,11 +1072,11 @@
         "{ children }"
       ],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/Markdown.tsx",
+      "source_line": 55,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1084,14 +1084,14 @@
       "export_type": "component",
       "source_library": "@storybook/addon-docs",
       "params": [
-        "{ fontSizes, fontWeight, sampleText, fontFamily }"
+        "{ fontFamily, fontSizes, fontWeight, sampleText, ...props }: TypesetProps"
       ],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/components/Typeset.tsx",
+      "source_line": 50,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1102,11 +1102,11 @@
         "{ children }"
       ],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/components/ColorPalette.tsx",
+      "source_line": 202,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1117,11 +1117,11 @@
         "{ children }"
       ],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/components/IconGallery.tsx",
+      "source_line": 74,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1132,11 +1132,11 @@
         "{ children }"
       ],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/Unstyled.tsx",
+      "source_line": 9,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1147,11 +1147,11 @@
         "storyOrMeta: Of"
       ],
       "return_type": "ResolvedOf",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/useOf.ts",
+      "source_line": 18,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1162,11 +1162,11 @@
         "{ context, children }"
       ],
       "return_type": "ReactElement",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/DocsContainer.tsx",
+      "source_line": 23,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1175,11 +1175,11 @@
       "source_library": "@storybook/addon-docs",
       "params": [],
       "return_type": "Context<DocsContextProps>",
-      "source_file": "code/addons/docs/src/blocks.ts",
-      "source_line": 1,
+      "source_file": "code/addons/docs/src/blocks/blocks/DocsContext.ts",
+      "source_line": 18,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_from",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1960,7 +1960,7 @@
     {
       "export_name": "CheckboxControl",
       "export_type": "function",
-      "source_library": "@storybook/addon-docs/blocks",
+      "source_library": "@storybook/addon-docs (internal, not exported)",
       "params": [
         "props: CheckboxProps"
       ],
@@ -1975,7 +1975,7 @@
     {
       "export_name": "RadioControl",
       "export_type": "function",
-      "source_library": "@storybook/addon-docs/blocks",
+      "source_library": "@storybook/addon-docs (internal, not exported)",
       "params": [
         "props: RadioProps"
       ],
@@ -1990,7 +1990,7 @@
     {
       "export_name": "SelectControl",
       "export_type": "function",
-      "source_library": "@storybook/addon-docs/blocks",
+      "source_library": "@storybook/addon-docs (internal, not exported)",
       "params": [
         "props: SelectProps"
       ],
@@ -3132,9 +3132,80 @@
       "extraction_method": "source-read",
       "ast_node_type": null,
       "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Anchor",
+      "export_type": "component",
+      "source_library": "@storybook/react",
+      "params": [
+        "{ storyId, children }: PropsWithChildren<AnchorProps>"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/Anchor.tsx",
+      "source_line": 10,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DocsStory",
+      "export_type": "component",
+      "source_library": "@storybook/react",
+      "params": [
+        "{ of, expanded, withToolbar, __forceInitialArgs, __primary }: DocsStoryProps"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/DocsStory.tsx",
+      "source_line": 42,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Heading",
+      "export_type": "component",
+      "source_library": "@storybook/react",
+      "params": [
+        "{ children, disableAnchor }: PropsWithChildren<HeadingProps>"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/Heading.tsx",
+      "source_line": 33,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Subheading",
+      "export_type": "component",
+      "source_library": "@storybook/react",
+      "params": [
+        "{ children, disableAnchor }: PropsWithChildren<HeadingProps>"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/Subheading.tsx",
+      "source_line": 23,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "PureArgsTable",
+      "export_type": "function",
+      "source_library": "@storybook/react",
+      "params": [
+        "props: ArgsTableProps"
+      ],
+      "return_type": "ReactNode",
+      "source_file": "code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx",
+      "source_line": 320,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     }
   ],
-  "last_update": "2026-11-02T23:04:37Z",
+  "last_update": "2026-11-03T08:27:32Z",
   "update_type": "gap-driven",
   "update_history": [
     {
@@ -3163,9 +3234,9 @@
     "confidence_tier": "Deep",
     "notes": "Second gap-driven pass (2026-04-11T22:30Z). Fixes: composeStories signature + path (.ts→.tsx, L1→L148), defineMain line (L1→L3), ThemesGlobalsInterface renamed to ThemesGlobals_def (disambiguator convention), CanvasProps detail expanded in doc-blocks.md, Key API Summary moved to core-api.md, Key Types trimmed to 3 essentials, Architecture collapsed to paragraph, scope.exclude narrowed (GAP-005) to exclude code/core/src/components|babel|csf-tools|core-server|router|node-logger|telemetry|channels|builder-manager."
   },
-  "test_report_run_id": "20261102T224222Z-fe6c973d",
-  "files_changed": 1,
-  "exports_affected": 2,
+  "test_report_run_id": "20261103T073923Z-970f8905",
+  "files_changed": 5,
+  "exports_affected": 24,
   "confidence_tier": "Deep",
   "manual_sections_preserved": 4
 }

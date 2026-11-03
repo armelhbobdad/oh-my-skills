@@ -27,7 +27,7 @@ import { Meta, Canvas, Controls, Primary, Stories } from '@storybook/addon-docs/
 
 | Component | Props (simplified) | Purpose | Source |
 |---|---|---|---|
-| `Canvas` | `{ of, meta, sourceState, layout, source, story, withToolbar, additionalActions, className }` | Render story preview with optional source panel. `of` → story export from `import * as stories`. See [`Canvas` props detail](#canvas-props-detail) below. | `[AST:code/addons/docs/src/blocks/blocks/Canvas.tsx:L100]` |
+| `Canvas` | `{ of?, meta?, sourceState?, layout?, source?, story?, withToolbar?, additionalActions?, className? }` (all optional) | Render story preview with optional source panel. `of` → story export from `import * as stories`. See [`Canvas` props detail](#canvas-props-detail) below. | `[AST:code/addons/docs/src/blocks/blocks/Canvas.tsx:L100]` |
 | `Story` | `{ of?, meta?, inline?, height?, autoplay? }` (`StoryProps`; also the internal `__forceInitialArgs?`, `__primary?`) | Render a single story by import reference (`of`; defaults to the current story). Pass `meta` (all exports of the CSF file) when the MDX page is unattached. `expanded` is a `DocsStory` prop, not a `Story` prop. | `[SRC:code/addons/docs/src/blocks/blocks/Story.tsx:L134]` |
 | `Primary` | none (`FC` with no props) | Render the primary story of the attached CSF file (`usePrimaryStory()`); it takes no `of`. | `[SRC:code/addons/docs/src/blocks/blocks/Primary.tsx:L16]` |
 | `Stories` | `{ title?: ReactElement \| string; includePrimary?: boolean }` | Render every story of the attached CSF file (`DocsContext.componentStories()`) as a list; it takes no `of`. `title` defaults to `'Stories'`, `includePrimary` to `true`. | `[SRC:code/addons/docs/src/blocks/blocks/Stories.tsx:L74]` |
@@ -71,9 +71,9 @@ import * as ButtonStories from './Button.stories';
 
 | Component | Props | Purpose |
 |---|---|---|
-| `Meta` | `{ of?, title? }` | Declare component metadata in an MDX doc — connects the MDX page to a CSF module. Required once per doc. |
-| `Title` | `{ children? }` | Render page title (defaults to `meta.title`). |
-| `Subtitle` | `{ children? }` | Render page subtitle (defaults to `parameters.docs.subtitle`). |
+| `Meta` | `MetaProps = BaseAnnotations & { of?: ModuleExports; title?: string }` (`FC<MetaProps>`): `of?`, `title?`, plus every optional `BaseAnnotations` field (`decorators?`, `parameters?`, `args?`, `argTypes?`, `loaders?`, `beforeEach?`, `afterEach?`, `render?`, `tags?`, `mount?`). The component itself reads only `of`. | Declare component metadata in an MDX doc — connects the MDX page to a CSF module. Required once per doc. `[SRC:code/addons/docs/src/blocks/blocks/Meta.tsx:L9]` `[SRC:code/addons/docs/src/blocks/blocks/Meta.tsx:L15]` `[SRC:code/core/src/csf/story.ts:L347]` |
+| `Title` | `TitleProps = { of?: Of; children?: ReactNode }` | Render page title: `children` when given, else the last path segment of the meta's `title`. `of` names the CSF file's default export (meta) to read the title from (the attached meta when omitted); `of={undefined}` throws. `[SRC:code/addons/docs/src/blocks/blocks/Title.tsx:L11]` `[SRC:code/addons/docs/src/blocks/blocks/Title.tsx:L55]` |
+| `Subtitle` | `SubtitleProps = { children?: ReactNode; of?: Of }` | Render page subtitle: `children` when given, else the meta's `parameters.docs.subtitle` (or the deprecated `parameters.componentSubtitle`). `of` names the meta to read it from (the attached CSF file's meta when omitted); `of={undefined}` throws. `[SRC:code/addons/docs/src/blocks/blocks/Subtitle.tsx:L11]` `[SRC:code/addons/docs/src/blocks/blocks/Subtitle.tsx:L55]` |
 | `Description` | `{ of?: Of }` | Render the description of the resolved `of` (the attached meta when omitted): `parameters.docs.description.story` for a story, `parameters.docs.description.component` or the component's docgen description for a meta or component. There is no `markdown` prop. `[SRC:code/addons/docs/src/blocks/blocks/Description.tsx:L74]` |
 
 ## Control blocks
@@ -82,27 +82,46 @@ import * as ButtonStories from './Button.stories';
 |---|---|---|
 | `Controls` | `{ of?, include?, exclude?, sort? }` | Interactive controls panel for story args. |
 | `ArgTypes` | `{ of?, include?, exclude?, sort? }` | Static arg types documentation table (read-only). |
-| `Source` | `{ of?, code?, language?, dark?, format? }` | Formatted source code block for a story. |
+| `Source` | `SourceProps` (full list below): `{ of?, code?, language?, format?, dark?, copyable?, type?, transform?, originalSource?, __forceInitialArgs? }` | Formatted source code block for a story. See [`Source` props detail](#source-props-detail) below. `[SRC:code/addons/docs/src/blocks/blocks/Source.tsx:L181]` |
+
+### `Source` props detail
+
+`SourceProps = SourceParameters & { of?: ModuleExport; __forceInitialArgs?: boolean }`, where `SourceParameters = SourceCodeProps & { type?; transform?; originalSource? }` and `SourceCodeProps` comes from the `Source` component. Every prop is optional.
+
+| Prop | Type | Purpose |
+|---|---|---|
+| `of` | `ModuleExport` | Story export whose source to render: `<Source of={ButtonStories.Primary} />`. |
+| `code` | `string` | Override the content of the source block. |
+| `language` | `SupportedLanguage` | Language the syntax highlighter uses. |
+| `format` | `ComponentProps<typeof SyntaxHighlighter>['format']` | Formatter the syntax highlighter uses. |
+| `dark` | `boolean` | Display the snippet in dark mode. |
+| `copyable` | `boolean` | Show the copy button (defaults to `true`). |
+| `type` | `SourceType` | Where to read the source from: `'auto'` (default), `'code'` (the code csf-plugin extracted) or `'dynamic'` (snippet rendered from the story's virtual DOM, React only). |
+| `transform` | `(code: string, storyContext) => string \| Promise<string>` | Transform the detected source before display; `storyContext` is the docs context's story context. |
+| `originalSource` | `string` | Internal: set by the CSF loader (`enrichCsf` in `storybook/internal/csf-tools`). |
+| `__forceInitialArgs` | `boolean` | Internal: controls whether the story re-renders on args updates. |
+
+`[SRC:code/addons/docs/src/blocks/blocks/Source.tsx:L16]` `[SRC:code/addons/docs/src/blocks/blocks/Source.tsx:L28]` `[SRC:code/addons/docs/src/blocks/components/Source.tsx:L39]` `[SRC:code/core/src/docs-tools/shared.ts:L7]`
 
 ## Content blocks
 
 | Component | Props | Purpose |
 |---|---|---|
-| `Markdown` | `{ children }` | Render markdown content inside MDX. |
-| `Heading` | `{ children }` | H2 with anchor link. |
-| `Subheading` | `{ children }` | H3 with anchor link. |
-| `Anchor` | `{ storyId }` | Create an anchor link to a story. |
-| `Unstyled` | `{ children }` | Wrapper that removes Storybook's docs styling — use for custom-styled sections. |
+| `Markdown` | `MarkdownProps`, the props of `markdown-to-jsx`'s default export mirrored: `children` (a single string), `options?` (markdown-to-jsx options) and the rest of that component's props, all spread onto it | Render markdown content inside MDX. No `children` renders nothing; a non-string child throws (wrap the markdown in a template string). `options` is spread last over the block's own `{ forceBlock: true, overrides }`, so a key you pass wins. `[SRC:code/addons/docs/src/blocks/blocks/Markdown.tsx:L11]` `[SRC:code/addons/docs/src/blocks/blocks/Markdown.tsx:L55]` |
+| `Heading` | `{ children?: ReactNode; disableAnchor?: boolean }` (`PropsWithChildren<HeadingProps>`, `HeadingProps = { disableAnchor?: boolean }`) | H2 with an anchor id slugged from a string child. `disableAnchor` (or a non-string child) renders a plain H2 with no anchor. `[SRC:code/addons/docs/src/blocks/blocks/Heading.tsx:L11]` `[SRC:code/addons/docs/src/blocks/blocks/Heading.tsx:L33]` |
+| `Subheading` | `{ children?: ReactNode; disableAnchor?: boolean }` (`PropsWithChildren<HeadingProps>`, the `Heading` props type) | H3 with an anchor id slugged from a string child. `disableAnchor` (or a non-string child) renders a plain H3 with no anchor. `[SRC:code/addons/docs/src/blocks/blocks/Subheading.tsx:L23]` |
+| `Anchor` | `{ storyId: string; children?: ReactNode }` (`FC<PropsWithChildren<AnchorProps>>`, `AnchorProps = { storyId: string }`) | Create an anchor for a story: wraps `children` in `<div id="anchor--{storyId}" className="sb-anchor">`. `[SRC:code/addons/docs/src/blocks/blocks/Anchor.tsx:L6]` `[SRC:code/addons/docs/src/blocks/blocks/Anchor.tsx:L10]` |
+| `Unstyled` | `React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>`: every optional `<div>` prop (`children`, `id`, `style`, `ref`, event handlers, ...) | Wrapper that removes Storybook's docs styling — use for custom-styled sections. Spreads its props onto a `<div>` whose `className` is always `sb-unstyled` (a `className` you pass is replaced). `[SRC:code/addons/docs/src/blocks/blocks/Unstyled.tsx:L9]` |
 
 ## Visual blocks
 
 | Component | Props | Purpose |
 |---|---|---|
-| `Typeset` | `{ fontSizes, fontWeight, sampleText, fontFamily }` | Font family / size display for design system docs. |
+| `Typeset` | `{ fontSizes: (string \| number)[]; fontFamily?: string; fontWeight?: number; sampleText?: string }` (only `fontSizes` is required) | Font family / size display for design system docs. `[SRC:code/addons/docs/src/blocks/components/Typeset.tsx:L39]` |
 | `ColorPalette` | `{ children?: React.ReactNode }` | Color swatch collection: pass `ColorItem` elements as its children. `[SRC:code/addons/docs/src/blocks/components/ColorPalette.tsx:L202]` |
 | `ColorItem` | `{ title, subtitle, colors }` | Single color swatch with label. |
 | `IconGallery` | `{ children?: React.ReactNode }` | Icon grid: pass `IconItem` elements as its children. `[SRC:code/addons/docs/src/blocks/components/IconGallery.tsx:L74]` |
-| `IconItem` | `{ name, children }` | Single icon display. |
+| `IconItem` | `{ name: string; children?: React.ReactNode }` | Single icon display: a caption (`name`) and the icon passed as `children`. `[SRC:code/addons/docs/src/blocks/components/IconGallery.tsx:L62]` |
 
 ## Container blocks
 
@@ -110,8 +129,8 @@ import * as ButtonStories from './Button.stories';
 |---|---|---|
 | `Docs` | `{ context, docsParameter }: DocsProps<TRenderer>`, both required: `Docs<TRenderer extends Renderer = Renderer>({ context, docsParameter }: DocsProps<TRenderer>)` with `DocsProps = { docsParameter: Parameters; context: DocsContextProps<TRenderer> }` | Root docs container: renders `docsParameter.page` (default `DocsPage`) inside `docsParameter.container` (default `DocsContainer`). Rarely used directly. `[SRC:code/addons/docs/src/blocks/blocks/Docs.tsx:L17]` |
 | `DocsPage` | — | Default Autodocs layout function. |
-| `DocsContainer` | `{ context, children }` | MDX docs wrapper (provides context). |
-| `DocsStory` | `{ of, expanded?, withToolbar? }` | Internal story renderer used by `Primary`/`Stories`. |
+| `DocsContainer` | `{ context: DocsContextProps<Renderer>; theme?: ThemeVars; children?: ReactNode }` (`FC<PropsWithChildren<DocsContainerProps>>`: the component is not generic, so it takes `DocsContainerProps` at its default, `DocsContainerProps<TFramework extends Renderer = Renderer> = { context: DocsContextProps<TFramework>; theme? }`) | MDX docs wrapper: provides `context` through `DocsContext` and renders `children` inside a `ThemeProvider` for `theme` (passed through `ensure`). `[SRC:code/addons/docs/src/blocks/blocks/DocsContainer.tsx:L18]` `[SRC:code/addons/docs/src/blocks/blocks/DocsContainer.tsx:L23]` |
+| `DocsStory` | `DocsStoryProps = { of: ModuleExport; expanded?: boolean; withToolbar?: boolean; __forceInitialArgs?: boolean; __primary?: boolean }`, defaults `expanded = true`, `withToolbar = false`, `__forceInitialArgs = false`, `__primary = false` (the two `__` props are internal) | Internal story renderer used by `Primary`/`Stories`. `parameters.docs.canvas.withToolbar` overrides the `withToolbar` prop. `[SRC:code/addons/docs/src/blocks/blocks/types.ts:L9]` `[SRC:code/addons/docs/src/blocks/blocks/DocsStory.tsx:L42]` |
 
 ## Utilities
 
@@ -119,9 +138,9 @@ import * as ButtonStories from './Button.stories';
 |---|---|---|
 | `useOf` | hook | Resolve CSF export references within MDX (`of={ButtonStories.Primary}`). |
 | `DocsContext` | React context | Provides story/component metadata to blocks. Access via `const ctx = useContext(DocsContext)`. |
-| `PureArgsTable` | component | ArgsTable without Storybook integration — accepts `rows` directly. |
+| `PureArgsTable` | component | ArgsTable without Storybook integration: the `ArgsTable` component (`FC<ArgsTableProps>`), re-exported under this name. `ArgsTableProps = ArgsTableOptionProps & (ArgsTableDataProps \| ArgsTableErrorProps \| ArgsTableLoadingProps)`. Options, all optional: `{ children?: ReactNode; updateArgs?: (args: Args) => void; resetArgs?: (argNames?: string[]) => void; compact?: boolean; inAddonPanel?: boolean; inTabPanel?: boolean; initialExpandedArgs?: boolean; isLoading?: boolean; sort?: SortType }` (`sort` defaults to `'none'`). Plus one of: `{ rows: ArgTypes; args?: Args; globals?: Globals }` (the table data), `{ error: ArgsTableError }` or `{ isLoading: boolean }`. `[SRC:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L320]` `[AST:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L197]` `[AST:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L222]` `[SRC:code/addons/docs/src/blocks.ts:L3]` |
 | `TableOfContents` | component | Auto-generated TOC from docs headings. Enable via `parameters.docs.toc`. |
-| `SortType` | type | `'alpha' \| 'requiredFirst' \| 'none' \| ((a, b) => number)` for `sort` prop on `Controls`/`ArgTypes`. |
+| `SortType` | type | `'alpha' \| 'requiredFirst' \| 'none'` (no function form) for the `sort` prop on `Controls`/`ArgTypes` (`code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:186`). |
 
 `[AST:code/addons/docs/src/blocks.ts]`
 
@@ -169,29 +188,29 @@ The primitive control components that back `Controls` / `ArgTypes` panels. Impor
 | Component / Props | Kind | Signature | Source |
 |---|---|---|---|
 | `BooleanProps` | type | `ControlProps<BooleanValue> & BooleanConfig` | `[AST:code/addons/docs/src/blocks/controls/Boolean.tsx:L104]` |
-| `BooleanControl` | component | `(props: BooleanProps) => JSX.Element` — toggle switch | `[AST:code/addons/docs/src/blocks/controls/Boolean.tsx:L117]` |
+| `BooleanControl` | component | `FC<BooleanProps>` — toggle switch | `[AST:code/addons/docs/src/blocks/controls/Boolean.tsx:L117]` |
 | `ColorControlProps` | type | `ControlProps<ColorValue> & ColorConfig` | `[AST:code/addons/docs/src/blocks/controls/Color.tsx:L360]` |
 | `ColorControl` | component | `(props: ColorControlProps) => JSX.Element` — color picker with color-space cycling | `[AST:code/addons/docs/src/blocks/controls/Color.tsx:L361]` |
 | `DateProps` | type | `ControlProps<DateValue> & DateConfig` | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L68]` |
-| `DateControl` | component | `(props: DateProps) => JSX.Element` — date + time picker | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L69]` |
+| `DateControl` | component | `FC<DateProps>` — date + time picker | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L69]` |
 | `parseDate` | function | `(value: string) => Date` — YYYY-MM-DD parse helper | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L11]` |
 | `parseTime` | function | `(value: string) => Date` — HH:MM parse helper | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L18]` |
 | `formatDate` | function | `(value: Date \| number) => string` | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L26]` |
 | `formatTime` | function | `(value: Date \| number) => string` | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L34]` |
 | `FilesControlProps` | interface | `extends ControlProps<string[]> { accept?: string }` | `[AST:code/addons/docs/src/blocks/controls/Files.tsx:L11]` |
-| `FilesControl` | component | `(props: FilesControlProps) => JSX.Element` — file input | `[AST:code/addons/docs/src/blocks/controls/Files.tsx:L40]` |
-| `NumberControl` | component | `(props: NumberProps) => JSX.Element` — number input with min/max/step | `[AST:code/addons/docs/src/blocks/controls/Number.tsx:L28]` |
+| `FilesControl` | component | `FC<FilesControlProps>` — file input | `[AST:code/addons/docs/src/blocks/controls/Files.tsx:L40]` |
+| `NumberControl` | component | `FC<NumberProps>`, with the module-local `NumberProps = ControlProps<NumberValue \| null> & NumberConfig` — number input with min/max/step | `[AST:code/addons/docs/src/blocks/controls/Number.tsx:L28]` |
 | `parse` | function | `(value: string) => number \| undefined` — Number control parse helper | `[AST:code/addons/docs/src/blocks/controls/Number.tsx:L17]` |
 | `format` | function | `(value: NumberValue) => string` — Number control format helper | `[AST:code/addons/docs/src/blocks/controls/Number.tsx:L22]` |
 | `ObjectProps` | type | `ControlProps<ObjectValue> & ObjectConfig` | `[AST:code/addons/docs/src/blocks/controls/Object.tsx:L164]` |
-| `ObjectControl` | component | `(props: ObjectProps) => JSX.Element` — JSON tree editor | `[AST:code/addons/docs/src/blocks/controls/Object.tsx:L166]` |
-| `RangeControl` | component | `(props: RangeProps) => JSX.Element` — slider with min/max labels | `[AST:code/addons/docs/src/blocks/controls/Range.tsx:L178]` |
+| `ObjectControl` | component | `FC<ObjectProps>` — JSON tree editor | `[AST:code/addons/docs/src/blocks/controls/Object.tsx:L166]` |
+| `RangeControl` | component | `FC<RangeProps>`, with the module-local `RangeProps = ControlProps<NumberValue \| null> & RangeConfig` — slider with min/max labels | `[AST:code/addons/docs/src/blocks/controls/Range.tsx:L178]` |
 | `TextProps` | type | `ControlProps<TextValue \| undefined> & TextConfig` | `[AST:code/addons/docs/src/blocks/controls/Text.tsx:L11]` |
-| `TextControl` | component | `(props: TextProps) => JSX.Element` — textarea with max-length | `[AST:code/addons/docs/src/blocks/controls/Text.tsx:L23]` |
+| `TextControl` | component | `FC<TextProps>` — textarea with max-length | `[AST:code/addons/docs/src/blocks/controls/Text.tsx:L23]` |
 | `OptionsProps` | type | `ControlProps<OptionsSelection> & OptionsConfig` | `[AST:code/addons/docs/src/blocks/controls/options/Options.tsx:L40]` |
-| `OptionsControl` | component | `(props: OptionsProps) => JSX.Element` — dispatcher → CheckboxControl / RadioControl / SelectControl | `[AST:code/addons/docs/src/blocks/controls/options/Options.tsx:L41]` |
-| `CheckboxControl` | component | `(props: CheckboxProps) => JSX.Element` — multi-select checkbox group | `[AST:code/addons/docs/src/blocks/controls/options/Checkbox.tsx:L57]` |
-| `RadioControl` | component | `(props: RadioProps) => JSX.Element` — single-select radio group | `[AST:code/addons/docs/src/blocks/controls/options/Radio.tsx:L57]` |
-| `SelectControl` | component | `(props: SelectProps) => JSX.Element` — dropdown select (single or multi) | `[AST:code/addons/docs/src/blocks/controls/options/Select.tsx:L170]` |
+| `OptionsControl` | component | `FC<OptionsProps>` — dispatcher → CheckboxControl / RadioControl / SelectControl | `[AST:code/addons/docs/src/blocks/controls/options/Options.tsx:L41]` |
+| `CheckboxControl` | component (internal, not importable) | `FC<CheckboxProps>` (module-local props) — multi-select checkbox group that `OptionsControl` renders for `check` / `inline-check`. The controls barrel re-exports only `OptionsControl` and `OptionsProps` from `options/` (`controls/options/index.ts:1` → `Options.tsx`). | `[AST:code/addons/docs/src/blocks/controls/options/Checkbox.tsx:L57]` |
+| `RadioControl` | component (internal, not importable) | `FC<RadioProps>` (module-local props) — single-select radio group that `OptionsControl` renders for `radio` / `inline-radio`; import `OptionsControl` instead. | `[AST:code/addons/docs/src/blocks/controls/options/Radio.tsx:L57]` |
+| `SelectControl` | component (internal, not importable) | `FC<SelectProps>` (module-local props) — dropdown that `OptionsControl` renders for `select` / `multi-select`; import `OptionsControl` instead. | `[AST:code/addons/docs/src/blocks/controls/options/Select.tsx:L170]` |
 
 **Custom controls panel usage:** You rarely need to import these individually — the `Controls` doc-block handles dispatching automatically based on `argTypes[key].control.type`. Reach for the primitives only when building an addon that renders its own controls UI (e.g., a visual-testing panel that needs inline range sliders).

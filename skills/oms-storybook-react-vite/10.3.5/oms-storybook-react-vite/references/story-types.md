@@ -178,7 +178,7 @@ type Parameters = { [name: string]: any };
 
 ## Portable stories utilities
 
-**Canonical import path:** these symbols are **defined** in `code/renderers/react/src/portable-stories.tsx` (the renderer package) and re-exported from `@storybook/react`, `@storybook/react-vite`, *and* `storybook/preview-api`. For story-authoring code on a React+Vite project, prefer `import { composeStories, setProjectAnnotations } from '@storybook/react-vite'` — framework-aligned and stable across renderer upgrades. The `storybook/preview-api` re-export exists but is not framework-specific and should only be used by non-renderer infrastructure code.
+**Canonical import path:** these symbols are **defined** in `code/renderers/react/src/portable-stories.tsx` (the renderer package) and re-exported from `@storybook/react` (`code/renderers/react/src/index.ts:5`) and `@storybook/react-vite` (`code/frameworks/react-vite/src/index.ts:1`). For story-authoring code on a React+Vite project, prefer `import { composeStories, setProjectAnnotations } from '@storybook/react-vite'` — framework-aligned and stable across renderer upgrades. `storybook/preview-api` does not re-export these: its `composeStory`, `composeStories` and `setProjectAnnotations` are core's renderer-agnostic functions (`code/core/src/preview-api/index.ts:51-62`), with different signatures (see `core-api.md`), meant for non-renderer infrastructure code.
 
 ```ts
 // code/renderers/react/src/portable-stories.tsx:46
@@ -280,18 +280,25 @@ CSF4 (introduced in v10) offers a factory-based alternative to the CSF3 object f
 
 ```ts
 // code/renderers/react/src/preview.tsx
-export function __definePreview<Addons>(input: PreviewInput): ReactPreview<Addons>;
+export function __definePreview<Addons extends PreviewAddon<never>[]>(
+  input: { addons: Addons } & ProjectAnnotations<ReactTypes & InferTypes<Addons>>
+): ReactPreview<ReactTypes & InferTypes<Addons>>;
 
-export interface ReactPreview<T extends AddonTypes> {
-  type<R>(): NarrowedPreview;
-  meta<TArgs, Decorators, TMetaArgs>(config): ReactMeta<T, TMetaArgs>;
+export interface ReactPreview<T extends AddonTypes> extends Preview<ReactTypes & T> {  // :102
+  type<R>(): ReactPreview<T & R>;  // narrows the preview with extra types, e.g. args not inferred from the component
+  meta<TArgs extends Args, Decorators extends DecoratorFunction<ReactTypes & T, any>, TMetaArgs extends Partial<TArgs & T['args']>>(
+    meta: { render?; component?: ComponentType<TArgs>; decorators?: Decorators | Decorators[]; args?: TMetaArgs }
+      & Omit<ComponentAnnotations<ReactTypes & T, TArgs>, 'decorators' | 'component' | 'args' | 'render'>
+  ): ReactMeta<InferReactTypes<T, TArgs, Decorators>, /* component annotations with the meta's args */>;
 }
 
-export interface ReactMeta<T, MetaInput> {
-  story(config): ReactStory<T, TInput>;  // multiple overloads
+export interface ReactMeta<T extends ReactTypes, MetaInput extends ComponentAnnotations<T>>  // :147
+  extends Meta<T, MetaInput> {
+  story(/* a story object or a render function */): ReactStory<T, /* the story input */>;  // several overloads
 }
 
-export interface ReactStory<T, TInput> extends Story<T, TInput> {
+export interface ReactStory<T extends ReactTypes, TInput extends StoryAnnotations<T, T['args']>>  // :249
+  extends Story<T, TInput> {
   Component: ComponentType<Partial<T['args']>>;  // for portable stories
 }
 ```
@@ -299,7 +306,7 @@ export interface ReactStory<T, TInput> extends Story<T, TInput> {
 **Usage (CSF4):**
 ```ts
 // .storybook/preview.ts
-import { definePreview } from '@storybook/react';
+import { definePreview } from '@storybook/react-vite';  // @storybook/react exports it only as __definePreview
 const preview = definePreview({ /* config */ });
 export default preview;
 

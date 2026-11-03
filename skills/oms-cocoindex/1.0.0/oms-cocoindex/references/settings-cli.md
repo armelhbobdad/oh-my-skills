@@ -23,7 +23,9 @@ class Settings:
     @classmethod
     def from_env(cls, db_path: os.PathLike[str] | None = None) -> Self: ...
 ```
-[AST:python/cocoindex/setting.py:L44] [:L53]
+[AST:python/cocoindex/_internal/setting.py:L56] [SRC:python/cocoindex/_internal/setting.py:L65] · twin in `cocoindex.setting`: [SRC:python/cocoindex/setting.py:L44] [:L53]
+
+`coco.Settings` is `cocoindex._internal.setting.Settings` (re-exported through `_internal/api.py`). `cocoindex.setting.Settings` is a separate class object with the same fields and `from_env`; the only difference between the two modules is `_internal`'s `get_default_db_path()`. Pass `coco.Settings` wherever the runtime expects settings.
 
 **Breaking change from v0.3.37.** v0.3.37's `Settings` had `database: DatabaseConnectionSpec`, `db_schema_name`, `app_namespace`, `ignore_target_drop_failures` — **all four are gone**. v1.0.0 stores everything in a local **LMDB** file at `db_path`.
 
@@ -34,7 +36,7 @@ class Settings:
 - `COCOINDEX_LMDB_MAX_DBS` (parsed as int, defaults to `1024`)
 - `COCOINDEX_LMDB_MAP_SIZE` (parsed as int, defaults to `0x1_0000_0000` = 4 GiB)
 
-The default db_path env var is read by `cocoindex._internal.setting.get_default_db_path()` ([AST:python/cocoindex/_internal/setting.py:L12]) which checks `COCOINDEX_DB`. The public `cocoindex.setting.Settings.from_env` does NOT read `COCOINDEX_DB` — pass `db_path` explicitly or set it in your `lifespan` builder:
+The default db_path env var is read by `cocoindex._internal.setting.get_default_db_path()` ([AST:python/cocoindex/_internal/setting.py:L12]) which checks `COCOINDEX_DB`. `Settings.from_env` (in either module) does NOT read `COCOINDEX_DB` — pass `db_path` explicitly or set it in your `lifespan` builder:
 
 ```python
 @coco.lifespan
@@ -57,7 +59,7 @@ class ServerSettings:
     @staticmethod
     def parse_cors_origins(s: str | None) -> list[str] | None: ...
 ```
-[AST:python/cocoindex/setting.py:L93] [:L102] [:L123]
+[AST:python/cocoindex/setting.py:L93] [SRC:python/cocoindex/setting.py:L103] [:L124]
 
 `ServerSettings.from_env()` reads `COCOINDEX_SERVER_ADDRESS` and `COCOINDEX_SERVER_CORS_ORIGINS` (CSV-split, whitespace-trimmed). v1.0.0 retains `ServerSettings` as a type but the `cocoindex server` CLI subcommand from v0.3.37 was **removed** — `ServerSettings` is now reserved for future server tooling or custom embedded servers.
 
@@ -116,22 +118,24 @@ def cli(env_file: str | None = None, app_dir: str | None = "") -> None: ...
 ### Subcommands
 
 ```sh
-cocoindex ls   [APP_TARGET] [--db PATH]                 # List apps registered in the LMDB store
-cocoindex show APP_TARGET [--verbose] [--persisted]     # Show app details
-cocoindex update APP_TARGET [-L|--live] [--full-reprocess] [--quiet]
-cocoindex drop APP_TARGET [-f|--force] [--quiet]
+cocoindex ls   [APP_TARGET] [--db PATH]                 # List apps (from the module, or from the LMDB store)
+cocoindex show [APP_TARGET] [--db PATH --app-name NAME] [--tree]  # Show the app's stable paths
+cocoindex update APP_TARGET [-L|--live] [--full-reprocess] [--reset] [-f|--force] [-q|--quiet]
+cocoindex drop APP_TARGET [-f|--force] [-q|--quiet]
 cocoindex init [PROJECT_NAME] [--dir PATH]
 ```
-[AST:python/cocoindex/cli.py:L522] [:L561] [:L692] [:L761] [:L819]
+[AST:python/cocoindex/cli.py:L530] [:L581] [:L692] [:L761] [:L819]
 
-**APP_TARGET** is a path to a `.py` file or an installed module name. `_load_app(app_target)` ([AST:python/cocoindex/cli.py:L274]) imports the module and looks for a top-level `App` instance.
+`show` needs either `APP_TARGET` or both `--db` and `--app-name` (inspect an app straight from its database without loading the module); `--tree` prints the stable paths as a tree. `update --reset` drops the app's existing state before updating, asking for confirmation unless `-f`.
+
+**APP_TARGET** is `path/to/app.py` or a module name, optionally followed by `:app_name` or `:app_name@env_name`. `_load_app(app_target)` ([SRC:python/cocoindex/cli.py:L274]) imports the module, collects the `App` instances it registered, and picks the one named `app_name` (or the only one when no name is given).
 
 **v0.3.37 → v1.0.0 CLI changes:**
 - `cocoindex setup` — gone. Setup is implicit on first `update`.
 - `cocoindex evaluate` — gone. There is no `Flow.evaluate_and_dump` equivalent in v1.0.0.
 - `cocoindex server` — gone (the embedded HTTP server is gone too, see ServerSettings note above).
 - `cocoindex init` — NEW. Scaffolds a project skeleton.
-- `cocoindex ls` — semantics changed. Listed flows in v0.3.37; lists registered apps from the LMDB store in v1.0.0. `_get_persisted_app_names(env)` ([AST:python/cocoindex/cli.py:L131]) is the discovery mechanism.
+- `cocoindex ls` — semantics changed. Listed flows in v0.3.37; lists registered apps from the LMDB store in v1.0.0. `_get_persisted_app_names(env)` ([SRC:python/cocoindex/cli.py:L131]) is the discovery mechanism.
 
 ### Specifying APP_TARGET
 
@@ -139,13 +143,15 @@ cocoindex init [PROJECT_NAME] [--dir PATH]
 cocoindex update main.py                  # Path to a .py file
 cocoindex update my_package.indexer       # Installed module name
 cocoindex -d ./src update indexer.py      # Path relative to ./src
+cocoindex update main.py:MyApp            # The app whose AppConfig.name is "MyApp"
+cocoindex update main.py:MyApp@alpha      # ... registered in the environment named "alpha"
 ```
 
-The v0.3.37 `APP_TARGET:FLOW_NAME` syntax (`main.py:my_flow`) is not supported — apps are uniquely identified by their `App.name` attribute, not by module-level symbol selection. To run a different app from the same module, instantiate it under a different `AppConfig.name` and load via the appropriate module.
+The suffix after `:` names an **app** (its `AppConfig.name`; the CLI accepts only a valid Python identifier there), not a v0.3.37 flow or a module-level symbol. Without a suffix the module must register exactly one app; with several, `_load_app` raises and lists the available names. [SRC:python/cocoindex/cli.py:L82]
 
 ### Lifespan integration in CLI
 
-`cli.py` defines its own `coco_lifespan` ([AST:python/cocoindex/cli.py:L358]) that wraps the user's app loading. When users decorate their own function with `@coco.lifespan`, it registers with the default environment; the CLI's lifespan composes with the user's at start time.
+The CLI has no lifespan of its own: when the user's module decorates a function with `@coco.lifespan`, it registers with the default environment, which the loaded `App` uses unless its `AppConfig.environment` names another one. The `coco_lifespan` in `cli.py` ([SRC:python/cocoindex/cli.py:L358]) is template text inside the `main.py` that `cocoindex init` writes (`_create_project_files`, [SRC:python/cocoindex/cli.py:L343]); it sets `builder.settings.db_path = pathlib.Path("./cocoindex.db")`.
 
 ## ContextKey + ContextProvider plumbing
 
@@ -171,6 +177,6 @@ class ContextProvider:
     def get(self, key: ContextKey[T] | str, t: type[T] | None = None) -> Any: ...
     async def aclose(self) -> None: ...
 ```
-[AST:python/cocoindex/_internal/context_keys.py:L124] [:L177] [:L238] [:L242] [:L248] [:L271]
+[AST:python/cocoindex/_internal/context_keys.py:L124] [SRC:python/cocoindex/_internal/context_keys.py:L177] [:L238] [:L242] [:L254] [:L271]
 
 `ContextProvider` is owned by the `Environment` (you don't construct it manually). The `EnvironmentBuilder.provide*` methods delegate to it. `provide_with` / `provide_async_with` enter the supplied context manager on the provider's exit stack, ensuring teardown when the lifespan exits.

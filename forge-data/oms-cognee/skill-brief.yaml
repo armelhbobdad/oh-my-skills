@@ -16,14 +16,18 @@ scope:
   include:
   - cognee/__init__.py
   - cognee/version.py
-  - cognee/pipelines.py
+  - cognee/pipelines/**
   - cognee/low_level.py
   - cognee/api/v1/**
   - cognee/modules/memify/**
   - cognee/modules/run_custom_pipeline/**
   - cognee/modules/pipelines/**
   - cognee/modules/visualization/**
-  - cognee/modules/observability/trace_context/**
+  - cognee/modules/observability/trace_context.py
+  - cognee/modules/search/types/SearchType.py
+  - cognee/modules/agent_memory/decorator.py
+  - cognee/migration/**
+  - cognee/modules/migration/**
   - cognee/exceptions/**
   - cognee/skill.md
   - README.md
@@ -156,6 +160,33 @@ scope:
       it'
     date: '2026-10-07'
     workflow: skf-update-skill
+  - path: scope.include
+    action: corrected
+    category: stale-glob
+    evidence: 'cognee/pipelines.py and cognee/modules/observability/trace_context/**
+      matched no file at ba3631f2 (strict re-test 20261103T100018Z-79591395, GAP-064);
+      they are now cognee/pipelines/** and cognee/modules/observability/trace_context.py.
+      cognee/modules/search/types/SearchType.py and cognee/modules/agent_memory/decorator.py
+      were added because they define documented exports (commit 87b7590).'
+    reason: 'With every glob matching, the stale-scope guard no longer restores the
+      whole cognee/__init__.py barrel, so the denominator went from 92 to 66: 26 names
+      from cognee/modules/migration moved out of scope. With the 6 the brief already
+      left out (run_migrations among them), 32 root exports sit outside scope.include,
+      all still documented.'
+    date: '2026-11-03'
+    workflow: manual
+  - path: cognee/migration/**, cognee/modules/migration/**
+    action: promoted
+    category: scope-expansion
+    evidence: exports the cognee.migration names (COGX*, GraphEdge, GraphSnapshot, the
+      *Source classes, IMPORT_MODES, build_snapshot, datapoint_registry, read_archive,
+      read_manifest, rehydrate_node) through `cognee/__init__.py` (`from . import migration`)
+    reason: 'Keep the 26 cognee.migration names measured, as the published 99.00% run
+      did: the stale-glob correction above had moved them out of scope without anyone
+      deciding to. With both globs, the barrel denominator is 92 again and only the 6
+      long-excluded names sit outside scope.include.'
+    date: '2026-11-03'
+    workflow: manual
 doc_urls:
 - url: https://docs.cognee.ai/
   label: Official cognee documentation
