@@ -91,10 +91,13 @@ provenance map): for a gap with an `export` (null for one with none),
    "candidates": [{"source_file", "source_line", "export_type"}, ...]}
 
 `candidates` holds every entries[] row whose export_name is the export, in
-the map's order. With a `source_citation`, only the rows whose source_file
-is the citation's file count (both compared stripped, with backslashes read
-as `/` and no leading `./`), and of several such rows the one whose
-source_line is the citation's line. Without one, every candidate counts.
+the map's order; when no row has that export_name, every row whose
+`reexported_as` is the export (one the map holds under its declared name,
+which a gap names by the public name a re-export gives it), each view then
+adding the row's own `export_name`. With a `source_citation`, only the
+rows whose source_file is the citation's file count (both compared
+stripped, with backslashes read as `/` and no leading `./`), and of
+several such rows the one whose source_line is the citation's line. Without one, every candidate counts.
 One row left is `found` (its `entry`), several are `ambiguous` (a spot-check
 of the wrong one would move another export's line) and none is `not-found`.
 `match` prints {"status": "ok", "name", "citation", "map_match"} for a name
@@ -142,16 +145,34 @@ Translate (update-skill gap-driven.md §1): `translate` turns the gaps
 `parse` wrote (--gaps) into the change manifest, written to -o as
 {"mode": "gap-driven", "entries": [...]}. Each gap is routed by its
 `category` through CHANGE_CATEGORIES (gap-driven.md §1's table), never by
-its severity; a category the table does not hold is not routed. Each
-entry, in this key order:
+its severity; a category the table does not hold is not routed, and takes
+no entry, so nothing is written for it. A `stale-documentation` gap is not
+routed: the source has no line to repair the name from, and removing its
+documentation unchecked could delete a name the surface missed or one the
+source still declares. Nor is a `metadata-drift` gap: write.md §2's
+`metadata` call recounts the counts a patch would set (except under the
+drift override and for a docs-only skill, where it passes the counts
+metadata.json records), so no metadata patch holds. Each entry, in this
+key order:
 
   name                      the gap's `export`, else the answered `name`
   gap_id, category          the gap's `id`, its `category` (else the
                             answered one), `severity`
   severity
   source_citation           the gap's, left out when it is null or names a
-                            line inside the skill package (`SKILL.md` or a
-                            `references/*.md` file, under any folder)
+                            line inside the skill package: `SKILL.md` or a
+                            `.md` file under `references/`, written relative
+                            to the package, after `{skill_package}/`, or
+                            after the package folder of SKF's layout
+                            (`skills/{name}/{version}/{name}/` or
+                            `skills/{name}/`, after any leading folders)
+  package_citation          a `split-body-mismatch` gap's in-package
+                            citation, {"file", "line"}, its file relative to
+                            the package (`{skill_package}/` dropped): the
+                            file merge Priority 8 edits. Left out for any
+                            other gap, and for one whose category is a
+                            judgment's answer: an older report's Source may
+                            name the body it kept
   remediation_paths, resolved_paths, rejected_paths
                             the gap's ([] when parse had no --source-root);
                             a `provenance-completeness` gap with no
@@ -193,14 +214,20 @@ the gap's own text to judge from, each need one of:
                `provenance-completeness` gap with no path to scan
 
 --judgments answers them: a JSON object keyed by gap id, each value an
-object of `category` (a slug, or null: not routed), `name` (a string, or
+object of `category` (a slug, one the table does not route giving that
+category's reason, or null: not routed), `name` (a string, or
 null: not routed), `rescope` (true or false; given for any `missing-export`
 or `missing-type` gap, it is honoured) and `source_file` (a path relative
 to the source root, or null). Other keys are left for gap-records. With
 every need answered it writes the manifest and prints {"status":
 "written", "output", "gap_count", "not_routed": [{"id", "title",
-"category"}], "warnings": [...]}. `warnings` holds parse's warnings as
-`test-report: <warning>`, `test-report: not routed: <id> (<category>)` for
+"category", "reason"}], "warnings": [...]}. A not-routed gap's `reason`
+says why update-skill does not repair it and who does: NOT_ROUTED_REASONS
+gives one for each ledger category the table does not route (gap-driven.md
+§1's Not routed list), NO_REPAIR is the reason of a gap with no
+category or one no table holds, and NO_EXPORT that of a gap whose export
+is answered null. `warnings` holds parse's warnings as `test-report:
+<warning>`, `test-report: not routed: <id> (<category>): <reason>` for
 each gap not routed, and, with --read-only, `proposed-amendment: excluded
 <path> (scope-expansion); not written: --<mode>` for each rescope.
 
@@ -865,10 +892,16 @@ def _line_number(value: object) -> int | None:
 def map_match(entries: list, name: str, citation: dict | None) -> dict:
     """The provenance map entry an export names, keyed on its citation (see "Map match" in the module docstring)."""
     def view(entry: dict) -> dict:
-        return {key: entry.get(key) for key in ("source_file", "source_line", "export_type")}
+        out = {key: entry.get(key) for key in ("source_file", "source_line", "export_type")}
+        if entry["export_name"].strip() != name.strip():  # matched by its reexported_as: the name to check
+            out["export_name"] = entry["export_name"]
+        return out
 
-    named = [e for e in entries if isinstance(e, dict) and isinstance(e.get("export_name"), str)
-             and e["export_name"].strip() == name.strip()]
+    def named_by(key: str) -> list[dict]:
+        return [e for e in entries if isinstance(e, dict) and isinstance(e.get("export_name"), str)
+                and isinstance(e.get(key), str) and e[key].strip() == name.strip()]
+
+    named = named_by("export_name") or named_by("reexported_as")
     left = named
     if citation:
         cited = _norm_file(citation.get("file"))
@@ -959,7 +992,6 @@ CHANGE_CATEGORIES = {
     "provenance-completeness": "NEW_EXPORT",
     "signature-mismatch": "MODIFIED_EXPORT",
     "fabricated-signature": "MODIFIED_EXPORT",
-    "stale-documentation": "MODIFIED_EXPORT",
     "provenance-line": "MOVED_EXPORT",
     "split-body-mismatch": "STRUCTURAL_FIX",
     "structural": "STRUCTURAL_FIX",
@@ -969,9 +1001,51 @@ CHANGE_CATEGORIES = {
     "integration-pattern": "STRUCTURAL_FIX",
     "migration-section": "STRUCTURAL_FIX",
     "scripts-assets": "STRUCTURAL_FIX",
-    "metadata-drift": "metadata update",
     "metadata": "metadata update",
 }
+# gap-driven.md §1's Not routed list, word for word: why update-skill repairs no gap of each other ledger category,
+# and who does. A gap takes NO_REPAIR when it has no category or one no table holds, and NO_EXPORT when its export
+# is answered null.
+NOT_ROUTED_REASONS = {
+    "stale-documentation": (
+        "the source has no line to repair the name from, so a person removes its documentation when the name is "
+        "gone from the source, fixes the brief's scope when the surface missed it, or, when the source still "
+        "declares the name, keeps the documentation and re-runs Test Skill at a tier that classifies it"),
+    "metadata-drift": (
+        "update-skill recounts `stats.exports_public_api`, `stats.exports_documented` and "
+        "`stats.effective_denominator` each time it writes metadata.json, so a metadata patch to them does not hold "
+        "(under `--allow-workspace-drift` and for a docs-only skill it keeps the recorded public API counts and "
+        "`stats.effective_denominator` instead); Create Skill rebuilds diverging barrel counts from the source and "
+        "recounts a `stats.effective_denominator` the brief's `scope.tier_a_include` set disagrees with "
+        "(denominator drift), a person fixes denominator deflation on a brief with no tier A list by adding "
+        "`scope.tier_a_include` to it, and documented-surface counts that differ by the `Type::method` entries the "
+        "named-export count leaves out need no fix"),
+    "provenance-unverified": (
+        "the line-check rules could not verify the line, or the recorded line is not a number, so a person checks "
+        "by hand which line defines the export and, when it is not the recorded one, sets its provenance "
+        "`source_line` to that line"),
+    "denominator-inflation": (
+        "it concerns the brief's scope and the count design, which a person decides in the skill brief, as the "
+        "gap's remediation says"),
+    "brief-scope-stale": (
+        "a person edits the brief's scope globs by hand so each matches the files it meant, since update-skill "
+        "does not rewrite them"),
+    "multi-denominator": (
+        "no fix is needed, since the barrel and the documented surface measure different sets by design and the "
+        "report records both counts"),
+    "numerator-inflation": "a person documents the absent exports in SKILL.md or references/, reading each from "
+                           "the source",
+    "scripts-assets-provenance": "a person adds the file's row to the provenance map's `file_entries`, or removes "
+                                 "the file from the skill",
+    "observation": "a person applies it only when they agree, since it is advisory, and a documented extra needs no "
+                   "change",
+    "discovery": "a person improves the skill's description so realistic prompts route to it, or runs the discovery "
+                 "test Test Skill skipped",
+    "description": "a person edits the description in the SKILL.md frontmatter as the gap suggests",
+    "external-validator": "a person applies the skill-check diagnostic or Tessl Review suggestion to SKILL.md",
+}
+NO_REPAIR = "update-skill has no repair for this category, so a person follows the gap's remediation"
+NO_EXPORT = "it names no export for update-skill to repair, so a person follows the gap's remediation"
 EXPORT_CATEGORIES = ("NEW_EXPORT", "MODIFIED_EXPORT", "MOVED_EXPORT", "DELETED_EXPORT")
 RESCOPE_CATEGORIES = ("missing-export", "missing-type")  # rule R1
 COMPLETENESS = "provenance-completeness"  # rule R3
@@ -985,8 +1059,14 @@ _LEDGER_REMEDIATION = re.compile(
     r"|Find the \d+ exports the denominator counts that SKILL\.md and references/ do not name "
     r"\(`[^`\n]+` lists the exports\) and document each with its signature\."
 )
-# A citation of generated markdown: the skill's SKILL.md or a references/*.md file.
-_PACKAGE_FILE = re.compile(r"(?:^|/)(?:SKILL\.md|references/[^/]+\.md)$")
+# A citation of generated markdown: the skill's SKILL.md or a .md file under its references/, relative to the
+# package, after `{skill_package}/`, or after the package folder of SKF's layout as a project-relative path
+# (`skills/{name}/{version}/{name}/`, or the flat `skills/{name}/`, after any leading folders). A path under any
+# other folder (`docs/references/guide.md`) is source.
+_PACKAGE_FILE = re.compile(
+    r"(?:\{skill_package\}/|(?:[^/]+/)*skills/(?P<name>[^/]+)/(?:[^/]+/(?P=name)/)?)?"
+    r"(?P<file>SKILL\.md|references/(?:[^/]+/)*[^/]+\.md)")
+SPLIT_BODY = "split-body-mismatch"
 # The answers translate reads, with the JSON types each takes.
 _ANSWER_TYPES = {"category": (str, type(None)), "name": (str, type(None)), "rescope": (bool,),
                  "source_file": (str, type(None))}
@@ -994,14 +1074,38 @@ _IS_WINDOWS = os.name == "nt"
 _REPLACE_WAIT_SECONDS = 5.0
 
 
+def _package_path(citation: dict | None) -> str | None:
+    """The citation's file relative to the skill package, or None when it names no file of the package."""
+    path = _norm_file(citation.get("file")) if isinstance(citation, dict) else None
+    path = path.strip("`") if path else None
+    found = _PACKAGE_FILE.fullmatch(path) if path and ".." not in path.split("/") else None
+    return found.group("file") if found else None
+
+
 def in_skill_package(citation: dict | None) -> bool:
     """True when a citation names a line of generated markdown, not source.
 
-    >>> [in_skill_package({"file": f, "line": 1}) for f in ("SKILL.md", "{skill_package}/references/api.md", "src/a.ts")]
-    [True, True, False]
+    >>> [in_skill_package({"file": f, "line": 1}) for f in ("SKILL.md", "{skill_package}/references/api.md",
+    ...                                                     "references/integrations/a-b.md", "src/a.ts",
+    ...                                                     "skills/oms-cognee/0.5.8/oms-cognee/SKILL.md",
+    ...                                                     "docs/references/guide.md")]
+    [True, True, True, False, True, False]
     """
-    path = _norm_file(citation.get("file")) if isinstance(citation, dict) else None
-    return bool(path and _PACKAGE_FILE.search(path))
+    return _package_path(citation) is not None
+
+
+def package_citation(citation: dict | None) -> dict | None:
+    """An in-package citation with its file relative to the package, else None.
+
+    >>> for f in ("{skill_package}/references/api.md", "SKILL.md", "skills/lib/references/api.md", "src/a.ts"):
+    ...     print(package_citation({"file": f, "line": 3}))
+    {'file': 'references/api.md', 'line': 3}
+    {'file': 'SKILL.md', 'line': 3}
+    {'file': 'references/api.md', 'line': 3}
+    None
+    """
+    path = _package_path(citation)
+    return {"file": path, "line": citation.get("line")} if path else None
 
 
 def written_remediation(text: object) -> bool:
@@ -1051,9 +1155,10 @@ def translate_gaps(parsed: dict, map_entries: list, judgments: dict, *, read_onl
     entries: list[dict] = []
     not_routed: list[dict] = []
 
-    def skip(gap: dict, category: str | None) -> None:
-        not_routed.append({"id": gap["id"], "title": gap.get("title"), "category": category})
-        warnings.append(f"test-report: not routed: {gap['id']} ({category or 'no category'})")
+    def skip(gap: dict, category: str | None, reason: str | None = None) -> None:
+        reason = reason or NOT_ROUTED_REASONS.get(category or "", NO_REPAIR)
+        not_routed.append({"id": gap["id"], "title": gap.get("title"), "category": category, "reason": reason})
+        warnings.append(f"test-report: not routed: {gap['id']} ({category or 'no category'}): {reason}")
 
     def ask(gap: dict, category: str | None, want: list[str]) -> None:
         needs.append({"gap_id": gap["id"], "title": gap.get("title"), "category": category,
@@ -1079,11 +1184,14 @@ def translate_gaps(parsed: dict, map_entries: list, judgments: dict, *, read_onl
         name = export or _answer_text(answers.get("name"))
         if change in EXPORT_CATEGORIES and name is None:
             if "name" in answers:  # answered null: no export to repair
-                skip(gap, category)
+                skip(gap, category, NO_EXPORT)
             else:
                 ask(gap, category, ["name"])
             continue
         citation = gap.get("source_citation")
+        # the gap's own category, which the ledger recorded: a judged one is an older report's, whose Source may
+        # name the body that report still kept
+        package = package_citation(citation) if gap.get("category") == SPLIT_BODY else None
         if in_skill_package(citation):
             citation = None
         match = map_match(map_entries, name, citation) if name else None
@@ -1123,6 +1231,8 @@ def translate_gaps(parsed: dict, map_entries: list, judgments: dict, *, read_onl
         entry = {"name": name, "gap_id": gap["id"], "category": category, "severity": gap.get("severity")}
         if citation:
             entry["source_citation"] = citation
+        if package:
+            entry["package_citation"] = package
         entry["remediation_paths"] = list(gap.get("remediation_paths") or [])
         entry["resolved_paths"] = resolved
         entry["rejected_paths"] = rejected

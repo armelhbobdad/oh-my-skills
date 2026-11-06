@@ -3,6 +3,7 @@ nextStepFile: 'external-validators.md'
 outputFile: '{report_file}'
 outputFormatsFile: 'assets/output-section-formats.md'
 scoringRulesFile: 'references/scoring-rules.md'
+signatureRulesFile: 'references/signature-comparison-rules.md'
 coherenceAggregationScript: 'scripts/aggregate-coherence.py'
 locateExportSegmentsScript: 'scripts/locate-export-segments.py'
 migrationSectionRules: 'references/migration-section-rules.md'
@@ -77,23 +78,24 @@ uv run {scanSkillMdStructureHelper} usage-scope "{resolved_skill_package}/SKILL.
 The script decides split-body from the `references/` folder alone; whether the `## Full*` sections are stubs is your judgment, so pass `--body single` when a `references/` directory exists but those sections carry real content. Read `zero_usage[]` from the output:
 - **Zero occurrences across the entire scope → Medium severity** finding, one per `zero_usage[]` entry: `naive-coherence: exported {kind} \`{name}\` is not referenced in any usage-family section or reference file`. This catches the "documented but unused" failure mode that trivially fails discovery testing. Like a missing export, it is a completeness gap, so it does not block the hard gate.
 
-**2.5 Async/sync consistency.** `{locateExportSegmentsScript}` reports the facts: for each export the step 3 inventory lists with `kind` `function` or `method`, where the skill describes it (`descriptions[]`: the heading sections, table rows, list items and paragraphs that name it in code, and the signature lines that declare it) and each call to it in fenced code, with whether the call awaits it. It reads the names from the validated inventory file itself, keeping the `function` and `method` entries, so no name is copied by hand. Skip this check when the inventory has no such export; otherwise run the script (it resolves relative to the skill root):
+**2.5 Async/sync consistency.** `{locateExportSegmentsScript}` reports the facts: for each export the step 3 inventory lists with `kind` `function` or `method`, and each method a class, interface, struct, trait or type entry lists in `methods`, with that entry as its `owner`, where the skill describes it (`descriptions[]`: the heading sections, table rows, list items and paragraphs that name it in code, and the signature lines that declare it) and each call to it in fenced code, with whether the call awaits it (`awaited`) and how (`awaitedVia`): `direct` when the await applies to the call itself (`directlyAwaited`), `chain` when it applies to a member, subscript, call or group around the call, `consumer` for an async loop or context manager, and `argument` or `runner` when the call sits in the arguments of an awaited call or of a runner, whose callee `enclosingCallee` names. A method with an `owner` (a `method` entry that gives one, or an item of an entry's `methods`) counts only the calls on that owner or on a variable the same example binds to it (`receiverMatch` `owner` for `cognee.agents.get(...)`, `bound` for `gen.next_uuid()` after `gen = UuidGenerator()`); a call on another owner (`cognee.config.get(...)`) is not its call, and a call with no receiver or on one it cannot tie to the owner is listed in `unverifiedCalls[]` (for a method with no tied call, in `notCalledUnverified[]`). It reads the names from the validated inventory file itself, keeping the `function` and `method` entries and the `methods` of each class, interface, struct, trait or type entry, so no name is copied by hand. Skip this check when the inventory has no `function` or `method` entry and no class, interface, struct, trait or type entry with `methods`; otherwise run the script (it resolves relative to the skill root):
 
 ```bash
 uv run {locateExportSegmentsScript} --inventory "{run_dir}/inventory.json" --skill-dir "{resolved_skill_package}"
 ```
 
-The script judges no meaning. For each `exports[]` entry, read its `descriptions[]` and decide what they assert about **this** export. The word `async` in a description decides nothing:
+The script judges no meaning. For each `exports[]` entry, read its `descriptions[]` and decide what they assert about **this** export (with an `owner`, the method on that owner). The word `async` in a description decides nothing:
 
 - **async**: the caller must await what it returns (a promise, a coroutine or a future), as its signature or its description says. A Kotlin `suspend` function needs no `await`, so it makes no async claim here.
 - **sync**: it returns its result directly, for example as the blocking counterpart of an async export.
-- **no claim**: nothing says how it returns. A description that names a paired sync or async variant (`readFileSync` as "the sync counterpart of the async `readFile`"), or says async about another API, asserts nothing about this export.
+- **no claim**: nothing says how it returns. A description that names a paired sync or async variant (`readFileSync` as "the sync counterpart of the async `readFile`"), or says async about another API, such as a same-named method of another owner (`config.get` for `agents.get`), asserts nothing about this export.
 
 Then, for each export:
 
 - **async**, no call is awaited (`awaitedCount` is 0) and no unawaited call hands its result on → **High severity** finding: `naive-coherence: \`{name}\` described as async but example lacks \`await\`` (cite the first call's `file` and `line`). A call hands its result on when its `chainedMember` waits for it (`then`, `catch`, `join`, `get`), the example returns it (`return fetchData(x)` in an async function) or stores it and awaits it later: read the call lines before raising the finding.
-- **sync** and `awaitedCount` is above 0 → **High severity** finding: `naive-coherence: \`{name}\` described as sync but example awaits it` (cite the first awaited call).
-- Otherwise no finding. The names in `notCalled[]` appear in no example, so they raise none.
+- **sync** and `directlyAwaitedCount` is above 0 → **High severity** finding: `naive-coherence: \`{name}\` described as sync but example awaits it` (cite the first directly awaited call).
+- **sync**, `directlyAwaitedCount` is 0 and a call sits in the arguments of a call that needs awaitable arguments → the same **High severity** finding (cite the first such call's `file` and `line`): its `awaitedVia` is `runner` (a runner such as Python `asyncio.run` or `loop.run_until_complete`, Rust `block_on`), or `argument` with an `enclosingCallee` of Python `asyncio.gather`, `asyncio.wait` or `asyncio.wait_for`. JavaScript `Promise.all`, `Promise.race` and `Promise.allSettled` accept plain values, so a call in their arguments raises nothing, and neither does any other call that is `awaited` but not `directlyAwaited` (`awaitedVia` `chain`, `consumer`, or `argument` of another callee).
+- Otherwise no finding. The names in `notCalled[]` (a method as `owner.name`) have no call an example ties to them, so they raise none. A call in `unverifiedCalls[]` or `notCalledUnverified[]` raises none either. For an export with an `owner`, its finding's title writes `{owner}.{name}` for `{name}`, and so does its ledger record's `export`.
 
 **2.6 Table syntax.** Read `table_drift[]` from the second JSON blob (§2.0). The script normalizes escaped pipes (`\|`, used inside TypeScript union types such as `string \| undefined`) before splitting and compares each row against its header's column count, so a plain `split on |` false-positive cannot occur here. For each entry, emit a **Medium severity** finding: `naive-coherence: table row at line {entry.line} has {entry.actual_cols} columns; header has {entry.expected_cols}` (the `entry.section` and `entry.row` fields populate the detail when present).
 
@@ -143,16 +145,17 @@ SKILL.md's cross-references come in two kinds, and each has one owner:
 
 The scanned references need no further check: `{run_dir}/references.json` holds their statuses.
 
-Delegate the references §3's subagent found, in one batch, to a subagent that, for each one:
+Delegate the references §3's subagent found, in one batch, to a subagent given the absolute path of `{signatureRulesFile}` (under `{skill-root}`), that, for each one:
 
 1. Checks if the target exists (the skill exists in the skills output folder, the type is declared, the integration point is in the code)
 2. If the target exists, validates the reference is accurate:
    - Type imports: type is actually exported from the referenced module
    - Skill references: referenced skill exists in skills output folder
    - Integration patterns: documented pattern matches actual implementation
+   - Signatures: a documented signature matches its declaration by the rules of `{signatureRulesFile}` (`signature_match`)
 3. Returns only a JSON array, one object per reference, with no prose, no commentary and no markdown fences: `{"reference": "...", "line": N, "target_exists": <bool>, "type_match": <bool>, "signature_match": <bool>, "issues": ["..."]}`
 
-Save its response, as it came back, to `{run_dir}/judged-references.json` with the Write tool (no file when §3 found no such reference). If subagent unavailable, validate each reference in main thread and save the same array. §5c counts the valid references from both files, and classifies the invalid ones.
+Save its response, as it came back, to `{run_dir}/judged-references.json` with the Write tool (no file when §3 found no such reference). If subagent unavailable, load `{signatureRulesFile}`, validate each reference in main thread by it and save the same array. §5c counts the valid references from both files, and classifies the invalid ones.
 
 When `scripts_assets.missing` in `{run_dir}/references.json` is true (a `scripts/` or `assets/` folder beside SKILL.md, and no Scripts & Assets section), it is a Medium `scripts-assets` gap, as in naive mode §2.7; §6 records it from that file.
 
@@ -238,7 +241,7 @@ Then record every coherence gap in the gap ledger `{ledgerFile}`: the hard gate 
   uv run {gapLedgerScript} append --ledger "{ledgerFile}" --stage coherence-check --from structure --input "{run_dir}/references.json"
   ```
 
-Then write the records no script wrote, each in the Ledger Record Format of `{outputFormatsFile}`: the §2.5 findings, titled with their `naive-coherence:` text and with their Source at `SKILL.md:{line}`; each §5 incomplete integration pattern; and in both modes a §2b / §5b migration section finding (Case 1 and Case 3 are Medium `migration-section` gaps, a Low `migration-section` gap when the reviewer downgraded Case 3 with an inline justification, and Case 2 is an Info `migration-section` gap). The split-body rows of the Reference Consistency table are not recorded here: coverage-check §1b recorded them. Write them as one JSON array on the lines between the two markers, exactly as they are: the quoted marker hands them to the script unchanged, quotes, apostrophes and `$` included. Run the command even when the array is empty (`[]`): the hard gate refuses to decide until every stage before it has recorded, with gaps or without.
+Then write the records no script wrote, each in the Ledger Record Format of `{outputFormatsFile}`: the §2.5 findings, titled with their `naive-coherence:` text and with their Source at the cited call's `{file}:{line}`; each §5 incomplete integration pattern; and in both modes a §2b / §5b migration section finding (Case 1 and Case 3 are Medium `migration-section` gaps, a Low `migration-section` gap when the reviewer downgraded Case 3 with an inline justification, and Case 2 is an Info `migration-section` gap). The split-body rows of the Reference Consistency table are not recorded here: coverage-check §1b recorded them. Write them as one JSON array on the lines between the two markers, exactly as they are: the quoted marker hands them to the script unchanged, quotes, apostrophes and `$` included. Run the command even when the array is empty (`[]`): the hard gate refuses to decide until every stage before it has recorded, with gaps or without.
 
 ```bash
 uv run {gapLedgerScript} append --ledger "{ledgerFile}" --stage coherence-check <<'SKF_GAPS'

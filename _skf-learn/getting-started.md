@@ -8,7 +8,7 @@ description: Install Skill Forge and generate your first verified skill in under
 One command. One verified skill. Here's what an instruction in a cognee skill looks like:
 
 ```python
-await cognee.search(  # [AST:cognee/api/v1/search/search.py:L27]
+await cognee.search(  # [AST:cognee/api/v1/search/search.py:L41]
     query_text="What does Cognee do?"
 )
 ```
@@ -93,7 +93,7 @@ After a successful `install` or `update`, and in `status`, the installer checks 
     ccc       -        optional, Forge+ tier  https://github.com/cocoindex-io/cocoindex-code
 ```
 
-Each tool reads `ok`, `upgrade to >= <minimum>` with the command that upgrades it, `missing` or `optional` with where to get it, or `installed, version unknown` when SKF cannot read its version. The minimums are the ones in the [Prerequisites](#prerequisites-full-reference) table. The check waits at most about 3 seconds for the tools to answer and never changes the command's exit code. It runs no tool from your project folder and never runs `npx`, so `tessl` and `skill-check`, which SKF runs through `npx`, read as optional when they are not installed.
+Each tool reads `ok`, `upgrade to >= <minimum>` with the command that upgrades it, `missing` or `optional` with where to get it, or `installed, version unknown` when SKF cannot read its version. The minimums are the ones in the [Prerequisites](#prerequisites-full-reference) table. The check waits at most about 3 seconds for the tools to answer and never changes the command's exit code. It runs no tool from your project folder and never runs `npx`, so `tessl` and `skill-check`, which SKF runs through `npx`, read as optional when they are not installed. It never runs `tessl` or `skill-check`: on a tessl that has never run, any tessl command accepts tessl's Terms. It reads tessl's version from the name of the binary tessl installs, the one tessl's npm and Homebrew packages also run, and the version of `skill-check`, which has no `--version` option, from its installed package. An `@tessl/cli` before 0.63.0 is tessl itself, so its package gives the version. tessl reads `installed, version unknown` when it was installed with winget, pnpm or Volta, when an npm or Homebrew tessl's binary is not installed at `~/.local/bin/tessl` (`%LOCALAPPDATA%\tessl\bin\tessl.exe` on Windows), or when two files in tessl's `versions` folder have the size of the Windows copy, `tessl\bin\tessl.exe`. So does a `skill-check` installed with pnpm or Volta, or with yarn or bun on Windows.
 
 A tier tool below its minimum does not count toward your tier. With an ast-grep older than 0.45.3, `@Ferris SF` leaves you at Quick, whatever else you have installed. Setup's FORGE STATUS report then shows an upgrade line for the tool, and a headless setup adds a `tool_below_minimum` warning to its `SKF_SETUP_RESULT_JSON` envelope. Upgrade the tool and run `@Ferris SF` again. A tool with no minimum, or one whose version SKF cannot read, never lowers your tier.
 
@@ -129,7 +129,7 @@ Ferris reads the repository, extracts the public API, and generates a skill in u
 
 **Targeting a specific version:** Append `@version` to pin the skill to a library version:
 ```
-@Ferris QS cognee@1.0.0
+@Ferris QS cognee@1.6.2
 ```
 
 **Full quality path (pipeline mode):**

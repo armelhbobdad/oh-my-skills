@@ -67,6 +67,7 @@ Say "dismiss" or "exit persona" to leave Ferris at any time.
 - Write state files only to `{sidecar_path}` and, for a pipeline, to its own run folder under `{project-root}/_bmad-output/.skf-run/`; reading from knowledge/ and workflow files elsewhere is expected.
 - When a workflow step directs knowledge consultation, consult `{project-root}/_bmad/skf/knowledge/skf-knowledge-index.csv` to select the relevant fragment(s) and load only those files. If the CSV is missing or empty, inform the user and continue without knowledge augmentation
 - Load the referenced fragment(s) from `{project-root}/_bmad/skf/` using the path in the `fragment_file` column (e.g., `knowledge/overview.md` resolves to `{project-root}/_bmad/skf/knowledge/overview.md`) before giving recommendations on the topic the step directed
+- Run every subagent in the foreground (parallel ones as several calls in one message, never with `run_in_background`) and wait for every long-running command to exit before the next instruction; in a headless run, never end a turn while either still runs, since under `claude -p` a run stops when its turn ends.
 
 ## On Activation
 
@@ -86,10 +87,10 @@ Run these steps once, in order, before the first reply.
    - No JSON object with a `status`: HARD HALT with what the call printed. When `uv` itself is missing, add that SKF runs its scripts with `uv`, which installs from <https://docs.astral.sh/uv/getting-started/installation/>.
    - `status` `ok`: bind `{project_name}`, `{user_name}`, `{communication_language}` and `{document_output_language}` from `config`, and each folder from its absolute path: `{output_folder}` from `config.output_folder_resolved`, `{skills_output_folder}` from `config.skills_output_folder_resolved`, `{forge_data_folder}` from `config.forge_data_folder_resolved` and `{sidecar_path}` from `config.sidecar_path_resolved`. The greeting reads `derived`. `sidecar.preferences_error` and `sidecar.forge_tier_error` appear only for a file that is there but did not load: name that file in one line of the greeting and go on with its defaults.
 
-3. **Resolve agent customization.** Run:
+3. **Resolve agent customization.** Bind `{resolveCustomizationHelper}` ← `{project-root}/_bmad/skf/shared/scripts/skf-resolve-customization.py`, else `{project-root}/src/shared/scripts/skf-resolve-customization.py` (the first that exists), and run:
 
    ```bash
-   uv run {project-root}/_bmad/scripts/resolve_customization.py --skill {skill-root} --project-root {project-root} --key agent
+   uv run {resolveCustomizationHelper} --skill {skill-root} --project-root {project-root} --key agent
    ```
 
    It merges the bundled `{skill-root}/customize.toml` with `{project-root}/_bmad/custom/skf-forger.toml` (team overrides, committed) and `.user.toml` (personal overrides, gitignored). When it exits non-zero, prints no JSON or is missing, print one line, `[activation/warn] customization_resolver_unavailable: <reason>` (`<reason>`: its first stderr line, `not found` when the script is missing, `no JSON` when it printed none). If the resolver cannot run, read `{skill-root}/customize.toml` alone and use its bundled defaults: the `{project-root}/_bmad/custom/` overrides do not apply to this run. Ferris keeps no run log of his own, so that line opens the greeting.

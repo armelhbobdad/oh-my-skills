@@ -9,7 +9,7 @@ coverage-check.md decides whether a bookkeeping variant is a real export,
 and makes the judgments the denominator clause needs where no file holds
 them (--pattern-reference-intent, and --curated-subset and --barrel where
 the extraction does not say); the clause, everything it counts, folds or
-unions on the way runs here, so no count is made by hand. Three subcommands, each
+unions on the way runs here, so no count is made by hand. Four subcommands, each
 reading files and writing one JSON object:
 
   census    docs-only detection. Counts the citations SKILL.md and each .md
@@ -17,6 +17,129 @@ reading files and writing one JSON object:
             the local forms `[AST:`, `[SRC:` and a stack's `[from skill:`
             (`[QMD:` and `[DOC:` are counted and decide nothing). A skill is
             docs-only when it cites `[EXT:` and no local form.
+
+  floor     the documented inventory's floor (#790): every name SKILL.md
+            and each .md file directly in references/ (a subfolder is not
+            read) write in a fixed form, which validate-inventory.py --floor
+            refuses an inventory for leaving out. No kind is mapped, and a
+            signature is read only where the place writes it in a fixed
+            form (Signatures, below). A name is a plain
+            identifier (`[A-Za-z_$][\\w$]*`) once a leading `new ` and
+            everything from the first `(` or `<` are cut, so `Meta<T>`,
+            `fetch(url): Promise<T>` and `new Client(opts)` give `Meta`,
+            `fetch` and `Client`. A dotted or `::` name gives none, so a
+            namespace-style skill such as zod (`z.object`) gets no table
+            floor. The forms, read outside the frontmatter and HTML
+            comments (a table row or heading inside fenced code gives none):
+              table-row    each inline code span in the first cell of a
+                           table row (cells split on an unescaped `|`)
+                           whose header row's first cell is, in any case,
+                           singular or plural and bare or wrapped in `**`
+                           or `__`, Export, Symbol, Function, Class,
+                           Interface, Type, Hook, Component, Helper,
+                           Constant, Enum or API (a Name, Method, Prop,
+                           Param, Import or Subpath table gives none). The
+                           row's Kind cell, as written, is the name's
+                           `kindLabel`: the skill's own label, never mapped
+                           to a kind (the first in origin order when two
+                           rows label the name differently; null with no
+                           Kind column)
+              heading      an ATX heading whose whole text is one code
+                           span, as in ``### `Meta<T>` `` (a heading with
+                           other words, ``## Testing with `mount` ``, gives
+                           none)
+              declaration  a column-0 public declaration in a fenced block
+                           whose first non-blank line is a comment (`//`,
+                           `#`, `/* */`, `--`, `<!-- -->` or `;`) holding an
+                           `[AST:` or `[SRC:` citation, or naming a path one
+                           such citation of the skill names (its `:12`,
+                           `:L12` or `:12-30` left out). A citation counts
+                           only with its `:L<n>` (`[AST:src/a.ts:L12]`, not
+                           `[AST:src/a.ts]`), and one on the line above the
+                           fence heads nothing. Comments and strings are
+                           masked first. TS/JS (not Svelte, whose `export
+                           let` is a prop): `export` then `function`,
+                           `const`, `let`, `var`, `class`, `interface`,
+                           `type` or `enum` (`declare`, `abstract` and
+                           `async` may come between), or `export default
+                           function` or `class` with a name; Python: `def`,
+                           `async def` or `class`, a name not starting with
+                           `_`; Rust: a `pub` (not `pub(crate)`) `fn`,
+                           `struct`, `enum`, `trait`, `type`, `const` or
+                           `static`, and a `macro_rules!` under
+                           `#[macro_export]`; Go: `func`, `type`, `var` or
+                           `const` with a capitalized name, each name of a
+                           `type (`, `var (` or `const (` group too. A
+                           block in another language, an untagged one or a
+                           data block (json, yaml, text...) gives none.
+            Signatures (#888): an origin whose place writes the name's
+            signature in a fixed form that is surely complete also carries
+            it as `signature`, {"params", "return_type"}, two strings, each
+            one's whitespace runs read as one space, which
+            validate-inventory.py --floor refuses an inventory for
+            changing; any other place pins nothing, since a wrong pin would
+            be forced into the inventory. `params` is the text inside the
+            parameter group (score-signatures.py's _group: the first pair
+            of parentheses outside every bracket pair and string), and
+            `return_type` the type written after it (score-signatures.py's
+            _signature_parts), "" for none. A form that writes neither
+            (`f()`, `useQuery<T>()`) gives none, so an empty call claims no
+            form. A span (a table cell's or a heading's) is complete when
+            it is the name (or no name, as a Signature cell's `(x: A) =>
+            B`), its type parameters, one parameter group, then nothing or
+            a return separator (`->`, `=>`, `→` or `:`) and the return, with
+            nothing else: `useQuery(key).data`, `f(a) / f(a, b)`, a
+            trailing comment, a `;` or `,` outside the return's brackets,
+            an unclosed bracket, `Meta<T>` (no group) and `new Client(opts)`
+            give none. By form:
+              table-row    a row whose first cell names one name (a row
+                           naming several gives none), each cell's `\\|`
+                           read as `|`: the leading code span of its
+                           Signature or Signatures cell, else, when that
+                           span writes no parameter group (`Typed<X>`),
+                           the one span of its first cell that gives the
+                           name (another export's span there, as in
+                           `fetch` (same as `http.request(opts)`), gives
+                           nothing). A Signature span with a group that is
+                           no complete form (`client.get(k) -> str`,
+                           `new Client(opts)`) gives none, so a shorter
+                           first-cell call never stands in for it. A header
+                           cell matches whole, so a labelled one is not a
+                           Signature column, and a Props, Params or
+                           Parameters cell is never read (its shared
+                           members and usage forms stay the reader's).
+              heading      its code span
+              declaration  a function's (`function`, `def`, `fn` or Go's
+                           `func` before its name; a `const` holding an
+                           arrow gives none): its lines as one, as
+                           skf-extract-public-api.py's
+                           _declaration_signature joins them (a parameter
+                           list split over lines joined, line comments
+                           left out), the body cut off first, at the first
+                           `:` (Python) or `{`, `;` or ` where ` (any other
+                           language) outside every bracket pair and string
+                           after the parameter group, a `{` directly after
+                           a TS return `:` opening the return type
+                           (`(): { a: T } {` returns `{ a: T }`). None for
+                           one with anything but type parameters between
+                           its name and the group (a Go `func(...)`
+                           return), one whose opener follows, or whose
+                           uncut text ends with, `interface`, `struct`,
+                           `is`, `keyof`, `|`, `&`, `?`, `:`, `\\`, `=>` or
+                           `->` (the opener or the line end is inside the
+                           return type: Go's `interface{}`, a TS `asserts
+                           x is {...}`, `() => {...}` or conditional type,
+                           `): Promise<A> |`), or one whose brackets or
+                           strings do not all close.
+            A form written only in prose is never read: it stays the
+            reader's. Each origin keeps the first signature its place
+            writes.
+            Output: {"files": [...], "names": [{"name", "kindLabel",
+            "origins": [{"file", "line", "form", "signature"?}]}],
+            "summary": {"names", "byForm"}}, names sorted, each one's
+            origins in file order then line, `signature` only on an origin
+            that has one, `byForm` counting the origins of each form; the
+            same skill gives the same bytes.
 
   metadata  the metadata.json and provenance-map counts. Cluster A
             (`stats.exports_public_api`, the `exports[]` length) and Cluster
@@ -39,14 +162,25 @@ reading files and writing one JSON object:
   surface   the enumerated source surface, from every input given (their
             union):
               --extraction  skf-extract-public-api.py --mode full output:
-                            the names in entry_point_diff.public, a
+                            the names in entry_point_diff.public, each
+                            other in-scope definition of one
+                            (entry_point_diff.other_definitions, #830) a
+                            record of its own at its file, a
                             namespace with a `members` list given as its
                             members (the names its module passes on, each
                             at its file, once with a public name of the
                             same name and file), less the outside_scope
-                            names (defined in a file the brief scopes
-                            out); exports[] only gives each name's
-                            kind, line and signature line, looked up by the
+                            names (defined in a file out of scope), which
+                            `excluded.outsideScope` lists with their file,
+                            line and entry point and, when the brief
+                            scopes the file out, why: the scope.exclude
+                            glob that matches it (`excludeGlob`) or no
+                            scope.include glob covering it
+                            (`outsideInclude`); exports[] only gives each name's
+                            kind, line and signature line (a local export
+                            list's item: its binding's declaration_line and
+                            declaration_signature_line, when the extractor
+                            records them), looked up by the
                             name its defining file gives it (an aliased
                             re-export's `local`) and that file.
                             extraction_gaps are listed to read by eye, and
@@ -112,10 +246,11 @@ reading files and writing one JSON object:
 Name sets (surface `sets`, each sorted): `all` (the union above, less a
 nested Python top's names);
 `scope.include` and `tier_a_include` when the scope has those globs and a
-record names a file: the names whose file (an extraction's definition file,
+record names a file: the names with a file (any of the name's records: an
+extraction's definition file, each other in-scope definition's included,
 the quick output's defined_in, else its source_file, a per-file result's
-file, a provenance entry's source_file) matches a glob of the list and no
-scope.exclude glob,
+file, a provenance entry's source_file) that matches a glob of the list
+and no scope.exclude glob,
 and for `tier_a_include` a scope.include glob too when the scope has one,
 so a name with no file is in `all` only and a restored name is in no
 tier_a_include set (a tier_a_include glob an extraction lists as matching
@@ -127,29 +262,45 @@ exclude of `src/gen/**`; a list that counts no name, each glob left out
 or matching only excluded files, files scope.include leaves out or files
 no record names, gives no tier_a_include set); and, from an
 extraction only, `subpaths` (the names a non-root `exports` map subpath
-without `*` reaches) and `root` (the names the root entry points reach).
+without `*` reaches) and `root` (the names the root entry points reach),
+each through the entry point of any of the name's definitions.
 reconcile-coverage.py and score-signatures.py --surface-set pick one.
 
 Candidates and guards (with an extraction, --brief or --metadata): each
 set's count, the metadata `stats.effective_denominator` (--metadata), and
-the extractor's own effective_denominator and its basis. Both guards run
-only on a surface read from the source. The deflation guard compares the
-re-derived scope.include set (the `all` set without one) with
-`stats.effective_denominator` and fires above DEFLATION_PCT when there is
-no tier A list (with an extraction or --fallback-scan, no tier_a_include
-set; otherwise no tier_a_include glob left in the list, since a name read
-by eye at Quick tier or State 4, and a quick name with no defined_in,
-carries its entry file, not the file that defines it); a stored 0 is
-deflation, not a
-denominator (`pct` null), and fires under that condition when any name is
-re-derived. The inflation guard compares the scope.include set with the
-provenance entry count (--provenance) and fires above INFLATION_PCT under
-the same condition; `guards.tierAInclude` lists the scope's
+the extractor's own effective_denominator and its basis; for the
+Denominator annotations, `tierAIncludeFiles` and `scopeIncludeFiles` (the
+distinct files the set's names sit at: the files that define them when
+each name sits at its defining file) and `subpathEntries` (an extraction's
+distinct in-scope non-root, non-wildcard subpaths, each package's subpath
+once however many files it names), each null when its set is absent.
+Both guards run
+only on a surface read from the source. The deflation guard compares a
+re-derived set with `stats.effective_denominator` and names it in `basis`.
+It is the tier_a_include set (`tier_a_include`) when the clause's ladder
+holds a stored count (stratified-scope, specific-modules, multi-entry), the
+surface has that set and each name sits at the file that defines it (a
+runner extraction, --fallback-scan, or quick output whose every name
+carries its defined_in, with no --per-file or --name beside it): it fires
+when the stored count differs from the set by more than DEFLATION_PCT
+either way, since Create Skill stores the runner's tier A count. Otherwise
+it is the scope.include set (`scope.include`, else `all` when the surface
+has no scope.include set), firing above DEFLATION_PCT when there is no tier
+A list (with an extraction or --fallback-scan, no tier_a_include set;
+otherwise no tier_a_include glob left in the list, since a name read by eye
+at Quick tier or State 4, and a quick name with no defined_in, carries its
+entry file, not the file that defines it). A stored 0 is deflation, not a
+denominator (`pct` null), and fires under its basis's condition when any
+name is re-derived. The inflation guard compares the scope.include set
+with the provenance entry count (--provenance) and fires above
+INFLATION_PCT when there is no tier A list, as the scope.include basis
+reads it; `guards.tierAInclude` lists the scope's
 tier_a_include globs ([] when it has none) for gap-ledger.py's wording;
 the umbrella ratio (an
 extraction only) is the share of the root entry points' names that are
 re-exports (a namespace with `members` counting as its members there
-too, each a re-export), and above UMBRELLA_RATIO the barrel is an
+too, each a re-export, and an other in-scope definition left out), and
+above UMBRELLA_RATIO the barrel is an
 umbrella; the
 stale-scope guard (an extraction with scope.include or tier_a_include only)
 fires when the runner lists an include or tier_a_include glob that matches
@@ -162,7 +313,14 @@ included, and `*` and `?` stay inside one.
 Denominator (surface `denominator`): the Source API Surface Definition's
 clause (source-access-protocol.md), the branch reconcile-coverage.py takes
 and the set it and score-signatures.py --surface-set read: {clause, branch,
-surfaceSet, ladderStep, absentSet, rebuild, barrel}. The inputs: the scope
+surfaceSet, ladderStep, absentSet, rebuild, barrel, setCounted}.
+`setCounted` (null off the scalar branch) says whether the scalar branch
+counts its `surfaceSet` as the numerator's set: true only for a scope set
+(not `all`) whose every name sits at the file that defines it, as the
+deflation guard's tier A basis requires (a runner extraction, the fallback
+scan, quick output whose every name carries its defined_in), read whole (an
+extraction neither `incomplete` nor truncated); otherwise the scalar branch
+keeps its looked-up numerator. The inputs: the scope
 type (the brief's, else the extraction's, else metadata.json's
 `scope_type`), metadata.json's `skill_type` and `stats.effective_denominator`,
 the extraction's `arms`, the deflation guard, and:
@@ -200,7 +358,13 @@ The last three walk a ladder, `ladderStep` naming the rung taken: rung 1,
 `stats.effective_denominator` when metadata.json has one above 0 (a stored
 0 is no denominator), is the `scalar` branch, whose `surfaceSet` (the set score-signatures.py scores) is
 tier_a_include, else scope.include, else all, unless the deflation guard
-fires: then the barrel branch over scope.include. The next rungs are sets,
+fires: then the barrel branch over tier_a_include when the ladder has that
+rung (stratified-scope, multi-entry) and the surface has the set, else over
+scope.include (when the inflation guard fires too, that union is itself
+inflated, and both gaps ask for the brief's tier A list, never a stored
+count set by hand). On an incomplete extraction, which can miss tier A
+names, a tier A set below the stored count fires the guard and leaves the
+scalar branch. The next rungs are sets,
 each taken when the surface has it, the last taken in any case:
 tier_a_include then scope.include (stratified-scope), scope.include
 (specific-modules), tier_a_include then subpaths (multi-entry). A set the
@@ -211,12 +375,17 @@ found no ast-grep (`no-ast-grep`), read no file in scope, read files only
 in languages it has no recipe for (`files_without_recipes` and no export),
 or found files no recipe reads while the skill's language (the --brief
 `language`, else the metadata.json `language`) is not one RECIPE_LANGUAGES
-holds, so the per-file scan has to run instead. An `incomplete` run keeps
-its exports; `extraction.readByEye` lists the files its errors and file
-issues name.
+holds, so the per-file scan has to run instead. A run keeps its exports
+whatever its status; `extraction.readByEye` lists the files to read by eye,
+at any status: each file the runner could not parse or decode (a
+`syntax-errors` or `not-utf8` file issue) and, on an `incomplete` run, each
+file a failed call names. `extraction.unread` lists the files nobody can
+read (a `missing` or `unreadable` file issue); a `no-recipes` file, such as
+a stylesheet, holds nothing to read and is in neither list.
 
 Usage:
   uv run load-coverage-inputs.py census --skill-dir <dir> [--output <file>]
+  uv run load-coverage-inputs.py floor --skill-dir <dir> [--output <file>]
   uv run load-coverage-inputs.py metadata --metadata <metadata.json> \\
       [--provenance <provenance-map.json>] [--output <file>]
   uv run load-coverage-inputs.py surface [--extraction <file>] [--quick <file>]... \\
@@ -228,7 +397,8 @@ Usage:
 Exit codes:
   0  the result was printed (and written to --output)
   1  an input file is missing, unreadable or not the JSON (or the YAML
-     brief) it should be (one line on stderr)
+     brief) it should be, or the --skill-dir holds no SKILL.md or a skill
+     file that is not UTF-8 (one line on stderr)
   2  a per-file result breaks the schema: {"valid": false, "violations":
      [...]} names each breach and nothing is written to --output; or a
      usage error (argparse)
@@ -258,6 +428,57 @@ CITATION_FORMS = {
     "DOC": "[DOC:",
 }
 LOCAL_FORMS = ("AST", "SRC", "from skill")
+# floor: the forms a documented name takes, in the order an origin on one line sorts by.
+FLOOR_FORMS = ("table-row", "heading", "declaration")
+# The first header cells (lower case, singular or plural) of a table whose first column names exports.
+FLOOR_TABLE_HEADERS = frozenset({
+    "export", "exports", "symbol", "symbols", "function", "functions", "class", "classes", "interface", "interfaces",
+    "type", "types", "hook", "hooks", "component", "components", "helper", "helpers", "constant", "constants",
+    "enum", "enums", "api", "apis"})
+# The header words (as _header_word reads them, whole) of a floor table's column that writes the row's signature
+# (#888); a labelled header, such as `Signature (simplified)`, is not one.
+FLOOR_SIGNATURE_HEADERS = frozenset({"signature", "signatures"})
+# A complete form's name, before its type parameters and parameter group (group 1, absent for none).
+SPAN_NAME_RE = re.compile(r"\s*([A-Za-z_$][\w$]*)?\s*")
+# What a complete form writes after its parameter group before its return: `->`, `=>`, `→` or `:` (not `::`).
+RETURN_SEPARATOR_RE = re.compile(r"\s*(?:->|=>|→|:(?!:))")
+# A declaration that gets a form: a function keyword before its name, on its masked line.
+FUNCTION_KEYWORD_RE = re.compile(r"(?<![\w$])(?:function|def|fn|func)(?![\w$])")
+# After a declaration's parameter group: the `:` a TS return type follows (a `{` right after it opens the type, not
+# the body), and a Rust `where` clause, which the body comes after.
+RETURN_COLON_RE = re.compile(r"\s*:\s*")
+WHERE_CLAUSE_RE = re.compile(r"\s+where(?![\w$])")
+# A declaration's text that ends in the middle of its return type: a body opener after one of these is part of that
+# type, cut short (Go's `interface{}` and `struct{...}`, a TS union, intersection, `asserts x is {...}`, `keyof {...}`,
+# conditional or function type), and so is a declaration that ends with one (`): Promise<A> |`, Python's `\`).
+OPENER_IN_TYPE_RE = re.compile(r"(?:(?<![\w$])(?:interface|struct|is|keyof)|[|&?:\\]|=>|->)\s*$")
+# A header cell wrapped in `**` or `__` (group 2 its text).
+EMPHASIS_RE = re.compile(r"(\*\*|__)(.+)\1")
+PLAIN_IDENTIFIER_RE = re.compile(r"[A-Za-z_$][\w$]*")
+TABLE_CELL_RE = re.compile(r"(?<!\\)\|")
+# A comment's opening marker: `//`, `#`, `/*`, `--`, `<!--` or `;`.
+COMMENT_MARKER_RE = re.compile(r"[ \t]*(?://+|#+|/\*+|--|<!--|;+)")
+# A cited path's line suffix: `:12`, `:L12`, `:12-30` or `:L12-L30`.
+LINE_SUFFIX_RE = re.compile(r":L?\d+(?:-L?\d+)?$")
+PYTHON_LANGUAGES = frozenset({"python", "py", "python3"})
+RUST_LANGUAGES = frozenset({"rust", "rs"})
+GO_LANGUAGES = frozenset({"go", "golang"})
+# Column-0 public declarations (group 1 the name), matched on the block with comments and strings masked.
+JS_DECLARATION_RE = re.compile(
+    r"export\s+(?:default\s+(?:abstract\s+)?(?:async\s+)?(?:function(?:\s*\*\s*|\s+)|class\s+)"
+    r"|(?:declare\s+)?(?:abstract\s+)?(?:async\s+)?"
+    r"(?:function(?:\s*\*\s*|\s+)|const\s+enum\s+|const\s+|let\s+|var\s+|class\s+|interface\s+|type\s+|enum\s+))"
+    r"(?!(?:extends|implements)(?![\w$]))([A-Za-z_$][\w$]*)")
+PYTHON_DECLARATION_RE = re.compile(r"(?:async\s+def|def|class)\s+([A-Za-z_]\w*)")
+RUST_DECLARATION_RE = re.compile(
+    r"pub\s+(?:(?:async|unsafe|const|extern)\s+)*(?:fn|struct|enum|trait|type|const|static)\s+(?:mut\s+)?"
+    r"([A-Za-z_]\w*)")
+RUST_MACRO_EXPORT_RE = re.compile(r"#\[macro_export\]")
+RUST_MACRO_RE = re.compile(r"(?:#\[[^\]]*\][ \t]*)*macro_rules![ \t]*([A-Za-z_]\w*)")
+# Go: a single declaration (group 1 its keyword, group 2 its names) or a group's opening line (group 1).
+GO_DECLARATION_RE = re.compile(r"(func|type|var|const)[ \t]+([A-Za-z_]\w*(?:[ \t]*,[ \t]*[A-Za-z_]\w*)*)")
+GO_GROUP_RE = re.compile(r"(type|var|const)[ \t]*\([ \t]*$")
+GO_GROUP_NAMES_RE = re.compile(r"[ \t]+([A-Za-z_]\w*(?:[ \t]*,[ \t]*[A-Za-z_]\w*)*)")
 # Bookkeeping variants folded to their base name, in rule order.
 FOLD_SUFFIXES = ("_def", "_exact")
 FOLD_PREFIX = "a11y_"
@@ -298,7 +519,9 @@ SHARED_SCRIPTS = Path(__file__).resolve().parent.parent.parent / "shared" / "scr
 
 def _sibling(filename: str, folder: Path | None = None):
     """A script beside this one, loaded once: validate-inventory.py (the doc
-    text) and score-signatures.py (the per-file result schema); or, with
+    text, and the skill citations floor reads), locate-export-segments.py
+    (the line model floor reads the skill with) and score-signatures.py (the
+    per-file result schema); or, with
     `folder`, one in that folder: SHARED_SCRIPTS'
     skf-resolve-authoritative-files.py (a skill brief's YAML)."""
     module = _SIBLINGS.get(filename)
@@ -383,6 +606,348 @@ def census(skill_dir: str) -> dict:
         "docsOnly": counts["EXT"] > 0 and local == 0,
         "files": files,
     }
+
+
+# --------------------------------------------------------------------------
+# floor
+# --------------------------------------------------------------------------
+
+
+def _floor_name(text: str) -> str | None:
+    """The plain identifier `text` writes once a leading `new ` and everything from the first `(` or `<` are
+    cut; None for any other text, a dotted or `::` name among them."""
+    text = text.strip()
+    if text.startswith("new "):
+        text = text[4:]
+    text = re.split(r"[(<]", text, maxsplit=1)[0].strip()
+    return text if PLAIN_IDENTIFIER_RE.fullmatch(text) else None
+
+
+def _header_word(cell: str) -> str:
+    """A header cell's word, lower case, unwrapped from `**` or `__`."""
+    m = EMPHASIS_RE.fullmatch(cell)
+    return (m.group(2) if m else cell).strip().lower()
+
+
+def _cells(row: str) -> list[str]:
+    """A table row's cells, split on each unescaped `|`, each stripped."""
+    row = row.strip()
+    if row.startswith("|"):
+        row = row[1:]
+    if row.endswith("|") and not row.endswith("\\|"):
+        row = row[:-1]
+    return [cell.strip() for cell in TABLE_CELL_RE.split(row)]
+
+
+def _whole_span(text: str, segments) -> str | None:
+    """The code span `text` is, when the whole of it is one; else None."""
+    spans = segments._inline_code(text)
+    if len(spans) != 1:
+        return None
+    run = len(text) - len(text.lstrip("`"))
+    return spans[0] if text == "`" * run + spans[0] + "`" * run else None
+
+
+def _comment_text(line: str) -> str | None:
+    """A comment line's text, its markers stripped (`// x`, `# x`, `/* x */`, `-- x`, `<!-- x -->`, `; x`);
+    None for a line that is no comment. Linear in the line's length."""
+    m = COMMENT_MARKER_RE.match(line)
+    if not m:
+        return None
+    text = line[m.end():].strip()
+    if text.endswith("-->"):
+        text = text[:-3]
+    elif text.endswith("*/"):
+        text = text[:-2].rstrip("*")
+    return text.strip()
+
+
+def _headed(lines: list[str], opening: int, closing: int, cited: set[str], inventory) -> bool:
+    """Whether a source citation heads the fenced block opening at `opening`: its first non-blank line is a
+    comment holding a citation, or naming a path the skill cites (a `:12`, `:L12` or `:12-30` suffix left
+    out). A citation on the line above the fence heads nothing."""
+    first = next((lines[i] for i in range(opening + 1, closing) if lines[i].strip()), None)
+    text = _comment_text(first) if first is not None else None
+    if not text:
+        return False
+    if inventory._SKILL_CITATION_RE.search(text):
+        return True
+    suffix = LINE_SUFFIX_RE.search(text)
+    path = text[:suffix.start()] if suffix else text
+    return bool(path) and not any(c.isspace() for c in path) and inventory._cited_path(path) in cited
+
+
+def _html_comment_lines(lines: list[str], start: int, code: list[bool]) -> set[int]:
+    """The lines inside an HTML comment, the fenced lines it holds included, read as _prose reads one: a line
+    outside fenced code that starts `<!--` opens it, the next such line holding `-->` closes it."""
+    inside, open_ = set(), False
+    for i in range(start, len(lines)):
+        if open_:
+            inside.add(i)
+            open_ = code[i] or "-->" not in lines[i]
+        elif not code[i] and lines[i].strip().startswith("<!--"):
+            inside.add(i)
+            open_ = "-->" not in lines[i].strip()[4:]
+    return inside
+
+
+def _names(text: str) -> list[str]:
+    return [name.strip() for name in text.split(",")]
+
+
+def _declared_names(lines: list[str], language: str, js_family) -> list[tuple[int, str]]:
+    """(offset, name) of each column-0 public declaration in a block's masked lines, by its language."""
+    found: list[tuple[int, str]] = []
+    if language in js_family:
+        found = [(i, m.group(1)) for i, line in enumerate(lines) if (m := JS_DECLARATION_RE.match(line))]
+    elif language in PYTHON_LANGUAGES:
+        found = [(i, m.group(1)) for i, line in enumerate(lines)
+                 if (m := PYTHON_DECLARATION_RE.match(line)) and not m.group(1).startswith("_")]
+    elif language in RUST_LANGUAGES:
+        exported = False  # a `#[macro_export]` above, with only blank or attribute lines between
+        for i, line in enumerate(lines):
+            if m := RUST_DECLARATION_RE.match(line):
+                found.append((i, m.group(1)))
+            exported = exported or bool(RUST_MACRO_EXPORT_RE.match(line))
+            macro = RUST_MACRO_RE.match(line)
+            if macro and exported:
+                found.append((i, macro.group(1)))
+            if macro or (line.strip() and not line.startswith("#[")):
+                exported = False
+    elif language in GO_LANGUAGES:
+        group, depth = False, 0  # inside a `type (`, `var (` or `const (` group, and its bracket depth there
+        for i, line in enumerate(lines):
+            if group:
+                if depth == 0 and line.lstrip().startswith(")"):
+                    group = False
+                    continue
+                if depth == 0 and (m := GO_GROUP_NAMES_RE.match(line)):
+                    found += [(i, name) for name in _names(m.group(1)) if name[0].isupper()]
+                depth = max(0, depth + sum(map(line.count, "{([")) - sum(map(line.count, "})]")))
+            elif GO_GROUP_RE.match(line):
+                group, depth = True, 0
+            elif m := GO_DECLARATION_RE.match(line):
+                found += [(i, name) for name in _names(m.group(2)) if name[0].isupper()]
+    return found
+
+
+def _form(text: str, group: tuple[int, int], extension: str = "") -> dict | None:
+    """{"params", "return_type"} of a form whose parameter group is `group`, whitespace runs read as one space: the
+    text inside the group, and the return after it (score-signatures.py's _signature_parts), "" for none; None for a
+    form that writes neither (`f()`)."""
+    form = {"params": " ".join(text[group[0] + 1:group[1]].split()),
+            "return_type": " ".join(_sibling("score-signatures.py")._signature_parts(text, extension)[1].split())}
+    return form if form["params"] or form["return_type"] else None
+
+
+def _type_parameters_only(text: str) -> bool:
+    """Whether `text` is empty or one `<...>` or `[...]` pair, the type parameters a form writes before its group."""
+    text = text.strip()
+    if not text:
+        return True
+    if text[0] not in "<[" or text[-1] != {"<": ">", "[": "]"}[text[0]]:
+        return False
+    depth = 0
+    for i, ch in enumerate(text):
+        if ch in "<[(":
+            depth += 1
+        elif ch in ">])" and not (ch == ">" and text[i - 1:i] in ("-", "=")):
+            depth -= 1
+            if depth == 0 and i != len(text) - 1:
+                return False
+    return depth == 0
+
+
+def _call_form(span: str, name: str | None) -> dict | None:
+    """The signature a span writes when it is a complete form (_form): `name` or no name (a Signature cell's
+    `(x: A) => B`), its type parameters, one parameter group (score-signatures.py's _group), then nothing, or a
+    return separator (`->`, `=>`, `→` or `:`) and the return, with nothing else: no other text after the group
+    (`useQuery(key).data`, `f(a) / f(a, b)`, a trailing comment), no `;`, `,`, `#`, `//` or `/*` in the return
+    outside its brackets and strings, and every bracket and string closed. None for any other span, a constructor
+    call (`new Client(opts)`) and a span with no parameter group (`Meta<T>`) among them."""
+    scorer = _sibling("score-signatures.py")
+    text = span.strip()
+    group = scorer._group(text)
+    if group is None or text.startswith("new ") or scorer._levels(text + " ")[-1] != 0:
+        return None
+    head = SPAN_NAME_RE.match(text, 0, group[0])
+    if head.group(1) not in (None, name) or not _type_parameters_only(text[head.end():group[0]]):
+        return None
+    tail = text[group[1] + 1:]
+    separator = RETURN_SEPARATOR_RE.match(tail)
+    returned = tail[separator.end():] if separator else ""
+    if (separator is None and tail.strip()) or (separator is not None and not returned.strip()):
+        return None
+    levels = scorer._levels(returned)
+    if any(levels[i] == 0 and (ch in ";,#" or returned.startswith(("//", "/*"), i)) for i, ch in enumerate(returned)):
+        return None
+    return _form(text, group)
+
+
+def _leading_span(cell: str) -> str | None:
+    """The code span a table cell opens with, None when it opens with none."""
+    run = len(cell) - len(cell.lstrip("`"))
+    spans = _sibling("locate-export-segments.py")._inline_code(cell) if run else []
+    return spans[0] if spans and cell.startswith("`" * run + spans[0] + "`" * run) else None
+
+
+def _row_form(header: list[str], row: list[str]) -> dict | None:
+    """The signature a floor table's row writes for the one name its first cell names (a row naming several gives
+    none), each cell's `\\|` read as `|`: the leading code span of its Signature or Signatures cell, else, when that
+    span writes no parameter group, the one span of its first cell that gives that name (another export's span there
+    gives nothing), each a complete form (_call_form). A Signature span with a group that is no complete form gives
+    none. A Props, Params or Parameters cell is never read."""
+    segments = _sibling("locate-export-segments.py")
+    names = {name for name in map(_floor_name, segments._inline_code(row[0])) if name}
+    if len(names) != 1:
+        return None
+    [name] = names
+    cells = [cell.replace("\\|", "|") for cell in row]
+    at = next((i for i, cell in enumerate(header) if _header_word(cell) in FLOOR_SIGNATURE_HEADERS), None)
+    span = _leading_span(cells[at]) if at is not None and at < len(cells) else None
+    if span is not None and (form := _call_form(span, name)):
+        return form
+    if span is not None and _sibling("score-signatures.py")._group(span.strip()) is not None:
+        return None  # the cell writes a call the floor cannot pin: a shorter first-cell form would hide it
+    own = [span for span in segments._inline_code(cells[0]) if _floor_name(span) == name]
+    return _call_form(own[0], name) if len(own) == 1 else None
+
+
+def _function_declaration(line: str, language: str, js_family) -> int | None:
+    """Where the name ends on a block's masked line, one _declared_names reads, that declares a function (`function`,
+    `def`, `fn` or Go's `func` before its name); None for a line that declares no function."""
+    if language in js_family:
+        m, at = JS_DECLARATION_RE.match(line), 1
+    elif language in PYTHON_LANGUAGES:
+        m, at = PYTHON_DECLARATION_RE.match(line), 1
+    elif language in RUST_LANGUAGES:
+        m, at = RUST_DECLARATION_RE.match(line), 1
+    elif language in GO_LANGUAGES:
+        m, at = GO_DECLARATION_RE.match(line), 2
+    else:
+        return False
+    return m.end(at) if m and FUNCTION_KEYWORD_RE.search(line, 0, m.start(at)) else None
+
+
+def _declaration_form(rows: list[str], offset: int, language: str, name_end: int) -> dict | None:
+    """The signature the function declaration at `offset` of a block's unmasked `rows` writes: the declaration on one
+    line (skf-extract-public-api.py's _declaration_signature: a parameter list split over lines joined, line comments
+    left out), its body cut at the first `:` (Python) or `{`, `;` or ` where ` (any other language) outside every
+    bracket pair and string after the parameter group, a `{` directly after a TS return `:` opening the return type,
+    then read as _form reads it. None when anything but type parameters sits between the name's end (`name_end`,
+    the masked line's offset, which masking keeps) and the group (a Go `func(...)` return read as the group), when
+    the opener follows, or the uncut text ends with, `interface`, `struct`, `is`, `keyof`, `|`, `&`, `?`, `:`, `\\`,
+    `=>` or `->` (it is inside the return type: Go's `interface{}`, a TS `asserts x is {...}`, `() => {...}` or
+    conditional type, a line that ends mid-type), or a bracket or string it opens does not close."""
+    scorer = _sibling("score-signatures.py")
+    extractor = _sibling("skf-extract-public-api.py", SHARED_SCRIPTS)
+    python, rust = language in PYTHON_LANGUAGES, language in RUST_LANGUAGES
+    extension = ".rs" if rust else ""
+    text = extractor._declaration_signature(rows, offset, "python" if python else "rust" if rust else language)
+    group = scorer._group(text, extension)
+    if group is None or not _type_parameters_only(text[name_end:group[0]]):
+        return None
+    levels = scorer._levels(text, extension)
+    for i in range(group[1] + 1, len(text)):
+        if levels[i] != 0:
+            continue
+        if python:
+            body = text[i] == ":"
+        else:
+            body = (text[i] == ";" or bool(WHERE_CLAUSE_RE.match(text, i))
+                    or (text[i] == "{" and not RETURN_COLON_RE.fullmatch(text, group[1] + 1, i)))
+        if body:
+            if OPENER_IN_TYPE_RE.search(text, 0, i):
+                return None
+            text = text[:i]
+            break
+    else:
+        if OPENER_IN_TYPE_RE.search(text):
+            return None
+    if scorer._levels(text + " ", extension)[-1] != 0:
+        return None
+    return _form(text, group, extension)
+
+
+def floor(skill_dir: str) -> dict:
+    """The names the skill documents in a fixed form, each with its origins (see the module docstring)."""
+    root = Path(skill_dir)
+    if not (root / "SKILL.md").is_file():
+        raise InputError(f"--skill-dir {skill_dir} holds no SKILL.md")
+    segments = _sibling("locate-export-segments.py")
+    inventory = _sibling("validate-inventory.py")
+    refs = root / "references"
+    files = ["SKILL.md"] + ([f"references/{p.name}" for p in sorted(refs.glob("*.md")) if p.is_file()]
+                           if refs.is_dir() else [])
+    texts = []
+    for rel in files:
+        try:
+            texts.append(segments._split_lines((root / rel).read_bytes().decode("utf-8-sig")))
+        except (OSError, UnicodeDecodeError) as exc:
+            raise InputError(f"cannot read {rel} under {skill_dir}: {exc}") from exc
+    cited = {inventory._cited_path(m.group(2))
+             for lines in texts for line in lines for m in inventory._SKILL_CITATION_RE.finditer(line)}
+
+    found: dict[str, set[tuple[int, int, str, str | None]]] = {}
+    signatures: dict[tuple[str, int, int, str], dict] = {}  # the first per (name, file, line, form), in span order
+
+    def add(name: str | None, file_index: int, index: int, form: str, label: str | None = None,
+            signature: dict | None = None) -> None:
+        if name:
+            found.setdefault(name, set()).add((file_index, index + 1, form, label))
+            if signature is not None:
+                signatures.setdefault((name, file_index, index + 1, form), signature)
+
+    js_family = segments.JS_FAMILY - {"svelte"}  # a Svelte block's `export let` is a component prop
+    for file_index, lines in enumerate(texts):
+        start = segments._frontmatter_end(lines)
+        blocks, code = segments._fenced_blocks(lines, start)
+        headings, prose = segments._prose(lines, start, code)
+        for block in prose:
+            if block["kind"] != "table-row" or block["header"] is None:
+                continue
+            header = _cells(block["header"])
+            if _header_word(header[0]) not in FLOOR_TABLE_HEADERS:
+                continue
+            row = _cells(lines[block["start"]])
+            kind_at = next((i for i, cell in enumerate(header) if _header_word(cell) == "kind"), None)
+            label = row[kind_at] if kind_at is not None and kind_at < len(row) and row[kind_at] else None
+            signature = _row_form(header, row)
+            for span in segments._inline_code(row[0]):
+                add(_floor_name(span), file_index, block["start"], "table-row", label, signature)
+        for index, _level, text, _above in headings:
+            span = _whole_span(text, segments)
+            if span is not None:
+                add(_floor_name(span), file_index, index, "heading", None, _call_form(span, _floor_name(span)))
+        comments = _html_comment_lines(lines, start, code)
+        for opening, closing, info in blocks:
+            language = segments._language(info)
+            if (opening in comments or language in segments.DATA_LANGUAGES
+                    or not _headed(lines, opening, closing, cited, inventory)):
+                continue
+            masked = segments.mask_code("\n".join(lines[opening + 1:closing]), language).split("\n")
+            for offset, name in _declared_names(masked, language, js_family):
+                name_end = _function_declaration(masked[offset], language, js_family)
+                signature = (_declaration_form(lines[opening + 1:closing], offset, language, name_end)
+                             if name_end is not None else None)
+                add(name, file_index, opening + 1 + offset, "declaration", None, signature)
+
+    names = []
+    by_form = dict.fromkeys(FLOOR_FORMS, 0)
+    for name in sorted(found):
+        origins = sorted(found[name], key=lambda o: (o[0], o[1], FLOOR_FORMS.index(o[2]), o[3] or ""))
+        seen, kept = set(), []
+        for file_index, line, form, _label in origins:
+            if (file_index, line, form) not in seen:
+                seen.add((file_index, line, form))
+                origin = {"file": files[file_index], "line": line, "form": form}
+                if (name, file_index, line, form) in signatures:
+                    origin["signature"] = signatures[(name, file_index, line, form)]
+                kept.append(origin)
+                by_form[form] += 1
+        label = next((o[3] for o in origins if o[2] == "table-row" and o[3]), None)
+        names.append({"name": name, "kindLabel": label, "origins": kept})
+    return {"files": files, "names": names, "summary": {"names": len(names), "byForm": by_form}}
 
 
 # --------------------------------------------------------------------------
@@ -541,6 +1106,14 @@ def matching(records: list[dict], globs: list[str], excludes: list[str]) -> list
                    and not any(glob_match(_norm(r["file"]), g) for g in excludes)})
 
 
+def matching_files(records: list[dict], globs: list[str], excludes: list[str]) -> list[str]:
+    """The distinct files `matching` takes its names from: each record's file one of `globs` matches and no
+    exclude glob does."""
+    return sorted({r["file"] for r in records if r.get("file")
+                   and any(glob_match(_norm(r["file"]), g) for g in globs)
+                   and not any(glob_match(_norm(r["file"]), g) for g in excludes)})
+
+
 def _apart(a: str, b: str) -> bool:
     """True when, before either has a `*` or `?`, the two globs spell a different segment at the same
     place, so no file can match both. Any other pair counts as overlapping, even one no file can match
@@ -607,9 +1180,14 @@ def _members_in_place(public: list[dict]) -> list[dict]:
     return expanded
 
 
+# The runner's file issues for a file it could not open at all: no one can read it by eye either.
+UNREADABLE_ISSUES = frozenset({"missing", "unreadable"})
+
+
 def _extraction_summary(data: dict, language: str | None) -> dict:
     """The surface's `extraction` object: the runner's status and counts,
-    the files to read by eye and the fallback verdict."""
+    the files to read by eye, the files no one can read and the fallback
+    verdict."""
     counts = data.get("counts") if isinstance(data.get("counts"), dict) else {}
     arms = data.get("arms") if isinstance(data.get("arms"), dict) else {}
     entry_points = data.get("entry_points") if isinstance(data.get("entry_points"), dict) else {}
@@ -626,8 +1204,11 @@ def _extraction_summary(data: dict, language: str | None) -> dict:
         reason = (f"no recipe reads the skill's language, {language} "
                   f"({', '.join(sorted(without))} in scope)")
     errors = [e for e in data.get("errors") or [] if isinstance(e, dict)]
-    read_by_eye = sorted({str(i["file"]) for i in data.get("file_issues") or []
-                          if isinstance(i, dict) and i.get("file") and i.get("issue") != "no-recipes"}
+    issues = [i for i in data.get("file_issues") or [] if isinstance(i, dict) and i.get("file")]
+    # A file missing from disk or one the runner could not open is no file to read by eye.
+    unread = sorted({str(i["file"]) for i in issues if i.get("issue") in UNREADABLE_ISSUES})
+    read_by_eye = sorted({str(i["file"]) for i in issues
+                          if i.get("issue") != "no-recipes" and i.get("issue") not in UNREADABLE_ISSUES}
                          | {str(e["first_file"]) for e in errors if e.get("first_file")}
                          | {str(f) for e in errors if isinstance(e.get("unread"), list) for f in e["unread"] if f})
     return {
@@ -644,11 +1225,27 @@ def _extraction_summary(data: dict, language: str | None) -> dict:
         "entryPointsFound": (bool(entry_points["files"]) if isinstance(entry_points.get("files"), list)
                              and data.get("files_in_scope") else None),
         "readByEye": read_by_eye,
+        "unread": unread,
         "fallback": {"needed": reason is not None, "reason": reason},
     }
 
 
 NO_UMBRELLA = {"entries": [], "names": 0, "reexported": 0, "ratio": None, "umbrella": False}
+
+
+def _outside_row(row: dict, scope: dict) -> dict:
+    """An outside_scope row as `excluded.outsideScope` lists it: its name,
+    file, line and entry point, and why the brief scopes the file out when
+    it does (#796): `excludeGlob`, the first scope.exclude glob that matches
+    the file, and `outsideInclude`, true when scope.include has globs and
+    none matches it. Neither (null and false) when the brief does not
+    explain it, such as a file no recipe reads or no file at all."""
+    file = row.get("file") if isinstance(row.get("file"), str) and row.get("file") else None
+    path = _norm(file) if file else None
+    return {"name": row.get("name"), "file": file, "line": row.get("line"), "entry": row.get("entry"),
+            "excludeGlob": next((g for g in scope["exclude"] if glob_match(path, g)), None) if path else None,
+            "outsideInclude": bool(path and scope["include"]
+                                   and not any(glob_match(path, g) for g in scope["include"]))}
 
 
 def from_extraction(data: dict, language: str | None = None, brief: dict | None = None) -> dict:
@@ -675,11 +1272,15 @@ def from_extraction(data: dict, language: str | None = None, brief: dict | None 
                 "staleScope": {"unmatchedInclude": unmatched, "unmatchedTierAInclude": unmatched_tier_a,
                                "restored": []},
                 "gaps": [], "scope": scope, "scopeType": recorded.get("type"), "umbrella": dict(NO_UMBRELLA),
-                "extraction": extraction}
+                "subpathEntries": None, "extraction": extraction}
 
     diff = data.get("entry_point_diff") if isinstance(data.get("entry_point_diff"), dict) else {}
-    public = _members_in_place([p for p in diff.get("public") or []
-                                if isinstance(p, dict) and isinstance(p.get("name"), str)])
+    # Each in-scope definition of a public name is a record of its own (#830): the runner's other
+    # definitions join the public rows, so a set holds a name when any of its files matches, and
+    # the signature plan reads every declaration.
+    rows = {key: [p for p in diff.get(key) or [] if isinstance(p, dict) and isinstance(p.get("name"), str)]
+            for key in ("public", "other_definitions")}
+    public = _members_in_place(rows["public"] + rows["other_definitions"])
     outside = [o for o in diff.get("outside_scope") or [] if isinstance(o, dict)]
     gaps = [g for g in diff.get("extraction_gaps") or [] if isinstance(g, dict)]
 
@@ -690,12 +1291,17 @@ def from_extraction(data: dict, language: str | None = None, brief: dict | None 
     # records (so the scope sets a specific-modules or stratified brief
     # counts) and their outside_scope and extraction_gaps rows.
     nested = _nested_tops(entry_files, set(scope["include"]) | set(scope["tier_a_include"]),
-                          {p.get("entry") for p in public})
+                          {p.get("entry") for p in rows["public"]})
     nested_names = {top: sorted({p["name"] for p in public if p.get("entry") == top}) for top in nested}
 
     subpath_files = {e.get("file") for e in entry_files
                      if e.get("subpath") not in ROOT_SUBPATHS and "*" not in str(e.get("subpath"))}
     root_files = {e.get("file") for e in entry_files if e.get("subpath") in ROOT_SUBPATHS} - set(nested)
+    # The distinct in-scope subpaths of those (a package's subpath once, however many files its conditions
+    # name), for the multi-entry annotation.
+    subpath_entries = {(e.get("package"), e.get("subpath")) for e in entry_files
+                       if e.get("subpath") not in ROOT_SUBPATHS and "*" not in str(e.get("subpath"))
+                       and e.get("in_scope") is not False}
 
     # A scope.include glob that matches no file: the brief predates the
     # source, so a root export defined in a file no glob covers comes back,
@@ -726,25 +1332,32 @@ def from_extraction(data: dict, language: str | None = None, brief: dict | None 
         # under the name its defining file gives it, `local`.
         found = index.get((info.get("local") or name, file)) or index.get((name, file))
         kind = found.get("export_type") if found else None
+        # A local `export { ... }` list's item is planned at the declaration it
+        # names (#836): the line and the signature line both come from that pair.
+        if found and isinstance(found.get("declaration_line"), int):
+            line, signature_line = found["declaration_line"], found.get("declaration_signature_line")
+        elif found:
+            line, signature_line = found.get("source_line"), found.get("signature_line")
+        else:
+            line, signature_line = info.get("line"), None
         (nested_records if info.get("entry") in nested else records).append(
-            _record(name, None if kind == "re-export" else kind, file,
-                    found.get("source_line") if found else info.get("line"),
-                    found.get("signature_line") if found else None, "extraction"))
+            _record(name, None if kind == "re-export" else kind, file, line, signature_line, "extraction"))
 
-    root_names = [p for p in public if p.get("entry") in root_files]
+    # The umbrella ratio reads the public rows alone: an other definition is no root barrel name there.
+    root_names = [p for p in _members_in_place(rows["public"]) if p.get("entry") in root_files]
     reexported = [p for p in root_names if p.get("via") not in (None, "declaration")]
 
     sets = {}
     if subpath_files:
         sets["subpaths"] = sorted({p["name"] for p in public if p.get("entry") in subpath_files})
     if root_files:
-        sets["root"] = sorted({p["name"] for p in root_names})
+        sets["root"] = sorted({p["name"] for p in public if p.get("entry") in root_files})
 
     return {
         "records": records,
         "nestedRecords": nested_records,
         "sets": sets,
-        "outside": [{"name": o.get("name"), "file": o.get("file")} for o in outside],
+        "outside": [_outside_row(o, scope) for o in outside],
         "nested": [{"entry": top, "within": nested[top], "names": nested_names[top]} for top in sorted(nested)],
         "staleScope": {"unmatchedInclude": unmatched, "unmatchedTierAInclude": unmatched_tier_a,
                        "restored": [{"name": o["name"], "file": o["file"], "line": o.get("line")}
@@ -759,6 +1372,8 @@ def from_extraction(data: dict, language: str | None = None, brief: dict | None 
             "ratio": round2(len(reexported) / len(root_names)) if root_names else None,
             "umbrella": bool(root_names) and len(reexported) / len(root_names) > UMBRELLA_RATIO,
         },
+        # The in-scope subpaths the `subpaths` set reads (None when there is no such set).
+        "subpathEntries": len(subpath_entries) if subpath_files else None,
         "extraction": extraction,
     }
 
@@ -828,12 +1443,16 @@ def _over(clause: str, sets: dict, name: str, step: int | None, rebuild: str | N
 
 def pick_denominator(sets: dict, stats_eff: int | None, deflation_fires: bool, barrel: str | None, arms: dict,
                      scope_type: str | None, skill_type: str | None, monorepo: bool, pattern_reference: bool,
-                     curated: bool, source_read: bool) -> dict:
+                     curated: bool, source_read: bool, set_trusted: bool = False) -> dict:
     """The Source API Surface Definition's clause for a skill, with the branch
-    and the name set reconcile-coverage.py and score-signatures.py read, and
-    the entry points' state it was picked by (see "Denominator" above)."""
-    return {**_pick(sets, stats_eff, deflation_fires, barrel, arms, scope_type, skill_type, monorepo,
-                    pattern_reference, curated, source_read), "barrel": barrel}
+    and the name set reconcile-coverage.py and score-signatures.py read, the
+    entry points' state it was picked by and, on the scalar branch, whether
+    it counts that set (`set_trusted`: each name at its defining file, read
+    whole; see "Denominator" above)."""
+    picked = _pick(sets, stats_eff, deflation_fires, barrel, arms, scope_type, skill_type, monorepo,
+                   pattern_reference, curated, source_read)
+    counted = (set_trusted and picked["surfaceSet"] not in (None, "all")) if picked["branch"] == "scalar" else None
+    return {**picked, "barrel": barrel, "setCounted": counted}
 
 
 def _pick(sets: dict, stats_eff: int | None, deflation_fires: bool, barrel: str | None, arms: dict,
@@ -868,7 +1487,9 @@ def _pick(sets: dict, stats_eff: int | None, deflation_fires: bool, barrel: str 
         elif stats_eff:
             # A stored 0 is no denominator: the next rung.
             if deflation_fires:
-                return _over(clause, sets, "scope.include", step)
+                # The ladder's tier A rung when it has one and the surface has the set, else scope.include.
+                rung = "tier_a_include" if "tier_a_include" in ladder and "tier_a_include" in sets else "scope.include"
+                return _over(clause, sets, rung, step)
             scored = next((name for name in ("tier_a_include", "scope.include") if name in sets), "all")
             return {"clause": clause, "branch": "scalar", "surfaceSet": scored, "ladderStep": step,
                     "absentSet": None, "rebuild": None}
@@ -994,13 +1615,56 @@ def surface(args: argparse.Namespace) -> dict:
               and not (scope["include"] and all(_apart(g, i) for i in scope["include"]))
               and not any(_inside(g, e) for e in scope["exclude"])]
     filed = [r for r in records if r["file"]]
+    # The files each scope set's names sit at, for the Denominator annotations' file counts.
+    set_files: dict[str, list[str]] = {}
     if filed and scope["include"]:
         sets["scope.include"] = matching(filed, scope["include"], scope["exclude"])
+        set_files["scope.include"] = matching_files(filed, scope["include"], scope["exclude"])
     in_include = [r for r in filed if not scope["include"]
                   or any(glob_match(_norm(r["file"]), g) for g in scope["include"])]
     tier_a_names = matching(in_include, tier_a, scope["exclude"]) if tier_a else []
     if tier_a_names:
         sets["tier_a_include"] = tier_a_names
+        set_files["tier_a_include"] = matching_files(in_include, tier_a, scope["exclude"])
+
+    # The clause: an extraction's entry-point status (one the per-file scan replaces says only that it found no
+    # entry point), else a quick output's (an export is a barrel; none, and no warning, an empty one), else what
+    # the workflow read (--barrel).
+    barrel = None
+    summary = extracted["extraction"] if extracted is not None else None
+    if summary is not None and not summary["fallback"]["needed"]:
+        barrel = summary["entryPointStatus"]
+    elif summary is not None and summary["entryPointsFound"] is False:
+        barrel = "no-entry-point"
+    elif quick_outputs:
+        barrel = "barrel" if any(q["exports"] for q in quick_outputs) else (
+            None if any(q.get("warnings") for q in quick_outputs) else "empty-barrel")
+    if barrel is None and args.barrel:
+        barrel = BARREL_FLAG[args.barrel]
+    recorded_type = extracted["scopeType"] if extracted is not None else None
+    meta_type = meta.get("scope_type") if isinstance(meta, dict) and isinstance(meta.get("scope_type"), str) else None
+    arms = summary["arms"] if summary is not None else {}
+    # The extraction's verdict, the rule Create Skill stores the count by, else the workflow's judgment.
+    curated = summary["curatedSubset"] if summary is not None and summary["curatedSubset"] is not None \
+        else bool(args.curated_subset)
+    scope_type = (brief or {}).get("type") or recorded_type or meta_type
+    skill_type = meta.get("skill_type") if isinstance(meta, dict) else None
+    monorepo = bool(args.monorepo or arms.get("monorepo"))
+    # The clause alone (no stored count, no guard): only a clause whose ladder holds a stored count measures it
+    # against the tier A set.
+    clause = _pick(sets, None, False, barrel, arms, scope_type, skill_type, monorepo,
+                   bool(args.pattern_reference_intent), curated, source_read)["clause"]
+    swap = False
+    # Each name sits at the file that defines it (a runner extraction, the fallback scan, quick output whose every
+    # name carries its defined_in); a name read by eye, or a quick name with no defined_in, sits at its entry file.
+    runner = extracted is not None and not extracted["extraction"]["fallback"]["needed"]
+    quick_traced = (bool(quick_outputs) and not args.per_file and not args.name
+                    and all(isinstance(e.get("defined_in"), str) and e["defined_in"]
+                            for q in quick_outputs for e in q["exports"] if isinstance(e, dict)))
+    defining = runner or bool(args.fallback_scan) or quick_traced
+    # The scalar branch counts its scope set only from such names read whole: an incomplete or truncated
+    # extraction can miss names (#791, #792).
+    whole = summary is None or (summary["status"] != "incomplete" and not summary["truncated"])
 
     if extracted is not None or brief is not None or meta is not None:
         include_union = len(sets["scope.include"]) if "scope.include" in sets else len(sets["all"])
@@ -1009,7 +1673,10 @@ def surface(args: argparse.Namespace) -> dict:
             "statsEffectiveDenominator": stats_eff,
             "tierAIncludeUnion": len(sets["tier_a_include"]) if "tier_a_include" in sets else None,
             "scopeIncludeUnion": len(sets["scope.include"]) if "scope.include" in sets else None,
+            "tierAIncludeFiles": len(set_files["tier_a_include"]) if "tier_a_include" in sets else None,
+            "scopeIncludeFiles": len(set_files["scope.include"]) if "scope.include" in sets else None,
             "subpathUnion": len(sets["subpaths"]) if "subpaths" in sets else None,
+            "subpathEntries": extracted["subpathEntries"] if extracted is not None else None,
             "rootBarrel": len(sets["root"]) if "root" in sets else None,
             "extractorEffectiveDenominator": extraction.get("effectiveDenominator"),
             "extractorBasis": extraction.get("effectiveDenominatorBasis"),
@@ -1021,14 +1688,27 @@ def surface(args: argparse.Namespace) -> dict:
         # file, not the file that defines it).
         no_tier_a = ("tier_a_include" not in sets if extracted is not None or args.fallback_scan
                      else not tier_a)
-        deflation = {"applicable": source_read and stats_eff is not None, "effectiveDenominator": stats_eff,
-                     "rederived": include_union if source_read else None, "pct": None, "fires": False}
+        # A clause whose ladder holds a stored count checks it against the tier A set, both ways, when each name
+        # sits at the file that defines it (a runner extraction, the fallback scan, quick output whose every name
+        # carries its defined_in): Create Skill stores the runner's tier A count, so one beyond the threshold is
+        # stale (#813). A name read by eye, or a quick name with no defined_in, sits at its entry file.
+        tier_a_basis = defining and clause in CLAUSE_LADDERS and "tier_a_include" in sets
+        rederived = len(sets["tier_a_include"]) if tier_a_basis else include_union
+        basis = "tier_a_include" if tier_a_basis else "scope.include" if "scope.include" in sets else "all"
+        deflation = {"applicable": source_read and stats_eff is not None, "basis": basis,
+                     "effectiveDenominator": stats_eff, "rederived": rederived if source_read else None, "pct": None,
+                     "fires": False}
         if deflation["applicable"] and stats_eff:
-            deflation["pct"] = round2((include_union - stats_eff) / stats_eff * 100)
-            deflation["fires"] = no_tier_a and deflation["pct"] > DEFLATION_PCT
+            deflation["pct"] = round2((rederived - stats_eff) / stats_eff * 100)
+            deflation["fires"] = (abs(deflation["pct"]) > DEFLATION_PCT if tier_a_basis
+                                  else no_tier_a and deflation["pct"] > DEFLATION_PCT)
         elif deflation["applicable"]:
             # A stored 0 is deflation, not a denominator, once a name is re-derived.
-            deflation["fires"] = no_tier_a and include_union > 0
+            deflation["fires"] = (tier_a_basis or no_tier_a) and rederived > 0
+        # An incomplete extraction can miss tier A names: a tier A set below the stored count is drift to report,
+        # not a denominator to take.
+        incomplete = runner and extracted["extraction"]["status"] == "incomplete"
+        swap = deflation["fires"] and not (incomplete and tier_a_basis and (deflation["pct"] or 0) < 0)
         entry_count = len(_entries(provenance)) if provenance is not None else 0
         inflation = {"applicable": source_read and no_tier_a and bool(scope["include"]) and entry_count > 0,
                      "scopeIncludeUnion": include_union if scope["include"] else None,
@@ -1052,31 +1732,9 @@ def surface(args: argparse.Namespace) -> dict:
                            "umbrellaRatio": UMBRELLA_RATIO},
         }
 
-    # The clause: an extraction's entry-point status (one the per-file scan replaces says only that it found no
-    # entry point), else a quick output's (an export is a barrel; none, and no warning, an empty one), else what
-    # the workflow read (--barrel).
-    barrel = None
-    summary = extracted["extraction"] if extracted is not None else None
-    if summary is not None and not summary["fallback"]["needed"]:
-        barrel = summary["entryPointStatus"]
-    elif summary is not None and summary["entryPointsFound"] is False:
-        barrel = "no-entry-point"
-    elif quick_outputs:
-        barrel = "barrel" if any(q["exports"] for q in quick_outputs) else (
-            None if any(q.get("warnings") for q in quick_outputs) else "empty-barrel")
-    if barrel is None and args.barrel:
-        barrel = BARREL_FLAG[args.barrel]
-    recorded_type = extracted["scopeType"] if extracted is not None else None
-    meta_type = meta.get("scope_type") if isinstance(meta, dict) and isinstance(meta.get("scope_type"), str) else None
-    arms = summary["arms"] if summary is not None else {}
-    # The extraction's verdict, the rule Create Skill stores the count by, else the workflow's judgment.
-    curated = summary["curatedSubset"] if summary is not None and summary["curatedSubset"] is not None \
-        else bool(args.curated_subset)
-    out["denominator"] = pick_denominator(
-        sets, stats_eff, bool((out["guards"] or {}).get("deflation", {}).get("fires")), barrel, arms,
-        (brief or {}).get("type") or recorded_type or meta_type,
-        meta.get("skill_type") if isinstance(meta, dict) else None, bool(args.monorepo or arms.get("monorepo")),
-        bool(args.pattern_reference_intent), curated, source_read)
+    out["denominator"] = pick_denominator(sets, stats_eff, swap, barrel, arms, scope_type, skill_type, monorepo,
+                                          bool(args.pattern_reference_intent), curated, source_read,
+                                          defining and whole)
 
     return {
         "inputs": {
@@ -1100,6 +1758,10 @@ def _cmd_census(args: argparse.Namespace) -> dict:
     return census(args.skill_dir)
 
 
+def _cmd_floor(args: argparse.Namespace) -> dict:
+    return floor(args.skill_dir)
+
+
 def _cmd_metadata(args: argparse.Namespace) -> dict:
     meta = _object(args.metadata, "--metadata")
     provenance = _object(args.provenance, "--provenance") if args.provenance else None
@@ -1117,6 +1779,11 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--skill-dir", required=True, help="the skill package: SKILL.md and references/")
     p.add_argument("--output", help="also write the result to this file")
     p.set_defaults(func=_cmd_census)
+
+    p = sub.add_parser("floor", help="the names the skill documents in a fixed form, which the inventory keeps")
+    p.add_argument("--skill-dir", required=True, help="the skill package: SKILL.md and references/")
+    p.add_argument("--output", help="also write the result to this file")
+    p.set_defaults(func=_cmd_floor)
 
     p = sub.add_parser("metadata", help="the metadata.json and provenance-map counts")
     p.add_argument("--metadata", required=True, help="the skill's metadata.json")

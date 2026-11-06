@@ -81,7 +81,21 @@ cites (never read; default `metadata.json`):
             gap `Missing export: {name}`, or a Medium `missing-type` gap
             `Missing type: {name}` when the --signatures result lists it in
             `missingTypes`; its Source is the file and line the --surface
-            result's `exports[]` records for it, else `{meta}`. Each `stale`
+            result's `exports[]` records for it, else `{meta}`. When the
+            --surface result's `guards.inflation.fires`, its
+            `denominator.surfaceSet` is `scope.include` and its
+            `denominator.clause` is one whose ladder has a tier A rung
+            (stratified-scope, multi-entry), the `missing` names are
+            instead one Medium `denominator-inflation` gap `undocumented
+            names in the inflated scope.include union` at its
+            `inputs.brief` (else `skill-brief.yaml`), beside the guards
+            kind's gap at that brief: its issue gives the union's size
+            (`guards.inflation.scopeIncludeUnion`) and lists the first 50
+            names, each marked a type when the --signatures result lists
+            it in `missingTypes` and with the file and line `exports[]`
+            records for it, then how many more, and its remediation
+            corrects the denominator as the guard's gap says, then re-runs
+            Test Skill. Each `stale`
             name the --stale result (classify-stale) marks `fabricated` is a
             Critical `fabricated-signature` gap `Fabricated signature:
             {name}` at its `source` (one with no `source` is INVALID_INPUT,
@@ -111,29 +125,59 @@ cites (never read; default `metadata.json`):
             `Stale documentation: {name}` at the first line of SKILL.md,
             then of references/*.md in path order, that writes the name
             (validate-inventory.py's match, with --skill-dir), else
-            `SKILL.md`. Scalar and stack branches: a
+            `SKILL.md`. One whose `excluded.outsideScope` row says the brief
+            scopes its file out (`excludeGlob`, the `scope.exclude` glob
+            that matches it, or `outsideInclude`, no `scope.include` glob
+            covering it) has its own issue, naming the entry point and the
+            file and line, and remediation: to keep the documentation,
+            narrow that exclude glob (a removal needs a `demoted-exclude`
+            amendment) or widen `scope.include`, else remove it. A row the
+            brief does not explain keeps the wording above. Scalar and
+            stack branches: a
             `missingCount` above 0 is one Medium `missing-export` gap
             `{missingCount} of {denominator} exports not documented` at
             `{meta}`, except that a scalar count taken from the verified
             numerator (`numeratorSource` `verified`) is replaced by one
             `Missing export: {name}` gap per --numerator `absent` name, at
-            the first --provenance entry of that name, else `{meta}`.
-            Every per-name gap carries `export`.
+            the first --provenance entry of that name, else `{meta}`. A
+            scalar result that counts its set (`numeratorSource` `surface`)
+            records the `missing` names it lists in place of the count gap,
+            as the barrel branch does (the inflated-union summary gap
+            under the same gate included), and, when `missingCount` exceeds
+            them, one Medium `missing-export` gap `{residual} of
+            {denominator} exports not documented beyond the {surfaceSet}
+            set` at `{meta}`. A scalar result with `staleApplicable` true
+            records its `stale` names as the barrel branch does. Every
+            per-name gap carries `export`.
   guards    --input load-coverage-inputs.py's surface result; --metadata.
             `guards.deflation.fires` is a Medium `metadata-drift` gap at
-            `{meta}` (else the result's `inputs.metadata`), and
-            `guards.inflation.fires` a Medium `denominator-inflation` gap at
-            the result's `inputs.brief` (else `skill-brief.yaml`), whose
-            remediation recommends `stats.effective_denominator` when
-            `guards.umbrella.umbrella` is true, else `scope.tier_a_include`.
+            `{meta}` (else the result's `inputs.metadata`): on the
+            `tier_a_include` basis (`guards.deflation.basis`) titled
+            `denominator drift: ...`, giving the tier A count, the pct and
+            the stored count, asking to recount by re-running Create Skill
+            (which stores the runner's count only when
+            `effective_denominator_decision.store` holds and `scope.notes`
+            documents the stratification, and otherwise drops the stored
+            count) and naming what `denominator` counts until then (its
+            `surfaceSet`, or the stored count on the scalar branch); else
+            `denominator deflation: ...`. `guards.inflation.fires` is a
+            Medium `denominator-inflation` gap at the result's
+            `inputs.brief` (else `skill-brief.yaml`), whose remediation adds
+            or edits `scope.tier_a_include`, listing the files rather than
+            the root barrel when `guards.umbrella.umbrella` is true. When
+            both fire on the `scope.include` basis, both remediations name
+            that one fix and say the `scope.include` union is itself
+            inflated. No remediation sets `stats.effective_denominator` by
+            hand, which Update Skill's recount drops.
             `guards.staleScope.fires` is one Medium `brief-scope-stale` gap
             at that brief, whose issue names each `unmatchedInclude` glob,
             each `restored` name with its file and each
-            `unmatchedTierAInclude` glob. The deflation and inflation gaps
-            say the brief has no `scope.tier_a_include` when
-            `guards.tierAInclude` lists no glob, that no glob matches a file
-            when each is an `unmatchedTierAInclude` glob, and else that no
-            glob counts a public name (a surface without
+            `unmatchedTierAInclude` glob. The `scope.include`-basis
+            deflation gap and the inflation gap say the brief has no
+            `scope.tier_a_include` when `guards.tierAInclude` lists no glob,
+            that no glob matches a file when each is an
+            `unmatchedTierAInclude` glob, and else that no glob counts a
+            public name (a surface without
             `guards.tierAInclude` reads the `unmatchedTierAInclude` globs
             alone). A stored `stats.effective_denominator` of 0 (`pct`
             null) is written as a count against 0, not a percentage, and
@@ -145,15 +189,27 @@ cites (never read; default `metadata.json`):
             --input check-metadata-coherence.py's result; --metadata. Each
             `findings[]` entry, titled as it is and with its `detail` as the
             issue, at `{meta}`: Medium is a Medium `metadata-drift` gap, Info
-            an Info `multi-denominator` gap.
+            an Info `multi-denominator` gap. A `metadata-drift` gap whose
+            title names the documented surface explains the `Type::method`
+            entries its counts differ by; a barrel one sends the fix to
+            Create Skill, which rebuilds `exports[]` from the source.
   provenance-line
             --input skf-verify-provenance-completeness.py verify's result.
-            Each `stale[]` item whose reason is `line-not-definition`, at
-            its `{source_file}:{source_line}` with `export`: a Low
+            Each `stale[]` item, at its `{source_file}:{source_line}` with
+            `export`, by `reason`: `line-not-definition` is a Low
             `provenance-line` gap `Provenance line is not the definition of
             {export_name}` when `definition_lines` holds a line, else an Info
             `provenance-unverified` gap `Provenance line not verified for
-            {export_name}`. Its other items are not gaps here.
+            {export_name}`, and its issue names the base of a `folded_to`
+            variant; `file-missing` is a Low `provenance-line` gap
+            `Provenance file is missing for {export_name}`;
+            `line-out-of-bounds` a Low `provenance-line` gap `Provenance line
+            is out of range for {export_name}`; `line-invalid` an Info
+            `provenance-unverified` gap `Provenance line not verified for
+            {export_name}` at `{source_file}` alone. Its `missing`,
+            `orphaned` and `citations` are not gaps here, and no record is
+            appended for an export the ledger already records as a
+            `fabricated-signature` gap.
   coherence --input aggregate-coherence.py's result. Each
             `invalidReferences[]` entry at `SKILL.md:{line}`, by `status`:
             `missing` is a Critical `broken-reference` gap, `inaccurate` a
@@ -220,7 +276,6 @@ import errno
 import importlib.util
 import json
 import os
-import posixpath
 import re
 import secrets
 import sys
@@ -262,8 +317,13 @@ CATEGORIES: dict[str, tuple[str, str]] = {
     "stale-documentation": ("Coverage", "documentation for an export the enumerated source surface lacks"),
     "missing-type": ("Coverage", "a type or interface the skill does not document"),
     "provenance-completeness": ("Coverage", "an export the skill documents that the provenance map lacks"),
-    "provenance-line": ("Coverage", "a provenance line that is not the definition of its export"),
-    "provenance-unverified": ("Coverage", "a provenance line the line-check rules could not verify"),
+    "provenance-line": (
+        "Coverage",
+        "a provenance line that is not the definition of its export, or a citation whose file or line the source "
+        "lacks",
+    ),
+    "provenance-unverified": (
+        "Coverage", "a provenance line the line-check rules could not verify, or one that is not a line number"),
     "metadata-drift": ("Coverage", "export counts in the metadata that diverge from each other"),
     "denominator-inflation": ("Coverage", "a scope include union larger than the provenance map"),
     "brief-scope-stale": (
@@ -281,7 +341,10 @@ CATEGORIES: dict[str, tuple[str, str]] = {
         "a reference whose real path leaves the skill, its source and, for a stack, the skills folder",
     ),
     "integration-pattern": ("Coherence", "an integration pattern that is incomplete"),
-    "split-body-mismatch": ("Coherence", "SKILL.md and a references/ file that disagree about an export"),
+    "split-body-mismatch": (
+        "Coherence",
+        "two files of the skill (SKILL.md or a references/ file) that disagree about an export",
+    ),
     "scripts-assets": ("Coherence", "a Scripts & Assets section that is missing or names a missing file"),
     "scripts-assets-provenance": ("Coherence", "a script or asset file without a provenance entry"),
     "structural": (
@@ -713,7 +776,8 @@ _SIBLINGS: dict[str, object] = {}
 
 def _sibling(filename: str):
     """A script beside this one, loaded once: validate-inventory.py (the
-    documented-name match the stale-documentation Source uses)."""
+    documented-name match the stale-documentation Source uses, and the
+    skill-citation scan the homonym pick reads)."""
     module = _SIBLINGS.get(filename)
     if module is None:
         path = Path(__file__).resolve().parent / filename
@@ -825,13 +889,25 @@ def _documenting_line(skill_dir: Path, name: str) -> str | None:
     return None
 
 
-def _outside_scope(surface: dict | None) -> set[str] | None:
+def _scoped_out_by(row: dict) -> bool:
+    """Whether an `excluded.outsideScope` row says the brief scopes its file
+    out: a file, with the `scope.exclude` glob that matches it
+    (`excludeGlob`) or no `scope.include` glob covering it
+    (`outsideInclude`)."""
+    return (isinstance(row.get("file"), str) and bool(row["file"])
+            and ((isinstance(row.get("excludeGlob"), str) and bool(row["excludeGlob"]))
+                 or row.get("outsideInclude") is True))
+
+
+def _outside_scope(surface: dict | None) -> dict[str, dict] | None:
     """The names a surface result's `excluded.outsideScope` lists (defined in
-    a file the brief scopes out). None with no surface, no such list, or a
-    surface built without an extraction (no `extraction` object) or from
-    one that did not read the whole scope (a `no-ast-grep` status, a
-    `truncated` run, or `fallback.needed`): only an extraction fills that
-    list, so the names a brief scoped out are then unknown."""
+    a file out of scope), each with its row: the first the brief explains
+    (`_scoped_out_by`), else the first with a file, else its first. None
+    with no surface, no such list, or a surface built without an extraction
+    (no `extraction` object) or from one that did not read the whole scope
+    (a `no-ast-grep` status, a `truncated` run, or `fallback.needed`): only
+    an extraction fills that list, so the names a brief scoped out are then
+    unknown."""
     excluded = (surface or {}).get("excluded")
     if excluded is None:
         return None
@@ -849,7 +925,16 @@ def _outside_scope(surface: dict | None) -> set[str] | None:
     if (extraction.get("status") == "no-ast-grep" or extraction.get("truncated")
             or (isinstance(fallback, dict) and fallback.get("needed"))):
         return None
-    return {row["name"] for row in rows if isinstance(row, dict) and isinstance(row.get("name"), str)}
+    def rank(row: dict) -> tuple[bool, bool]:
+        return _scoped_out_by(row), isinstance(row.get("file"), str) and bool(row["file"])
+
+    outside: dict[str, dict] = {}
+    for row in rows:
+        if isinstance(row, dict) and isinstance(row.get("name"), str):
+            known = outside.get(row["name"])
+            if known is None or rank(row) > rank(known):
+                outside[row["name"]] = row
+    return outside
 
 
 # The extensions classify-stale reads a `defined_at` in.
@@ -860,60 +945,7 @@ _DEFINED_AT_RE = re.compile(
     r"^.+(?:" + "|".join(re.escape(e) for e in sorted(_DEFINED_AT_EXTENSIONS)) + r"):[1-9]\d*$", re.IGNORECASE)
 
 
-# A source citation the skill writes, `[AST:path:L12]`, `[SRC:path:L12-34]` or `[SRC:path:L12-L34]` (one with no
-# `:L<n>` part is ignored). Groups: prefix, path, first line, the `L` of a range's end, the range's end.
-# Keep identical to _SKILL_CITATION_RE in skf-verify-provenance-completeness.py.
-_SKILL_CITATION_RE = re.compile(
-    r"\[(AST|SRC):([^\[\]\n]+?):L(\d+)(?:-(L?)(\d+))?\]"
-)
-# Any bracketed citation (`[AST:...]`, `[SRC:...]`, `[EXT:...]`): a line names a documented name outside them.
-_ANY_CITATION_RE = re.compile(r"\[[A-Z]+:[^\[\]\n]*\]")
-
-
-def _cited_path(path: str) -> str:
-    """A cited or `declared_in` path as both compare: forward slashes, no `./`."""
-    path = path.strip().replace("\\", "/")
-    while path.startswith("./"):
-        path = path[2:]
-    return posixpath.normpath(path) if path else path
-
-
-def skill_markdown_files(skill_dir: Path) -> list[Path]:
-    """`SKILL.md` then every `references/**/*.md`, in a stable order.
-    Keep identical to skill_markdown_files in skf-verify-provenance-completeness.py."""
-    files: list[Path] = []
-    skill_md = skill_dir / "SKILL.md"
-    if skill_md.is_file():
-        files.append(skill_md)
-    refs = skill_dir / "references"
-    if refs.is_dir():
-        files.extend(sorted(p for p in refs.rglob("*.md") if p.is_file()))
-    return files
-
-
-def _skill_cited_files(skill_dir: Path, name: str) -> set[str]:
-    """The files the skill's `[AST:]` and `[SRC:]` citations name on a line of
-    SKILL.md or references/**/*.md that writes `name` outside its citations
-    (validate-inventory.py's match), or on the next non-blank line (a
-    heading, then its citation)."""
-    pattern = _sibling("validate-inventory.py").name_pattern(name)
-    cited: set[str] = set()
-    for path in skill_markdown_files(skill_dir):
-        try:
-            text = path.read_bytes().decode("utf-8-sig", errors="replace")
-        except OSError:
-            continue
-        lines = text.split("\n")
-        for number, line in enumerate(lines):
-            if not pattern.search(_ANY_CITATION_RE.sub(" ", line)):
-                continue
-            following = next((ln for ln in lines[number + 1:] if ln.strip()), "")
-            for cited_line in (line, following):
-                cited.update(_cited_path(m.group(2)) for m in _SKILL_CITATION_RE.finditer(cited_line))
-    return cited
-
-
-def _documented_extra_at(name: str, item: dict, outside: set[str] | None,
+def _documented_extra_at(name: str, item: dict, outside: dict[str, dict] | None,
                          skill_dir: str | None = None) -> tuple[str, int] | None:
     """Where the source declares a stale name that is a documented extra, given
     a surface built from an extraction whose `excluded.outsideScope` does not
@@ -936,10 +968,12 @@ def _documented_extra_at(name: str, item: dict, outside: set[str] | None,
     if not skill_dir or not isinstance(declared_in, list) or not all(
             isinstance(d, str) and _DEFINED_AT_RE.match(d) for d in declared_in):
         return None
-    by_file = {_cited_path(d.rsplit(":", 1)[0]): d for d in declared_in}
+    # validate-inventory.py's skill-citation scan, which score-signatures.py's plan reads too.
+    citations = _sibling("validate-inventory.py")
+    by_file = {citations._cited_path(d.rsplit(":", 1)[0]): d for d in declared_in}
     if len(by_file) < 2:
         return None
-    cited = _skill_cited_files(Path(skill_dir), name)
+    cited = citations._skill_cited_files(Path(skill_dir), name)
     chosen = [d for f, d in sorted(by_file.items()) if f in cited]
     return (chosen[0], len(by_file)) if len(chosen) == 1 else None
 
@@ -961,6 +995,196 @@ def _missing_export(name: str, where: str | None, meta: str, kind: str = "export
                 export=name)
 
 
+def _brief_of(surface: dict | None) -> str:
+    """The brief a surface result read: its `inputs.brief`, else skill-brief.yaml."""
+    inputs = (surface or {}).get("inputs")
+    brief = inputs.get("brief") if isinstance(inputs, dict) else None
+    return brief if isinstance(brief, str) and brief else _DEFAULT_BRIEF
+
+
+# The most names the issue of the inflated-union summary gap lists (#795).
+_INFLATED_NAMES_LISTED = 50
+# The clauses whose ladder has a tier A rung, so that a brief's `scope.tier_a_include` corrects the
+# denominator an inflated `scope.include` union gave them (#795).
+# Keep identical to the CLAUSE_LADDERS clauses with a `tier_a_include` rung in load-coverage-inputs.py.
+_TIER_A_CLAUSES = frozenset({"stratified-scope", "multi-entry"})
+
+
+def _inflated_union(surface: dict | None) -> bool:
+    """Whether the barrel branch counts an inflated `scope.include` union a
+    tier A list corrects: the surface's inflation guard fires, its
+    `denominator.surfaceSet` is `scope.include` and its `denominator.clause`
+    has a tier A rung. A set the surface lacked (`absentSet`) counted `all`
+    in its place, and the specific-modules and empty-barrel clauses count
+    `scope.include` whatever tier A list the brief has: each name there
+    stays its own gap."""
+    guards = (surface or {}).get("guards")
+    inflation = guards.get("inflation") if isinstance(guards, dict) else None
+    denominator = (surface or {}).get("denominator")
+    return (isinstance(inflation, dict) and inflation.get("fires") is True and isinstance(denominator, dict)
+            and denominator.get("surfaceSet") == "scope.include" and denominator.get("clause") in _TIER_A_CLAUSES)
+
+
+def _inflated_union_gap(names: list[str], where: dict[str, str], types: set[str], brief: str,
+                        union: object) -> dict:
+    """One gap at the brief for the names an inflated `scope.include` union
+    counts and the skill does not document, in place of a gap per name: the
+    union sweeps in infrastructure, so most of them belong to no authored
+    surface (#795). It sits beside the guard's own `denominator-inflation`
+    gap at that brief, whose fix it defers to."""
+    def label(name: str) -> str:
+        notes = (["a type"] if name in types else []) + ([f"`{where[name]}`"] if where.get(name) else [])
+        return f"`{name}` ({', '.join(notes)})" if notes else f"`{name}`"
+
+    listed = [label(n) for n in names[:_INFLATED_NAMES_LISTED]]
+    more = len(names) - len(listed)
+    named = ", ".join(listed) + (f", and {more} more" if more else "")
+    size = f" ({union} names)" if _count(union) is not None else ""
+    return _gap(
+        "Medium", "denominator-inflation", "undocumented names in the inflated scope.include union", brief,
+        f"Correct the denominator first, as the denominator-inflation gap for `{brief}` says; then re-run Test "
+        "Skill, and the names the corrected denominator counts that the skill does not document come back as gaps.",
+        issue=f"the inflation guard fired: the `scope.include` union the denominator counts{size} sweeps in names "
+              f"outside the authored surface, and SKILL.md and references/ do not document {len(names)} of them: "
+              f"{named}")
+
+
+def _scoped_out_gap(name: str, row: dict, doc: str | None, brief: str) -> dict:
+    """The Medium `stale-documentation` gap of a documented name an entry
+    point exports from a file the brief scopes out (#796): its row names
+    the `scope.exclude` glob that matches the file, or says no
+    `scope.include` glob covers it, or both."""
+    file, line, entry = row["file"], _count(row.get("line")), row.get("entry")
+    at = f"{file}:{line}" if line else file
+    glob = row.get("excludeGlob") if isinstance(row.get("excludeGlob"), str) and row.get("excludeGlob") else None
+    uncovered = row.get("outsideInclude") is True
+    causes = (["no `scope.include` glob covers that file"] if uncovered else []) + (
+        [f"its `scope.exclude` glob `{glob}` matches {'it' if uncovered else 'that file'}"] if glob else [])
+    fixes = (["widen `scope.include` to cover that file"] if uncovered else []) + (
+        [f"narrow `{glob}` so it no longer matches that file (to remove the glob instead, record a `demoted-exclude` "
+         "scope-expansion amendment in the brief)"] if glob else [])
+    who = f"the entry point `{entry}`" if isinstance(entry, str) and entry else "an entry point"
+    return _gap(
+        "Medium", "stale-documentation", f"Stale documentation: {name}", doc or "SKILL.md",
+        f"Decide whether `{name}` belongs on the surface: `{brief}` scopes out `{at}`, where it is defined, since "
+        f"{' and '.join(causes)}. To keep its documentation, {' and '.join(fixes)}; else remove the documentation "
+        f"of `{name}` at {doc or 'SKILL.md'}.",
+        issue=f"{f'`{doc}`' if doc else 'SKILL.md'} documents `{name}`, which {who} exports and `{at}` defines, a "
+              f"file `{brief}` scopes out (`excluded.outsideScope`)",
+        export=name)
+
+
+def _named_inputs(surface: object, signatures: object) -> tuple[dict | None, set[str], set[str]]:
+    """The --surface result, the names --signatures lists in `missingTypes` and the names whose documented
+    signature it compared (`comparedNames`), for a result that names its missing and stale exports."""
+    types: set[str] = set()
+    scored: set[str] = set()
+    if signatures is not None:
+        signatures = _object(signatures, "--signatures (score-signatures.py)", "missingTypes")
+        types = set(_names(signatures, "missingTypes", "--signatures"))
+        scored = set(_names(signatures, "comparedNames", "--signatures"))
+    if surface is not None:
+        surface = _object(surface, "--surface (load-coverage-inputs.py surface)", "exports")
+    return surface, types, scored
+
+
+def _missing_gaps(cov: dict, surface: dict | None, types: set[str], meta: str) -> list[dict]:
+    """One gap per `missing` name, at the file and line the surface records for it, or, when the surface counts
+    an inflated `scope.include` union a tier A list corrects (`_inflated_union`), one summary gap at the brief in
+    their place (#795)."""
+    where = _surface_sources(surface)
+    missing = _names(cov, "missing", "--input")
+    if missing and _inflated_union(surface):
+        union = ((surface.get("guards") or {}).get("inflation") or {}).get("scopeIncludeUnion")
+        return [_inflated_union_gap(missing, where, types, _brief_of(surface), union)]
+    return [_missing_export(name, where.get(name), meta, "type" if name in types else "export") for name in missing]
+
+
+def _stale_gaps(cov: dict, surface: dict | None, stale: object, scored: set[str],
+                skill_dir: str | None) -> list[dict]:
+    """One gap per `stale` name: fabricated, a documented extra, or stale documentation (with its own wording
+    for a name defined in a file the brief scopes out, #796)."""
+    records: list[dict] = []
+    # `excluded` is read once a stale name may be a documented extra
+    outside: dict[str, dict] | None = None
+    outside_read = False
+    classified: dict[str, dict] = {}
+    if stale is not None:
+        if not isinstance(stale, list):
+            raise AdapterError("--stale is not classify-stale JSON (a list)")
+        classified = {i["name"]: i for i in stale if isinstance(i, dict) and isinstance(i.get("name"), str)}
+    for name in _names(cov, "stale", "--input"):
+        item = classified.get(name) or {}
+        cited = item.get("source")
+        if item.get("fabricated") is True:
+            if not isinstance(cited, str) or not cited:
+                # a Critical gap needs the line it cites: never downgrade it
+                raise AdapterError(f"--stale: {name!r} is fabricated with no source")
+            records.append(_gap(
+                "Critical", "fabricated-signature", f"Fabricated signature: {name}", cited,
+                f"Remove `{name}` from SKILL.md and references/, or correct it to the export the source "
+                f"defines: no file its provenance cites defines it (`{cited}`).",
+                issue=f"SKILL.md documents `{name}`, which the source API surface lacks and the cited "
+                      "file does not define",
+                export=name))
+            continue
+        if not outside_read:
+            outside, outside_read = _outside_scope(surface), True
+        extra = _documented_extra_at(name, item, outside, skill_dir)
+        doc = _documenting_line(Path(skill_dir), name) if skill_dir else None
+        if extra:
+            declared, among = extra
+            # a homonym: the one declaring file the skill's own citations name
+            picked = (f"; of the {among} files that declare it, the skill cites only "
+                      f"`{declared.rsplit(':', 1)[0]}`") if among else ""
+            # never routed: update-skill leaves an `observation` alone. Signature scoring compares a
+            # documented signature of a name on the surface's records (a nested sub-package's) alone.
+            checked = ("Signature scoring compares its documented signature with the surface's record of it."
+                       if name in scored else
+                       "Its documented signature was not checked against that declaration.")
+            records.append(_gap(
+                "Info", "observation", f"Documented extra: {name}", declared,
+                f"No change: `{name}` is a documented extra, a name the source still declares at "
+                f"`{declared}` outside the enumerated surface, and its documentation stays. {checked}",
+                issue=f"{f'`{doc}`' if doc else 'the skill'} documents `{name}`, which the enumerated source API "
+                      f"surface lacks and the source still declares{picked}",
+                export=name))
+            continue
+        if outside is not None and name in outside and _scoped_out_by(outside[name]):
+            # an entry point exports it from a file the brief scopes out (#796)
+            records.append(_scoped_out_gap(name, outside[name], doc, _brief_of(surface)))
+            continue
+        records.append(_gap(
+            "Medium", "stale-documentation", f"Stale documentation: {name}", doc or "SKILL.md",
+            f"Check `{name}` against the source and update or remove its documentation at "
+            f"{doc or 'SKILL.md'}: the enumerated source surface does not export it.",
+            issue=f"SKILL.md documents `{name}`, which the enumerated source API surface lacks",
+            export=name))
+    return records
+
+
+def _residual_gap(cov: dict, meta: str) -> list[dict]:
+    """A counted set's residual: the exports the stored count counts beyond the names the set lists, one gap
+    when `missingCount` exceeds the listed `missing` names."""
+    listed = len(_names(cov, "missing", "--input"))
+    missing, denominator = _count(cov.get("missingCount")), _count(cov.get("denominator"))
+    residual = (missing or 0) - listed
+    if residual <= 0:
+        return []
+    set_name = cov.get("surfaceSet") if isinstance(cov.get("surfaceSet"), str) else "named"
+    size = _count(cov.get("surfaceSetSize"))
+    names = f"{size} names" if size is not None else "names"
+    return [_gap(
+        "Medium", "missing-export", f"{residual} of {denominator} exports not documented beyond the {set_name} set",
+        meta,
+        f"Find the {residual} exports the stored count (`stats.effective_denominator`) counts beyond the {names} "
+        f"of the `{set_name}` set (`{meta}` lists the exports) and document each with its signature; a stale "
+        "stored count is recounted by re-running Create Skill.",
+        issue=f"of the {denominator} exports the stored count counts, {missing} are not documented: the "
+              f"`{set_name}` set names {listed} of them, and the other {residual} are exports the count holds "
+              "beyond the set's names")]
+
+
 def from_coverage(cov: object, surface: object = None, signatures: object = None, numerator: object = None,
                   stale: object = None, provenance: object = None, skill_dir: str | None = None,
                   metadata: str | None = None) -> list[dict]:
@@ -970,70 +1194,16 @@ def from_coverage(cov: object, surface: object = None, signatures: object = None
     branch = cov["branch"]
     records: list[dict] = []
     if branch == "enumerated":
-        types: set[str] = set()
-        # the names whose documented signature signature scoring compared
-        scored: set[str] = set()
-        if signatures is not None:
-            signatures = _object(signatures, "--signatures (score-signatures.py)", "missingTypes")
-            types = set(_names(signatures, "missingTypes", "--signatures"))
-            scored = set(_names(signatures, "comparedNames", "--signatures"))
-        if surface is not None:
-            surface = _object(surface, "--surface (load-coverage-inputs.py surface)", "exports")
-        where = _surface_sources(surface)
-        # `excluded` is read once a stale name may be a documented extra
-        outside: set[str] | None = None
-        outside_read = False
-        for name in _names(cov, "missing", "--input"):
-            records.append(_missing_export(name, where.get(name), meta, "type" if name in types else "export"))
-        classified: dict[str, dict] = {}
-        if stale is not None:
-            if not isinstance(stale, list):
-                raise AdapterError("--stale is not classify-stale JSON (a list)")
-            classified = {i["name"]: i for i in stale if isinstance(i, dict) and isinstance(i.get("name"), str)}
-        for name in _names(cov, "stale", "--input"):
-            item = classified.get(name) or {}
-            cited = item.get("source")
-            if item.get("fabricated") is True:
-                if not isinstance(cited, str) or not cited:
-                    # a Critical gap needs the line it cites: never downgrade it
-                    raise AdapterError(f"--stale: {name!r} is fabricated with no source")
-                records.append(_gap(
-                    "Critical", "fabricated-signature", f"Fabricated signature: {name}", cited,
-                    f"Remove `{name}` from SKILL.md and references/, or correct it to the export the source "
-                    f"defines: no file its provenance cites defines it (`{cited}`).",
-                    issue=f"SKILL.md documents `{name}`, which the source API surface lacks and the cited "
-                          "file does not define",
-                    export=name))
-                continue
-            if not outside_read:
-                outside, outside_read = _outside_scope(surface), True
-            extra = _documented_extra_at(name, item, outside, skill_dir)
-            doc = _documenting_line(Path(skill_dir), name) if skill_dir else None
-            if extra:
-                declared, among = extra
-                # a homonym: the one declaring file the skill's own citations name
-                picked = (f"; of the {among} files that declare it, the skill cites only "
-                          f"`{declared.rsplit(':', 1)[0]}`") if among else ""
-                # never routed: update-skill leaves an `observation` alone. Signature scoring compares a
-                # documented signature of a name on the surface's records (a nested sub-package's) alone.
-                checked = ("Signature scoring compares its documented signature with the surface's record of it."
-                           if name in scored else
-                           "Its documented signature was not checked against that declaration.")
-                records.append(_gap(
-                    "Info", "observation", f"Documented extra: {name}", declared,
-                    f"No change: `{name}` is a documented extra, a name the source still declares at "
-                    f"`{declared}` outside the enumerated surface, and its documentation stays. {checked}",
-                    issue=f"{f'`{doc}`' if doc else 'the skill'} documents `{name}`, which the enumerated source API "
-                          f"surface lacks and the source still declares{picked}",
-                    export=name))
-                continue
-            records.append(_gap(
-                "Medium", "stale-documentation", f"Stale documentation: {name}", doc or "SKILL.md",
-                f"Check `{name}` against the source and update or remove its documentation at "
-                f"{doc or 'SKILL.md'}: the enumerated source surface does not export it.",
-                issue=f"SKILL.md documents `{name}`, which the enumerated source API surface lacks",
-                export=name))
+        surface, types, scored = _named_inputs(surface, signatures)
+        records += _missing_gaps(cov, surface, types, meta)
+        records += _stale_gaps(cov, surface, stale, scored, skill_dir)
     elif branch in ("scalar", "stack"):
+        # A scalar result that counts its set lists its missing names, and one on a surface read from the
+        # source its stale names: each is recorded as the barrel branch's are.
+        counted = branch == "scalar" and cov.get("numeratorSource") == "surface"
+        stale_named = branch == "scalar" and cov.get("staleApplicable") is True
+        if counted or stale_named:
+            surface, types, scored = _named_inputs(surface, signatures)
         if branch == "scalar" and cov.get("numeratorSource") == "verified":
             if numerator is None:
                 raise AdapterError("the scalar count used the verified numerator: pass its result with "
@@ -1043,6 +1213,9 @@ def from_coverage(cov: object, surface: object = None, signatures: object = None
             where = _provenance_sources(_object(provenance, "--provenance (provenance map)", "entries")
                                         if provenance is not None else None)
             records += [_missing_export(name, where.get(name), meta) for name in absent]
+        elif counted:
+            records += _missing_gaps(cov, surface, types, meta)
+            records += _residual_gap(cov, meta)
         else:
             missing, denominator = _count(cov.get("missingCount")), _count(cov.get("denominator"))
             if missing:
@@ -1052,6 +1225,8 @@ def from_coverage(cov: object, surface: object = None, signatures: object = None
                     f"name (`{meta}` lists the exports) and document each with its signature.",
                     issue=f"SKILL.md and references/ name {cov.get('documented')} of the {denominator} exports "
                           f"the {branch} denominator counts"))
+        if stale_named:
+            records += _stale_gaps(cov, surface, stale, scored, skill_dir)
     elif branch != "docsOnly":
         raise AdapterError(f"--input (reconcile-coverage.py): unknown branch {branch!r}")
     return records
@@ -1086,42 +1261,86 @@ def from_guards(surface: object, metadata: str | None = None) -> list[dict]:
     else:
         no_tier_a = "no `scope.tier_a_include` glob in the brief counts a public name"
     deflation = guards.get("deflation") or {}
-    if deflation.get("fires") is True:
+    inflation = guards.get("inflation") or {}
+    stored = _count(deflation.get("effectiveDenominator")) or 0
+    # No remediation sets `stats.effective_denominator` by hand: Update Skill's recount drops such a value (#803).
+    # Both guards on the scope.include union name one fix, the brief's tier A list (#788).
+    both = (deflation.get("fires") is True and inflation.get("fires") is True
+            and deflation.get("basis") != "tier_a_include")
+    # On an umbrella barrel the names are re-exports, each counted at the file that defines it, never the barrel.
+    umbrella = (" rather than the root barrel, an umbrella of re-exports"
+                if (guards.get("umbrella") or {}).get("umbrella") is True else "")
+    verb = (f"Edit `scope.tier_a_include` in `{brief}` so its globs list" if brief_tier_a
+            else f"Add `scope.tier_a_include` to `{brief}`, listing")
+    # Only Create Skill always writes metadata.json, and it stores the runner's count only under this rule.
+    stores = ("when `effective_denominator_decision.store` holds and the brief's `scope.notes` documents the "
+              "stratification, and otherwise drops the stored count")
+    joint = (f"{verb} the files that define the authored names{umbrella}: the `scope.include` union is itself "
+             "inflated, so neither it nor the smaller stored count measures the authored surface. Then re-run "
+             f"Create Skill to recount `stats.effective_denominator` in `{meta}` from the tier A set: it stores "
+             f"that count {stores}.")
+    if deflation.get("fires") is True and deflation.get("basis") == "tier_a_include":
+        # A stored count the brief's tier A set disagrees with, either way: stale, so count it again (#813).
+        pct = deflation.get("pct")
+        if pct is None:  # a stored 0: no percentage against it
+            against = f" against a `stats.effective_denominator` of {stored}"
+        else:
+            below = isinstance(pct, (int, float)) and pct < 0
+            against = (f", {-pct if below else pct}% {'below' if below else 'above'} `stats.effective_denominator` "
+                       f"({deflation.get('effectiveDenominator')})")
+        # Until then: the set the denominator actually counts (a ladder with no tier A rung counts scope.include),
+        # or, on an incomplete extraction's tier A set below the stored count, the stored count.
+        denominator = surface.get("denominator") if isinstance(surface.get("denominator"), dict) else {}
+        extraction = surface.get("extraction") if isinstance(surface.get("extraction"), dict) else {}
+        if denominator.get("branch") == "scalar":
+            until = " Until then the stored count stays the denominator" + (
+                ": the extraction is incomplete, so the tier A set can miss names." if extraction.get("status")
+                == "incomplete" else ".")
+        elif isinstance(denominator.get("surfaceSet"), str):
+            until = f" Until then Test Skill counts the `{denominator['surfaceSet']}` set as the denominator."
+        else:
+            until = ""
+        records.append(_gap(
+            "Medium", "metadata-drift",
+            "denominator drift: effective_denominator disagrees with the brief's tier_a_include set", meta,
+            f"Re-run Create Skill to recount `stats.effective_denominator` in `{meta}`: it stores the runner's count "
+            f"of the brief's `scope.tier_a_include` set {stores}.{until}",
+            issue=f"the brief's `scope.tier_a_include` set counts {deflation.get('rederived')} exports{against}"))
+    elif deflation.get("fires") is True:
         if deflation.get("pct") is None:  # a stored 0: no percentage above it
-            above = (f" against a `stats.effective_denominator` of "
-                     f"{_count(deflation.get('effectiveDenominator')) or 0}")
+            above = f" against a `stats.effective_denominator` of {stored}"
         else:
             above = (f", {deflation.get('pct')}% above `stats.effective_denominator` "
                      f"({deflation.get('effectiveDenominator')})")
-        if deflation.get("pct") is None:  # a 0 measures no tier: count it again
+        if both:
+            fix = joint
+        elif deflation.get("pct") is None:  # a 0 measures no tier: count it again
             first = ("Edit `scope.tier_a_include` in the brief so its globs match the files that define the "
                      "authored tier" if brief_tier_a else "Check `scope.include` in the brief")
             fix = (f"{first}, then re-run Create Skill so `stats.effective_denominator` in `{meta}` is counted "
                    "again.")
         elif brief_tier_a:
-            fix = (f"Set `stats.effective_denominator` in `{meta}` to the public surface the source re-derives, "
-                   "or edit `scope.tier_a_include` in the brief so its globs match the files of the authored tier "
-                   "the smaller count measures.")
+            fix = (f"Re-run Create Skill to recount `stats.effective_denominator` in `{meta}` from the public surface "
+                   f"the source re-derives (it stores that count {stores}), or edit `scope.tier_a_include` in the "
+                   "brief so its globs match the files of the authored tier the smaller count measures.")
         else:
-            fix = (f"Set `stats.effective_denominator` in `{meta}` to the public surface the source re-derives, "
-                   "or add `scope.tier_a_include` to the brief to name the authored tier the smaller count "
-                   "measures.")
+            fix = (f"Re-run Create Skill to recount `stats.effective_denominator` in `{meta}` from the public surface "
+                   f"the source re-derives (it stores that count {stores}), or add `scope.tier_a_include` to the "
+                   "brief to name the authored tier the smaller count measures.")
         records.append(_gap(
             "Medium", "metadata-drift",
             "denominator deflation: effective_denominator below source public surface without tier_a_include",
             meta, fix,
             issue=f"the re-derived surface counts {deflation.get('rederived')} exports{above}, and {no_tier_a}"))
-    inflation = guards.get("inflation") or {}
     if inflation.get("fires") is True:
-        if (guards.get("umbrella") or {}).get("umbrella") is True:
-            fix = (f"Set `stats.effective_denominator` in `{meta}` to the authored surface: the root barrel "
-                   "is an umbrella of re-exports, so a `scope.tier_a_include` glob would still count them.")
+        if both:
+            fix = joint
         elif brief_tier_a:
             fix = (f"Edit `scope.tier_a_include` in `{brief}` so its globs match the files of the authored "
-                   "surface: the denominator then counts it instead of the coarse `scope.include` union.")
+                   f"surface{umbrella}: the denominator then counts it instead of the coarse `scope.include` union.")
         else:
-            fix = (f"Add `scope.tier_a_include` to `{brief}`, listing the files of the authored surface, so "
-                   "the denominator counts it instead of the coarse `scope.include` union.")
+            fix = (f"Add `scope.tier_a_include` to `{brief}`, listing the files of the authored surface{umbrella}, "
+                   "so the denominator counts it instead of the coarse `scope.include` union.")
         records.append(_gap(
             "Medium", "denominator-inflation",
             "denominator inflation: coarse scope.include union exceeds authored surface", brief, fix,
@@ -1198,11 +1417,24 @@ def from_metadata_coherence(result: object, metadata: str | None = None) -> list
         if not isinstance(finding, dict) or not isinstance(finding.get("title"), str):
             raise AdapterError(f"--input: findings[{index}] has no title")
         detail = finding.get("detail") if isinstance(finding.get("detail"), str) else None
-        if finding.get("severity") == "Medium":
+        if finding.get("severity") == "Medium" and "documented-surface" in finding["title"]:
+            # `stats.exports_documented` and the confidence_distribution sum count every provenance entry, while
+            # the named-export count leaves out `Type::method` entries: a re-run reproduces that difference
             records.append(_gap(
                 "Medium", "metadata-drift", finding["title"], meta,
-                f"Recount the exports and correct the diverging counts in `{meta}`; update-skill applies it as "
-                "a metadata update.",
+                f"No count in `{meta}` needs a fix when `stats.exports_documented` and the `confidence_distribution` "
+                "sum agree: both count every provenance map entry, while the named-export count leaves out the "
+                "`Type::method` entries, so the counts differ by the methods the skill documents. When those two "
+                "disagree, Update Skill or Create Skill recounts both from the provenance map the next time it "
+                "writes the skill; a hand edit does not hold.",
+                issue=detail))
+        elif finding.get("severity") == "Medium":
+            records.append(_gap(
+                "Medium", "metadata-drift", finding["title"], meta,
+                f"Re-run Create Skill, which rebuilds `exports[]` and `stats.exports_public_api` in `{meta}` from "
+                "the source. Update Skill does not repair this drift: each time it writes the skill it recounts "
+                "`stats.exports_public_api` from the source and keeps `exports[]`, adding or dropping only the "
+                "names its provenance map changes, so a metadata patch does not hold.",
                 issue=detail))
         elif finding.get("severity") == "Info":
             records.append(_gap(
@@ -1217,15 +1449,52 @@ def from_metadata_coherence(result: object, metadata: str | None = None) -> list
 
 
 def from_provenance_line(result: object) -> list[dict]:
-    """verify's `line-not-definition` items: provenance line gaps."""
+    """verify's `stale[]` items: provenance line gaps, one per citation that does not resolve or is not the
+    definition line."""
     result = _object(result, "--input (skf-verify-provenance-completeness.py verify)", "stale")
     records: list[dict] = []
     for item in _list(result, "stale", "--input"):
-        if not isinstance(item, dict) or item.get("reason") != "line-not-definition":
+        if not isinstance(item, dict):
             continue
+        reason = item.get("reason")
         name, file, line = item.get("export_name"), item.get("source_file"), item.get("source_line")
-        defs = [n for n in item.get("definition_lines") or [] if _count(n) is not None]
         where = f"{file}:{line}"
+        if reason == "file-missing":
+            records.append(_gap(
+                "Low", "provenance-line", f"Provenance file is missing for {name}", where,
+                f"Set the provenance `source_file` and `source_line` of `{name}` to the file and line that define "
+                "it in the pinned source, and move its citations there. update-skill `--from-test-report` does not "
+                "repair this: it leaves the entry unchanged, with a warning that names the file.",
+                issue=f"the provenance map records `{name}` at `{where}`, but the pinned source has no readable "
+                      f"file `{file}`; the export may live in another file, such as one with another extension.",
+                export=name))
+            continue
+        if reason == "line-out-of-bounds":
+            records.append(_gap(
+                "Low", "provenance-line", f"Provenance line is out of range for {name}", where,
+                f"Set the provenance `source_line` of `{name}` in `{file}` to the line that defines it and move "
+                "its citations to that line; update-skill `--from-test-report` applies this when the file defines "
+                "it on one line.",
+                issue=f"the provenance map records `{name}` at `{where}`, which is not a line of `{file}` (past "
+                      "its end, or below 1).",
+                export=name))
+            continue
+        if reason == "line-invalid":  # no line number to cite: the Source is the file alone
+            records.append(_gap(
+                "Info", "provenance-unverified", f"Provenance line not verified for {name}", f"{file}",
+                f"Set the provenance `source_line` of `{name}` in `{file}` to the number of the line that defines "
+                "it.",
+                issue=f"the provenance map records `{name}` in `{file}` at line `{line}`, which is not a line "
+                      "number, so no rule could check it; check by hand",
+                export=name))
+            continue
+        if reason != "line-not-definition":
+            continue
+        defs = [n for n in item.get("definition_lines") or [] if _count(n) is not None]
+        base = item.get("folded_to") if isinstance(item.get("folded_to"), str) and item.get("folded_to") else None
+        # a bookkeeping variant the file never names was checked against its base (#847)
+        folded = f" `{name}` is a bookkeeping variant `{file}` never names, checked against its base `{base}`." \
+            if base else ""
         if defs:
             lines = ", ".join(str(n) for n in defs)
             records.append(_gap(
@@ -1234,16 +1503,25 @@ def from_provenance_line(result: object) -> list[dict]:
                 "and move its citations to that line; update-skill `--from-test-report` applies this when the "
                 "file defines it on one line.",
                 issue=f"the provenance map records `{name}` at `{where}`, which is not the line that defines "
-                      f"it; the lines that define it are {lines}.",
+                      f"it; the lines that define it are {lines}.{folded}",
                 export=name))
         else:
             records.append(_gap(
                 "Info", "provenance-unverified", f"Provenance line not verified for {name}", where,
-                f"Open `{file}` and confirm that line {line} defines `{name}`; if another line does, set the "
-                "provenance `source_line` to it.",
-                issue=f"the line-check rules found no definition line for `{name}` in `{file}`; check by hand",
+                f"Open `{file}` and confirm that line {line} defines `{base or name}`; if another line does, set "
+                "the provenance `source_line` to it.",
+                issue=f"the line-check rules found no definition line for `{name}` in `{file}`; check by hand"
+                      + (f".{folded}" if folded else ""),
                 export=name))
     return records
+
+
+def without_fabricated(ledger: dict, records: list[dict]) -> list[dict]:
+    """`--from provenance-line`'s records but those of an export the ledger already records as a
+    `fabricated-signature` gap: coverage-check §5b appends that record first, and an export the source no longer
+    holds takes no provenance line fix."""
+    fabricated = {r.get("export") for r in ledger["records"] if r.get("category") == "fabricated-signature"}
+    return [r for r in records if not r.get("export") or r.get("export") not in fabricated]
 
 
 def from_coherence(result: object) -> list[dict]:
@@ -1541,6 +1819,8 @@ def _cmd_append(args: argparse.Namespace) -> int:
         # one waits here instead of writing over the records it adds.
         with ledger_lock(path):
             ledger = load_ledger(path) if path.exists() else new_ledger(path)
+            if args.adapter == "provenance-line":
+                records = without_fabricated(ledger, records)
             appended, duplicates = append_records(ledger, args.stage, records)
             save_ledger(path, ledger)
     except LedgerError as exc:

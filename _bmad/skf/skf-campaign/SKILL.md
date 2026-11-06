@@ -31,10 +31,10 @@ Run these steps once, in order, before dispatching to Mode Routing.
 
 2. **Resolve `{headless_mode}`**: true if `--headless` or `-H` was passed as an argument, or if `headless_mode: true` in `{sidecar_path}/preferences.yaml`. Default: false.
 
-3. **Resolve workflow customization.** Run:
+3. **Resolve workflow customization.** Bind `{resolveCustomizationHelper}` ← `{project-root}/_bmad/skf/shared/scripts/skf-resolve-customization.py`, else `{project-root}/src/shared/scripts/skf-resolve-customization.py` (the first that exists), and run:
 
    ```bash
-   uv run {project-root}/_bmad/scripts/resolve_customization.py --skill {skill-root} --project-root {project-root} --key workflow
+   uv run {resolveCustomizationHelper} --skill {skill-root} --project-root {project-root} --key workflow
    ```
 
    It merges the bundled `{skill-root}/customize.toml` with `{project-root}/_bmad/custom/skf-campaign.toml` (team overrides, committed) and `.user.toml` (personal overrides, gitignored). When it exits non-zero, prints no JSON or is missing, print one line, `[activation/warn] customization_resolver_unavailable: <reason>` (`<reason>`: its first stderr line, `not found` when the script is missing, `no JSON` when it printed none). If the resolver cannot run, read `{skill-root}/customize.toml` alone and use its bundled defaults: the `{project-root}/_bmad/custom/` overrides do not apply to this run. In that case, unless the invocation is `campaign status` (which writes nothing), log `customization_resolver_unavailable: <reason>` as an `event` in the decision log once `{campaignWorkspacePath}` is bound below (`references/campaign-contracts.md`, Decision Log).
@@ -73,6 +73,7 @@ These rules apply to every step in this workflow:
 - Validate `_campaign-state.yaml` on every load by running `uv run scripts/campaign-validate-state.py --state-file {stateFile}` and HALT (exit code 3, `invalid-state`) on non-zero; never hand-validate the schema
 - Zero memory dependency: campaign state is 100% recoverable from disk; never rely on conversation context for progress tracking
 - A sub-skill's result is what the step that runs it reads (an `SKF_*_RESULT_JSON` envelope or a verdict): a missing, unparseable or error result is a sub-skill failure, and never write partial state from an unparsed envelope
+- Run every subagent in the foreground (parallel ones as several calls in one message, never with `run_in_background`) and wait for every long-running command to exit before the next instruction; in a headless run, never end a turn while either still runs, since under `claude -p` a run stops when its turn ends.
 - Log every operator decision, headless default and event (skip/force, overwrite, export cancel/proceed, `.bak` recovery, user-cancel, a failed skill) as one typed entry in the append-only `{campaignWorkspacePath}/_campaign-decision-log.md` through `campaign-state.py log` (`references/campaign-contracts.md`), so rationale survives compaction and resume
 - **Universal cancel affordance:** at any interactive gate between Setup and the Export gate, `cancel`/`exit`/`:q` triggers a HARD HALT with **exit code 12 (`user-cancelled`)**: log it and leave state intact and resumable. Exception: the Export gate's own `[C]ancel` stays exit code 11 (`export-cancelled`); never also emit 12 there, so an automator's exit-code branch stays deterministic.
 - Always communicate in `{communication_language}`

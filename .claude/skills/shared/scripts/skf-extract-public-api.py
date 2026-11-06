@@ -350,7 +350,11 @@ scope.type and language; --include, --exclude, --tier-a-include,
 Which recipes. --recipe-set picks the recipes whose metadata.sets lists it:
 `component-library` when the scope type is component-library, else
 `standard`. Each recipe runs in the languages its metadata.languages
-lists. A match whose name starts with `_` is never an export. --head-cap
+lists. A Python or Rust match whose name starts with `_` is never an
+export, nor public anywhere below: Python's by the Source API Surface
+Definition's rule, Rust's because a `_` item is hidden or unnamed (a
+`#[doc(hidden)] pub mod __private`, which the runner cannot read, or a
+`pub const _`); a TS/JS `_` name is an export like any other. --head-cap
 keeps at most N matches of each recipe, in file and line order (0: no
 cap); without it the cap is 200, or at Forge+ and Deep tiers 500 for a
 full-library scope and 300 for a component-library one. `truncated` is
@@ -381,7 +385,11 @@ the line cap, say), which the caller then reads by eye. An item of a local `expo
 list takes instead the type of the top-level binding it names in its file:
 what the recipes record for that declaration exported in place (a const
 bound to an arrow function or a function expression is a function), or
-`re-export` for an import.
+`re-export` for an import. When that binding is declared in the file (not
+an import or a destructured name), the item also gets `declaration_line`
+and `declaration_signature_line`, its `$NAME` line and the source line
+holding it (an overload set's first signature); its `source_line`,
+`signature_line` and `citation` stay at the list.
 
 Entry points. The export surface each package declares: every subpath of a
 package.json `exports` map (committed .d.ts/.d.mts targets outside src/
@@ -423,40 +431,75 @@ module names.
 A chain the trace cannot follow (a module no file here holds, a `#[path]`
 module) is listed in `unresolved`. The diff against the recipe inventory,
 one language family at a time (JavaScript/TypeScript, Python, Rust, Go):
-`public` (the entry points' names), `internal` (names the recipes found
-that no entry point exports or makes reachable), `extraction_gaps` (names
-an entry point exports that no recipe found, defined in a file in scope or
-in none the trace reached: read them by eye) and `outside_scope` (such
-names defined in a file out of scope: widen scope.include to document
+`public` (the entry points' names, each at the file and line the first
+entry point naming it gives, in path order, a JS/TS entry point's own and
+named exports all coming before any `export *`, unless that file is out
+of scope, or it gives none, and another entry point gives a file in
+scope, other than through a star or glob its own export of the name
+shadows),
+`other_definitions` (each other definition of a public name in a file in
+scope, one row per file and `local` name: the file and line an entry
+point gives, never a namespace nor one beside a public row that is a
+namespace, nor a star or glob through which an entry point passes on a
+name it already exports (its own export shadows it), while two exports
+of the name by one entry point, such as Rust `pub use` items a `cfg`
+gates, are both kept; in every language family, so a name each
+framework package of a monorepo defines keeps
+each package's file, while a gap and an outside_scope row still go by
+name, from `public` alone),
+`internal` (names the recipes found that no entry point exports or makes
+reachable), `extraction_gaps` (names an entry point exports that no
+recipe found, defined in a file in scope or in none the trace reached:
+read them by eye) and `outside_scope` (names an entry point exports that
+a file out of scope defines, even when a recipe found the name in another
+file, which is another definition: widen scope.include to document
 them). A namespace with `members` is diffed as its members: each is found
 when a recipe found its name, or its `local` one, in its file (one with
 no file by its name alone, as a public name is), and has no row of its
 own when a public name (or another namespace's member) has its name and
 file; one with null `members`, and a member that is such a module, is no
 gap. In a family with no entry point, or only empty ones, every name the
-recipes found is public.
+recipes found is public. A JS/TS module exports, besides the names the
+recipes match, those its column-0 `export` statements declare in a form
+no recipe matches, read from its text: `export let`, `export declare
+const`, `export namespace`, and each name a destructuring pattern that
+opens an `export const`, `let` or `var` statement binds (`export const
+{ a, b: c } = obj` exports a and c), at the line the name is on. Such a
+name that an entry point exports, or passes on through `export *`, is
+public and, no recipe having found it, an `extraction_gaps` row
+(`outside_scope`, in a file out of scope) at that line. A pattern after
+the statement's first declarator (`export const a = 1, { b } = o`), or
+one the reader cannot read (one that does not close, or a default
+holding a template literal over several lines), binds nothing here and
+no warning names it: read it by eye.
 
 Counts. `exports_public_api` counts the public names (the package's whole
 public API, `outside_scope` names included), each distinct name and file
-once: a namespace with `members` counts as its members (none for an empty
-list, and a member that is also a public name, or another namespace's
-member, once), one with null `members` as one. `exports_internal` counts
-the internal names. `effective_denominator` counts those public names
-whose definition file matches scope.include (any file when it has no
-glob), scope.tier_a_include when given, and no scope.exclude glob: each
-name once, so a type counts once whatever its methods, a barrel that
-only re-exports adds nothing of its own, and a name the entry points
-pass on from two files (a namespace member named like another public
-name, or like another namespace's member, at another file) or in two
-languages counts once, when any one of its files matches, as Test
-Skill's sets count it. A tier A list that counts no public name (each
-glob matches no file, or only files scope.exclude drops, that
-scope.include leaves out or that define no public name) narrows nothing
-on a run that counted a public name and read every file (no `errors`
-item): the count falls back to scope.include (else every file), with a
-warning.
+`public` gives once (`other_definitions` adds none): a namespace with
+`members` counts as its members (none for an empty list, and a member
+that is also a public name, or another namespace's member, once), one
+with null `members` as one. `exports_internal` counts the internal names.
+`effective_denominator` counts those public names with a definition file
+(the `public` row's, or one of its `other_definitions`') that matches
+scope.include (any file when it has no glob), scope.tier_a_include when
+given, and no scope.exclude glob: each name once, however many in-scope
+files define it, so a type counts once whatever its methods, a barrel
+that only re-exports adds nothing of its own, and a name the entry points
+pass on from two files (two packages' entry points that each define it,
+or a namespace member named like another public name, or like another
+namespace's member, at another file) or in two languages counts once,
+when any one of its files matches, as Test Skill's sets count it. A tier
+A list that counts no public name (each glob matches no file, or only
+files scope.exclude drops, that scope.include leaves out or that define
+no public name) narrows nothing on a run that counted a public name and
+read every file (no `errors` item): the count falls back to scope.include
+(else every file), with a warning.
 `arms` gives compile's effective_denominator arms:
-(a) `monorepo` from skf-detect-workspaces.py, (b) `specific_modules`
+(a) `monorepo` from skf-detect-workspaces.py over the tree the brief
+keeps (its scoped_tree: a member counts only through the files no
+scope.exclude glob matches, so excluding its sources drops it, excluding
+only its manifest does not, root manifests always stay, and a workspace
+with no member left is none), (b) `specific_modules`
 (scope type specific-modules on a repository that is not a monorepo) and
 (c) `multi_subpath_exports` (an in-scope package.json whose `exports` map
 has more than one non-root subpath without a `*`, on a repository that is
@@ -466,20 +509,22 @@ Store or not. `curated_subset` is true when the files the count's basis
 globs list (scope.include's, else every file; a tier A count's, those
 among them a tier A glob matches too; under arm (b), less those a
 scope.exclude glob matches) leave out a file that defines a counted public
-name (an `outside_scope` name's included) or, in a monorepo, every source
-file of a skf-detect-workspaces.py workspace; a basis of `all-files` lists
+name (an `outside_scope` name's file and an `other_definitions` file
+included) or every source file of a
+workspace skf-detect-workspaces.py finds over the whole tree
+(scope.exclude aside, unlike arm (a): a member the brief drops is still
+part of the repository it chose a subset of); a basis of `all-files` lists
 none. `effective_denominator_decision` says whether create-skill and
 update-skill store `effective_denominator` as stats.effective_denominator,
 the brief's scope.notes aside (documenting the stratification is the one
-judgment left to them): `store` is true only when none of these holds,
-and `reason` names the first that does, else `curated-subset`:
-`reference-app` (scope type reference-app: pattern_surfaces_documented is
-its basis), `incomplete-run` (an `errors` item: a file a failed call left
-unread can hide a public name, so the count can be 0 or partial),
-`no-arm` (no arm is true), `full-library` (scope type full-library),
-`all-files` (the basis), `not-curated` (`curated_subset` false) and
-`zero-count` (a stored 0 is no denominator: Test Skill reads it as
-deflation).
+judgment left to them): `store` is true only when none of these holds, and
+`reason` names the first that does, else `curated-subset`: `reference-app`
+(scope type reference-app: pattern_surfaces_documented is its basis),
+`incomplete-run` (an `errors` item: a file a failed call left unread can
+hide a public name, so the count can be 0 or partial), `no-arm` (no arm is
+true), `full-library` (scope type full-library), `all-files` (the basis),
+`not-curated` (`curated_subset` false) and `zero-count` (a stored 0 is no
+denominator: Test Skill reads it as deflation).
 
 Output JSON (stdout, or -o):
 
@@ -510,7 +555,10 @@ Output JSON (stdout, or -o):
                  "citation": "[AST:<file>:L<line>]", "ast_recipe",
                  "ast_node_type", "export_type", "language",
                  "from": "<module>" | null, "from_file": "<file>" | null,
-                 "confidence": "T1", "extraction_method": "ast-grep"}, ...],
+                 "confidence": "T1", "extraction_method": "ast-grep",
+                 # only on a local export list item whose binding is
+                 # declared in the file:
+                 "declaration_line": N, "declaration_signature_line": "<line>"}, ...],
     "aggregates": {"exports": N, "by_type": {"function": N, ...},
                    "t1": N, "t1_low": 0},
     "entry_points": {"status": "barrel" | "empty-barrel" | "no-entry-point"
@@ -530,6 +578,8 @@ Output JSON (stdout, or -o):
                     "file", "line",
                     "members": [{"name", "local", "file", "line"}, ...]
                                | null}, ...],  # members: via namespace only
+        "other_definitions": [{"name", "language", "entry", "via", "from",
+                               "local", "file", "line"}, ...],  # by name, then file
         "internal": [{"name", "language", "source_file", "source_line"}, ...],
         "extraction_gaps": [{"name", "language", "entry", "file", "line"}, ...],
         "outside_scope": [{"name", "language", "entry", "file", "line"}, ...]},
@@ -618,9 +668,16 @@ the entry points export by name, which counts as the names its module
 passes on), each export of a --quick output at its `defined_in` (else its
 `source_file`), and the --extraction runner's `entry_point_diff.public`;
 a payload name replaces a --quick or runner one of its family and name.
+The runner's `other_definitions` count in `effective_denominator` and
+`curated_subset` as full mode counts them, never in `exports_public_api`,
+each only while the record kept for its name names the file of the
+runner's `public` row (a row whose name has no runner row, or one a
+payload or --quick name moves to another file, adds nothing), and none
+beside a namespace with members, as in full mode.
 `exports_internal` counts the names of the payload's `exports` (the
-exports extraction found; `_` names left out) and of the runner's
-`internal` that no public name or member has. `effective_denominator`,
+exports extraction found; Python, Rust and Dart `_` names left out, those
+of every other language counted) and of the runner's `internal` that no
+public name or member has. `effective_denominator`,
 its basis, `curated_subset` and `effective_denominator_decision` follow
 full mode's rules, over the tree under --source-root, with the scope and
 arms full mode works out there; an --extraction that is `incomplete` is
@@ -638,10 +695,12 @@ and `arms`.
 
 `entry_point_diff` replaces a compare by eye, each item {"name",
 "language", "file"}: `public`, the names `exports_public_api` counts (a
-namespace as its `members`); `internal`, the exports `exports_internal`
-counts; `extraction_gaps`, the public names the payload and --quick give
-that no export found has (the payload's `exports`, the --extraction
-runner's names), to trace (the runner lists its own gaps).
+namespace as its `members`); `other_definitions`, the runner's other
+definitions the counts read, by name then file; `internal`, the exports
+`exports_internal` counts; `extraction_gaps`, the public names the
+payload and --quick give that no export found has (the payload's
+`exports`, the --extraction runner's names), to trace (the runner lists
+its own gaps).
 
 Output JSON: `mode` "denominator", `source_root`, `scope` (as full mode
 writes it), `files_in_scope`, `files_without_recipes`, `entry_points`,
@@ -1957,18 +2016,22 @@ def _binding_rules(language: str) -> list[dict]:
     return rules + [r for r in _trace_rules(language) if r["id"] in IMPORT_RULES]
 
 
-def _binding_types(matches: list[dict]) -> dict[tuple[str, str], str]:
-    """(file, name) -> the export type of the top-level binding `name` has
-    in that file, from the matches of _binding_rules."""
+def _bindings(matches: list[dict]) -> dict[tuple[str, str], dict]:
+    """(file, name) -> the top-level binding `name` has in that file, from
+    the matches of _binding_rules: its form, the export type BINDING_TYPES
+    gives it (`type`), and the `line` and `signature_line` of its match. Of
+    several matches of the winning form (an overload set's signatures), the
+    lowest line wins, the line merge_exports keeps for a name."""
     rank = list(BINDING_TYPES)
-    best: dict[tuple[str, str], str] = {}
+    best: dict[tuple[str, str], tuple[tuple[int, int], dict]] = {}
     for m in matches:
         form = "import" if m["rule"] in IMPORT_RULES else m["rule"].removeprefix(f"{BINDING_RULE}-")
         if form in BINDING_TYPES and m["name"]:
-            key = (m["file"], m["name"])
-            if key not in best or rank.index(form) < rank.index(best[key]):
-                best[key] = form
-    return {key: BINDING_TYPES[form] for key, form in best.items()}
+            key, order = (m["file"], m["name"]), (rank.index(form), m["line"])
+            if key not in best or order < best[key][0]:
+                best[key] = (order, {"form": form, "type": BINDING_TYPES[form], "line": m["line"],
+                                     "signature_line": m["signature_line"]})
+    return {key: binding for key, (_, binding) in best.items()}
 
 
 # --------------------------------------------------------------------------
@@ -2627,11 +2690,22 @@ def _preferred(at_line: list[dict], forms: dict, order: dict[str, int]) -> dict:
     return min(left, key=lambda m: (order[m["rule"]], m["language"]))
 
 
+def _private(family: str | None, name: str) -> bool:
+    """A name full mode and denominator mode never count: one that starts
+    with `_` in Python (the Source API Surface Definition leaves it out),
+    Rust (a `#[doc(hidden)] pub mod __private`, which the runner cannot
+    read, or a `pub const _`) or Dart (private to its library). A TS/JS `_`
+    name is exported like any other, and Go's recipe reads only a
+    capitalized name. Quick mode drops only Python's `_` names."""
+    return family in ("python", "rust", "dart") and name.startswith("_")
+
+
 def merge_exports(matches: list[dict], recipes: list[dict], recipe_set: str,
                   head_cap: int | None) -> tuple[list[dict], list[dict]]:
     """(exports, per-recipe stats) from the matches of one recipe set: at
     most `head_cap` matches of each recipe, in file and line order, merged
-    by (file, name) at the first line that names it."""
+    by (file, name) at the first line that names it. A Python or Rust `_`
+    name is no export."""
     forms = _forms(recipes)
     order: dict[str, int] = {}
     languages: dict[str, list[str]] = {}
@@ -2642,7 +2716,8 @@ def merge_exports(matches: list[dict], recipes: list[dict], recipe_set: str,
             langs.extend(lang for lang in recipe["metadata"]["languages"] if lang not in langs)
     per_recipe: dict[str, list[dict]] = {rid: [] for rid in order}
     for m in matches:
-        if m["rule"] in per_recipe and m["name"] and not m["name"].startswith("_") and (m["rule"], m["language"]) in forms:
+        if (m["rule"] in per_recipe and m["name"] and not _private(FAMILY_OF.get(m["language"]), m["name"])
+                and (m["rule"], m["language"]) in forms):
             per_recipe[m["rule"]].append(m)
     stats, kept = [], []
     for rid, found in per_recipe.items():
@@ -2679,7 +2754,10 @@ def _type_list_items(exe: str, root: Path, folder: Path, matches: list[dict], ex
     export_specifier with no `from`) the type of the top-level binding it
     names in its file, as BINDING_TYPES has it; the recipe's own
     export_type stays when no such binding has the name (a destructured
-    one)."""
+    one). A binding declared in the file (not an import) also gives the
+    item `declaration_line` and `declaration_signature_line`, its line and
+    source line; the item's own `source_line`, `signature_line` and
+    citation stay at the list."""
     items = [e for e in exports if e["ast_node_type"] == "export_specifier" and e["from"] is None]
     if not items:
         return
@@ -2691,10 +2769,16 @@ def _type_list_items(exe: str, root: Path, folder: Path, matches: list[dict], ex
     languages = sorted({lang for f in files for lang in _rule_languages(_file_language(f) or "")}
                        & set(RECIPE_LANGUAGES))
     rules = [rule for language in languages for rule in _binding_rules(language)]
-    types = _binding_types(_scan(exe, root, folder, rules, files, errors, clock))
+    bindings = _bindings(_scan(exe, root, folder, rules, files, errors, clock))
     for e in items:
         name = local.get((e["source_file"], e["ast_recipe"], e["export_name"]), e["export_name"])
-        e["export_type"] = types.get((e["source_file"], name), e["export_type"])
+        binding = bindings.get((e["source_file"], name))
+        if binding is None:
+            continue
+        e["export_type"] = binding["type"]
+        if binding["form"] != "import":
+            e["declaration_line"] = binding["line"]
+            e["declaration_signature_line"] = binding["signature_line"]
 
 
 # --------------------------------------------------------------------------
@@ -2839,14 +2923,190 @@ _JS_DEFAULT_NAME_RE = re.compile(r"^export\s+default\s+([A-Za-z_$][\w$]*)\s*;?\s
 _JS_DEFAULT_EXPORT_RE = re.compile(r"export\s+default\b")
 
 
+# Keep identical to _js_pattern_bindings in skf-verify-provenance-completeness.py.
+def _js_pattern_bindings(
+    text: str, start: int
+) -> tuple[list[tuple[str, int]], int | None]:
+    """The names the destructuring pattern whose `{` or `[` is at
+    `text[start]` binds, each with its offset in `text`, and the offset
+    just past the pattern's closing bracket.
+
+    An object pattern's property is `...target`, a shorthand key or
+    `key: target` (a key is a name, a string, a number or a computed
+    `[...]`, and only a shorthand key binds itself); an array pattern's
+    element is `...target`, a target or a hole; a target is a name or a
+    nested pattern. A `= default` is skipped to the next comma at the
+    pattern's depth, and so is a property or element of any other shape,
+    which binds nothing. '...', "..." and `...` strings are skipped
+    whole, so no bracket or comma inside one counts. Whitespace, newlines
+    included, may sit anywhere between the parts.
+
+    Returns ([], None) when `text[start]` opens no pattern, the pattern
+    does not close in `text`, a string in it does not end, or a bracket in
+    it closes one it did not open. A pure function of its arguments (no
+    module state), so another script can carry a copy of it.
+    """
+    n = len(text)
+    names: list[tuple[str, int]] = []
+
+    def space(i: int) -> int:
+        while i < n and text[i].isspace():
+            i += 1
+        return i
+
+    def name_end(i: int) -> int:
+        """The end of the identifier at `i`, `i` itself when none starts there."""
+        if i < n and (text[i].isalpha() or text[i] in "_$"):
+            i += 1
+            while i < n and (text[i].isalnum() or text[i] in "_$"):
+                i += 1
+        return i
+
+    def string_end(i: int) -> int | None:
+        """The offset past the string whose quote is at `i`."""
+        quote = text[i]
+        i += 1
+        while i < n:
+            if text[i] == "\\":
+                i += 2
+            elif text[i] == quote:
+                return i + 1
+            else:
+                i += 1
+        return None
+
+    def skip(i: int, to_comma: bool = True) -> int | None:
+        """From `i`, the offset of the next comma (unless not `to_comma`)
+        or closing bracket at depth 0; with `to_comma` False, `text[i]`
+        opens a bracket and the offset past the one closing it."""
+        depth = 0
+        while i < n:
+            ch = text[i]
+            if ch in "'\"`":
+                end = string_end(i)
+                if end is None:
+                    return None
+                i = end
+                continue
+            if ch in "([{":
+                depth += 1
+            elif ch in ")]}":
+                if depth == 0:
+                    return i
+                depth -= 1
+                if depth == 0 and not to_comma:
+                    return i + 1
+            elif ch == "," and depth == 0 and to_comma:
+                return i
+            i += 1
+        return None
+
+    def default(i: int) -> int | None:
+        """After a target: past its `= default`, when it has one."""
+        i = space(i)
+        if i < n and text[i] == "=" and text[i + 1 : i + 2] not in ("=", ">"):
+            return skip(i + 1)
+        return i
+
+    def bind(i: int, end: int, close: str) -> int | None:
+        """The name `text[i:end]` is bound when its property or element
+        ends after it or takes a default (any other text: another shape)."""
+        after = space(end)
+        if after < n and (
+            text[after] in (",", close)
+            or text[after] == "=" and text[after + 1 : after + 2] not in ("=", ">")
+        ):
+            names.append((text[i:end], i))
+            return default(after)
+        return after
+
+    def target(i: int, close: str) -> int | None:
+        if i < n and text[i] in "{[":
+            end = pattern(i)
+            return None if end is None else default(end)
+        end = name_end(i)
+        return i if end == i else bind(i, end, close)
+
+    def element(i: int, close: str) -> int | None:
+        """One property or element at `i`: the offset after it."""
+        if text.startswith("...", i):
+            return target(space(i + 3), close)
+        if close == "]":
+            return target(i, close)
+        if text[i] in "'\"":
+            end = string_end(i)
+        elif text[i] == "[":
+            end = skip(i, to_comma=False)  # a computed key
+        else:
+            end = name_end(i)
+            if end > i:
+                after = space(end)
+                if after < n and text[after] == ":":
+                    return target(space(after + 1), close)
+                return bind(i, end, close)  # a shorthand key
+            while end < n and (text[end].isalnum() or text[end] in "._"):
+                end += 1  # a number key
+        if end is None:
+            return None
+        after = space(end)
+        if end > i and after < n and text[after] == ":":
+            return target(space(after + 1), close)
+        return after
+
+    def pattern(i: int) -> int | None:
+        """The pattern opening at `i`: the offset past its closing bracket."""
+        close = "}" if text[i] == "{" else "]"
+        i += 1
+        while True:
+            i = space(i)
+            if i >= n:
+                return None
+            if text[i] == close:
+                return i + 1
+            if text[i] in ")]}":
+                return None
+            if text[i] == ",":
+                i += 1  # a hole, or a stray comma
+                continue
+            end = element(i, close)
+            if end is None:
+                return None
+            end = space(end)
+            if end < n and text[end] not in (",", close):
+                end = skip(end)  # any other shape binds nothing
+                if end is None:
+                    return None
+            i = end + 1 if end < n and text[end] == "," else end
+
+    if not (0 <= start < n and text[start] in "{["):
+        return [], None
+    end = pattern(start)
+    return (names, end) if end is not None else ([], None)
+
+
 def _js_text_names(text: str) -> tuple[list[tuple[str, int, bool]], list[tuple[str, int]]]:
     """The names a JS/TS file's column-0 `export` declarations bind, read
     from its text for the forms no recipe matches (`export let`, `export
-    declare const`, `export namespace`), as (name, line, is the default
-    export), and its `export default <name>;` statements, as (name, line)."""
+    declare const`, `export namespace`, and each name a destructuring
+    pattern that opens an `export const`, `let` or `var` statement binds:
+    `export const { a, b: c, ...d } = obj` binds a, c and d), as (name,
+    line, is the default export), and its `export default <name>;`
+    statements, as (name, line).
+
+    A pattern is read from its `{` or `[` on (`_JS_DESTRUCTURE_RE`) with
+    `_js_pattern_bindings`, so it may span lines, and each name it binds
+    takes the line the name is on. A pattern after the first declarator
+    is not read, and one that does not close, or that nests deeper than
+    the interpreter's recursion limit, binds nothing."""
     code = _blank(text, "js")
     declared = [(m.group(2), _line_of(code, m.start(2)), bool(m.group(1)))
                 for rx in (_JS_DECLARATION_RE, _JS_IMPORT_EQUALS_RE) for m in rx.finditer(code)]
+    for m in _JS_DESTRUCTURE_RE.finditer(code):
+        try:
+            names, _ = _js_pattern_bindings(code, m.end() - 1)
+        except RecursionError:
+            continue  # patterns nested past the interpreter's limit: none bound
+        declared += [(name, _line_of(code, offset), False) for name, offset in names]
     defaults = [(m.group(1), _line_of(code, m.start(1))) for m in _JS_DEFAULT_NAME_RE.finditer(code)]
     return declared, defaults
 
@@ -3084,12 +3344,13 @@ def _member(name: str, local: str | None, file: str | None, line: int | None) ->
     return {"name": name, "local": local if local and local != name else None, "file": file, "line": line}
 
 
-def _flatten(start, direct: Callable[[object], list[tuple[str, str, object]]]) -> list[dict]:
-    """The members of the namespace module `start`: what `direct` says it
-    passes on, (name, "member", member) or (name, "module", the module),
-    each nested namespace module's members spliced in its place (each
-    module once, so a cycle is cut), each (name, file) once, and no name
-    that starts with `_`, which is never public."""
+def _flatten(start, direct: Callable[[object], list[tuple[str, str, object]]], family: str) -> list[dict]:
+    """The members of the namespace module `start`, of language family
+    `family`: what `direct` says it passes on, (name, "member", member) or
+    (name, "module", the module), each nested namespace module's members
+    spliced in its place (each module once, so a cycle is cut), each
+    (name, file) once, and no Python or Rust name that starts with `_`,
+    which is never public."""
     out: list[dict] = []
     seen: set[tuple[str, str | None]] = set()
     visited: set = set()
@@ -3097,7 +3358,7 @@ def _flatten(start, direct: Callable[[object], list[tuple[str, str, object]]]) -
     def walk(module) -> None:
         visited.add(module)
         for name, kind, value in direct(module):
-            if not name or name.startswith("_"):
+            if not name or _private(family, name):
                 continue
             if kind == "module":
                 if value not in visited:
@@ -3111,17 +3372,35 @@ def _flatten(start, direct: Callable[[object], list[tuple[str, str, object]]]) -
 
 
 class _Surface:
-    """The public names one language family's entry points declare:
-    {name: info}, the first entry point naming it wins; the names, and the
-    files, a namespace export (a module) makes reachable, which are not
-    internal; and the re-exports the trace could not follow. A namespace
-    item also carries its `members`, the names its module passes on (None
-    when the trace cannot read that module); `opaque` holds the (name,
-    file) of each member that is itself a module the trace cannot read,
-    which, as such a namespace, is no recipe's target."""
+    """The public names the entry points of language family `family`
+    declare: {name: info}, the first `add` of a name wins (the JS/TS trace
+    adds every entry point's own and named exports before any `export *`),
+    unless the file it gives is out of scope (or it gives none) and another
+    entry point gives a file in `in_scope`, which then replaces it (one
+    entry point never replaces its own, and a star or glob that passes on a
+    name its entry point already exports replaces none: an explicit export
+    shadows it; with no `in_scope`, the first always wins); `others`,
+    {name: [info]}, the other definitions of a held name in files in
+    `in_scope` (#830), each an add that does not become the held record,
+    is no such shadowed star or glob, is no namespace, beside a held record
+    that is none, and gives a file in scope whose (file, `local` or name)
+    neither the held record nor an earlier one of `others` gives; the
+    names, and the files, a namespace export (a module) makes reachable,
+    which are not internal; and the re-exports the trace could not follow.
+    A namespace item also carries its `members`, the names its module
+    passes on (None when the trace cannot read that module); `opaque` holds
+    the (name, file) of each member that is itself a module the trace
+    cannot read, which, as such a namespace, is no recipe's target. A
+    Python or Rust `_` name is never added."""
 
-    def __init__(self) -> None:
+    def __init__(self, family: str, in_scope: set[str] | None = None) -> None:
+        self.family = family
+        self.in_scope = in_scope
         self.names: dict[str, dict] = {}
+        self.others: dict[str, list[dict]] = {}
+        self._other_at: dict[str, set[tuple[str, str]]] = {}  # name: the (file, local or name) of its others
+        # (entry, name) of each add: a star or glob an entry point passes an exported name on through is shadowed
+        self._added: set[tuple[str, str]] = set()
         self.reachable: set[str] = set()
         self.reachable_files: set[str] = set()
         self.unresolved: list[dict] = []
@@ -3130,14 +3409,25 @@ class _Surface:
     def add(self, name: str, entry: str, via: str, file: str | None, line: int | None,
             source: str | None = None, local: str | None = None,
             members: list[dict] | None = None) -> dict | None:
-        if not name or name.startswith("_"):
+        if not name or _private(self.family, name):
             return None
-        if name not in self.names:
-            self.names[name] = {"name": name, "entry": entry, "via": via, "from": source,
-                                "local": local if local and local != name else None,
-                                "file": file, "line": line}
+        held = self.names.get(name)
+        shadowed = via == "star" and (entry, name) in self._added
+        self._added.add((entry, name))
+        info = {"name": name, "entry": entry, "via": via, "from": source,
+                "local": local if local and local != name else None, "file": file, "line": line}
+        at = (file, info["local"] or name)
+        if held is None or (not shadowed and self.in_scope is not None and file in self.in_scope
+                            and entry != held["entry"]
+                            and (held["file"] is None or held["file"] not in self.in_scope)):
+            self.names[name] = info
             if via == "namespace":
                 self.names[name]["members"] = [dict(m) for m in members] if members is not None else None
+        elif (not shadowed and via != "namespace" and held["via"] != "namespace" and self.in_scope is not None
+              and file in self.in_scope and at != (held["file"], held["local"] or name)
+              and at not in self._other_at.get(name, ())):
+            self.others.setdefault(name, []).append(info)
+            self._other_at.setdefault(name, set()).add(at)
         return self.names[name]
 
     def unresolve(self, entry: str, name: str, source: str | None, file: str) -> None:
@@ -3341,7 +3631,7 @@ def _js_surface(root: Path, entries: list[dict], tree_set: set[str], forms: dict
 
     def members(file: str) -> list[dict]:
         if file not in member_lists:
-            member_lists[file] = _flatten(file, direct)
+            member_lists[file] = _flatten(file, direct, "javascript")
         return member_lists[file]
 
     def publish(entry: str, name: str, via: str, module: str, source: str | None) -> None:
@@ -3712,7 +4002,7 @@ def _py_surface(root: Path, entries: list[dict], tree_set: set[str], surface: _S
 
     def members(rel: str, top: str) -> list[dict]:
         if (rel, top) not in member_lists:
-            member_lists[(rel, top)] = _flatten(rel, lambda module: direct(module, top))
+            member_lists[(rel, top)] = _flatten(rel, lambda module: direct(module, top), "python")
         return member_lists[(rel, top)]
 
     for entry in [e["file"] for e in entries]:
@@ -4030,7 +4320,7 @@ def _rust_surface(root: Path, entries: list[dict], tree_set: set[str], surface: 
             return None
         key = (lib, tuple(here))
         if key not in member_lists:
-            member_lists[key] = _flatten(tuple(here), lambda path: direct(lib, path))
+            member_lists[key] = _flatten(tuple(here), lambda path: direct(lib, path), "rust")
         return member_lists[key]
 
     def publish(lib: str, here: list[str], name: str, via: str, source: str | None,
@@ -4130,19 +4420,25 @@ def _go_surface(root: Path, files: list[str], surface: _Surface, entries: list[d
 
 def entry_point_diff(exports: list[dict], surfaces: dict[str, _Surface], entries: list[dict],
                      in_scope: set[str]) -> tuple[dict[str, str], dict[tuple[str, str], dict], list[dict],
-                                                  list[tuple[str, dict]], list[tuple[str, dict]]]:
+                                                  list[tuple[str, dict]], list[tuple[str, dict]],
+                                                  list[tuple[str, dict]]]:
     """The entry-point diff, one language family at a time: (status by
     family, public names {(family, name): info}, internal export records,
-    and (family, info) of the extraction gaps and of the names outside
-    scope). A family whose entry points declare names diffs them with its
+    and (family, info) of the extraction gaps, of the names outside scope
+    and of the other in-scope definitions of public names, `_Surface`'s
+    `others`, which no gap or outside_scope row reads: those go by name).
+    A family whose entry points declare names diffs them with its
     exports: an export no entry point names, nor traces back to, nor makes
     reachable (a name, or any export of a reachable file), is internal. A
-    declared name no recipe found is a gap when a file in scope defines it
-    (or the trace found no file), and is outside scope when a file out of
-    scope does; a module is no recipe's target, so neither: a namespace
-    with `members` has each member diffed in its place, found when a
-    recipe found its name, or its `local` one, in its file, and given no
-    row of its own when a declared name has its name and file (or another
+    declared name, at the file `_Surface` kept for it (not always the first
+    entry point's in path order), is outside scope when a file out of scope
+    defines it, even when a recipe found its name in another file (another
+    definition: no recipe reads a file out of scope), and a gap when no
+    recipe found it and a file in scope defines it (or the trace found no
+    file); a module is no recipe's target, so neither: a namespace with
+    `members` has each member diffed in its place, found when a recipe
+    found its name, or its `local` one, in its file, and given no row of
+    its own when a declared name has its name and file (or another
     namespace gave it one); one whose members are unknown (None), or a
     member that is such a module (`opaque`), is no gap. In a family with
     no entry point, or only empty ones, every export is public."""
@@ -4151,6 +4447,7 @@ def entry_point_diff(exports: list[dict], surfaces: dict[str, _Surface], entries
     internal: list[dict] = []
     gaps: list[tuple[str, dict]] = []
     outside: list[tuple[str, dict]] = []
+    others: list[tuple[str, dict]] = []
     entry_families = {FAMILY_OF[e["language"]] for e in entries}
     families = {FAMILY_OF[e["language"]] for e in exports} | entry_families
     for family in sorted(families | {f for f, s in surfaces.items() if s.names}):
@@ -4168,6 +4465,7 @@ def entry_point_diff(exports: list[dict], surfaces: dict[str, _Surface], entries
         names = {e["export_name"] for e in records}
         traced = {info["local"] for info in declared.values() if info["local"]} | surface.reachable
         public.update(((family, name), info) for name, info in declared.items())
+        others.extend((family, dict(info)) for name in sorted(surface.others) for info in surface.others[name])
         seen: set[str] = set()
         for e in records:
             name = e["export_name"]
@@ -4176,9 +4474,13 @@ def entry_point_diff(exports: list[dict], surfaces: dict[str, _Surface], entries
                 seen.add(name)
                 internal.append(e)
         for name, info in declared.items():
-            if name in names or (info["local"] or name) in names or info["via"] == "namespace":
+            if info["via"] == "namespace":
                 continue
-            (gaps if info["file"] is None or info["file"] in in_scope else outside).append((family, info))
+            # A recipe never reads a file out of scope: a name it found elsewhere is another definition.
+            if info["file"] is not None and info["file"] not in in_scope:
+                outside.append((family, info))
+            elif name not in names and (info["local"] or name) not in names:
+                gaps.append((family, info))
         # A namespace's members, each by its name (or `local`) and file, or
         # by name alone when it has no file, as a declared name is: a name
         # at a file a declared name already gives counts once.
@@ -4195,7 +4497,7 @@ def entry_point_diff(exports: list[dict], surfaces: dict[str, _Surface], entries
                 row = {"name": member["name"], "entry": info["entry"], "file": member["file"],
                        "line": member["line"]}
                 (gaps if member["file"] is None or member["file"] in in_scope else outside).append((family, row))
-    return statuses, public, internal, gaps, outside
+    return statuses, public, internal, gaps, outside, others
 
 
 def _has_members(info: dict) -> bool:
@@ -4204,9 +4506,9 @@ def _has_members(info: dict) -> bool:
 
 
 def _public_keys(public: dict[tuple[str, str], dict]) -> set[tuple[str, str, str | None]]:
-    """The (family, name, file) the counts count: each public name but a
-    namespace with members, in its place each member, and so a member that
-    is also a declared name (or another namespace's member) once."""
+    """The (family, name, file) exports_public_api counts: each public name
+    but a namespace with members, in its place each member, and so a member
+    that is also a declared name (or another namespace's member) once."""
     keys: set[tuple[str, str, str | None]] = set()
     for (family, _), info in public.items():
         if _has_members(info):
@@ -4216,6 +4518,16 @@ def _public_keys(public: dict[tuple[str, str], dict]) -> set[tuple[str, str, str
     return keys
 
 
+def _other_keys(others: list[tuple[str, dict]]) -> set[tuple[str, str, str | None]]:
+    """The (family, name, file) of the other in-scope definitions of public
+    names (#830), which join the public keys in the set effective_denominator
+    and curated_subset read, never exports_public_api: a name still counts
+    once, when any of its files matches."""
+    return {(family, info["name"], info["file"]) for family, info in others
+            if isinstance(info.get("name"), str) and info["name"] and isinstance(info.get("file"), str)
+            and info["file"]}
+
+
 def _head_cap(value: int | None, tier: str | None, scope_type: str | None) -> int | None:
     if value is not None:
         return value or None
@@ -4223,7 +4535,10 @@ def _head_cap(value: int | None, tier: str | None, scope_type: str | None) -> in
 
 
 def _workspaces(root: Path, tree: list[str], tree_set: set[str]) -> dict:
-    """skf-detect-workspaces.py's verdict on the source root."""
+    """skf-detect-workspaces.py's result over `tree` (its workspaces
+    resolved against those paths), with the content of each root manifest
+    of WORKSPACE_MANIFESTS that `tree_set` lists. No brief scope applies:
+    the monorepo arm reads it through _monorepo."""
     manifests = {}
     for name in WORKSPACE_MANIFESTS:
         if name in tree_set:
@@ -4233,15 +4548,24 @@ def _workspaces(root: Path, tree: list[str], tree_set: set[str]) -> dict:
     return _sibling("skf-detect-workspaces.py").detect({"tree": tree, "manifests": manifests})
 
 
-def _monorepo(root: Path, tree: list[str], tree_set: set[str]) -> tuple[bool, str | None]:
-    """skf-detect-workspaces.py's verdict on the source root: (is it a monorepo, its manifest kind)."""
-    result = _workspaces(root, tree, tree_set)
+def _monorepo(root: Path, tree: list[str], excludes: list[str],
+              glob_match: Callable[[str, str], bool]) -> tuple[bool, str | None]:
+    """Arm (a): (is the source a monorepo, its manifest kind), from
+    skf-detect-workspaces.py over the tree the brief keeps, its
+    scoped_tree: a workspace member counts only through the files no
+    scope.exclude glob matches, every root manifest stays, and a workspace
+    with no member left is none (#780)."""
+    kept = _sibling("skf-detect-workspaces.py").scoped_tree(tree, excludes, glob_match)
+    result = _workspaces(root, kept, set(kept))
     return bool(result.get("is_monorepo")), result.get("manifest_kind")
 
 
 def _workspace_sources(result: dict, tree: list[str], wanted: set[str]) -> list[set[str]]:
-    """The source files (of a language --language selects) of each workspace
-    skf-detect-workspaces.py found, one set per workspace that holds any."""
+    """The source files (of a language --language selects) under each
+    workspace of `result`, one set per workspace that holds any. _scope_facts
+    passes the workspaces skf-detect-workspaces.py finds over the whole
+    tree, scope.exclude aside (unlike arm (a)): a member the brief drops is
+    still part of the repository the brief chose a subset of."""
     sources = []
     for workspace in result.get("workspaces") or [] if result.get("is_monorepo") else []:
         folder = _norm(workspace.get("path") if isinstance(workspace, dict) else "").strip("/")
@@ -4288,8 +4612,10 @@ def curated_subset(counted: set[tuple[str, str, str | None]], basis: str, tree: 
     whole workspace (in a single-package repository, the whole package): the
     files the basis globs list (a tier A list's, among those scope.include
     lists; under arm (b), less those scope.exclude drops) leave out a file
-    that defines a counted public name or, in a monorepo, every source file
-    of a workspace. A basis of all-files lists none."""
+    that defines a counted public name or every source file of one of
+    `workspace_sources` (the workspaces found over the whole tree,
+    scope.exclude aside, so excluding a member the include globs leave out
+    anyway changes nothing). A basis of all-files lists none."""
     if basis == "all-files":
         return False
     files = {f for f in tree if not includes or any(glob_match(f, g) for g in includes)}
@@ -4413,7 +4739,7 @@ def _scope_facts(args: argparse.Namespace, root: Path) -> dict:
 
     # The entry points and the arms need no ast-grep.
     in_scope_set = set(in_scope)
-    surfaces = {family: _Surface() for family in FAMILIES}
+    surfaces = {family: _Surface(family, in_scope_set) for family in FAMILIES}
     js_entries, maps, unresolved_subpaths = _js_entries(root, in_scope, tree, tree_set, warnings)
     py_entries = _py_entries(in_scope, tree_set)
     rust_entries = _rust_entries(root, in_scope, tree, tree_set)
@@ -4428,11 +4754,10 @@ def _scope_facts(args: argparse.Namespace, root: Path) -> dict:
                             f"{entry['package']}) is outside the files in scope: widen scope.include to document "
                             "the names it exports (entry_point_diff.outside_scope), which effective_denominator "
                             "leaves out")
-    workspaces = _workspaces(root, tree, tree_set)
-    monorepo = bool(workspaces.get("is_monorepo"))
+    monorepo, monorepo_kind = _monorepo(root, tree, excludes, glob_match)
     arms = {
         "monorepo": monorepo,
-        "monorepo_kind": workspaces.get("manifest_kind"),
+        "monorepo_kind": monorepo_kind,
         "specific_modules": scope_type == "specific-modules" and not monorepo,
         "multi_subpath_exports": not monorepo and any(m["non_root_subpaths"] > 1 for m in maps),
     }
@@ -4442,7 +4767,8 @@ def _scope_facts(args: argparse.Namespace, root: Path) -> dict:
         "in_scope": in_scope, "without_recipes": without_recipes, "unmatched_include": unmatched_include,
         "unmatched_tier_a": unmatched_tier_a, "surfaces": surfaces, "js_entries": js_entries, "maps": maps,
         "unresolved_subpaths": unresolved_subpaths, "py_entries": py_entries, "rust_entries": rust_entries,
-        "entries": entries, "arms": arms, "workspace_sources": _workspace_sources(workspaces, tree, wanted),
+        "entries": entries, "arms": arms,
+        "workspace_sources": _workspace_sources(_workspaces(root, tree, tree_set), tree, wanted),
     }
 
 
@@ -4586,7 +4912,7 @@ def run_full(args: argparse.Namespace) -> tuple[dict, int]:
     for record in exports:
         if record["from"] and record["language"] in JS_FAMILY:
             record["from_file"] = resolve_js_module(record["from"], record["source_file"], tree_set)
-    statuses, public, internal, gaps, outside = entry_point_diff(exports, surfaces, entries, in_scope_set)
+    statuses, public, internal, gaps, outside, others = entry_point_diff(exports, surfaces, entries, in_scope_set)
     if "barrel" in statuses.values():
         status = "barrel"
     else:
@@ -4596,8 +4922,10 @@ def run_full(args: argparse.Namespace) -> tuple[dict, int]:
     # only files an exclude drops, that scope.include leaves out or that
     # define no public name) narrows nothing, once the run counted a name
     # and read every file (no error).
-    counted = _public_keys(public)
-    counts = _denominator_counts(facts, counted, len(counted), len(internal), bool(errors), warnings)
+    # Each other in-scope definition of a public name counts its name where any of its files is counted (#830).
+    public_keys = _public_keys(public)
+    counted = public_keys | _other_keys(others)
+    counts = _denominator_counts(facts, counted, len(public_keys), len(internal), bool(errors), warnings)
 
     by_type: Counter = Counter(e["export_type"] for e in exports)
     ordered = sorted(public.items(), key=lambda item: (item[0][1], item[0][0]))
@@ -4611,6 +4939,8 @@ def run_full(args: argparse.Namespace) -> tuple[dict, int]:
                          "unresolved": unresolved_subpaths + [u for s in surfaces.values() for u in s.unresolved]},
         "entry_point_diff": {
             "public": [dict(info, language=family) for (family, _), info in ordered],
+            "other_definitions": [dict(info, language=family) for family, info in
+                                  sorted(others, key=lambda o: (o[1]["name"], o[1]["file"], o[0]))],
             "internal": [{"name": e["export_name"], "language": FAMILY_OF[e["language"]],
                           "source_file": e["source_file"], "source_line": e["source_line"]} for e in internal],
             "extraction_gaps": [{"name": info["name"], "language": family, "entry": info["entry"],
@@ -4730,6 +5060,8 @@ def run_denominator(args: argparse.Namespace, payload: dict) -> dict:
     # The exports found, each key at its file: the payload's and the runner's.
     found: dict[tuple[str, str], str | None] = {}
     internal: set[tuple[str, str]] = set()
+    # The runner's other in-scope definitions of its public names (#830), counted where the names are.
+    others: list[tuple[str, dict]] = []
     incomplete = False
     runner_status = None
     if args.extraction:
@@ -4744,6 +5076,8 @@ def run_denominator(args: argparse.Namespace, payload: dict) -> dict:
                 key = (str(info.get("language") or ""), info["name"])
                 public[key] = runner_public[key] = info
                 found[key] = info.get("file")
+        others = [(str(info.get("language") or ""), info) for info in diff.get("other_definitions") or []
+                  if isinstance(info, dict)]
         for item in diff.get("internal") or []:
             if isinstance(item, dict) and isinstance(item.get("name"), str):
                 internal.add((str(item.get("language") or ""), item["name"]))
@@ -4767,11 +5101,27 @@ def run_denominator(args: argparse.Namespace, payload: dict) -> dict:
     for item in _payload_names(payload.get("exports"), "exports"):
         key = (_name_family(item["language"], item["file"]), item["name"])
         found.setdefault(key, item["file"])
-        if not item["name"].startswith("_"):
+        if not _private(key[0], item["name"]):
             internal.add(key)
     named = set(public) | {(family, m["name"]) for (family, _), info in public.items() if _has_members(info)
                            for m in info["members"]}
-    counted = _public_keys(public)
+    public_keys = _public_keys(public)
+    def still_held(key: tuple[str, str]) -> bool:
+        """Whether the record kept for the runner's public name `key` still names the runner row's file, a
+        namespace with members in neither (full mode keeps no other definition beside one)."""
+        runner_row, kept = runner_public.get(key), public.get(key)
+        if runner_row is None or kept is None or _has_members(runner_row) or _has_members(kept):
+            return False
+        files = [_norm(row["file"]) if isinstance(row.get("file"), str) and row["file"] else None
+                 for row in (runner_row, kept)]
+        return files[0] == files[1]
+
+    # A runner row counts only while the record kept for its name names the runner's file: an orphan row, or
+    # one of a name a payload or --quick record moved to another file, adds nothing.
+    others = [(family, info) for family, info in others
+              if isinstance(info.get("name"), str) and still_held((family, info["name"]))]
+    other_keys = _other_keys(others)
+    counted = public_keys | other_keys
 
     if args.source_root:
         root = Path(args.source_root)
@@ -4807,7 +5157,7 @@ def run_denominator(args: argparse.Namespace, payload: dict) -> dict:
     outside_tree = sorted((name, file) for _, name, file in counted if file and file not in tree_set)
     warnings += [f"public name {name} is defined in {file}, which is not in the tree: effective_denominator "
                  "and curated_subset leave it out" for name, file in outside_tree]
-    counts = _denominator_counts(facts, counted, len(counted), len(internal - named), incomplete, warnings)
+    counts = _denominator_counts(facts, counted, len(public_keys), len(internal - named), incomplete, warnings)
     if not args.source_root and counts["effective_denominator_decision"]["reason"] not in ("reference-app",
                                                                                          "incomplete-run"):
         counts["effective_denominator_decision"] = {"store": False, "reason": "no-source-tree"}
@@ -4838,7 +5188,9 @@ def run_denominator(args: argparse.Namespace, payload: dict) -> dict:
         "counts": counts,
         "entry_point_diff": {
             "public": [row((family, name), file)
-                       for family, name, file in sorted(counted, key=lambda k: (k[1], k[0], k[2] or ""))],
+                       for family, name, file in sorted(public_keys, key=lambda k: (k[1], k[0], k[2] or ""))],
+            "other_definitions": [row((family, name), file)
+                                  for family, name, file in sorted(other_keys, key=lambda k: (k[1], k[2], k[0]))],
             "internal": [row(key, found.get(key)) for key in by_name(internal - named)],
             "extraction_gaps": [row(key, given[key]) for key in by_name(given) if key not in found],
         },
@@ -5586,7 +5938,7 @@ def _py_defined_in(root: Path, tree: set[str]) -> Callable[[str, str], str | Non
 
     def resolve(file: str, name: str) -> str | None:
         if file not in traced:
-            surface = _Surface()
+            surface = _Surface("python")
             _py_surface(root, [{"file": file}], tree, surface, [])
             traced[file] = {n: info["file"] for n, info in surface.names.items()}
         return traced[file].get(name)
