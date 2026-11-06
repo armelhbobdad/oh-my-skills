@@ -182,15 +182,17 @@ Provenance: `[AST:cognee/api/v1/cognify/cognify.py:L110]`
 
 Built by the async `get_default_tasks(user=..., graph_model=..., chunker=..., chunk_size=..., config=..., custom_prompt=..., chunks_per_batch=..., functional_relationships=..., chunk_attachment=..., **kwargs) -> list[Task]` (await it). `cognee/api/v1/cognify/__init__.py` re-exports only `cognify`, so import it with `from cognee.api.v1.cognify.cognify import get_default_tasks` to compose a custom cognify pipeline. `[AST:cognee/api/v1/cognify/cognify.py:L565]` `[SRC:cognee/api/v1/cognify/__init__.py:L1]` `[SRC:examples/demos/custom_pipelines/custom_cognify_pipeline_example.py:L66-L68]`
 
-1. `classify_documents`
-2. `extract_chunks_from_documents(max_chunk_size, chunker)`
-3. `extract_graph_and_summarize(graph_model, config, custom_prompt, chunk_attachment, task_config={batch_size: chunks_per_batch})` — graph extraction and per-chunk summaries in one LLM step
-4. `add_data_points(embed_triplets, task_config={batch_size: chunks_per_batch})`
+Each step is a `Task`: its keyword arguments other than the `Task` options (`task_config`, `batch_size`, `enriches`, `needs_llm`) are bound to the task function, and the runner passes the previous step's output (the input data, for the first step) as the function's first argument (`data_documents`, `documents`, `data_chunks`, `data_points`).
+
+1. `Task(classify_documents, needs_llm=False)`
+2. `Task(extract_chunks_from_documents, max_chunk_size=max_chunk_size, chunker=chunker, needs_llm=False)`
+3. `Task(extract_graph_and_summarize, graph_model=graph_model, config=config, custom_prompt=custom_prompt, chunk_attachment=chunk_attachment, task_config={"batch_size": chunks_per_batch}, **kwargs)` — graph extraction and per-chunk summaries in one LLM step
+4. `Task(add_data_points, embed_triplets=embed_triplets, task_config={"batch_size": chunks_per_batch}, needs_llm=False)`
 5. Optional `record_provenance` when `provenance_tracking` is on (env `PROVENANCE_TRACKING`)
 6. Optional `detect_contradictions` when `contradiction_detection` is on
 7. Optional `resolve_temporal_contradictions` when `functional_relationships` is given
 
-Provenance: `[SRC:cognee/api/v1/cognify/cognify.py:L588-L640]` `[SRC:cognee/modules/cognify/config.py:L17-L22]`
+Provenance: `[SRC:cognee/api/v1/cognify/cognify.py:L588-L640]` `[SRC:cognee/modules/cognify/config.py:L17-L22]` `[SRC:cognee/modules/pipelines/tasks/task.py:L209-L222]` `[SRC:cognee/modules/pipelines/tasks/task.py:L276-L281]` `[SRC:cognee/modules/pipelines/operations/run_tasks_base.py:L273]` `[SRC:cognee/tasks/documents/classify_documents.py:L138]` `[SRC:cognee/tasks/documents/extract_chunks_from_documents.py:L32-L36]` `[SRC:cognee/tasks/graph/extract_graph_and_summarize.py:L13-L22]` `[SRC:cognee/tasks/storage/add_data_points.py:L70-L76]`
 
 With `extractor="gliner_demo"`, `get_gliner_demo_tasks` builds the standard-route list instead: a GLiNER schema step is added and the GLiNER demo extraction task takes the place of step 3. `[SRC:cognee/api/v1/cognify/cognify.py:L448-L460]` `[SRC:cognee/tasks/graph/gliner_demo/tasks.py:L355-L371]`
 
@@ -198,15 +200,15 @@ With `extractor="gliner_demo"`, `get_gliner_demo_tasks` builds the standard-rout
 
 ### Temporal pipeline (when `temporal_cognify=True`)
 
-Uses a different task list:
+Uses a different task list, each step a `Task` built as above:
 
-1. `classify_documents`
-2. `extract_chunks_from_documents`
-3. `extract_events_and_timestamps(task_config={batch_size: chunks_per_batch})`
-4. `extract_knowledge_graph_from_events`
-5. `add_data_points(task_config={batch_size: chunks_per_batch})`
+1. `classify_documents`, with no bound arguments
+2. `Task(extract_chunks_from_documents, max_chunk_size=..., chunker=chunker)`
+3. `Task(extract_events_and_timestamps, task_config={"batch_size": chunks_per_batch})`
+4. `extract_knowledge_graph_from_events`, with no bound arguments
+5. `Task(add_data_points, task_config={"batch_size": chunks_per_batch})`
 
-Provenance: `[AST:cognee/api/v1/cognify/cognify.py:L695]`
+Provenance: `[AST:cognee/api/v1/cognify/cognify.py:L695]` `[SRC:cognee/api/v1/cognify/cognify.py:L724-L739]`
 
 ### Ontology config
 
@@ -362,13 +364,18 @@ async def update(
 | `data_id` | UUID | — | Document to replace (its current id or recorded pre-fork id). `[SRC:cognee/api/v1/update/update.py:L77]` |
 | `data` | BinaryIO / str (or a one-item list) | — | Exactly one replacement document; a list of any other length raises `IngestionError`. `[SRC:cognee/api/v1/update/update.py:L179-L184]` |
 | `dataset_id` | UUID | — | Dataset holding the document. Required. `[SRC:cognee/api/v1/update/update.py:L87]` |
+| `user` | User | None | Auth context. Uses the default user if None. `[SRC:cognee/api/v1/update/update.py:L171-L172]` |
+| `node_set` | list[str] \| None | None | Tags forwarded to the rebuild's `add`; a non-empty value forces the full rebuild. `[SRC:cognee/api/v1/update/update.py:L301]` `[SRC:cognee/api/v1/update/update.py:L367-L371]` |
+| `vector_db_config` | dict \| None | None | Per-call vector DB override for the rebuild's `add` and `cognify`; any value forces the full rebuild. `[SRC:cognee/api/v1/update/update.py:L302]` `[SRC:cognee/api/v1/update/update.py:L312]` `[SRC:cognee/api/v1/update/update.py:L377-L384]` |
+| `graph_db_config` | dict \| None | None | Per-call graph DB override, handled like `vector_db_config`. `[SRC:cognee/api/v1/update/update.py:L303]` `[SRC:cognee/api/v1/update/update.py:L313]` `[SRC:cognee/api/v1/update/update.py:L377-L384]` |
+| `preferred_loaders` | dict[str, dict[str, Any]] \| None | None | Loader settings for the chunk-level path and the rebuild's `add`. `[SRC:cognee/api/v1/update/update.py:L229]` `[SRC:cognee/api/v1/update/update.py:L304]` |
+| `incremental_loading` | bool | True | Forwarded to the rebuild's `add` and `cognify`. `[SRC:cognee/api/v1/update/update.py:L305]` `[SRC:cognee/api/v1/update/update.py:L314]` |
 | `data_cache` | bool | True | Forwarded to the rebuild's `add` and `cognify`. `[SRC:cognee/api/v1/update/update.py:L297-L316]` |
 | `chunk_level_diff` | bool | True | Diff the new content against the stored text and replace only the chunks the edit touched; falls back to the full rebuild when its preconditions fail. `[SRC:cognee/api/v1/update/update.py:L101-L108]` |
-| `graph_model`, `custom_prompt` | type[BaseModel], str \| None | `KnowledgeGraph`, None | Extraction settings for the rebuild; a non-default value forces the full rebuild. `[SRC:cognee/api/v1/update/update.py:L372-L376]` |
+| `graph_model` | type[BaseModel] | `KnowledgeGraph` | Extraction model for the rebuild; a non-default value forces the full rebuild. `[SRC:cognee/api/v1/update/update.py:L372-L376]` |
+| `custom_prompt` | str \| None | None | Extraction prompt for the rebuild; any value forces the full rebuild. `[SRC:cognee/api/v1/update/update.py:L372-L376]` |
 | `chunker` | type | `TextChunker` | Must match the chunker that built the stored chunks (chunk-level path only). `[SRC:cognee/api/v1/update/update.py:L109-L111]` |
 | `policy` | ChunkPolicy | `DEFAULT_CHUNK_POLICY` | Decides which chunks exist after the edit (chunk-level path only). `[SRC:cognee/api/v1/update/update.py:L112-L114]` |
-
-`user`, `node_set`, `vector_db_config`, `graph_db_config`, `preferred_loaders` and `incremental_loading` behave as in `add`.
 
 Internal flow:
 
