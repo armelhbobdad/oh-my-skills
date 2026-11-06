@@ -59,19 +59,23 @@ class FileLike(ABC, Generic[ResolvedPathT]):
     @property
     def file_path(self) -> FilePath[ResolvedPathT]: ...
 
-    # Subclasses implement these:
+    # Subclasses implement these (abstract):
     async def _fetch_metadata(self) -> FileMetadata: ...
-    async def _read_impl(self) -> bytes: ...
-    async def _compute_content_fingerprint(self) -> bytes: ...     # default: hash content if metadata fingerprint absent
+    async def _read_impl(self, size: int = -1) -> bytes: ...      # size=-1 reads the whole file
+    # Optional override:
+    async def _compute_content_fingerprint(self) -> bytes: ...     # default: metadata fingerprint, else hash of the content
 
     # Public API (cached):
-    async def metadata(self) -> FileMetadata: ...
-    async def read(self) -> bytes: ...
-    async def read_text(self, encoding: str | None = None, errors: str = "strict") -> str: ...
+    async def size(self) -> int: ...                               # from the lazily fetched FileMetadata
+    async def read(self, size: int = -1) -> bytes: ...             # full reads (size < 0) are cached
+    async def read_text(self, encoding: str | None = None, errors: str = "replace") -> str: ...   # encoding=None: BOM detection, else UTF-8
     async def content_fingerprint(self) -> bytes: ...
 ```
+[SRC:python/cocoindex/resources/file.py:L101] [:L115] [:L160] [:L108] [:L122] [:L143] [:L172]
 
-`FileLike` is what `localfs.File`, `amazon_s3.S3File`, `google_drive.DriveFile` all inherit from. When you write a custom source, subclass `FileLike[YourPathType]` and implement the two `_*_impl` methods.
+`FileLike` has no public accessor for the whole `FileMetadata`: `size()` is the one metadata read it exposes, and the cached metadata sits behind the private `_ensure_metadata()` [SRC:python/cocoindex/resources/file.py:L94].
+
+`FileLike` is what `localfs.File`, `amazon_s3.S3File`, `google_drive.DriveFile` all inherit from. When you write a custom source, subclass `FileLike[YourPathType]` and implement its two abstract methods, `_fetch_metadata` and `_read_impl`.
 
 ### FilePathMatcher
 
@@ -79,16 +83,19 @@ Protocol for filtering paths. [AST:python/cocoindex/resources/file.py:L205]
 
 ```python
 class FilePathMatcher(Protocol):
-    def matches(self, path: PurePath) -> bool: ...
+    def is_dir_included(self, path: PurePath) -> bool: ...    # traverse this directory?
+    def is_file_included(self, path: PurePath) -> bool: ...   # include this file?
 
-class MatchAllFilePathMatcher(FilePathMatcher): ...   # matches everything
+class MatchAllFilePathMatcher(FilePathMatcher): ...   # includes every directory and file
 class PatternFilePathMatcher(FilePathMatcher):
-    def __init__(self, *, included_patterns: list[str] | None = None,
-                          excluded_patterns: list[str] | None = None) -> None: ...
+    def __init__(self, included_patterns: list[str] | None = None,
+                 excluded_patterns: list[str] | None = None) -> None: ...
 ```
-[AST:python/cocoindex/resources/file.py:L215] [:L227]
+[SRC:python/cocoindex/resources/file.py:L208] [:L211] · [AST:python/cocoindex/resources/file.py:L215] [:L227] · `__init__` [SRC:python/cocoindex/resources/file.py:L240]
 
-Pattern syntax: `pathlib`-style globs (`**/*.md`, `src/**/*.py`). Standard idiom:
+`localfs.walk_dir` asks `is_dir_included` before descending into a directory and `is_file_included` before yielding a file, each with the path relative to the walk root; `amazon_s3.list_objects` asks only `is_file_included`, with the key relative to its prefix. [SRC:python/cocoindex/connectors/localfs/_source.py:L125] [:L130] · [SRC:python/cocoindex/connectors/amazon_s3/_source.py:L305]
+
+Pattern syntax: globset globs matched against the full relative path with forward slashes (`**/*.md` at any depth, `*.md` in the root only, `{*.md,*.txt}` for alternation); an excluded directory excludes everything under it. [SRC:python/cocoindex/resources/file.py:L230] Standard idiom:
 
 ```python
 files = localfs.walk_dir(sourcedir, recursive=True,
@@ -105,12 +112,16 @@ Generic wrapper around a backend-resolved path. [AST:python/cocoindex/resources/
 ```python
 class FilePath(Generic[ResolvedPathT]):
     @property
-    def path(self) -> ResolvedPathT: ...           # backend-native path (e.g. pathlib.Path)
+    def base_dir(self) -> ContextKey[ResolvedPathT] | None: ...   # stable key of the base directory (for memoization)
     @property
-    def relative_path(self) -> PurePath: ...       # always PurePath, comparable across backends
+    def path(self) -> PurePath: ...               # the path relative to base_dir
+    def resolve(self) -> ResolvedPathT: ...        # abstract: the backend-native full path (pathlib.Path for localfs, a str key for S3)
+    # plus PurePath-like members: /, parent, parents, name, stem, suffix, suffixes, parts,
+    # with_name, with_stem, with_suffix, relative_to, match, as_posix, joinpath
 ```
+[SRC:python/cocoindex/resources/file.py:L339] [:L344] [:L352]
 
-Used in `@coco.fn` signatures so user code can write `filename: pathlib.PurePath` portably across `localfs` and `S3` sources.
+`file.file_path.path` is a `PurePath` whichever backend the file came from, which is why the Quick Start can pass it as `filename: pathlib.PurePath`; call `resolve()` when you need the backend path itself.
 
 ## ID — `cocoindex.resources.id`
 
@@ -149,11 +160,11 @@ class IdGenerator(coco.NotMemoKeyable):
 ```python
 class UuidGenerator(coco.NotMemoKeyable):
     def __init__(self, deps: Any = None) -> None: ...
-    async def next_uuid(self, dep: Any = None) -> uuid.UUID: ...
+    def next_uuid(self, dep: Any = None) -> uuid.UUID: ...
 ```
-[AST:python/cocoindex/resources/id.py:L152]
+[AST:python/cocoindex/resources/id.py:L152] · `next_uuid` [SRC:python/cocoindex/resources/id.py:L190]
 
-Returns a **distinct** ID on each call, even for the same `dep`. Use when you need multiple IDs for potentially non-distinct inputs (e.g., chunk-by-chunk indexing where chunks may share text). Sequence is stable across runs.
+Returns a **distinct** ID on each call, even for the same `dep`. `next_id` is async (await it); `next_uuid` is a plain `def`, called without `await`, like `generate_uuid`. Use when you need multiple IDs for potentially non-distinct inputs (e.g., chunk-by-chunk indexing where chunks may share text). Sequence is stable across runs.
 
 Both generators inherit from `coco.NotMemoKeyable` — they cannot be used as memoization keys (they hold mutable state).
 
@@ -200,10 +211,12 @@ async def get_vector_schema(obj: object) -> VectorSchema | None: ...
 `MultiVectorSchema` / `MultiVectorSchemaProvider` are the analog for multi-vector embeddings (ColPali-style); same shape but with a `vector_schema: VectorSchema` field.
 
 ```python
-class SentenceTransformerEmbedder(VectorSchemaProvider):
+class FixedSizeEmbedder:                   # any object with this method is a VectorSchemaProvider
     async def __coco_vector_schema__(self) -> VectorSchema:
-        return VectorSchema(dtype=np.float32, size=384)
+        return VectorSchema(dtype=np.dtype(np.float32), size=384)
 ```
+
+`SentenceTransformerEmbedder` and `LiteLLMEmbedder` do not hard-code a size: theirs ask the model for its dimension. [SRC:python/cocoindex/ops/sentence_transformers.py:L152] [SRC:python/cocoindex/ops/litellm.py:L135]
 
 ## Embedder — `cocoindex.resources.embedder`
 

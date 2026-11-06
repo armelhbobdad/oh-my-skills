@@ -36,12 +36,13 @@ class Settings:
 - `COCOINDEX_LMDB_MAX_DBS` (parsed as int, defaults to `1024`)
 - `COCOINDEX_LMDB_MAP_SIZE` (parsed as int, defaults to `0x1_0000_0000` = 4 GiB)
 
-The default db_path env var is read by `cocoindex._internal.setting.get_default_db_path()` ([AST:python/cocoindex/_internal/setting.py:L12]) which checks `COCOINDEX_DB`. `Settings.from_env` (in either module) does NOT read `COCOINDEX_DB` — pass `db_path` explicitly or set it in your `lifespan` builder:
+The default db_path env var is read by `cocoindex._internal.setting.get_default_db_path()` ([AST:python/cocoindex/_internal/setting.py:L12]) which checks `COCOINDEX_DB`. `Settings.from_env` (in either module) does NOT read `COCOINDEX_DB`. The default environment calls `get_default_db_path()` when its lifespan leaves `db_path` unset, and raises `ValueError` if `COCOINDEX_DB` is unset too ([SRC:python/cocoindex/_internal/environment.py:L390]). So set `COCOINDEX_DB`, or set `db_path` in your `lifespan` builder:
 
 ```python
 @coco.lifespan
 async def lifespan(builder: coco.EnvironmentBuilder):
     # builder.settings already populated from Settings.from_env() in __init__
+    builder.settings.db_path = pathlib.Path("./cocoindex.db")   # else COCOINDEX_DB is used
     yield
 ```
 
@@ -100,7 +101,7 @@ class QueryOutput(Generic[R]):
 
 `QueryInfo.similarity_metric` was removed because v1.0.0 has no top-level `VectorSimilarityMetric` enum (similarity is per-connector now). If you stored `similarity_metric` in tracking records, drop the field on read.
 
-The query-handler types are metadata for tools like CocoInsight to introspect the structure of query results — they are not invoked by the runtime directly. `Flow.add_query_handler(...)` from v0.3.37 is gone; query handlers in v1.0.0 attach via the connector's target API (e.g., `target.add_query_handler(name, handler, result_fields=...)` where supported).
+The query-handler types are plain dataclasses describing query results (`QueryHandlerResultFields` is metadata for tools like CocoInsight to recognize their structure, [SRC:python/cocoindex/query_handler.py:L13]); the runtime does not invoke them. v0.3.37's `Flow.add_query_handler` is gone with no v1.0.0 replacement: nothing under `python/cocoindex` registers query handlers or imports `cocoindex.query_handler`, and no connector target offers a handler-registration method.
 
 ## CLI — `cocoindex` command
 

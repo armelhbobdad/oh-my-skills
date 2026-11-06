@@ -1900,7 +1900,7 @@
         "mount_dir_target"
       ],
       "all_source": "python/cocoindex/connectors/localfs/_common.py:L78 + _source.py:L263 + _target.py:L500",
-      "note": "walk_dir returns LiveMapView — supports both one-shot and live modes",
+      "note": "walk_dir returns a DirWalker (_source.py:234-240); DirWalker.items() is a LiveMapView only with live=True, otherwise a plain AsyncIterable of (relative_path, File) pairs (_source.py:147-155)",
       "signature_source": "T1-low"
     },
     {
@@ -2146,7 +2146,7 @@
         "ResolvedEntities",
         "resolve_entities"
       ],
-      "note": "Plus llm_resolver.py for LLMResolver",
+      "note": "Plus llm_resolver.py, whose only export is LlmPairResolver (llm_resolver.py:19, :49); no LLMResolver is defined",
       "signature_source": "T1-low"
     },
     {
@@ -2259,7 +2259,6 @@
       "export_type": "class",
       "source_library": "cocoindex.resources.file",
       "params": [
-        "*",
         "included_patterns: list[str] | None = None",
         "excluded_patterns: list[str] | None = None"
       ],
@@ -2269,7 +2268,8 @@
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "class_definition",
-      "signature_source": "T1"
+      "signature_source": "T1-low",
+      "note": "params read from __init__ at resources/file.py:240-244 (positional-or-keyword, no keyword-only marker); the class location is the ast-grep record"
     },
     {
       "export_name": "resources.id.IdGenerator",
@@ -2479,14 +2479,6 @@
         "start: TextPosition",
         "end: TextPosition"
       ],
-      "confidence": "T1-low",
-      "extraction_method": "source-read",
-      "ast_node_type": null,
-      "signature_source": "T1-low"
-    },
-    {
-      "export_name": "LLMResolver",
-      "source_library": "cocoindex",
       "confidence": "T1-low",
       "extraction_method": "source-read",
       "ast_node_type": null,

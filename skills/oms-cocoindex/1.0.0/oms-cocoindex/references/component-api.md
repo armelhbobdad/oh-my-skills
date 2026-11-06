@@ -79,7 +79,7 @@ class Environment:
 ```
 [SRC:python/cocoindex/_internal/environment.py:L212] [:L248–:L272]
 
-`Settings.db_path` is **required** — Environment construction raises `ValueError` if it's `None`. Set `COCOINDEX_DB=/path/to/state.lmdb` and use `Settings.from_env()`.
+`Settings.db_path` is **required** — `Environment.__init__` raises `ValueError("Settings.db_path must be provided")` when it is unset [SRC:python/cocoindex/_internal/environment.py:L222]. `Settings.from_env()` does **not** read `COCOINDEX_DB` (it reads only the `COCOINDEX_SOURCE_MAX_INFLIGHT_*` and `COCOINDEX_LMDB_*` variables, [SRC:python/cocoindex/_internal/setting.py:L65]). The default environment fills an unset `db_path` from `COCOINDEX_DB` through `get_default_db_path()` when it starts ([AST:python/cocoindex/_internal/setting.py:L12], [SRC:python/cocoindex/_internal/environment.py:L390]). So with the default environment, set `COCOINDEX_DB=/path/to/state.lmdb` or `builder.settings.db_path` in your lifespan; when you construct an `Environment` yourself, pass `Settings(db_path=...)` or `Settings.from_env(db_path=...)`.
 
 ## EnvironmentBuilder + lifespan
 
@@ -231,10 +231,15 @@ One independent component per item. When `items` is a `LiveMapFeed`/`LiveMapView
 ### use_mount
 
 ```python
-async def use_mount(processor_fn: AnyCallable[P, ResolvesTo[ReturnT] | ReturnT], *args, **kwargs) -> ReturnT: ...
+async def use_mount(
+    processor_fn: AsyncCallable[P, ResolvesTo[ReturnT]] | Callable[P, ResolvesTo[ReturnT]] | AsyncCallable[P, ReturnT] | Callable[P, ReturnT],
+    *args, **kwargs,
+) -> ReturnT: ...
 async def use_mount(subpath: ComponentSubpath, processor_fn, *args, **kwargs) -> ReturnT: ...
 ```
 [AST:python/cocoindex/_internal/api.py:L194] (8 overloads at [:L194]–[:L240]; implementation `use_mount(*pos_args: Any, **kwargs: Any)` at [:L245])
+
+`processor_fn`'s type is the union of the four types the overloads give it (each overload exists with and without the leading `subpath`). `AsyncCallable[P, R]` is `Callable[P, Coroutine[Any, Any, R]]` [SRC:python/cocoindex/_internal/function.py:L62].
 
 Mount a dependent unit and return its result. The child cannot refresh independently — re-executing the child requires re-executing the parent. The return-type bridge `ResolvesTo[T]` lets a child return a `Pending`-state provider while `use_mount` returns the resolved variant.
 
@@ -270,12 +275,12 @@ class ComponentSubpath:
     @property
     def parts(self) -> tuple[StableKey, ...]: ...
     def __enter__(self) -> ComponentSubpath: ...
-    def __exit__(self, *exc) -> None: ...
+    def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: object) -> None: ...
     def __truediv__(self, part: StableKey) -> ComponentSubpath: ...   # chaining: subpath / "child"
 
 def component_subpath(*key_parts: StableKey) -> ComponentSubpath: ...
 ```
-[AST:python/cocoindex/_internal/component_ctx.py:L142] [:L198]
+[AST:python/cocoindex/_internal/component_ctx.py:L142] [:L198] · `__exit__` [SRC:python/cocoindex/_internal/component_ctx.py:L180]
 
 Two usage modes:
 
@@ -286,7 +291,7 @@ await coco.mount(coco.component_subpath("process", filename), process_file, file
 # (2) As a context manager — applies the subpath to all nested mount calls
 with coco.component_subpath("process_files"):
     for f in files:
-        await coco.mount(coco.component_subpath(str(f.path)), process_file, f, target)
+        await coco.mount(coco.component_subpath(str(f.file_path.path)), process_file, f, target)
 ```
 
 ## Component context helpers
