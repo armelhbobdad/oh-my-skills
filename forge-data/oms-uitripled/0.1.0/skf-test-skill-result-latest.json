@@ -1,39 +1,44 @@
 {
   "skill": "skf-test-skill",
-  "status": "error",
+  "status": "success",
   "skill_name": "oms-uitripled",
-  "verdict": "FAIL",
-  "score": null,
-  "threshold": null,
-  "report_path": "forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled-20261106T203457Z-8774ab64.md",
-  "next_workflow": "update-skill",
-  "exit_code": 2,
-  "halt_reason": "hard-gate-blocked",
+  "verdict": "PASS",
+  "score": 100,
+  "threshold": 80,
+  "report_path": "forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled-20261106T225241Z-1907bdd0.md",
+  "next_workflow": "export-skill",
+  "exit_code": 0,
+  "halt_reason": null,
   "outputs": [
     {
       "type": "report",
-      "path": "forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled-20261106T203457Z-8774ab64.md"
+      "path": "forge-data/oms-uitripled/0.1.0/test-report-oms-uitripled-20261106T225241Z-1907bdd0.md"
     }
   ],
   "summary": {
-    "score": null,
-    "threshold": null,
-    "result": "FAIL",
+    "score": 100,
+    "threshold": 80,
+    "result": "PASS",
     "testMode": "naive",
-    "activeCategories": [],
+    "activeCategories": [
+      "exportCoverage",
+      "signatureAccuracy",
+      "typeCoverage",
+      "externalValidation"
+    ],
     "gapCounts": {
-      "Critical": 3,
+      "Critical": 0,
       "High": 0,
       "Medium": 2,
       "Low": 0,
-      "Info": 6
+      "Info": 4
     },
-    "hardGate": "blocked"
+    "hardGate": "passed"
   },
-  "runId": "20261106T203457Z-8774ab64",
+  "runId": "20261106T225241Z-1907bdd0",
   "healthCheckDispatched": true,
-  "timestamp": "2026-11-06T21:01:55Z",
-  "run_id": "20261106T203457Z-8774ab64",
+  "timestamp": "2026-11-06T23:07:40Z",
+  "run_id": "20261106T225241Z-1907bdd0",
   "headless_decisions": [],
   "warnings": [
     "customization_resolver_unavailable: not found"
