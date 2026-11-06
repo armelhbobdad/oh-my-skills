@@ -2004,7 +2004,7 @@
     },
     {
       "export_name": "combineArgs",
-      "export_type": "const",
+      "export_type": "function",
       "source_library": "storybook/preview-api",
       "params": [
         "value: any",
@@ -2020,7 +2020,7 @@
     },
     {
       "export_name": "combineParameters",
-      "export_type": "const",
+      "export_type": "function",
       "source_library": "storybook/preview-api",
       "params": [
         "...parameterSets: (Parameters|undefined)[]"
@@ -2065,7 +2065,7 @@
     },
     {
       "export_name": "filterArgTypes",
-      "export_type": "const",
+      "export_type": "function",
       "source_library": "storybook/preview-api",
       "params": [
         "argTypes: StrictArgTypes",
@@ -2082,7 +2082,7 @@
     },
     {
       "export_name": "inferControls",
-      "export_type": "const",
+      "export_type": "function",
       "source_library": "storybook/preview-api",
       "params": [],
       "return_type": "ArgTypesEnhancer<Renderer>",
@@ -2112,7 +2112,7 @@
     },
     {
       "export_name": "normalizeArrays",
-      "export_type": "const",
+      "export_type": "function",
       "source_library": "storybook/preview-api",
       "params": [
         "array: T[] | T | undefined"
@@ -2191,7 +2191,7 @@
     },
     {
       "export_name": "sortStoriesV7",
-      "export_type": "const",
+      "export_type": "function",
       "source_library": "storybook/preview-api",
       "params": [
         "stories: IndexEntry[]",
@@ -2241,7 +2241,7 @@
     },
     {
       "export_name": "applyHooks",
-      "export_type": "const",
+      "export_type": "function",
       "source_library": "storybook/preview-api",
       "params": [
         "applyDecorators: DecoratorApplicator<R>"
@@ -2517,7 +2517,7 @@
     },
     {
       "export_name": "withThemeByClassName_exact",
-      "export_type": "const",
+      "export_type": "function",
       "source_library": "@storybook/addon-themes",
       "params": [
         "{ themes, defaultTheme, parentSelector = DEFAULT_ELEMENT_SELECTOR }: ClassNameStrategyConfiguration"
@@ -2532,7 +2532,7 @@
     },
     {
       "export_name": "withThemeByDataAttribute_exact",
-      "export_type": "const",
+      "export_type": "function",
       "source_library": "@storybook/addon-themes",
       "params": [
         "{ themes, defaultTheme, parentSelector = DEFAULT_ELEMENT_SELECTOR, attributeName = DEFAULT_DATA_ATTRIBUTE }: DataAttributeStrategyConfiguration"
@@ -2547,7 +2547,7 @@
     },
     {
       "export_name": "withThemeFromJSXProvider_exact",
-      "export_type": "const",
+      "export_type": "function",
       "source_library": "@storybook/addon-themes",
       "params": [
         "{ Provider, GlobalStyles, defaultTheme, themes = {} }: ProviderStrategyConfiguration"
@@ -2575,7 +2575,7 @@
     },
     {
       "export_name": "afterEach",
-      "export_type": "const",
+      "export_type": "function",
       "source_library": "@storybook/addon-a11y/preview",
       "params": [
         "{ id, reporting, parameters, globals, viewMode }"
