@@ -112,15 +112,19 @@ The `main.ts` config interface (framework-augmented — `framework`, `addons`, `
 ```ts
 // code/frameworks/react-vite/src/preset.ts
 export const core: PresetProperty<'core'> = {
-  builder: '@storybook/builder-vite',
-  renderer: '@storybook/react/preset',
+  builder: import.meta.resolve('@storybook/builder-vite'),
+  renderer: import.meta.resolve('@storybook/react/preset'),
 };
-export const viteFinal: PresetProperty<'viteFinal'> = async (config, options) => {
-  // Injects react-docgen-typescript plugin and friends
+export const viteFinal: NonNullable<StorybookConfig['viteFinal']> = async (config, { presets }) => {
+  // Reads `typescript.reactDocgen` through presets.apply('typescript'), adds the
+  // react-docgen-typescript plugin (when that option is 'react-docgen-typescript' and
+  // typescript resolves) and the react-docgen plugin (when the option is a string)
+  // ...
+  return { ...config, plugins };
 };
 ```
 
-Storybook itself calls this preset during setup — rarely imported by users. `[AST:code/frameworks/react-vite/src/preset.ts:L1]`
+`core` gives the builder and renderer as resolved module URLs (`import.meta.resolve(...)`), not as bare package names. `viteFinal` is typed by the framework's own `StorybookConfig` (`./types`), and destructures `presets` from its second argument. Storybook itself calls this preset during setup — rarely imported by users. `[AST:code/frameworks/react-vite/src/preset.ts:L5]` `[AST:code/frameworks/react-vite/src/preset.ts:L10]`
 
 ## `@storybook/react` — renderer
 
@@ -143,10 +147,11 @@ Definitive source for CSF story types — `Meta`, `StoryObj`, `StoryFn`, `Decora
 ### `./experimental-playwright`
 
 ```ts
-export { createTest } from 'storybook/preview-api';
+// code/renderers/react/src/playwright.ts
+export { createPlaywrightTest as createTest } from 'storybook/preview-api';
 ```
 
-Helper for portable stories in Playwright CT. `[AST:code/renderers/react/src/playwright.ts:L1]`
+Helper for portable stories in Playwright CT. `storybook/preview-api` exports it as `createPlaywrightTest<TFixture extends { extend: any }>(baseTest: TFixture): TFixture`, which extends a Playwright CT `test` with a `mount` fixture that accepts story references; the renderer re-exports it under the name `createTest`. `[AST:code/renderers/react/src/playwright.ts:L1]` `[AST:code/core/src/preview-api/index.ts:L71]` `[AST:code/core/src/preview-api/modules/store/csf/portable-stories.ts:L319]`
 
 ## `@storybook/builder-vite` — builder
 
@@ -232,7 +237,9 @@ framework: {
 };
 ```
 
-`[EXT:https://storybook.js.org/docs/get-started/frameworks/react-vite/]` `[AST:code/frameworks/react-vite/src/types.ts:L1]`
+The object form's `options` is `FrameworkOptions = { builder?: BuilderOptions; strictMode?: boolean; legacyRootApi?: boolean }`, where `BuilderOptions = { viteConfigPath?: string }` (builder-vite) and `legacyRootApi` (default `false`) mounts with React's legacy root API.
+
+`[EXT:https://storybook.js.org/docs/get-started/frameworks/react-vite/]` `[AST:code/frameworks/react-vite/src/types.ts:L14]` `[AST:code/builders/builder-vite/src/types.ts:L21]`
 
 ### Available `main.ts` keys (partial)
 
@@ -372,7 +379,7 @@ Needed when you're authoring a **custom Storybook theme** — either for the man
 | `ThemeVarsColors` | interface | `{ colorPrimary: string; colorSecondary: string; … }` — complete color palette | `[AST:code/core/src/theming/types.ts:L12]` |
 | `Typography` | type | `typeof typography` — fonts, weights, sizes namespace | `[AST:code/core/src/theming/types.ts:L59]` |
 | `TextSize` | type | `number \| string` — pixel count or CSS unit | `[AST:code/core/src/theming/types.ts:L63]` |
-| `Brand` | interface | `{ title: string \| undefined; url: string \| null \| undefined; image?: string \| null; target?: string }` — sidebar brand block | `[AST:code/core/src/theming/types.ts:L64]` |
+| `Brand` | interface | `{ title: string \| undefined; url: string \| null \| undefined; image: string \| null \| undefined; target: string \| null \| undefined }` — sidebar brand block; all four keys are required, each accepting `undefined` | `[AST:code/core/src/theming/types.ts:L64]` |
 | `Color` | type | `typeof color` — named color tokens (primary, secondary, gold, green, etc.) | `[AST:code/core/src/theming/types.ts:L57]` |
 | `Background` | type | `typeof background` — background color tokens (app, bar, content, critical, warning, hoverable) | `[AST:code/core/src/theming/types.ts:L58]` |
 | `Animation` | type | `typeof animation` — keyframes and motion tokens | `[AST:code/core/src/theming/types.ts:L60]` |

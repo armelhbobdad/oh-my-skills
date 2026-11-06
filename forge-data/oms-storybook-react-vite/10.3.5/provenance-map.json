@@ -408,7 +408,7 @@
       "export_type": "function",
       "source_library": "storybook",
       "params": [
-        "impl?: T"
+        "implementation?: T"
       ],
       "return_type": "Mock<T>",
       "source_file": "code/core/src/test/spy.ts",
@@ -553,15 +553,15 @@
       "export_type": "function",
       "source_library": "storybook",
       "params": [
-        "key: string",
-        "defaultValue: T"
+        "parameterKey: string",
+        "defaultValue?: S"
       ],
-      "return_type": "T",
-      "source_file": "code/core/src/preview-api/index.ts",
-      "source_line": 11,
+      "return_type": "S | undefined",
+      "source_file": "code/core/src/preview-api/modules/addons/hooks.ts",
+      "source_line": 590,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_specifier",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1184,30 +1184,30 @@
     },
     {
       "export_name": "DocsRenderer",
-      "export_type": "component",
+      "export_type": "class",
       "source_library": "@storybook/addon-docs",
       "params": [],
-      "return_type": "ComponentType",
-      "source_file": "code/addons/docs/src/index.ts",
-      "source_line": 8,
+      "return_type": "{ render: DocsRenderFunction<TRenderer>; unmount: (element: HTMLElement) => void }",
+      "source_file": "code/addons/docs/src/DocsRenderer.tsx",
+      "source_line": 48,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_specifier",
-      "signature_source": "T1"
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
     },
     {
       "export_name": "withThemeByClassName",
       "export_type": "function",
       "source_library": "@storybook/addon-themes",
       "params": [
-        "config: { themes: Record<string,string>, defaultTheme: string, parentSelector?: string }"
+        "{ themes, defaultTheme, parentSelector = DEFAULT_ELEMENT_SELECTOR }: ClassNameStrategyConfiguration"
       ],
-      "return_type": "DecoratorFunction<Renderer>",
-      "source_file": "code/addons/themes/src/index.ts",
-      "source_line": 1,
+      "return_type": "DecoratorFunction<TRenderer>",
+      "source_file": "code/addons/themes/src/decorators/class-name.decorator.tsx",
+      "source_line": 19,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1215,14 +1215,14 @@
       "export_type": "function",
       "source_library": "@storybook/addon-themes",
       "params": [
-        "config: { themes, defaultTheme, parentSelector?, attributeName? }"
+        "{ themes, defaultTheme, parentSelector = DEFAULT_ELEMENT_SELECTOR, attributeName = DEFAULT_DATA_ATTRIBUTE }: DataAttributeStrategyConfiguration"
       ],
-      "return_type": "DecoratorFunction<Renderer>",
-      "source_file": "code/addons/themes/src/index.ts",
-      "source_line": 1,
+      "return_type": "DecoratorFunction<TRenderer>",
+      "source_file": "code/addons/themes/src/decorators/data-attribute.decorator.tsx",
+      "source_line": 19,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1230,14 +1230,14 @@
       "export_type": "function",
       "source_library": "@storybook/addon-themes",
       "params": [
-        "config: { Provider?, GlobalStyles?, defaultTheme?, themes? }"
+        "{ Provider, GlobalStyles, defaultTheme, themes = {} }: ProviderStrategyConfiguration"
       ],
-      "return_type": "DecoratorFunction<Renderer>",
-      "source_file": "code/addons/themes/src/index.ts",
-      "source_line": 1,
+      "return_type": "DecoratorFunction<TRenderer>",
+      "source_file": "code/addons/themes/src/decorators/provider.decorator.tsx",
+      "source_line": 23,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -1338,13 +1338,13 @@
       "params": [
         "T"
       ],
-      "return_type": "{ name: string; value?: T; defaultValue?: T; argType?: ArgType; onChange(v?: T): T | void; onFocus?, onBlur? }",
+      "return_type": "{ name: string; value?: T; defaultValue?: T; argType?: ArgType; onChange: (value?: T) => T | void; onFocus?: (evt: any) => void; onBlur?: (evt: any) => void }",
       "source_file": "code/addons/docs/src/blocks/controls/types.ts",
       "source_line": 3,
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "BooleanValue",
@@ -2578,13 +2578,13 @@
       "params": [
         "{ id, reporting, parameters, globals, viewMode }"
       ],
-      "return_type": "Promise<void>",
+      "return_type": "Awaitable<void>",
       "source_file": "code/addons/a11y/src/preview.tsx",
       "source_line": 14,
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "a11y_initialGlobals",
@@ -2745,105 +2745,105 @@
     {
       "export_name": "IndexHash",
       "export_type": "interface",
-      "source_library": "storybook/internal/types",
+      "source_library": "storybook/manager-api",
       "params": [],
       "return_type": "{ [id: string]: API_HashEntry }",
-      "source_file": "code/core/src/types/modules/api-stories.ts",
-      "source_line": 80,
+      "source_file": "code/core/src/manager-api/root.tsx",
+      "source_line": 305,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_interface",
+      "ast_node_type": "export_specifier",
       "signature_source": "T1"
     },
     {
       "export_name": "HashEntry",
       "export_type": "type",
-      "source_library": "storybook/internal/types",
+      "source_library": "storybook/manager-api",
       "params": [],
-      "return_type": "RootEntry | GroupEntry | ComponentEntry | DocsEntry | StoryEntry | TestEntry",
-      "source_file": "code/core/src/types/modules/api-stories.ts",
-      "source_line": 67,
+      "return_type": "API_RootEntry | API_GroupEntry | API_ComponentEntry | API_DocsEntry | API_StoryEntry | API_TestEntry",
+      "source_file": "code/core/src/manager-api/root.tsx",
+      "source_line": 311,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_type_alias",
-      "signature_source": "T1"
+      "ast_node_type": "export_specifier",
+      "signature_source": "T1-low"
     },
     {
       "export_name": "LeafEntry",
       "export_type": "type",
-      "source_library": "storybook/internal/types",
+      "source_library": "storybook/manager-api",
       "params": [],
-      "return_type": "DocsEntry | StoryEntry | TestEntry",
-      "source_file": "code/core/src/types/modules/api-stories.ts",
-      "source_line": 66,
+      "return_type": "API_DocsEntry | API_StoryEntry | API_TestEntry",
+      "source_file": "code/core/src/manager-api/root.tsx",
+      "source_line": 312,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_type_alias",
+      "ast_node_type": "export_specifier",
       "signature_source": "T1"
     },
     {
       "export_name": "RootEntry",
       "export_type": "interface",
-      "source_library": "storybook/internal/types",
+      "source_library": "storybook/manager-api",
       "params": [],
       "return_type": "extends API_BaseEntry { type: 'root' }",
-      "source_file": "code/core/src/types/modules/api-stories.ts",
-      "source_line": 15,
+      "source_file": "code/core/src/manager-api/root.tsx",
+      "source_line": 306,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_interface",
+      "ast_node_type": "export_specifier",
       "signature_source": "T1"
     },
     {
       "export_name": "GroupEntry",
       "export_type": "interface",
-      "source_library": "storybook/internal/types",
+      "source_library": "storybook/manager-api",
       "params": [],
       "return_type": "extends API_BaseEntry { type: 'group' }",
-      "source_file": "code/core/src/types/modules/api-stories.ts",
-      "source_line": 21,
+      "source_file": "code/core/src/manager-api/root.tsx",
+      "source_line": 307,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_interface",
+      "ast_node_type": "export_specifier",
       "signature_source": "T1"
     },
     {
       "export_name": "ComponentEntry",
       "export_type": "interface",
-      "source_library": "storybook/internal/types",
+      "source_library": "storybook/manager-api",
       "params": [],
       "return_type": "extends API_BaseEntry { type: 'component' }",
-      "source_file": "code/core/src/types/modules/api-stories.ts",
-      "source_line": 27,
+      "source_file": "code/core/src/manager-api/root.tsx",
+      "source_line": 308,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_interface",
+      "ast_node_type": "export_specifier",
       "signature_source": "T1"
     },
     {
       "export_name": "DocsEntry",
       "export_type": "interface",
-      "source_library": "storybook/internal/types",
+      "source_library": "storybook/manager-api",
       "params": [],
       "return_type": "extends API_BaseEntry { type: 'docs' }",
-      "source_file": "code/core/src/types/modules/api-stories.ts",
-      "source_line": 34,
+      "source_file": "code/core/src/manager-api/root.tsx",
+      "source_line": 309,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_interface",
+      "ast_node_type": "export_specifier",
       "signature_source": "T1"
     },
     {
       "export_name": "StoryEntry",
       "export_type": "interface",
-      "source_library": "storybook/internal/types",
+      "source_library": "storybook/manager-api",
       "params": [],
       "return_type": "extends API_BaseEntry { type: 'story' }",
-      "source_file": "code/core/src/types/modules/api-stories.ts",
-      "source_line": 45,
+      "source_file": "code/core/src/manager-api/root.tsx",
+      "source_line": 310,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_interface",
+      "ast_node_type": "export_specifier",
       "signature_source": "T1"
     },
     {
@@ -3072,13 +3072,13 @@
       "export_type": "interface",
       "source_library": "storybook/theming",
       "params": [],
-      "return_type": "{ title; url; image?; target? }",
+      "return_type": "{ title: string | undefined; url: string | null | undefined; image: string | null | undefined; target: string | null | undefined }",
       "source_file": "code/core/src/theming/types.ts",
       "source_line": 64,
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "Animation",
@@ -3122,7 +3122,7 @@
     {
       "export_name": "Docs",
       "export_type": "component",
-      "source_library": "@storybook/react",
+      "source_library": "@storybook/addon-docs/blocks",
       "params": [
         "{ context, docsParameter }: DocsProps<TRenderer>"
       ],
@@ -3136,7 +3136,7 @@
     {
       "export_name": "Anchor",
       "export_type": "component",
-      "source_library": "@storybook/react",
+      "source_library": "@storybook/addon-docs/blocks",
       "params": [
         "{ storyId, children }: PropsWithChildren<AnchorProps>"
       ],
@@ -3150,7 +3150,7 @@
     {
       "export_name": "DocsStory",
       "export_type": "component",
-      "source_library": "@storybook/react",
+      "source_library": "@storybook/addon-docs/blocks",
       "params": [
         "{ of, expanded, withToolbar, __forceInitialArgs, __primary }: DocsStoryProps"
       ],
@@ -3164,7 +3164,7 @@
     {
       "export_name": "Heading",
       "export_type": "component",
-      "source_library": "@storybook/react",
+      "source_library": "@storybook/addon-docs/blocks",
       "params": [
         "{ children, disableAnchor }: PropsWithChildren<HeadingProps>"
       ],
@@ -3178,7 +3178,7 @@
     {
       "export_name": "Subheading",
       "export_type": "component",
-      "source_library": "@storybook/react",
+      "source_library": "@storybook/addon-docs/blocks",
       "params": [
         "{ children, disableAnchor }: PropsWithChildren<HeadingProps>"
       ],
@@ -3191,17 +3191,17 @@
     },
     {
       "export_name": "PureArgsTable",
-      "export_type": "function",
-      "source_library": "@storybook/react",
+      "export_type": "component",
+      "source_library": "@storybook/addon-docs/blocks",
       "params": [
         "props: ArgsTableProps"
       ],
       "return_type": "ReactNode",
-      "source_file": "code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx",
-      "source_line": 320,
-      "confidence": "T1-low",
-      "extraction_method": "source-read",
-      "ast_node_type": null,
+      "source_file": "code/addons/docs/src/blocks.ts",
+      "source_line": 3,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_specifier",
       "signature_source": "T1-low"
     }
   ],

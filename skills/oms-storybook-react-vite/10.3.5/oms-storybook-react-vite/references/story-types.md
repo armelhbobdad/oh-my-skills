@@ -40,7 +40,7 @@ Type for `.storybook/preview.ts` default export.
 export type Preview = ProjectAnnotations<ReactRenderer>;
 ```
 
-`ProjectAnnotations<R>` (a.k.a. `BaseProjectAnnotations<R>`) is the full preview config shape — `parameters`, `decorators`, `loaders`, `globalTypes`, `initialGlobals`, `argTypes`, `tags`, `beforeAll`, `beforeEach`. `[AST:code/renderers/react/src/public-types.ts:L80]`
+`ProjectAnnotations<R>` here is the `storybook/internal/types` interface (`types/modules/story.ts:43`), which extends CSF's `ProjectAnnotations` (re-exported from `storybook/internal/types` as `BaseProjectAnnotations`) with two renderer hooks. Every field is optional: the `BaseAnnotations` ones (`decorators`, `parameters`, `args`, `argTypes`, `loaders`, `beforeEach`, `afterEach`, `render`, `tags`, `mount`), CSF's project-level ones (`argsEnhancers`, `argTypesEnhancers`, `beforeAll`, `initialGlobals`, `globalTypes`, `applyDecorators`, `runStep`) and the interface's own `testingLibraryRender` and `renderToCanvas`. `[AST:code/renderers/react/src/public-types.ts:L80]` `[AST:code/core/src/types/modules/story.ts:L43]` `[AST:code/core/src/csf/story.ts:L421]` `[AST:code/core/src/csf/story.ts:L347]`
 
 **Usage:**
 ```ts
@@ -71,7 +71,7 @@ const meta: Meta<typeof Button> = { component: Button, args: { label: 'x' } };
 const meta2 = { component: Button } as Meta<typeof Button>;
 ```
 
-`ComponentAnnotations<R, Args>` — the underlying interface — has these fields: `title`, `component`, `subcomponents`, `args`, `argTypes`, `parameters`, `decorators`, `loaders`, `render`, `play`, `tags`, `includeStories`, `excludeStories`, `beforeAll`, `beforeEach`. Field-level docs live in `code/core/src/types/modules/csf.ts`.
+`ComponentAnnotations<R, Args>` — the underlying interface — has these fields, all optional: its own `title`, `id`, `includeStories`, `excludeStories`, `component`, `subcomponents`, `play`, `globals`, and the `BaseAnnotations` ones, `decorators`, `parameters`, `args`, `argTypes`, `loaders`, `beforeEach`, `afterEach`, `render`, `tags`, `mount`. `beforeAll` is not one of them: it is a `ProjectAnnotations` field, set in `preview.ts`. Field-level docs live in `code/core/src/csf/story.ts`, which declares the interface (`code/core/src/types/modules/csf.ts` only re-exports it). `[AST:code/core/src/csf/story.ts:L452]` `[AST:code/core/src/csf/story.ts:L347]` `[SRC:code/core/src/csf/story.ts:L442]`
 
 ## `StoryObj<T>`
 
@@ -96,7 +96,7 @@ The CSF3 story object type. Three overload paths:
 2. **Component-aware:** pass `typeof Component` — args are `ComponentProps<Component>`.
 3. **Raw args:** pass an args type directly.
 
-`StoryAnnotations<R, Args, RequiredArgs>` has fields: `name`, `args`, `argTypes`, `parameters`, `decorators`, `loaders`, `render`, `play`, `tags`, `storyName`, `beforeEach`. Same shape as meta minus `title`/`component`/`subcomponents`/`includeStories`/`excludeStories`.
+`StoryAnnotations<R, Args, RequiredArgs>` has these fields: the `BaseAnnotations` ones (`decorators`, `parameters`, `args`, `argTypes`, `loaders`, `beforeEach`, `afterEach`, `render`, `tags`, `mount`) and its own `name`, `storyName`, `play`, `globals`, `story`. All are optional except `args`, which is required when `RequiredArgs` has a required member (the component args the meta does not supply). Same shape as meta minus `title`/`id`/`component`/`subcomponents`/`includeStories`/`excludeStories`, plus `name`, `storyName` and `story`. `[AST:code/core/src/csf/story.ts:L543]`
 
 **Canonical v10 story file:**
 ```ts
@@ -158,7 +158,7 @@ Async function called before a story renders. Returns an object merged into the 
 export type StoryContext<TArgs = StrictArgs> = GenericStoryContext<ReactRenderer, TArgs>;
 ```
 
-The full context object passed to `play`, `render`, `loaders`, and decorators. Fields include: `id`, `name`, `title`, `componentId`, `kind`, `args`, `argTypes`, `globals`, `parameters`, `viewMode`, `hooks`, `originalStoryFn`, `canvasElement`, `abortSignal`, `loaded`, `canvas` (testing-library query object), `mount` (for component testing), `step`, `userEvent`, `playUntil`, and more. `[AST:code/renderers/react/src/public-types.ts]`
+The full context object passed to `play`, `render`, `loaders`, and decorators. `GenericStoryContext` is CSF's `StoryContext` interface, whose fields are: from `StoryIdentifier`, `componentId`, `title`, `kind` (deprecated), `id`, `name`, `story` (deprecated), `tags`; from `StoryContextForEnhancers`, `component?`, `subcomponents?`, `parameters`, `initialArgs`, `argTypes`; from `Required<StoryContextUpdate>`, `args`, `globals` (plus its `[key: string]: any` index signature); and its own `loaded`, `abortSignal`, `canvasElement`, `hooks`, `originalStoryFn`, `viewMode`, `step`, `context`, `canvas` (testing-library query object), `mount` (for component testing), `reporting`. Importing `storybook/test` adds `userEvent` by module augmentation. There is no `playUntil` field: that is instrumenter state for the interaction debugger, not story context. `[AST:code/renderers/react/src/public-types.ts:L79]` `[AST:code/core/src/csf/story.ts:L268]` `[AST:code/core/src/csf/story.ts:L18]` `[SRC:code/core/src/test/index.ts:L19]`
 
 ## `ReactRenderer`
 
@@ -167,14 +167,14 @@ The renderer type parameter for React. It binds `storyResult` to `ReactNode`, `c
 ## `Args`, `ArgTypes`, `Parameters`, `StrictArgs`
 
 ```ts
-// Re-exported from storybook/internal/types
-type Args = { [name: string]: any };
-type StrictArgs = { [name: string]: unknown };
-type ArgTypes<TArgs = Args> = { [name in keyof TArgs]?: InputType };
-type Parameters = { [name: string]: any };
+// Re-exported from storybook/internal/types (declared in code/core/src/csf/story.ts)
+interface Args { [name: string]: any }
+interface StrictArgs { [name: string]: unknown }
+type ArgTypes<TArgs = Args> = { [name in keyof TArgs]: InputType };
+interface Parameters { [name: string]: any }
 ```
 
-`Args` is the loose form used for backward compatibility. `StrictArgs` is used inside generic decorators where arg types are not known. `ArgTypes` describes the control schema (input type, options, description, default) per arg. `Parameters` is a free-form config bag keyed by addon name (e.g., `parameters.a11y`, `parameters.docs`, `parameters.viewport`). `[AST:code/renderers/react/src/public-types.ts]`
+`Args` is the loose form used for backward compatibility. `StrictArgs` is used inside generic decorators where arg types are not known. `ArgTypes` describes the control schema (input type, options, description, default) per arg; its mapped keys are not optional, so the `argTypes` annotation of a meta or story takes `Partial<ArgTypes<TArgs>>`. `Parameters` is a free-form config bag keyed by addon name (e.g., `parameters.a11y`, `parameters.docs`, `parameters.viewport`). `[AST:code/renderers/react/src/public-types.ts:L21]` `[AST:code/core/src/csf/story.ts:L153]` `[AST:code/core/src/csf/story.ts:L157]` `[AST:code/core/src/csf/story.ts:L162]` `[AST:code/core/src/csf/story.ts:L32]`
 
 ## Portable stories utilities
 
@@ -243,7 +243,7 @@ These types are needed when you're **writing a manager-side addon** — a toolba
 | `State` | type | `layout.SubState & stories.SubState & refs.SubState & …` — intersection of every manager slice | `[AST:code/core/src/manager-api/root.tsx:L82]` |
 | `StoreOptions` | type | `Options` — persistence options passed to `store.set` | `[AST:code/core/src/manager-api/root.tsx:L77]` |
 | `ManagerContext` | const | `React.Context<{ api: API; state: State }>` — underlying context that `ManagerConsumer` / `useStorybookApi` read | `[AST:code/core/src/manager-api/root.tsx:L80]` |
-| `ManagerProviderProps` | type | `RouterData & API_ProviderData<API> & { children: ReactNode \| ((combo: Combo) => ReactNode) }` | `[AST:code/core/src/manager-api/root.tsx:L121]` |
+| `ManagerProviderProps` | type | `RouterData & API_ProviderData<API> & { children: ReactNode \| FC<Combo> }` — `children` is a node or a component that receives the `Combo` | `[AST:code/core/src/manager-api/root.tsx:L121]` |
 | `Refs` | type | `API_Refs` — map of composed refs keyed by ref ID | `[AST:code/core/src/manager-api/root.tsx:L314]` |
 | `API_EventMap` | interface | `{ [eventId: string]: Listener }` — `api.on(eventId, listener)` event registry | `[AST:code/core/src/manager-api/root.tsx:L318]` |
 | `API_KeyCollection` | type | `string[]` — shortcut key sequence representation | `[AST:code/core/src/manager-api/modules/shortcuts.ts:L99]` |
@@ -253,23 +253,25 @@ These types are needed when you're **writing a manager-side addon** — a toolba
 
 Every story/doc/component in the manager is represented as a `HashEntry` keyed by ID. Walking this tree is how toolbar filters, sidebar rendering, and story-picker UIs work.
 
+Import these names from `storybook/manager-api`: its `root.tsx` re-exports the `API_*` types that `code/core/src/types/modules/api-stories.ts` declares under these shorter names (`export type { API_IndexHash as IndexHash, ... }`). `storybook/internal/types` exports only the `API_*` names. Each row cites the alias, then the declaration.
+
 | Export | Kind | Signature | Source |
 |---|---|---|---|
-| `IndexHash` | interface | `{ [id: string]: API_HashEntry }` — flat manager-side story index | `[AST:code/core/src/types/modules/api-stories.ts:L80]` |
-| `HashEntry` | type | `RootEntry \| GroupEntry \| ComponentEntry \| DocsEntry \| StoryEntry \| TestEntry` — union of all entry kinds | `[AST:code/core/src/types/modules/api-stories.ts:L67]` |
-| `LeafEntry` | type | `DocsEntry \| StoryEntry \| TestEntry` — entries with no children | `[AST:code/core/src/types/modules/api-stories.ts:L66]` |
-| `RootEntry` | interface | `extends API_BaseEntry { type: 'root'; … }` — top of the hierarchy | `[AST:code/core/src/types/modules/api-stories.ts:L15]` |
-| `GroupEntry` | interface | `extends API_BaseEntry { type: 'group'; … }` — folder/group node | `[AST:code/core/src/types/modules/api-stories.ts:L21]` |
-| `ComponentEntry` | interface | `extends API_BaseEntry { type: 'component'; … }` — component node grouping its stories | `[AST:code/core/src/types/modules/api-stories.ts:L27]` |
-| `DocsEntry` | interface | `extends API_BaseEntry { type: 'docs'; … }` — MDX / Autodocs entry | `[AST:code/core/src/types/modules/api-stories.ts:L34]` |
-| `StoryEntry` | interface | `extends API_BaseEntry { type: 'story'; … }` — single story | `[AST:code/core/src/types/modules/api-stories.ts:L45]` |
+| `IndexHash` | interface | `{ [id: string]: API_HashEntry }` — flat manager-side story index (`API_IndexHash`) | `[AST:code/core/src/manager-api/root.tsx:L305]` `[AST:code/core/src/types/modules/api-stories.ts:L80]` |
+| `HashEntry` | type | `RootEntry \| GroupEntry \| ComponentEntry \| DocsEntry \| StoryEntry \| API_TestEntry` — union of all entry kinds (`API_HashEntry`; the test entry has no short alias) | `[AST:code/core/src/manager-api/root.tsx:L311]` `[AST:code/core/src/types/modules/api-stories.ts:L67]` |
+| `LeafEntry` | type | `DocsEntry \| StoryEntry \| API_TestEntry` — entries with no children (`API_LeafEntry`) | `[AST:code/core/src/manager-api/root.tsx:L312]` `[AST:code/core/src/types/modules/api-stories.ts:L66]` |
+| `RootEntry` | interface | `extends API_BaseEntry { type: 'root'; … }` — top of the hierarchy (`API_RootEntry`) | `[AST:code/core/src/manager-api/root.tsx:L306]` `[AST:code/core/src/types/modules/api-stories.ts:L15]` |
+| `GroupEntry` | interface | `extends API_BaseEntry { type: 'group'; … }` — folder/group node (`API_GroupEntry`) | `[AST:code/core/src/manager-api/root.tsx:L307]` `[AST:code/core/src/types/modules/api-stories.ts:L21]` |
+| `ComponentEntry` | interface | `extends API_BaseEntry { type: 'component'; … }` — component node grouping its stories (`API_ComponentEntry`) | `[AST:code/core/src/manager-api/root.tsx:L308]` `[AST:code/core/src/types/modules/api-stories.ts:L27]` |
+| `DocsEntry` | interface | `extends API_BaseEntry { type: 'docs'; … }` — MDX / Autodocs entry (`API_DocsEntry`) | `[AST:code/core/src/manager-api/root.tsx:L309]` `[AST:code/core/src/types/modules/api-stories.ts:L34]` |
+| `StoryEntry` | interface | `extends API_BaseEntry { type: 'story'; … }` — single story (`API_StoryEntry`) | `[AST:code/core/src/manager-api/root.tsx:L310]` `[AST:code/core/src/types/modules/api-stories.ts:L45]` |
 
 ### Viewport types (`storybook/viewport`)
 
 | Export | Kind | Signature | Source |
 |---|---|---|---|
 | `GlobalState` | type | `{ value: string \| undefined; isRotated?: boolean }` — viewport toolbar global state | `[AST:code/core/src/viewport/types.ts:L16]` |
-| `ViewportParameters` | interface | `{ viewport?: { disable?: boolean; options: Record<string, ViewportMap> } }` — story-level viewport config | `[AST:code/core/src/viewport/types.ts:L33]` |
+| `ViewportParameters` | interface | `{ viewport?: { disable?: boolean; options: Record<string, Viewport> } }` — story-level viewport config; `options` maps a key to one `Viewport` (`{ name: string; styles: ViewportStyles; type?: ViewportType }`), so it is itself a `ViewportMap` (`Record<string, Viewport>`, `types.ts:L14`) | `[AST:code/core/src/viewport/types.ts:L33]` `[AST:code/core/src/viewport/types.ts:L1]` |
 | `ViewportStyles` | interface | `{ height: string; width: string }` — CSS dimensions | `[AST:code/core/src/viewport/types.ts:L9]` |
 | `ViewportType` | type | `'desktop' \| 'mobile' \| 'tablet' \| 'watch' \| 'other'` | `[AST:code/core/src/viewport/types.ts:L7]` |
 | `InitialViewportKeys` | type | `keyof typeof INITIAL_VIEWPORTS` — keys of the built-in viewport map | `[AST:code/core/src/viewport/defaults.ts:L230]` |

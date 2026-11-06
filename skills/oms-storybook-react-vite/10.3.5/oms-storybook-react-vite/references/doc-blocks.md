@@ -138,7 +138,7 @@ import * as ButtonStories from './Button.stories';
 |---|---|---|
 | `useOf` | hook | Resolve CSF export references within MDX (`of={ButtonStories.Primary}`). |
 | `DocsContext` | React context | Provides story/component metadata to blocks. Access via `const ctx = useContext(DocsContext)`. |
-| `PureArgsTable` | component | ArgsTable without Storybook integration: the `ArgsTable` component (`FC<ArgsTableProps>`), re-exported under this name. `ArgsTableProps = ArgsTableOptionProps & (ArgsTableDataProps \| ArgsTableErrorProps \| ArgsTableLoadingProps)`. Options, all optional: `{ children?: ReactNode; updateArgs?: (args: Args) => void; resetArgs?: (argNames?: string[]) => void; compact?: boolean; inAddonPanel?: boolean; inTabPanel?: boolean; initialExpandedArgs?: boolean; isLoading?: boolean; sort?: SortType }` (`sort` defaults to `'none'`). Plus one of: `{ rows: ArgTypes; args?: Args; globals?: Globals }` (the table data), `{ error: ArgsTableError }` or `{ isLoading: boolean }`. `[SRC:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L320]` `[AST:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L197]` `[AST:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L222]` `[SRC:code/addons/docs/src/blocks.ts:L3]` |
+| `PureArgsTable` | component | ArgsTable without Storybook integration: the `ArgsTable` component (`FC<ArgsTableProps>`), re-exported under this name. `ArgsTableProps = ArgsTableOptionProps & (ArgsTableDataProps \| ArgsTableErrorProps \| ArgsTableLoadingProps)`. Options, all optional: `{ children?: ReactNode; updateArgs?: (args: Args) => void; resetArgs?: (argNames?: string[]) => void; compact?: boolean; inAddonPanel?: boolean; inTabPanel?: boolean; initialExpandedArgs?: boolean; isLoading?: boolean; sort?: SortType }` (`sort` defaults to `'none'`). Plus one of: `{ rows: ArgTypes; args?: Args; globals?: Globals }` (the table data), `{ error: ArgsTableError }` or `{ isLoading: boolean }`. `[SRC:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L320]` `[AST:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L197]` `[AST:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L222]` `[AST:code/addons/docs/src/blocks.ts:L3]` |
 | `TableOfContents` | component | Auto-generated TOC from docs headings. Enable via `parameters.docs.toc`. |
 | `SortType` | type | `'alpha' \| 'requiredFirst' \| 'none'` (no function form) for the `sort` prop on `Controls`/`ArgTypes` (`code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:186`). |
 
@@ -146,7 +146,7 @@ import * as ButtonStories from './Button.stories';
 
 ## DocsRenderer
 
-Entry: `code/addons/docs/src/index.ts` exports `DocsRenderer` — the React component that renders an entire docs page. Rarely imported directly; registered via `addons: ['@storybook/addon-docs']` in `main.ts`. `[AST:code/addons/docs/src/index.ts:L8]`
+Entry: `code/addons/docs/src/index.ts` exports `DocsRenderer`, a plain class, not a React component: `class DocsRenderer<TRenderer extends Renderer>` with two members, `render: DocsRenderFunction<TRenderer>`, which mounts the `Docs` block for a docs entry (inside an `MDXProvider` and an error boundary) into a DOM element through React, and `unmount: (element: HTMLElement) => void`, which unmounts it. The docs preview instantiates it; rarely imported directly; registered via `addons: ['@storybook/addon-docs']` in `main.ts`. `[AST:code/addons/docs/src/DocsRenderer.tsx:L48]` `[AST:code/addons/docs/src/index.ts:L8]`
 
 ## Control Primitives
 
@@ -156,7 +156,7 @@ The primitive control components that back `Controls` / `ArgTypes` panels. Impor
 
 | Export | Kind | Signature | Source |
 |---|---|---|---|
-| `ControlProps<T>` | type | `{ name: string; value?: T; defaultValue?: T; argType?: ArgType; onChange(v?: T): T \| void; onFocus?(e: any): void; onBlur?(e: any): void }` — base props shared by all control components | `[AST:code/addons/docs/src/blocks/controls/types.ts:L3]` |
+| `ControlProps<T>` | type | `{ name: string; value?: T; defaultValue?: T; argType?: ArgType; onChange: (value?: T) => T \| void; onFocus?: (evt: any) => void; onBlur?: (evt: any) => void }` — base props shared by all control components | `[AST:code/addons/docs/src/blocks/controls/types.ts:L3]` |
 | `BooleanValue` | type | `boolean` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L13]` |
 | `BooleanConfig` | interface | `{}` — no boolean-specific config | `[AST:code/addons/docs/src/blocks/controls/types.ts:L14]` |
 | `ColorValue` | type | `string` — hex / rgb / hsl / named | `[AST:code/addons/docs/src/blocks/controls/types.ts:L16]` |

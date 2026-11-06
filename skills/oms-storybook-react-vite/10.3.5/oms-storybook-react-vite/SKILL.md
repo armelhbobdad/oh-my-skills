@@ -93,7 +93,7 @@ const preview: Preview = {
 export default preview;
 ```
 
-Sources for the two templates above: `[AST:code/renderers/react/src/public-types.ts:L29]` (CSF types) `[AST:code/renderers/react/src/public-types.ts:L80]` (`Preview`) `[AST:code/core/src/test/index.ts:L139]` (`storybook/test`) `[AST:code/addons/themes/src/index.ts:L1]` (`withThemeByClassName`) `[AST:code/addons/a11y/src/preview.tsx:L1]` (a11y `parameters`) `[AST:code/renderers/react/template/stories/test-fn.stories.tsx:L1]` (sample).
+Sources for the two templates above: `[AST:code/renderers/react/src/public-types.ts:L29]` (CSF types) `[AST:code/renderers/react/src/public-types.ts:L80]` (`Preview`) `[AST:code/core/src/test/spy.ts:L48]` `[AST:code/core/src/test/expect.ts:L139]` (`storybook/test`'s `fn` and `expect`) `[AST:code/addons/themes/src/decorators/class-name.decorator.tsx:L19]` (`withThemeByClassName`) `[AST:code/addons/a11y/src/preview.tsx:L1]` (a11y `parameters`) `[AST:code/renderers/react/template/stories/test-fn.stories.tsx:L1]` (sample).
 
 <!-- [MANUAL:additional-notes-quickstart] -->
 <!-- Add custom notes here. This section is preserved during skill updates. -->
@@ -102,13 +102,13 @@ Sources for the two templates above: `[AST:code/renderers/react/src/public-types
 ## Common Workflows
 
 **Author a story with a mock action:**
-`import { fn } from 'storybook/test'` → `args: { onClick: fn() }` → assert in `play` with `expect(args.onClick).toHaveBeenCalled()` `[AST:code/core/src/test/index.ts:L139]`
+`import { fn } from 'storybook/test'` → `args: { onClick: fn() }` → assert in `play` with `expect(args.onClick).toHaveBeenCalled()` `[AST:code/core/src/test/spy.ts:L48]` `[AST:code/core/src/test/expect.ts:L139]`
 
 **Write a `play` function (interaction test):**
 `play: async ({ canvas, userEvent, args }) => { ... }` — destructure from `storybook/test` context. Use `canvas.getByRole` / `findByRole`, `await userEvent.click(...)`, `await expect(...)`. `[AST:code/renderers/react/template/stories/test-fn.stories.tsx:L1]`
 
 **Add a theme decorator globally:**
-`decorators: [withThemeByClassName({ themes, defaultTheme })]` in `preview.ts` — or `withThemeByDataAttribute({ themes, defaultTheme })` to set a `data-*` attribute (default `data-theme`) on the parent element instead of a class, or `withThemeFromJSXProvider` to wrap stories in a CSS-in-JS theme provider. `[AST:code/addons/themes/src/index.ts:L1]` `[AST:code/addons/themes/src/decorators/data-attribute.decorator.tsx:L19]` `[AST:code/addons/themes/src/decorators/provider.decorator.tsx:L23]`
+`decorators: [withThemeByClassName({ themes, defaultTheme })]` in `preview.ts` — or `withThemeByDataAttribute({ themes, defaultTheme })` to set a `data-*` attribute (default `data-theme`) on the parent element instead of a class, or `withThemeFromJSXProvider` to wrap stories in a CSS-in-JS theme provider. `[AST:code/addons/themes/src/decorators/class-name.decorator.tsx:L19]` `[AST:code/addons/themes/src/decorators/data-attribute.decorator.tsx:L19]` `[AST:code/addons/themes/src/decorators/provider.decorator.tsx:L23]`
 
 **Use preview-api hooks inside a decorator or render:**
 `import { useState, useArgs, useParameter } from 'storybook/preview-api'` → `const [{ label }, updateArgs] = useArgs()` reads/writes current story args. `[AST:code/core/src/preview-api/index.ts:L5]`
@@ -138,7 +138,7 @@ The exports a story author reaches for most, each with the import path v10 uses.
 | `useArgs` | `storybook/preview-api` | `[args, updateArgs, resetArgs]` inside a decorator or `render` | `[AST:code/core/src/preview-api/index.ts:L5]` |
 | `composeStories` | `@storybook/react-vite` | `composeStories(csfExports, projectAnnotations?)`: render stories in Vitest or Jest | `[AST:code/renderers/react/src/portable-stories.tsx:L148]` |
 | `setProjectAnnotations` | `@storybook/react-vite` | Apply the `preview.ts` annotations once in test setup | `[AST:code/renderers/react/src/portable-stories.tsx:L46]` |
-| `withThemeByClassName` | `@storybook/addon-themes` | `withThemeByClassName({ themes, defaultTheme, parentSelector? })`: theme-switching decorator | `[AST:code/addons/themes/src/index.ts:L1]` |
+| `withThemeByClassName` | `@storybook/addon-themes` | `withThemeByClassName({ themes, defaultTheme, parentSelector? })`: theme-switching decorator | `[AST:code/addons/themes/src/decorators/class-name.decorator.tsx:L19]` |
 | `create` | `storybook/theming/create` | `create(vars?, rest?)`: build a custom manager or docs theme | `[AST:code/core/src/theming/create.ts:L29]` |
 | `Meta`, `Canvas`, `Controls`, `Primary`, `Stories` | `@storybook/addon-docs/blocks` | MDX doc blocks: `<Meta of={ButtonStories} />`, `<Canvas of={ButtonStories.Primary} />` | `[AST:code/addons/docs/src/blocks.ts:L1]` |
 
@@ -168,7 +168,7 @@ The full import surface (CSF types, test utilities, preview-api hooks, addon exp
 
 ## Key Types (quick-start essentials)
 
-The three types every CSF3 story file needs — just enough for the Quick Start above. `Decorator`, `Loader`, `StoryContext`, `A11yTestMode`, `Framework`, and the full generic shapes live in `references/story-types.md`.
+The three types every CSF3 story file needs — just enough for the Quick Start above. `Decorator`, `Loader`, `StoryContext`, and the full generic shapes live in `references/story-types.md`; the `framework` option object `FrameworkOptions` lives in `references/framework-config.md`, and the a11y `test` modes (`'off'`, `'todo'`, `'error'`, typed by the unexported `A11yTest`, so there is no importable test-mode type) in `references/addons.md`.
 
 ```ts
 // @storybook/react-vite re-exports these from @storybook/react

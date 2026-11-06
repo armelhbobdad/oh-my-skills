@@ -111,8 +111,8 @@
     "skf": "1.0.0"
   },
   "confidence_distribution": {
-    "t1": 220,
-    "t1_low": 8,
+    "t1": 215,
+    "t1_low": 13,
     "t2": 0,
     "t3": 0
   },
@@ -125,7 +125,7 @@
     "total_coverage": 0.0711,
     "scripts_count": 0,
     "assets_count": 0,
-    "effective_denominator": 280
+    "effective_denominator": 370
   },
   "generated_by": "create-skill",
   "dependencies": [

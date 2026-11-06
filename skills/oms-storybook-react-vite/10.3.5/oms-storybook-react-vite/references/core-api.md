@@ -20,8 +20,8 @@ Every import this skill teaches, grouped by source package and subpath. Column 3
 | `create`, `themes`, `styled`, `css`, `useTheme`, `ThemeProvider` | runtime | `storybook/theming` / `storybook/theming/create` `[AST:code/core/src/theming/create.ts:L29]` |
 | `HIGHLIGHT`, `RESET_HIGHLIGHT` | const | `storybook/highlight` `[AST:code/core/src/highlight/index.ts:L1]` |
 | `Canvas`, `Meta`, `Controls`, `Primary`, `Stories`, `Story`, `ArgTypes`, `Source`, `Description`, `Title`, `Markdown`, `Typeset`, `ColorPalette`, `IconGallery`, `Unstyled`, `useOf`, `DocsContainer`, `DocsPage` | MDX block | `@storybook/addon-docs/blocks` `[AST:code/addons/docs/src/blocks.ts:L1]` |
-| `withThemeByClassName`, `withThemeByDataAttribute`, `withThemeFromJSXProvider` | decorator | `@storybook/addon-themes` `[AST:code/addons/themes/src/index.ts:L1]` |
-| a11y `parameters: { a11y: { test: ... } }`, runtime `afterEach`, `decorators`, `initialGlobals` | param + runtime | `@storybook/addon-a11y` / `@storybook/addon-a11y/preview` — the runtime `afterEach(context)` at `[AST:code/addons/a11y/src/preview.tsx:L14]` runs axe-core per story and attaches an `A11yReport` to `context.reporting`; compose it manually in your `preview.ts` only when you need multiple `afterEach` hooks | `[AST:code/addons/a11y/src/preview.tsx:L14]` |
+| `withThemeByClassName`, `withThemeByDataAttribute`, `withThemeFromJSXProvider` | decorator | `@storybook/addon-themes` `[AST:code/addons/themes/src/decorators/class-name.decorator.tsx:L19]` `[AST:code/addons/themes/src/decorators/data-attribute.decorator.tsx:L19]` `[AST:code/addons/themes/src/decorators/provider.decorator.tsx:L23]` |
+| a11y `parameters: { a11y: { test: ... } }`, runtime `afterEach`, `decorators`, `initialGlobals` | param + runtime | `@storybook/addon-a11y` / `@storybook/addon-a11y/preview` — the runtime `afterEach(context)` runs axe-core per story and attaches an `A11yReport` to `context.reporting`; compose it manually in your `preview.ts` only when you need multiple `afterEach` hooks `[AST:code/addons/a11y/src/preview.tsx:L14]` |
 
 The rest of this file documents each `storybook/*` subpath in detail. CSF types live in `story-types.md`; MDX blocks in `doc-blocks.md`; addon exports in `addons.md`; framework/renderer/builder layer in `framework-config.md`.
 
@@ -78,7 +78,7 @@ Entry: `code/core/src/preview-api/index.ts`. Hooks run inside decorators and `re
 | `useRef` | hook | Mutable ref persisted across renders | `[AST:code/core/src/preview-api/index.ts:L13]` |
 | `useReducer` | hook | State reducer | `[AST:code/core/src/preview-api/index.ts:L12]` |
 | `useArgs` | hook | `[args, updateArgs, resetArgs]` — read/write current story args | `[AST:code/core/src/preview-api/index.ts:L5]` |
-| `useParameter` | hook | `useParameter(key, default)` — read story parameters | `[AST:code/core/src/preview-api/index.ts:L11]` |
+| `useParameter` | hook | `useParameter<S>(parameterKey: string, defaultValue?: S): S \| undefined` — read the current story's `parameters[parameterKey]`, falling back to `defaultValue` | `[AST:code/core/src/preview-api/modules/addons/hooks.ts:L590]` `[AST:code/core/src/preview-api/index.ts:L11]` |
 | `useGlobals` | hook | `[globals, updateGlobals]` — read/write globals (theme, locale) | `[AST:code/core/src/preview-api/index.ts:L9]` |
 | `useChannel` | hook | Subscribe to addon events | `[AST:code/core/src/preview-api/index.ts:L7]` |
 | `useStoryContext` | hook | Full story context object | `[AST:code/core/src/preview-api/index.ts:L15]` |
@@ -147,11 +147,11 @@ Entry: `code/core/src/manager-api/index.ts`. Used when writing a **manager-side*
 |---|---|---|---|
 | (re-exports `./root`) | — | Full addon manager API: story selection, notifications, refs, globals, settings | `[AST:code/core/src/manager-api/index.ts]` |
 | `experimental_UniversalStore` | class | Cross-environment state store | `[AST:code/core/src/manager-api/index.ts:L3]` |
-| `useUniversalStore` | hook | Access universal store in manager components | `[AST:code/core/src/manager-api/index.ts:L4]` |
-| `MockUniversalStore` | class | Mock store for tests | `[AST:code/core/src/manager-api/index.ts:L5]` |
-| `useStatusStore`, `experimental_getStatusStore` | hook/func | Status store access (panel badges, test results) | `[AST:code/core/src/manager-api/index.ts:L7]` |
-| `useTestProviderStore`, `experimental_getTestProviderStore` | hook/func | Test provider state (addon-vitest) | `[AST:code/core/src/manager-api/index.ts:L14]` |
-| `Tag` | enum | Story tagging system | `[AST:code/core/src/manager-api/index.ts:L26]` |
+| `experimental_useUniversalStore` | hook | Access universal store in manager components. `storybook/manager-api` exports it only with the `experimental_` prefix | `[AST:code/core/src/manager-api/index.ts:L4]` |
+| `experimental_MockUniversalStore` | class | Mock store for tests. `storybook/manager-api` exports the class only with the `experimental_` prefix (the unprefixed name is a type-only export of `storybook/internal/types`) | `[AST:code/core/src/manager-api/index.ts:L5]` |
+| `experimental_useStatusStore`, `experimental_getStatusStore` | hook/func | Status store access (panel badges, test results); exported only with the `experimental_` prefix | `[AST:code/core/src/manager-api/index.ts:L9]` `[AST:code/core/src/manager-api/index.ts:L8]` |
+| `experimental_useTestProviderStore`, `experimental_getTestProviderStore` | hook/func | Test provider state (addon-vitest); exported only with the `experimental_` prefix | `[AST:code/core/src/manager-api/index.ts:L16]` `[AST:code/core/src/manager-api/index.ts:L15]` |
+| `Tag` | const | System tag names, a `const` object `{ AUTODOCS: 'autodocs', ATTACHED_MDX: 'attached-mdx', UNATTACHED_MDX: 'unattached-mdx', PLAY_FN: 'play-fn', TEST_FN: 'test-fn', DEV: 'dev', TEST: 'test', MANIFEST: 'manifest' }` (`as const`, not a TS `enum`), and the type `Tag = string` (any tag, system or custom) | `[AST:code/core/src/manager-api/index.ts:L26]` `[AST:code/core/src/shared/constants/tags.ts:L4]` |
 
 ## storybook/theming
 
@@ -242,31 +242,31 @@ Entry: `code/core/src/viewport/index.ts`. Viewport addon API — responsive view
 
 Entry: `code/core/src/types/index.ts`. This is the canonical home of the **CSF types** on the core side — though most React authors import them from `@storybook/react-vite` or `@storybook/react`.
 
-**CSF types re-exported from `storybook/internal/csf`:**
+**CSF types re-exported from `storybook/internal/csf`** (`code/core/src/types/modules/csf.ts`, re-exported by `types/index.ts:L3`). This path has no `Meta`, `StoryObj`, `Decorator` or `Loader`: those are the React renderer's names (`@storybook/react-vite` / `@storybook/react`), and their core counterparts are `ComponentAnnotations`, `StoryAnnotations`, `DecoratorFunction` and `LoaderFunction`.
 
 | Export | Kind | Source |
 |---|---|---|
-| `Meta` (via `ComponentAnnotations`) | type | `[AST:code/core/src/types/index.ts]` |
-| `StoryObj` (via `StoryAnnotations`) | type | `[AST:code/core/src/types/index.ts]` |
-| `StoryFn` | type | `[AST:code/core/src/types/index.ts]` |
-| `Decorator` (via `DecoratorFunction`) | type | `[AST:code/core/src/types/index.ts]` |
-| `Parameters` | type | `[AST:code/core/src/types/index.ts]` |
-| `ArgTypes` | type | `[AST:code/core/src/types/index.ts]` |
-| `Args` | type | `[AST:code/core/src/types/index.ts]` |
-| `Loader` (via `LoaderFunction`) | type | `[AST:code/core/src/types/index.ts]` |
-| `StoryContext` | type | `[AST:code/core/src/types/index.ts]` |
-| `PlayFunction` | type | `[AST:code/core/src/types/index.ts]` |
-| `ComponentAnnotations` | type | `[AST:code/core/src/types/index.ts]` |
-| `StoryAnnotations` | type | `[AST:code/core/src/types/index.ts]` |
-| `ProjectAnnotations` (renamed `BaseProjectAnnotations`) | type | `[AST:code/core/src/types/index.ts]` |
-| `Canvas` | type | `[AST:code/core/src/types/index.ts]` |
-| `Globals` | type | `[AST:code/core/src/types/index.ts]` |
+| `ComponentAnnotations` (the core type behind the React `Meta`) | type | `[AST:code/core/src/types/modules/csf.ts:L19]` |
+| `StoryAnnotations` (the core type behind the React `StoryObj`) | type | `[AST:code/core/src/types/modules/csf.ts:L52]` |
+| `StoryFn` | type | `[AST:code/core/src/types/modules/csf.ts:L58]` |
+| `DecoratorFunction` (the core type behind the React `Decorator`) | type | `[AST:code/core/src/types/modules/csf.ts:L24]` |
+| `LoaderFunction` (the core type behind the React `Loader`) | type | `[AST:code/core/src/types/modules/csf.ts:L32]` |
+| `Parameters` | type | `[AST:code/core/src/types/modules/csf.ts:L33]` |
+| `ArgTypes` | type | `[AST:code/core/src/types/modules/csf.ts:L12]` |
+| `Args` | type | `[AST:code/core/src/types/modules/csf.ts:L8]` |
+| `StoryContext` | type | `[AST:code/core/src/types/modules/csf.ts:L54]` |
+| `PlayFunction` | type | `[AST:code/core/src/types/modules/csf.ts:L36]` |
+| `BaseProjectAnnotations` (CSF's `ProjectAnnotations`, re-exported under this name) | type | `[AST:code/core/src/types/modules/csf.ts:L38]` |
+| `Canvas` | type | `[AST:code/core/src/types/modules/csf.ts:L17]` |
+| `Globals` | type | `[AST:code/core/src/types/modules/csf.ts:L25]` |
+
+`storybook/internal/types` also declares its own `ProjectAnnotations<TRenderer>` (`types/modules/story.ts:L43`), which extends `BaseProjectAnnotations<TRenderer>` with `testingLibraryRender?` and `renderToCanvas?`; it is the type behind the React `Preview`.
 
 **Additional rendering/runtime types:**
 
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
-| `ViewMode` | type | `'story' \| 'docs' \| 'settings' \| undefined` | `[AST:code/core/src/types/index.ts]` |
+| `ViewMode` | type | `OrString<'story' \| 'docs' \| 'settings'> \| undefined`: any string (`OrString<T> = T \| (string & {})`) or `undefined`, with `'story'`, `'docs'` and `'settings'` as the named values | `[AST:code/core/src/types/modules/csf.ts:L71]` |
 | `StorybookParameters` | interface | Storybook-specific parameters | `[AST:code/core/src/types/index.ts]` |
 | `WebRenderer` | interface | Base renderer with `canvasElement` | `[AST:code/core/src/types/index.ts]` |
 | `RenderToCanvas` | type | Renderer render function signature | `[AST:code/core/src/types/index.ts]` |
@@ -282,7 +282,7 @@ Entry: `code/core/src/csf/index.ts`.
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
 | `toId` | function | `(kind: string, name?: string) => string` — generate a story ID | `[AST:code/core/src/csf/index.ts:L27]` |
-| `toTestId` | function | Generate a test ID from a story name | `[AST:code/core/src/csf/index.ts:L31]` |
+| `toTestId` | function | Generate a test ID from a story ID and a test name (`parentId:test-name`) | `[AST:code/core/src/csf/index.ts:L31]` |
 | `storyNameFromExport` | function | Convert an export name to a readable story name | `[AST:code/core/src/csf/index.ts:L35]` |
 | `isExportStory` | function | Check if an export is a valid story (respects `includeStories`/`excludeStories`) | `[AST:code/core/src/csf/index.ts:L51]` |
 | `parseKind` | function | Parse a story kind/path | `[AST:code/core/src/csf/index.ts:L69]` |
