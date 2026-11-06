@@ -1,6 +1,6 @@
 # Motion Components Reference (react-shadcn `src/components/`)
 
-The motion-core components, the smaller interaction components grouped by category folder, and the Grid Generator panels of `@uitripled/react-shadcn`, with their install ids. Signatures are copied from the source at `a5ffb45`; the purpose is the entry's `description` in `packages/registry/registry.json`.
+The motion-core components, the smaller interaction components grouped by category folder, and the Grid Generator panels of `@uitripled/react-shadcn`, with their install ids. Signatures are copied from the source at `a5ffb45`, except the four the notes under the motion-core and Grid Generator blocks name, which follow the props type where the source's destructuring does not; the purpose is the entry's `description` in `packages/registry/registry.json`.
 
 ## Contents
 
@@ -30,7 +30,7 @@ export function Prompt() {
 
 ## Motion-core components
 
-`src/components/motion-core/`: configurable motion components; most take an optional props object whose defaults the signature shows.
+`src/components/motion-core/`: configurable motion components. Most take a props object whose members are all optional, with the defaults the signature shows; the three that require a member are named under the block.
 
 ```tsx
 // components/motion-core/ai-glow-input.tsx
@@ -44,7 +44,7 @@ export function AIUnlockAnimation({ autoPlay = true }: AIUnlockAnimationProps)
 // components/motion-core/animated-quote-block.tsx
 export function AnimatedQuoteBlock({ quote = "The only way to do great work is to love what you do.", author = "Steve Jobs", typingSpeed = 50 }: AnimatedQuoteBlockProps)
 // components/motion-core/auto-revealing-heading.tsx
-export function AutoRevealingHeading({ text = "Auto Revealing Heading", splitBy = "word", delay = 0.1, className = "" }: AutoRevealingHeadingProps)
+export function AutoRevealingHeading({ text, splitBy = "word", delay = 0.1, className = "" }: AutoRevealingHeadingProps)
 // components/motion-core/context-menu-bubble.tsx
 export function ContextMenuBubble({ items = [{ label: "Edit", icon: <Edit className="h-4 w-4" />, onClick: () => {} }, { label: "Copy", icon: <Copy className="h-4 w-4" />, onClick: () => {} }, { label: "Share", icon: <Share2 className="h-4 w-4" />, onClick: () => {} }, { label: "Delete", icon: <Trash2 className="h-4 w-4" />, onClick: () => {}, danger: true }] }: ContextMenuBubbleProps)
 // components/motion-core/drag-to-confirm-slider.tsx
@@ -66,7 +66,7 @@ export function InteractiveTimeline({ items = [{ id: "1", title: "Started", desc
 // components/motion-core/magnetic-avatar-group.tsx
 export function MagneticAvatarGroup({ avatars = [{ id: "1", name: "John Doe", initials: "JD", color: "bg-primary" }, { id: "2", name: "Jane Smith", initials: "JS", color: "bg-primary/80" }, { id: "3", name: "Bob Wilson", initials: "BW", color: "bg-primary/60" }, { id: "4", name: "Alice Brown", initials: "AB", color: "bg-primary/40" }], maxVisible = 4 }: MagneticAvatarGroupProps)
 // components/motion-core/mood-gradient-button.tsx
-export function MoodGradientButton({ children = "Hover Me", onClick, className = "" }: MoodGradientButtonProps)
+export function MoodGradientButton({ children, onClick, className = "" }: MoodGradientButtonProps)
 // components/motion-core/reactive-background-grid.tsx
 export function ReactiveBackgroundGrid({ dots = true, density = 20 }: ReactiveBackgroundGridProps)
 // components/motion-core/scroll-progress-tracker.tsx
@@ -74,12 +74,14 @@ export function ScrollProgressTracker({ sections = [], height = 4 }: ScrollProgr
 // components/motion-core/smart-hover-card.tsx
 export function SmartHoverCard({ title = "Smart Hover Card", description = "Hover from different directions to see content reveal", children }: SmartHoverCardProps)
 // components/motion-core/spotlight-section.tsx
-export function SpotlightSection({ children = (<div className="text-center"> <h3 className="text-xl font-semibold">Spotlight Section</h3> <p className="mt-2 text-sm text-muted-foreground"> Move your mouse around to see the spotlight effect </p> </div>), intensity = 0.6, size = 300 }: SpotlightSectionProps)
+export function SpotlightSection({ children, intensity = 0.6, size = 300 }: SpotlightSectionProps)
 // components/motion-core/stacked-card-carousel.tsx
 export function StackedCardCarousel({ cards = [{ id: "1", title: "Card One", description: "Description for card one", color: "bg-primary" }, { id: "2", title: "Card Two", description: "Description for card two", color: "bg-primary/80" }, { id: "3", title: "Card Three", description: "Description for card three", color: "bg-primary/60" }] }: StackedCardCarouselProps)
 // components/motion-core/synced-lyric-captions.tsx
 export function SyncedLyricCaptions({ script = DEFAULT_SCRIPT, audioSrc, title = "Enhanced Synced Captions" }: SyncedLyricCaptionsProps)
 ```
+
+`AutoRevealingHeading`'s `text`, `MoodGradientButton`'s `children` and `SpotlightSection`'s `children` are required: each props type declares the member with no `?`, so a caller must pass it. The source also destructures each of the three with a default value, which applies only when the value passed is `undefined`, so the signatures above leave that default out. `[SRC:packages/components/react-shadcn/src/components/motion-core/auto-revealing-heading.tsx:L7]` `[SRC:packages/components/react-shadcn/src/components/motion-core/mood-gradient-button.tsx:L7]` `[SRC:packages/components/react-shadcn/src/components/motion-core/spotlight-section.tsx:L7]`
 
 | Export | Install id | Purpose | Source |
 |--------|------------|---------|--------|

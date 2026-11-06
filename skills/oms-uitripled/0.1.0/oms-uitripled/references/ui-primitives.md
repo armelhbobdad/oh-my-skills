@@ -1,11 +1,12 @@
 # UI Primitives Reference (react-shadcn `src/ui/`)
 
-The shadcn/ui primitives `@uitripled/react-shadcn` ships in `src/ui/` (Button, Card and Dialog among them), what the copied components import as `@/components/ui/<file>`. Most wrap a Radix UI primitive. `Button`, `Card`, `CardContent`, `CardHeader`, `Input`, `Dialog` and `DialogContent` appear in the subpath-import example of `references/integration.md`; this file lists the other exports. Signatures are copied from the source at `a5ffb45`.
+The shadcn/ui primitives `@uitripled/react-shadcn` ships in `src/ui/` (Button, Card and Dialog among them), what the copied components import as `@/components/ui/<file>`. Most wrap a Radix UI primitive. `Button`, `Card`, `CardContent`, `CardHeader`, `Input`, `Dialog` and `DialogContent` appear in the subpath-import example of `references/integration.md`, the props types (`BadgeProps`, `ButtonProps`, `InputProps`, `LabelProps`, `PasswordInputProps`, `TextareaProps`) are in `references/types.md`, and the two components that share their name with a motion component, `AnimatedCheckbox` and `PasswordInput`, are described under [Same-named components](#same-named-components); this file lists the other exports. Signatures are copied from the source at `a5ffb45`.
 
 ## Contents
 
 - [Install and import](#install-and-import)
 - [Primitives by file](#primitives-by-file)
+- [Same-named components](#same-named-components)
 
 ## Install and import
 
@@ -169,3 +170,10 @@ const TooltipTrigger = TooltipPrimitive.Trigger;
 | `TooltipContent` | wraps `TooltipPrimitive.Content` from `@radix-ui/react-tooltip` | `[SRC:packages/components/react-shadcn/src/ui/tooltip.tsx:L32]` |
 | `TooltipProvider` | wraps `TooltipPrimitive.Provider` from `@radix-ui/react-tooltip` | `[SRC:packages/components/react-shadcn/src/ui/tooltip.tsx:L32]` |
 | `TooltipTrigger` | wraps `TooltipPrimitive.Trigger` from `@radix-ui/react-tooltip` | `[SRC:packages/components/react-shadcn/src/ui/tooltip.tsx:L32]` |
+
+## Same-named components
+
+`src/ui/` also exports two components whose names the motion components of `references/motion-components.md` (Interaction components by category) use as well. No `registry.json` entry ships either `src/ui/` file; the npm package exposes them as `@uitripled/react-shadcn/ui/animated-checkbox` and `@uitripled/react-shadcn/ui/password-input`.
+
+- `ui/animated-checkbox.tsx` exports an `AnimatedCheckbox` that is a byte-identical copy of `components/forms/animated-checkbox.tsx`, the file the `animated-checkbox-shadcnui` entry installs, so the signature `references/motion-components.md` gives for that one holds for both. `[AST:packages/components/react-shadcn/src/ui/animated-checkbox.tsx:L7]` `[SRC:packages/components/react-shadcn/src/components/forms/animated-checkbox.tsx:L7]`
+- `ui/password-input.tsx` exports a different `PasswordInput` from the one the `password-input-shadcnui` entry installs (`components/inputs/password-input.tsx`, which takes no props). This one is a `React.forwardRef` component: it renders an `<input>` with an eye button that switches the input's `type` between `password` and `text`, forwards its ref to that `<input>` and passes its props to it, merging `className` into its own classes. Its props type is `PasswordInputProps`, the `<input>` element's HTML attributes without `type` (`references/types.md` → Component props types). `[SRC:packages/components/react-shadcn/src/ui/password-input.tsx:L9]` `[SRC:packages/components/react-shadcn/src/ui/password-input.tsx:L14]` `[AST:packages/components/react-shadcn/src/ui/password-input.tsx:L65]` `[SRC:packages/components/react-shadcn/src/components/inputs/password-input.tsx:L7]`
