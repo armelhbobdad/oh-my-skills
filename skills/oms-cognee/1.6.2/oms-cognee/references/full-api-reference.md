@@ -569,7 +569,7 @@ Imported from `cognee.modules.pipelines.models.PipelineRunInfo`. Subclasses yiel
 
 - `PipelineRunStarted(pipeline_run_id, dataset_id, dataset_name, payload)`
 - `PipelineRunCompleted(pipeline_run_id, dataset_id, dataset_name, data_ingestion_info)`
-- `PipelineRunErrored(pipeline_run_id, payload, dataset_id, dataset_name, data_ingestion_info, error_class, error_message)` — `error_message` is PII-scrubbed. `payload` and the error fields carry the first failing item's root exception, not the `PipelineRunFailedError` wrapper. `[SRC:cognee/modules/pipelines/models/PipelineRunInfo.py:L42-L50]` · `[SRC:cognee/modules/pipelines/operations/run_tasks.py:L316-L346]`
+- `PipelineRunErrored(pipeline_run_id, dataset_id, dataset_name, payload, data_ingestion_info, error_class, error_message)` — `error_message` is PII-scrubbed. `payload` and the error fields carry the first failing item's root exception, not the `PipelineRunFailedError` wrapper. `[SRC:cognee/modules/pipelines/models/PipelineRunInfo.py:L42-L50]` · `[SRC:cognee/modules/pipelines/operations/run_tasks.py:L316-L346]`
 
 `run_tasks` raises `PipelineRunFailedError` internally if any data item fails, then yields `PipelineRunErrored`; that per-item wrapper is not re-raised, while any other exception is re-raised after the errored status is yielded. `[SRC:cognee/modules/pipelines/operations/run_tasks.py:L250-L258]` · `[SRC:cognee/modules/pipelines/operations/run_tasks.py:L348-L350]` `get_errored_run_info(result)` in the same module returns the first `PipelineRunErrored` in a `cognify()`/`run_pipeline` result, or None. `[AST:cognee/modules/pipelines/models/PipelineRunInfo.py:L62]` · `[AST:cognee/modules/pipelines/models/PipelineRunInfo.py:L9]`
 
