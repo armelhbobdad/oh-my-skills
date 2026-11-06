@@ -607,6 +607,8 @@ export interface NativeLiquidButtonProps
 
 `[SRC:packages/components/react-shadcn/src/components/native/native-liquid-button-shadcnui.tsx:L12]`
 
+`packages/components/react-shadcn/src/components/native/native-liquid-button.tsx` declares a different `NativeLiquidButtonProps` for its own `NativeLiquidButton`: the members above without `success` and `error`, and `liquidVariant` without the `"wave"` value `[AST:packages/components/react-shadcn/src/components/native/native-liquid-button.tsx:L12]`.
+
 ### `NativeMagneticProps`
 
 **Source:** `packages/components/react-shadcn/src/components/native/native-magnetic-shadcnui.tsx`
@@ -965,6 +967,8 @@ export interface NativeStartNowProps {
 ```
 
 `[SRC:packages/components/react-shadcn/src/components/native/native-start-now-shadcnui.tsx:L9]`
+
+`packages/components/react-shadcn/src/components/native/native-start-now.tsx` is a byte-identical copy of `native-start-now-shadcnui.tsx`, so it declares this interface, member for member, for its own `NativeStartNow` `[AST:packages/components/react-shadcn/src/components/native/native-start-now.tsx:L9]`.
 
 ### `SocialProvider`, `SocialAnimation`, `SocialLoginButtonProps`
 
