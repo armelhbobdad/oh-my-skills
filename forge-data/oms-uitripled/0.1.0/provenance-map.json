@@ -73,10 +73,10 @@
       "return_type": "string",
       "source_file": "packages/components/react-shadcn/src/components/theme-provider.tsx",
       "source_line": 11,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "ThemeMode",
@@ -114,10 +114,10 @@
       "return_type": "{ selectedLibrary: UILibrary; setSelectedLibrary: (library: UILibrary) => void }",
       "source_file": "packages/components/react-shadcn/src/ui-library-provider.tsx",
       "source_line": 23,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "cn",
@@ -129,10 +129,10 @@
       "return_type": "string",
       "source_file": "packages/utils/src/cn.ts",
       "source_line": 4,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "sanitizeSlug",
@@ -144,10 +144,10 @@
       "return_type": "string",
       "source_file": "packages/utils/src/builder-utils.ts",
       "source_line": 7,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "generateUniqueSlug",
@@ -160,10 +160,10 @@
       "return_type": "string",
       "source_file": "packages/utils/src/builder-utils.ts",
       "source_line": 14,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "createPage",
@@ -219,25 +219,25 @@
       "return_type": "number[]",
       "source_file": "packages/utils/src/grid-utils.ts",
       "source_line": 23,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "getGapSliderIndex",
       "export_type": "const",
       "source_library": "@uitripled/utils",
       "params": [
-        "value: number"
+        "gapValue: number"
       ],
       "return_type": "number",
       "source_file": "packages/utils/src/grid-utils.ts",
       "source_line": 32,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "getGapValueFromIndex",
@@ -249,23 +249,28 @@
       "source_library": "@uitripled/utils",
       "source_file": "packages/utils/src/grid-utils.ts",
       "source_line": 40,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "generateGridCode",
       "export_type": "const",
-      "params": [],
+      "params": [
+        "cells: GridCell[]",
+        "cols: number",
+        "gap: number",
+        "options?: { useClassName?: boolean; includeBg?: boolean }"
+      ],
       "return_type": "string",
       "source_library": "@uitripled/utils",
       "source_file": "packages/utils/src/grid-utils.ts",
       "source_line": 47,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "initializeCells",
@@ -326,10 +331,10 @@
       "source_library": "@uitripled/utils",
       "source_file": "packages/utils/src/merge-imports.ts",
       "source_line": 6,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "UILibrary",
@@ -381,10 +386,10 @@
       "return_type": "Promise<void>",
       "source_file": "packages/uitripled/src/commands/add.ts",
       "source_line": 8,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "fetchComponent",
@@ -396,10 +401,10 @@
       "return_type": "Promise<unknown | null>",
       "source_file": "packages/uitripled/src/utils/registry.ts",
       "source_line": 5,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "AIChatInterface",

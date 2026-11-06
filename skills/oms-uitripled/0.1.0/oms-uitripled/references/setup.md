@@ -76,7 +76,7 @@ Because this is hydration-gated, the provider returns `null` on first render unt
 ## useUILibrary
 
 **Source:** `packages/components/react-shadcn/src/ui-library-provider.tsx`
-**Provenance:** `[AST:packages/components/react-shadcn/src/ui-library-provider.tsx:L23]`
+**Provenance:** `[SRC:packages/components/react-shadcn/src/ui-library-provider.tsx:L23]`
 
 ```ts
 const { selectedLibrary, setSelectedLibrary } = useUILibrary();

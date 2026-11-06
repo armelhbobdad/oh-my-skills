@@ -44,8 +44,8 @@ import { Dialog, DialogContent } from "@uitripled/react-shadcn/ui/dialog";
 import { NativeHoverCard } from "@uitripled/react-shadcn/components/native/native-hover-card";
 import { HeroSection } from "@uitripled/react-shadcn/components/sections/hero-section";
 
-// Direct from source (the ./src/* export; llms-full.txt writes the same path with .tsx)
-import { HeroSection } from "@uitripled/react-shadcn/src/components/sections/hero-section";
+// Direct from source (the ./src/* export maps the path as written, so keep the .tsx, as llms-full.txt does)
+import { HeroSection } from "@uitripled/react-shadcn/src/components/sections/hero-section.tsx";
 
 // Provider (top-level subpath)
 import { UILibraryProvider, useUILibrary } from "@uitripled/react-shadcn/ui-library-provider";
@@ -54,7 +54,7 @@ import { UILibraryProvider, useUILibrary } from "@uitripled/react-shadcn/ui-libr
 import { cn } from "@uitripled/react-shadcn/lib/utils";
 ```
 
-`HeroSection` is declared in `src/components/sections/hero-section.tsx` (there is no `src/components/page/hero-section.tsx`, and `src/components/page/hero/` holds only `staggered-text.tsx`); `packages/registry/src/registry/ui.tsx` imports it through the `./src/*` path above `[AST:packages/components/react-shadcn/src/components/sections/hero-section.tsx:L7]` `[SRC:packages/registry/src/registry/ui.tsx:L116]` `[SRC:apps/docs/public/llms-full.txt:L32724]`. The `native/native-hover-card` subpath is built from `src/components/native/native-hover-card.tsx`, which declares the same `NativeHoverCard` and `NativeHoverCardProps` as the `native-hover-card-shadcnui.tsx` file the registry ships `[AST:packages/components/react-shadcn/src/components/native/native-hover-card.tsx:L81]` `[AST:packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx:L81]`. The `lib/utils` `cn` wraps `@uitripled/utils`' `cn` (see `references/utils.md` → cn) `[SRC:packages/components/react-shadcn/src/lib/utils.ts:L1]`.
+`HeroSection` is declared in `src/components/sections/hero-section.tsx` (there is no `src/components/page/hero-section.tsx`, and `src/components/page/hero/` holds only `staggered-text.tsx`); the `./src/*` export maps `./src/components/sections/hero-section` to a path with no file, so the direct-from-source import keeps the `.tsx`, as `llms-full.txt` writes it `[AST:packages/components/react-shadcn/src/components/sections/hero-section.tsx:L7]` `[SRC:packages/components/react-shadcn/package.json:L14]` `[SRC:apps/docs/public/llms-full.txt:L32724]`. `packages/registry/src/registry/ui.tsx` imports it without the extension, which resolves only through the workspace's tsconfig `paths` alias for `@uitripled/react-shadcn/src/*` (`apps/docs/tsconfig.json` declares the same), not through the package's `exports` `[SRC:packages/registry/src/registry/ui.tsx:L116]` `[SRC:packages/registry/tsconfig.json:L9]` `[SRC:apps/docs/tsconfig.json:L28]`. The `native/native-hover-card` subpath is built from `src/components/native/native-hover-card.tsx`, which declares a `NativeHoverCard` with the same signature and props as the `native-hover-card-shadcnui.tsx` file the registry ships (it memoizes the avatar element; the shipped file does not) `[AST:packages/components/react-shadcn/src/components/native/native-hover-card.tsx:L81]` `[AST:packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx:L81]` `[SRC:packages/components/react-shadcn/src/components/native/native-hover-card.tsx:L108]`. The `lib/utils` `cn` wraps `@uitripled/utils`' `cn` (see `references/utils.md` → cn) `[SRC:packages/components/react-shadcn/src/lib/utils.ts:L1]`.
 
 **Important:** These patterns work in the workspace dev loop (the `apps/docs/` site uses them heavily — 28+ call sites). They are **not** the primary distribution model. External consumers of the skill should prefer the CLI copy-paste path so the components land directly in their project.
 
@@ -85,19 +85,22 @@ When you install an entry, the shadcn CLI walks its `registryDependencies` and i
   ├── (upstream) button       (shadcn/ui primitive)
   ├── (upstream) card         (shadcn/ui primitive)
   └── (npm) framer-motion, react
+      (not declared: lucide-react, which the file imports its icons from)
 ```
 
-An entry's `registryDependencies` can miss what its file imports. `hero-section-shadcnui` declares none (`[]`) and only `framer-motion` and `react`, but `hero-section.tsx` imports `Button` from `@/components/ui/button` and icons from `lucide-react`, so add those yourself (`npx shadcn@latest add button`, `npm install lucide-react`) `[SRC:packages/registry/registry.json:L2968]` `[SRC:packages/components/react-shadcn/src/components/sections/hero-section.tsx:L3]`:
+**Most entries under-declare.** 138 of the 171 react-shadcn entries import a shadcn/ui primitive or an npm package their entry does not declare, most often `lucide-react`; the primitives most often missing are `badge`, `card`, `button`, `avatar` and `input`. `feature-cards-block.tsx` imports its icons from `lucide-react`, which its entry leaves out `[SRC:packages/components/react-shadcn/src/components/sections/feature-cards-block.tsx:L4]`. After installing, check the copied file's imports and add the missing primitives (`npx shadcn@latest add <primitive>`) and packages (`npm install lucide-react`) yourself. `hero-section-shadcnui` declares no `registryDependencies` (`[]`) and only `framer-motion` and `react`, but `hero-section.tsx` imports `Button` from `@/components/ui/button` and icons from `lucide-react`, so it needs `npx shadcn@latest add button` and `npm install lucide-react` `[SRC:packages/registry/registry.json:L2968]` `[SRC:packages/components/react-shadcn/src/components/sections/hero-section.tsx:L3]`:
 
 ```
 @uitripled/hero-section-shadcnui
-  ├── registryDependencies: none
-  └── (npm) framer-motion, react
+  ├── registryDependencies: none   (the file imports button)
+  └── (npm) framer-motion, react   (the file imports lucide-react)
 ```
 
-The uitripled registry does **not** contain entries for `button` or `card` — shadcn resolves them against its own upstream registry. `[SRC:packages/registry/registry.json:L1]`
+`native-hover-card-shadcnui` likewise declares no `registryDependencies`, but `native-hover-card-shadcnui.tsx` imports `@/components/ui/avatar` and `@/components/ui/button` `[SRC:packages/registry/registry.json:L3806]` `[SRC:packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx:L3]`.
 
-For composing larger pages, inspect each entry's `registryDependencies` list in `registry.json` before `shadcn add` — you'll usually end up pulling in 1-3 shadcn/ui primitives and the full set of Framer Motion components for the target page.
+The uitripled registry does **not** contain entries for `button` or `card` — shadcn resolves them against its own upstream registry. No `registryDependencies` value names a uitripled entry, so installing a page or block pulls in no other uitripled component. `[SRC:packages/registry/registry.json:L1]`
+
+For composing larger pages, install each section, block or component by its own name, then read each copied file's imports: you'll usually add a few shadcn/ui primitives and `lucide-react` that the entries do not declare.
 
 ## shadcn CLI vs uitripled CLI
 
@@ -113,7 +116,7 @@ Two CLI paths exist — both consume the same `registry.json` but via different 
 | `--overwrite` flag | via shadcn's defaults | explicit flag |
 | Authoritative per project docs | **yes** | alternative |
 
-`[AST:packages/uitripled/src/commands/add.ts:L8]` `[SRC:packages/uitripled/src/utils/registry.ts:L3]` `[QMD:oms-uitripled-temporal:prs.md]` `[QMD:oms-uitripled-docs:llms-full.md]`
+`[SRC:packages/uitripled/src/commands/add.ts:L8]` `[SRC:packages/uitripled/src/utils/registry.ts:L3]` `[QMD:oms-uitripled-temporal:prs.md]` `[QMD:oms-uitripled-docs:llms-full.md]`
 
 ## next-themes integration
 
@@ -124,7 +127,7 @@ Two CLI paths exist — both consume the same `registry.json` but via different 
 - `disableTransitionOnChange={false}` — keeps CSS transitions during theme changes
 - `storageKey="uitripled-theme"`
 
-`next-themes@^0.4.6` is declared in `packages/components/react-shadcn/package.json` dependencies. If you `npx uitripled add` any themed component, you need to install `next-themes` yourself — the CLI prints the dependency list as an install hint after copying files. `[SRC:packages/uitripled/src/commands/add.ts:L109]`
+`next-themes@^0.4.6` is declared in `packages/components/react-shadcn/package.json` dependencies. If you `npx uitripled add` any themed component, you need to install `next-themes` yourself — the CLI prints the dependency list as an install hint after copying files. `[SRC:packages/uitripled/src/commands/add.ts:L110]`
 
 ## Tailwind CSS 4 requirement
 
