@@ -304,11 +304,11 @@
       ],
       "return_type": "Any",
       "source_file": "python/cocoindex/_internal/environment.py",
-      "source_line": 452,
+      "source_line": 449,
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "function_definition",
-      "note": "decorator; overloads at L449/L451",
+      "note": "decorator; the ast-grep location is the first @overload at L449 (second overload at L451); params and return type are the implementation's at L452",
       "signature_source": "T1"
     },
     {
@@ -403,10 +403,10 @@
       "source_library": "cocoindex",
       "source_file": "python/cocoindex/_internal/function.py",
       "source_line": 1814,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "fn_ret_deserializer",
@@ -418,10 +418,10 @@
       "return_type": "DeserializeFn",
       "source_file": "python/cocoindex/_internal/function.py",
       "source_line": 1841,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "LogicTracking",
@@ -1041,10 +1041,10 @@
       "return_type": "bool",
       "source_file": "python/cocoindex/_internal/live_component.py",
       "source_line": 35,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "ComponentContext",
@@ -2268,7 +2268,7 @@
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "class_definition",
-      "signature_source": "T1-low",
+      "signature_source": "T1",
       "note": "params read from __init__ at resources/file.py:240-244 (positional-or-keyword, no keyword-only marker); the class location is the ast-grep record"
     },
     {

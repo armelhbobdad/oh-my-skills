@@ -117,7 +117,8 @@ class FilePath(Generic[ResolvedPathT]):
     def path(self) -> PurePath: ...               # the path relative to base_dir
     def resolve(self) -> ResolvedPathT: ...        # abstract: the backend-native full path (pathlib.Path for localfs, a str key for S3)
     # plus PurePath-like members: /, parent, parents, name, stem, suffix, suffixes, parts,
-    # with_name, with_stem, with_suffix, relative_to, match, as_posix, joinpath
+    # with_name, with_stem, with_suffix, with_segments, is_absolute, is_relative_to,
+    # relative_to, match, as_posix, joinpath
 ```
 [SRC:python/cocoindex/resources/file.py:L339] [:L344] [:L352]
 

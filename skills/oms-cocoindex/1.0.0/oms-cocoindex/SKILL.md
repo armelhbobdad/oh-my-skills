@@ -72,14 +72,14 @@ async def app_main(sourcedir: pathlib.Path) -> None:
         table_schema=await postgres.TableSchema.from_class(DocEmbedding, primary_key=["id"]),
     )
     target.declare_vector_index(column="embedding")
-    files = localfs.walk_dir(sourcedir, recursive=True,
+    files = localfs.walk_dir(sourcedir, live=True, recursive=True,
                              path_matcher=PatternFilePathMatcher(included_patterns=["**/*.md"]))
     await coco.mount_each(process_file, files.items(), target)
 
 app = coco.App(coco.AppConfig(name="MyApp"), app_main, sourcedir=pathlib.Path("./docs"))
 ```
 
-Run with: `cocoindex update main.py` (one-shot) or `cocoindex update main.py -L` (live). Set `COCOINDEX_DB=/path/to/state.lmdb` for the local state store. Source: [SRC:python/cocoindex/__init__.py:L13] · [SRC:examples/text_embedding/main.py:L1]
+Run with: `cocoindex update main.py` (one-shot) or `cocoindex update main.py -L` (live: `walk_dir(..., live=True)` makes `files.items()` a `LiveMapView`, which is what lets `-L` watch the files for changes; without it each file is mounted once). Set `COCOINDEX_DB=/path/to/state.lmdb` for the local state store. Source: [SRC:python/cocoindex/__init__.py:L13] · [SRC:examples/text_embedding/main.py:L1] · `live=True` [SRC:examples/files_transform/main.py:L23]
 
 <!-- [MANUAL:quick-start-notes] -->
 <!-- Add custom notes here. This section is preserved during skill updates. -->
@@ -91,7 +91,7 @@ Run with: `cocoindex update main.py` (one-shot) or `cocoindex update main.py -L`
 `coco.App(coco.AppConfig(name="..."), app_main, *args, **kwargs)` — `app_main` is a `@coco.fn`-decorated function. Run via `app.update()` (returns `UpdateHandle`) or `app.update_blocking()`. [AST:python/cocoindex/_internal/app.py:L208]
 
 **Lifespan-scoped resources:**
-`@coco.lifespan` decorates a function `(EnvironmentBuilder) -> Iterator[None] | AsyncIterator[None]`. Use `builder.provide(KEY, value)` (or `builder.provide_with(KEY, cm)`, or `await builder.provide_async_with(KEY, cm)` for an async context manager) to register resources. Retrieve with `coco.use_context(KEY)` from inside any `@coco.fn`. [AST:python/cocoindex/_internal/environment.py:L452] · [AST:python/cocoindex/_internal/component_ctx.py:L273]
+`@coco.lifespan` decorates a function `(EnvironmentBuilder) -> Iterator[None] | AsyncIterator[None]`. Use `builder.provide(KEY, value)` (or `builder.provide_with(KEY, cm)`, or `await builder.provide_async_with(KEY, cm)` for an async context manager) to register resources. Retrieve with `coco.use_context(KEY)` from inside any `@coco.fn`. [AST:python/cocoindex/_internal/environment.py:L449] · [AST:python/cocoindex/_internal/component_ctx.py:L273]
 
 **Mount a sub-component:**
 `await coco.mount([subpath,] processor_fn, *args, **kwargs)` — runs in background, returns `ComponentMountHandle`.
@@ -164,7 +164,7 @@ Provenance: [AST:python/cocoindex/_internal/api.py:L603] [:L608] [:L613] [:L618]
 - `coco.is_non_existence(obj)` — `TypeIs` guard for the `NON_EXISTENCE` sentinel when implementing memo-state branches. [AST:python/cocoindex/_internal/typing.py:L63]
 - `coco.memo_fingerprint(obj)` and `coco.register_memo_key_function(typ, key_fn, *, state_fn=None)` — customize which fields participate in memoization keys for a custom type. [AST:python/cocoindex/_internal/memo_fingerprint.py:L361] [:L155]
 - `coco.unpickle_safe(cls)` and `coco.serialize_by_pickle(cls)` — class decorators for pickle-safe round-trips of component state. [AST:python/cocoindex/_internal/serde.py:L128] [:L151]
-- `is_live_component_class(cls) -> bool` — **internal**, not exported on `coco` (`coco.is_live_component_class` raises `AttributeError`): `from cocoindex._internal.live_component import is_live_component_class`. Runtime test for `LiveComponent`-shaped classes. [AST:python/cocoindex/_internal/live_component.py:L35]
+- `is_live_component_class(cls) -> bool` — **internal**, not exported on `coco` (`coco.is_live_component_class` raises `AttributeError`): `from cocoindex._internal.live_component import is_live_component_class`. Runtime test for `LiveComponent`-shaped classes. [SRC:python/cocoindex/_internal/live_component.py:L35]
 - `await get_vector_schema(obj)` and `await get_multi_vector_schema(obj)` (both async; `from cocoindex.resources.schema import get_vector_schema, get_multi_vector_schema`) — introspect a vector-schema provider attached to an `Annotated[...]` type (used when wiring a custom `Embedder` to a target column). [AST:python/cocoindex/resources/schema.py:L33] [:L58]
 
 ## Key API Summary
@@ -176,7 +176,7 @@ Provenance: [AST:python/cocoindex/_internal/api.py:L603] [:L608] [:L613] [:L618]
 | `Environment` | class | CocoIndex runtime environment. Owns settings, context provider, event loop, and exception handler. `__init__(settings, *, name=None, context_provider=None, event_loop=None, exception_handler=None, info=None)`. | [AST:python/cocoindex/_internal/environment.py:L183] |
 | `EnvironmentBuilder` | class | Lifespan builder. `provide(key, value)`, `provide_with(key, cm)`, `provide_async_with(key, cm)` (async), `set_exception_handler(handler)`. | [AST:python/cocoindex/_internal/environment.py:L87] |
 | `LifespanFn` | type alias | `Callable[[EnvironmentBuilder], Iterator[None]] \| Callable[[EnvironmentBuilder], AsyncIterator[None]]`. | [SRC:python/cocoindex/_internal/environment.py:L118] |
-| `lifespan` | decorator | `@coco.lifespan` registers an environment lifespan. Optional parens. | [AST:python/cocoindex/_internal/environment.py:L452] |
+| `lifespan` | decorator | `@coco.lifespan` registers an environment lifespan. Optional parens. | [AST:python/cocoindex/_internal/environment.py:L449] |
 | `fn` | decorator namespace | `@coco.fn` (preserves sync/async), `@coco.fn(memo=True)`, `@coco.fn(batching=True, max_batch_size=N, runner=GPU)`, `@coco.fn(version=N, logic_tracking="full"\|"self"\|None, deps=...)`. `@coco.fn.as_async(...)` always yields async. | [SRC:python/cocoindex/_internal/function.py:L1578] [SRC:python/cocoindex/_internal/function.py:L1811] |
 | `LogicTracking` | type alias | `Literal["full", "self"] \| None` — value type of the `logic_tracking=` kwarg on `@coco.fn`. `"full"` (default) tracks own code + transitive children, `"self"` tracks own code only, `None` disables tracking (incompatible with `deps`). | [SRC:python/cocoindex/_internal/function.py:L65] |
 | `mount` | async fn | `await coco.mount([subpath,] processor_fn, *args, **kwargs) -> ComponentMountHandle`. Optional leading `subpath: ComponentSubpath`. | [AST:python/cocoindex/_internal/api.py:L333] |

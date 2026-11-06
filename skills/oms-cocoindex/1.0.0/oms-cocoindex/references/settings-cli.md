@@ -36,7 +36,7 @@ class Settings:
 - `COCOINDEX_LMDB_MAX_DBS` (parsed as int, defaults to `1024`)
 - `COCOINDEX_LMDB_MAP_SIZE` (parsed as int, defaults to `0x1_0000_0000` = 4 GiB)
 
-The default db_path env var is read by `cocoindex._internal.setting.get_default_db_path()` ([AST:python/cocoindex/_internal/setting.py:L12]) which checks `COCOINDEX_DB`. `Settings.from_env` (in either module) does NOT read `COCOINDEX_DB`. The default environment calls `get_default_db_path()` when its lifespan leaves `db_path` unset, and raises `ValueError` if `COCOINDEX_DB` is unset too ([SRC:python/cocoindex/_internal/environment.py:L390]). So set `COCOINDEX_DB`, or set `db_path` in your `lifespan` builder:
+The default db_path env var is read by `cocoindex._internal.setting.get_default_db_path()` ([SRC:python/cocoindex/_internal/setting.py:L12]) which checks `COCOINDEX_DB`. `Settings.from_env` (in either module) does NOT read `COCOINDEX_DB`. The default environment calls `get_default_db_path()` when its lifespan leaves `db_path` unset, and raises `ValueError` if `COCOINDEX_DB` is unset too ([SRC:python/cocoindex/_internal/environment.py:L390]). So set `COCOINDEX_DB`, or set `db_path` in your `lifespan` builder:
 
 ```python
 @coco.lifespan

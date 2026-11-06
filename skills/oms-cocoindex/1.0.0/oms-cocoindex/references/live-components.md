@@ -13,7 +13,7 @@ class LiveComponent(Protocol):
 
 def is_live_component_class(cls: Any) -> bool: ...   # duck-types: type with both methods
 ```
-[AST:python/cocoindex/_internal/live_component.py:L28] [:L35]
+[AST:python/cocoindex/_internal/live_component.py:L28] [SRC:python/cocoindex/_internal/live_component.py:L35]
 
 `process()` is called for one-shot updates (`app.update(live=False)`). `process_live(operator)` is called for live mode — receives a `LiveComponentOperator` and is expected to call `operator.update(...)`, `operator.delete(...)`, and `operator.mark_ready()` as changes arrive.
 

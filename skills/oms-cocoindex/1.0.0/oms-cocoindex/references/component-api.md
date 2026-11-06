@@ -79,7 +79,7 @@ class Environment:
 ```
 [SRC:python/cocoindex/_internal/environment.py:L212] [:L248–:L272]
 
-`Settings.db_path` is **required** — `Environment.__init__` raises `ValueError("Settings.db_path must be provided")` when it is unset [SRC:python/cocoindex/_internal/environment.py:L222]. `Settings.from_env()` does **not** read `COCOINDEX_DB` (it reads only the `COCOINDEX_SOURCE_MAX_INFLIGHT_*` and `COCOINDEX_LMDB_*` variables, [SRC:python/cocoindex/_internal/setting.py:L65]). The default environment fills an unset `db_path` from `COCOINDEX_DB` through `get_default_db_path()` when it starts ([AST:python/cocoindex/_internal/setting.py:L12], [SRC:python/cocoindex/_internal/environment.py:L390]). So with the default environment, set `COCOINDEX_DB=/path/to/state.lmdb` or `builder.settings.db_path` in your lifespan; when you construct an `Environment` yourself, pass `Settings(db_path=...)` or `Settings.from_env(db_path=...)`.
+`Settings.db_path` is **required** — `Environment.__init__` raises `ValueError("Settings.db_path must be provided")` when it is unset [SRC:python/cocoindex/_internal/environment.py:L222]. `Settings.from_env()` does **not** read `COCOINDEX_DB` (it reads only the `COCOINDEX_SOURCE_MAX_INFLIGHT_*` and `COCOINDEX_LMDB_*` variables, [SRC:python/cocoindex/_internal/setting.py:L65]). The default environment fills an unset `db_path` from `COCOINDEX_DB` through `get_default_db_path()` when it starts ([SRC:python/cocoindex/_internal/setting.py:L12], [SRC:python/cocoindex/_internal/environment.py:L390]). So with the default environment, set `COCOINDEX_DB=/path/to/state.lmdb` or `builder.settings.db_path` in your lifespan; when you construct an `Environment` yourself, pass `Settings(db_path=...)` or `Settings.from_env(db_path=...)`.
 
 ## EnvironmentBuilder + lifespan
 
@@ -109,7 +109,7 @@ def lifespan(fn: LifespanFn) -> LifespanFn: ...
 def lifespan(fn: None) -> Callable[[LifespanFn], LifespanFn]: ...
 def lifespan(fn: LifespanFn | None = None) -> Any: ...
 ```
-[SRC:python/cocoindex/_internal/environment.py:L118] [AST:python/cocoindex/_internal/environment.py:L452]
+[SRC:python/cocoindex/_internal/environment.py:L118] [AST:python/cocoindex/_internal/environment.py:L449] [SRC:python/cocoindex/_internal/environment.py:L452]
 
 Pattern:
 ```python
@@ -213,7 +213,7 @@ class ComponentMountHandle:
 async def mount(processor_fn: AnyCallable[P, Any], *args, **kwargs) -> ComponentMountHandle: ...
 async def mount(subpath: ComponentSubpath, processor_fn: AnyCallable[P, Any], *args, **kwargs) -> ComponentMountHandle: ...
 ```
-[AST:python/cocoindex/_internal/api.py:L333] [:L342] (implementation `mount(*pos_args: Any, **kwargs: Any)` at [:L349])
+[AST:python/cocoindex/_internal/api.py:L333] [SRC:python/cocoindex/_internal/api.py:L342] (implementation `mount(*pos_args: Any, **kwargs: Any)` at [SRC:python/cocoindex/_internal/api.py:L349])
 
 Mounts a processing unit in the background. Subpath defaults to `Symbol(processor_fn.__name__)` when omitted. Pass a `LiveComponent` class to mount a live component; for regular functions a normal processing unit is created.
 
@@ -224,7 +224,7 @@ async def mount_each(fn: AnyCallable[Concatenate[T, P], Any], items: _ItemsType[
 async def mount_each(subpath, fn, items, *args, **kwargs) -> ComponentMountHandle: ...
 # items: Iterable[(StableKey, T)] | AsyncIterable[(StableKey, T)] | LiveMapFeed[StableKey, T]
 ```
-[AST:python/cocoindex/_internal/api.py:L427] [:L437] (implementation `mount_each(*pos_args: Any, **kwargs: Any)` at [:L445]) · `_ItemsType` [SRC:python/cocoindex/_internal/api.py:L419]
+[AST:python/cocoindex/_internal/api.py:L427] [SRC:python/cocoindex/_internal/api.py:L437] (implementation `mount_each(*pos_args: Any, **kwargs: Any)` at [SRC:python/cocoindex/_internal/api.py:L445]) · `_ItemsType` [SRC:python/cocoindex/_internal/api.py:L419]
 
 One independent component per item. When `items` is a `LiveMapFeed`/`LiveMapView`, an internal `LiveComponent` is created automatically; you must run with `app.update(live=True)` for `LiveMapFeed` (no scannable snapshot).
 
@@ -237,7 +237,7 @@ async def use_mount(
 ) -> ReturnT: ...
 async def use_mount(subpath: ComponentSubpath, processor_fn, *args, **kwargs) -> ReturnT: ...
 ```
-[AST:python/cocoindex/_internal/api.py:L194] (8 overloads at [:L194]–[:L240]; implementation `use_mount(*pos_args: Any, **kwargs: Any)` at [:L245])
+[AST:python/cocoindex/_internal/api.py:L194] (8 overloads at [:L194]–[SRC:python/cocoindex/_internal/api.py:L240]; implementation `use_mount(*pos_args: Any, **kwargs: Any)` at [SRC:python/cocoindex/_internal/api.py:L245])
 
 `processor_fn`'s type is the union of the four types the overloads give it (each overload exists with and without the leading `subpath`). `AsyncCallable[P, R]` is `Callable[P, Coroutine[Any, Any, R]]` [SRC:python/cocoindex/_internal/function.py:L62].
 
