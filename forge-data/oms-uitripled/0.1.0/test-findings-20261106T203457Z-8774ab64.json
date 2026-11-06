@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "run_id": "20261106T203457Z-8774ab64",
+  "stages": [
+    "coverage-check",
+    "coherence-check",
+    "external-validators"
+  ],
+  "records": [
+    {
+      "id": "GAP-001",
+      "severity": "Critical",
+      "category": "signature-mismatch",
+      "group": "Coverage",
+      "title": "Signature mismatch: AutoRevealingHeading",
+      "source": "packages/components/react-shadcn/src/components/motion-core/auto-revealing-heading.tsx:13",
+      "remediation": "Update the documented signature of `AutoRevealingHeading` from `{ text = \"Auto Revealing Heading\", splitBy = \"word\", delay = 0.1, className = \"\" }: AutoRevealingHeadingProps` to `({ text = \"Auto Revealing Heading\", splitBy = \"word\", delay = 0.1, className = \"\" }: AutoRevealingHeadingProps), props AutoRevealingHeadingProps = { text: string; splitBy?: \"letter\" | \"word\"; delay?: number; className?: string } (L6-11)`, the signature the source defines at `packages/components/react-shadcn/src/components/motion-core/auto-revealing-heading.tsx:13`.",
+      "issue": "documented `{ text = \"Auto Revealing Heading\", splitBy = \"word\", delay = 0.1, className = \"\" }: AutoRevealingHeadingProps`, source `({ text = \"Auto Revealing Heading\", splitBy = \"word\", delay = 0.1, className = \"\" }: AutoRevealingHeadingProps), props AutoRevealingHeadingProps = { text: string; splitBy?: \"letter\" | \"word\"; delay?: number; className?: string } (L6-11)`: the form's destructuring default marks the prop text optional, but the props type AutoRevealingHeadingProps declares text: string with no ? (required): a caller that leaves text out, as the default suggests, does not type-check",
+      "export": "AutoRevealingHeading",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-002",
+      "severity": "Critical",
+      "category": "signature-mismatch",
+      "group": "Coverage",
+      "title": "Signature mismatch: MoodGradientButton",
+      "source": "packages/components/react-shadcn/src/components/motion-core/mood-gradient-button.tsx:12",
+      "remediation": "Update the documented signature of `MoodGradientButton` from `{ children = \"Hover Me\", onClick, className = \"\" }: MoodGradientButtonProps` to `({ children = \"Hover Me\", onClick, className = \"\" }: MoodGradientButtonProps), props MoodGradientButtonProps = { children: React.ReactNode; onClick?: () => void; className?: string } (L6-10)`, the signature the source defines at `packages/components/react-shadcn/src/components/motion-core/mood-gradient-button.tsx:12`.",
+      "issue": "documented `{ children = \"Hover Me\", onClick, className = \"\" }: MoodGradientButtonProps`, source `({ children = \"Hover Me\", onClick, className = \"\" }: MoodGradientButtonProps), props MoodGradientButtonProps = { children: React.ReactNode; onClick?: () => void; className?: string } (L6-10)`: the form's destructuring default marks the prop children optional, but the props type MoodGradientButtonProps declares children: React.ReactNode with no ? (required): <MoodGradientButton /> with no children, as the default suggests, does not type-check",
+      "export": "MoodGradientButton",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-003",
+      "severity": "Critical",
+      "category": "signature-mismatch",
+      "group": "Coverage",
+      "title": "Signature mismatch: SpotlightSection",
+      "source": "packages/components/react-shadcn/src/components/motion-core/spotlight-section.tsx:12",
+      "remediation": "Update the documented signature of `SpotlightSection` from `{ children = (<div className=\"text-center\"> <h3 className=\"text-xl font-semibold\">Spotlight Section</h3> <p className=\"mt-2 text-sm text-muted-foreground\"> Move your mouse around to see the spotlight effect </p> </div>), intensity = 0.6, size = 300 }: SpotlightSectionProps` to `({ children = (<div className=\"text-center\">...</div>), intensity = 0.6, size = 300 }: SpotlightSectionProps), props SpotlightSectionProps = { children: React.ReactNode; intensity?: number; size?: number } (L6-10)`, the signature the source defines at `packages/components/react-shadcn/src/components/motion-core/spotlight-section.tsx:12`.",
+      "issue": "documented `{ children = (<div className=\"text-center\"> <h3 className=\"text-xl font-semibold\">Spotlight Section</h3> <p className=\"mt-2 text-sm text-muted-foreground\"> Move your mouse around to see the spotlight effect </p> </div>), intensity = 0.6, size = 300 }: SpotlightSectionProps`, source `({ children = (<div className=\"text-center\">...</div>), intensity = 0.6, size = 300 }: SpotlightSectionProps), props SpotlightSectionProps = { children: React.ReactNode; intensity?: number; size?: number } (L6-10)`: the form's destructuring default marks the prop children optional, but the props type SpotlightSectionProps declares children: React.ReactNode with no ? (required): <SpotlightSection /> with no children, as the default suggests, does not type-check",
+      "export": "SpotlightSection",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-004",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: add",
+      "source": "packages/uitripled/src/commands/add.ts:8",
+      "remediation": "No change: `add` is a documented extra, a name the source still declares at `packages/uitripled/src/commands/add.ts:8` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`SKILL.md:7` documents `add`, which the enumerated source API surface lacks and the source still declares",
+      "export": "add",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-005",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: fetchComponent",
+      "source": "packages/uitripled/src/utils/registry.ts:5",
+      "remediation": "No change: `fetchComponent` is a documented extra, a name the source still declares at `packages/uitripled/src/utils/registry.ts:5` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`SKILL.md:187` documents `fetchComponent`, which the enumerated source API surface lacks and the source still declares",
+      "export": "fetchComponent",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-006",
+      "severity": "Medium",
+      "category": "brief-scope-stale",
+      "group": "Coverage",
+      "title": "stale brief scope: scope.include globs match no source file",
+      "source": "forge-data/oms-uitripled/skill-brief.yaml",
+      "remediation": "Edit `scope.include` in `forge-data/oms-uitripled/skill-brief.yaml` by hand so each glob matches the files it meant in this version of the source (update-skill does not rewrite an include glob), and add to `scope.exclude` any restored file the brief meant to leave out.",
+      "issue": "the `scope.include` globs `apps/docs/app/**/page.mdx`, `apps/docs/components/demos/**` match no file in the source tested; no root export was restored",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-007",
+      "severity": "Medium",
+      "category": "metadata-drift",
+      "group": "Coverage",
+      "title": "metadata drift — barrel export counts diverge",
+      "source": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json",
+      "remediation": "Re-run Create Skill, which rebuilds `exports[]` and `stats.exports_public_api` in `skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json` from the source. Update Skill does not repair this drift: each time it writes the skill it recounts `stats.exports_public_api` from the source and keeps `exports[]`, adding or dropping only the names its provenance map changes, so a metadata patch does not hold.",
+      "issue": "stats.exports_public_api=445, exports[].length=297 → 33% drift",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-008",
+      "severity": "Info",
+      "category": "multi-denominator",
+      "group": "Coverage",
+      "title": "multi-denominator reporting — barrel vs documented surface",
+      "source": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json",
+      "remediation": "No action required: the barrel and the documented surface measure different sets by design, and the report records both counts.",
+      "issue": "barrel=445, documented=315",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-009",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Not checked by script: PasswordInput",
+      "source": "references/ui-primitives.md:3",
+      "remediation": "Correct the documentation to match the source; no script checks this.",
+      "issue": "references/ui-primitives.md:3 says the file lists every other export of src/ui/, but it leaves out ui/password-input.tsx's PasswordInput, a React.forwardRef<HTMLInputElement, PasswordInputProps> component (packages/components/react-shadcn/src/ui/password-input.tsx:14, exported at :65) whose props type references/types.md:1033 documents; the skill documents only the no-props PasswordInput of components/inputs/password-input.tsx:7 (references/motion-components.md:138).",
+      "export": "PasswordInput",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-010",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Not checked by script: AnimatedCheckbox",
+      "source": "references/ui-primitives.md:3",
+      "remediation": "Correct the documentation to match the source; no script checks this.",
+      "issue": "references/ui-primitives.md:3 says the file lists every other export of src/ui/, but it leaves out ui/animated-checkbox.tsx's AnimatedCheckbox (packages/components/react-shadcn/src/ui/animated-checkbox.tsx:7), a byte-identical copy of the documented components/forms/animated-checkbox.tsx:7 (references/motion-components.md:128).",
+      "export": "AnimatedCheckbox",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-011",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Not checked by script: NativeCounterUp",
+      "source": "SKILL.md:114",
+      "remediation": "Correct the documentation to match the source; no script checks this.",
+      "issue": "SKILL.md:114 lists native-counter-up among the key components of the react-shadcn native category, but the native-counter-up entry (packages/registry/registry.json:3538) ships @uitripled/react-carbon/src/components/native/native-counter-up-carbon.tsx and no react-shadcn entry ships NativeCounterUp, as references/native-components.md:101 says.",
+      "export": "NativeCounterUp",
+      "stage": "coverage-check"
+    }
+  ]
+}
