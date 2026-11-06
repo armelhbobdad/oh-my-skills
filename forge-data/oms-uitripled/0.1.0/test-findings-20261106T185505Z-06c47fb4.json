@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "run_id": "20261106T185505Z-06c47fb4",
+  "stages": [
+    "coverage-check",
+    "coherence-check",
+    "external-validators",
+    "report"
+  ],
+  "records": [
+    {
+      "id": "GAP-001",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: add",
+      "source": "packages/uitripled/src/commands/add.ts:8",
+      "remediation": "No change: `add` is a documented extra, a name the source still declares at `packages/uitripled/src/commands/add.ts:8` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`SKILL.md:7` documents `add`, which the enumerated source API surface lacks and the source still declares",
+      "export": "add",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-002",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: fetchComponent",
+      "source": "packages/uitripled/src/utils/registry.ts:5",
+      "remediation": "No change: `fetchComponent` is a documented extra, a name the source still declares at `packages/uitripled/src/utils/registry.ts:5` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`SKILL.md:183` documents `fetchComponent`, which the enumerated source API surface lacks and the source still declares",
+      "export": "fetchComponent",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-003",
+      "severity": "Medium",
+      "category": "brief-scope-stale",
+      "group": "Coverage",
+      "title": "stale brief scope: scope.include globs match no source file",
+      "source": "forge-data/oms-uitripled/skill-brief.yaml",
+      "remediation": "Edit `scope.include` in `forge-data/oms-uitripled/skill-brief.yaml` by hand so each glob matches the files it meant in this version of the source (update-skill does not rewrite an include glob), and add to `scope.exclude` any restored file the brief meant to leave out.",
+      "issue": "the `scope.include` globs `apps/docs/app/**/page.mdx`, `apps/docs/components/demos/**` match no file in the source tested; no root export was restored",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-004",
+      "severity": "Medium",
+      "category": "metadata-drift",
+      "group": "Coverage",
+      "title": "metadata drift — barrel export counts diverge",
+      "source": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json",
+      "remediation": "Re-run Create Skill, which rebuilds `exports[]` and `stats.exports_public_api` in `skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json` from the source. Update Skill does not repair this drift: each time it writes the skill it recounts `stats.exports_public_api` from the source and keeps `exports[]`, adding or dropping only the names its provenance map changes, so a metadata patch does not hold.",
+      "issue": "stats.exports_public_api=445, exports[].length=297 → 33% drift",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-005",
+      "severity": "Info",
+      "category": "multi-denominator",
+      "group": "Coverage",
+      "title": "multi-denominator reporting — barrel vs documented surface",
+      "source": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json",
+      "remediation": "No action required: the barrel and the documented surface measure different sets by design, and the report records both counts.",
+      "issue": "barrel=445, documented=311",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-006",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Not checked by script: HeroSection",
+      "source": "references/integration.md:45",
+      "remediation": "Correct the documentation to match the source; no script checks this.",
+      "issue": "`import { HeroSection } from \"@uitripled/react-shadcn/components/page/hero/hero-section\"` names a module the package does not have: `packages/components/react-shadcn/src/components/page/hero/` holds only `staggered-text.tsx`, and `HeroSection` is declared at `packages/components/react-shadcn/src/components/sections/hero-section.tsx:7` (subpath `@uitripled/react-shadcn/components/sections/hero-section`).",
+      "export": "HeroSection",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-007",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Not checked by script: HeroSection",
+      "source": "references/integration.md:48",
+      "remediation": "Correct the documentation to match the source; no script checks this.",
+      "issue": "`import { HeroSection } from \"@uitripled/react-shadcn/src/components/page/hero-section\"` names a file the package does not have: there is no `src/components/page/hero-section.tsx`; `HeroSection` is declared at `packages/components/react-shadcn/src/components/sections/hero-section.tsx:7` (`@uitripled/react-shadcn/src/components/sections/hero-section`).",
+      "export": "HeroSection",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-008",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Not checked by script: cn",
+      "source": "references/utils.md:36",
+      "remediation": "Correct the documentation to match the source; no script checks this.",
+      "issue": "The text says `packages/components/react-shadcn/src/lib/utils.ts` ships an identical implementation and that a copied component does not need `@uitripled/utils`; the source at `packages/components/react-shadcn/src/lib/utils.ts:1` imports `cn as baseCn` from `@uitripled/utils` and declares `cn(...inputs: any[])` as a wrapper around it (line 3).",
+      "export": "cn",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-009",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Not checked by script: NativeHoverCardProps",
+      "source": "SKILL.md:147",
+      "remediation": "Correct the documentation to match the source; no script checks this.",
+      "issue": "SKILL.md says `NativeHoverCardProps` is documented in `references/types.md`, but that file's Component props types section lists no `NativeHoverCardProps`; the interface is declared at `packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx:9`.",
+      "export": "NativeHoverCardProps",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-010",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Not checked by script: Component",
+      "source": "references/utils.md:176",
+      "remediation": "Correct the documentation to match the source; no script checks this.",
+      "issue": "The text says the registry `Component` extends the utils one with `baseuiVariants`, `duration`, `easing`, `baseuiComponent` and `baseuiCodePath`; the utils type (`packages/utils/src/types.ts:24`) already declares `duration`, `easing` and `baseuiComponent`, and the registry type (`packages/registry/src/types.ts:4`) adds `componentName`, `baseuiVariants` and `baseuiCodePath` and has no `carbonComponent`, `code` or `isFree`.",
+      "export": "Component",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-011",
+      "severity": "Info",
+      "category": "discovery",
+      "group": "Discovery",
+      "title": "Discovery testing not performed: subagents unavailable, routing test requires isolated context",
+      "source": "SKILL.md:3",
+      "remediation": "Re-run test-skill in an environment that can spawn subagents so the three realistic prompts are routed against the 4-skill catalog (`skills/`) before export.",
+      "issue": "The catalog holds 4 skills, but this session cannot spawn isolated subagents, and a main-thread routing answer would self-route to the skill under test.",
+      "stage": "report"
+    }
+  ]
+}
