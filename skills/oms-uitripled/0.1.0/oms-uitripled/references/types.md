@@ -30,7 +30,7 @@ Used as the type of `ThemeProvider`'s `defaultTheme` prop. `[AST:packages/compon
 export type UILibrary = "shadcnui" | "baseui" | "carbon" | "react";
 ```
 
-Also re-declared in `packages/components/react-shadcn/src/types.ts` as a subset of 3 values (`"shadcnui" | "baseui" | "carbon"`) — that is the runtime-reachable set in `UILibraryProvider`. `[SRC:packages/components/react-shadcn/src/types.ts:L1]`
+The react-shadcn package declares its own `UILibrary` in `packages/components/react-shadcn/src/types.ts` with three members (`"shadcnui" | "baseui" | "carbon"`). That narrower type is the one `UILibraryProvider` and `useUILibrary` import, so the restriction is in the type, not only at runtime: `selectedLibrary` is typed without `"react"`, and `setSelectedLibrary("react")` does not type-check. `[AST:packages/components/react-shadcn/src/types.ts:L1]` `[SRC:packages/components/react-shadcn/src/ui-library-provider.tsx:L3]`
 
 ## ComponentCategory
 
@@ -110,9 +110,9 @@ export type Component = {
 };
 ```
 
-`[SRC:packages/registry/src/types.ts:L4]`
+`[AST:packages/registry/src/types.ts:L4]`
 
-Nearly identical to the `@uitripled/utils` definition but adds `baseuiVariants`, `baseuiCodePath`, and omits `isFree`, `tags` required.
+The type of the `@uitripled/registry` arrays (`componentsRegistry`, `nativeComponents`, `uiComponents`). Against the `@uitripled/utils` definition it adds `componentName`, `baseuiVariants` and `baseuiCodePath`, has no `carbonComponent`, `code` or `isFree`, and types `variants` as `any[]`. Both declare `tags` as required, and both have `baseuiComponent`, `duration` and `easing`. `[SRC:packages/registry/src/index.tsx:L1]`
 
 ## GridCell / BentoPreset
 
@@ -138,7 +138,7 @@ export interface BentoPreset {
 
 ## Builder types
 
-**Source:** `packages/utils/src/types.ts:L55`
+**Source:** `packages/utils/src/types.ts:L52`
 
 ```ts
 export type TextContentEntry = { original: string; value: string };
@@ -185,11 +185,35 @@ export type SavedProject = {
 };
 ```
 
-`[SRC:packages/utils/src/types.ts:L55]`
+`[SRC:packages/utils/src/types.ts:L52]`
 
 ## Registry schema (registry.json)
 
-Not a TypeScript type — this is the shape the CLI expects. See SKILL.md "Full API Reference → Registry schema" for the table form. Source: `packages/registry/registry.json`. `[SRC:packages/registry/registry.json:L1]`
+Not a TypeScript type: this is the JSON the `shadcn` and `uitripled` CLIs read. `packages/registry/registry.json` is one object whose `items` array holds the 278 entries (171 react-shadcn), and every entry carries the same nine fields. The `hero-section-shadcnui` entry (its `dependencies` array joined onto one line):
+
+```json
+{
+  "name": "hero-section-shadcnui",
+  "type": "registry:page",
+  "title": "Hero Section",
+  "description": "Hero section with staggered text and button reveal",
+  "registryDependencies": [],
+  "dependencies": ["framer-motion", "react"],
+  "files": [
+    {
+      "path": "@uitripled/react-shadcn/src/components/sections/hero-section.tsx",
+      "type": "registry:page",
+      "target": "components/uitripled/hero-section-shadcnui.tsx"
+    }
+  ],
+  "category": "page",
+  "subcategory": "hero"
+}
+```
+
+`registryDependencies` lists shadcn registry items, which the shadcn CLI also installs: the react-shadcn entries name only the upstream shadcn/ui `button` (95 entries) and `card` (5). `dependencies` lists npm packages: `framer-motion` and `react` in all 171, plus `lucide-react` in 7. Each entry ships one file, written at its `target`. `[SRC:packages/registry/registry.json:L1]` `[SRC:packages/registry/registry.json:L2968]`
+
+The `type` counts, the categories and the upstream shadcn/ui resolution are in `references/catalog.md` (Registry types, Categories & subcategories, Upstream shadcn/ui resolution); the install walk is in `references/integration.md` → Page ← block ← component composition.
 
 ## Component props types
 
@@ -405,6 +429,65 @@ export interface NativeDeleteProps {
 ```
 
 `[SRC:packages/components/react-shadcn/src/components/native/native-delete-shadcnui.tsx:L9]`
+
+### `NativeHoverCardProps`
+
+**Source:** `packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx`
+
+```ts
+export interface NativeHoverCardProps {
+  /**
+   * Image source URL
+   */
+  imageSrc: string;
+  /**
+   * Alt text for the image
+   */
+  imageAlt?: string;
+  /**
+   * Display name
+   */
+  name: string;
+  /**
+   * Username or handle
+   */
+  username?: string;
+  /**
+   * Description or bio text
+   */
+  description?: string;
+  /**
+   * Button text
+   * Default: "View Profile"
+   */
+  buttonText?: string;
+  /**
+   * Button click handler
+   */
+  onButtonClick?: () => void;
+  /**
+   * Custom button component
+   */
+  buttonContent?: ReactNode;
+  /**
+   * Size of the image when collapsed
+   * Default: "md"
+   */
+  size?: "sm" | "md" | "lg" | "xl";
+  /**
+   * Additional class names for the container
+   */
+  className?: string;
+  /**
+   * Card variant style
+   */
+  variant?: "default" | "glass" | "bordered";
+}
+```
+
+`[AST:packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx:L9]`
+
+`packages/components/react-shadcn/src/components/native/native-hover-card.tsx` declares the same interface, member for member, for its own `NativeHoverCard` `[AST:packages/components/react-shadcn/src/components/native/native-hover-card.tsx:L9]`.
 
 ### `NativeImageCheckboxProps`
 

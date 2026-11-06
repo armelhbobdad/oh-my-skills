@@ -95,6 +95,8 @@ export function GlassmorphismTestimonialsBlock()
 export function GlowyWavesHero()
 // components/sections/hero-block.tsx
 export function HeroBlock()
+// components/sections/hero-section.tsx
+export function HeroSection()
 // components/sections/interactive-logs-table.tsx
 export function InteractiveLogsTable()
 // components/sections/n8n-workflow-block.tsx
@@ -168,6 +170,7 @@ export function TimelineBlock()
 | `GlassmorphismTestimonialsBlock` | `@uitripled/glassmorphism-testimonials-block-shadcnui` | Customer testimonials with glassmorphism cards, star ratings, and hover effects `[SRC:packages/registry/registry.json:L2795]` | `[SRC:packages/components/react-shadcn/src/components/sections/glassmorphism-testimonials-block.tsx:L6]` |
 | `GlowyWavesHero` | `@uitripled/glowy-waves-hero-shadcnui` | Hero section with glowy waves effect `[SRC:packages/registry/registry.json:L2839]` | `[SRC:packages/components/react-shadcn/src/components/sections/glowy-waves-hero.tsx:L61]` |
 | `HeroBlock` | `@uitripled/hero-block-shadcnui` | Personal portfolio hero section with animated avatar, staggered text, social links, and scroll indicator `[SRC:packages/registry/registry.json:L2924]` | `[SRC:packages/components/react-shadcn/src/components/sections/hero-block.tsx:L7]` |
+| `HeroSection` | `@uitripled/hero-section-shadcnui` | Hero section with staggered text and button reveal `[SRC:packages/registry/registry.json:L2968]`; its entry lists no `registryDependencies`, but the file imports `@/components/ui/button` and `lucide-react` | `[AST:packages/components/react-shadcn/src/components/sections/hero-section.tsx:L7]` |
 | `InteractiveLogsTable` | `@uitripled/interactive-logs-table-shadcnui` | Observability logs panel with animated filters, search, and expandable rows `[SRC:packages/registry/registry.json:L3092]` | `[SRC:packages/components/react-shadcn/src/components/sections/interactive-logs-table.tsx:L398]` |
 | `N8nWorkflowBlock` | `@uitripled/n8n-workflow-block-shadcnui` | Visual workflow automation builder with animated nodes, connections, and real-time execution monitoring `[SRC:packages/registry/registry.json:L3350]` | `[SRC:packages/components/react-shadcn/src/components/sections/n8n-workflow-block.tsx:L161]` |
 | `NewHeroSection` | `@uitripled/new-hero-section-shadcnui` | Modern hero section with gradient background, animated stats, and call-to-action buttons `[SRC:packages/registry/registry.json:L4618]` | `[SRC:packages/components/react-shadcn/src/components/sections/new-hero-section.tsx:L7]` |

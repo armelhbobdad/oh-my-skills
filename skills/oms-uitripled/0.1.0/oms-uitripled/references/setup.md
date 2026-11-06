@@ -93,7 +93,7 @@ type UILibraryContextValue = {
 };
 ```
 
-Note: at runtime this hook only surfaces the three reachable values `"shadcnui" | "baseui" | "carbon"` even though the `UILibrary` type in `@uitripled/utils` also includes `"react"`.
+Note: this `UILibrary` is the react-shadcn package's own type, `"shadcnui" | "baseui" | "carbon"`, which `ui-library-provider.tsx` imports from `./types`; it is not the 4-member `UILibrary` of `@uitripled/utils`, which adds `"react"`. The restriction is in the type itself: `setSelectedLibrary("react")` does not type-check. `[AST:packages/components/react-shadcn/src/types.ts:L1]` `[SRC:packages/components/react-shadcn/src/ui-library-provider.tsx:L3]`
 
 ## Provider ordering rule
 

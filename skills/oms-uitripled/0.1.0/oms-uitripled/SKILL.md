@@ -133,7 +133,8 @@ type ThemeMode = "light" | "dark" | "system";
 
 // @uitripled/utils exports the full 4-member union
 type UILibrary = "shadcnui" | "baseui" | "carbon" | "react";
-// NOTE: UILibraryProvider (react-shadcn package) only reaches "shadcnui" | "baseui" | "carbon" at runtime
+// NOTE: the react-shadcn package declares its own 3-member UILibrary ("shadcnui" | "baseui" | "carbon",
+// src/types.ts), and UILibraryProvider / useUILibrary are typed with it: "react" is not assignable
 
 // registry.json entry `type` values: a JSON field, not an exported TypeScript type
 // "registry:page" | "registry:block" | "registry:component" | "registry:ui"
@@ -142,14 +143,14 @@ type UILibrary = "shadcnui" | "baseui" | "carbon" | "react";
 cn(...inputs: ClassValue[]): string
 ```
 
-`[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L9]` `[AST:packages/utils/src/types.ts:L3]` `[SRC:packages/registry/registry.json:L1]` `[AST:packages/utils/src/cn.ts:L4]`
+`[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L9]` `[AST:packages/utils/src/types.ts:L3]` `[AST:packages/components/react-shadcn/src/types.ts:L1]` `[SRC:packages/components/react-shadcn/src/ui-library-provider.tsx:L3]` `[SRC:packages/registry/registry.json:L1]` `[AST:packages/utils/src/cn.ts:L4]`
 
-Representative component Props interfaces (e.g., `NativeHoverCardProps` with `imageSrc`, `name`, `size: "sm"|"md"|"lg"|"xl"`), the full `Component` shapes from `@uitripled/utils` and `@uitripled/registry`, and the Landing Builder types (`BuilderComponent`, `SavedProject`, `GridCell`, etc.) are documented in `references/types.md`.
+The component props interfaces (e.g., `NativeHoverCardProps`, the props of `NativeHoverCard`: `imageSrc` and `name` required, its nine other members optional), the full `Component` shapes from `@uitripled/utils` and `@uitripled/registry`, the Landing Builder types (`BuilderComponent`, `SavedProject`, etc.) and the grid types (`GridCell`, `BentoPreset`) are documented in `references/types.md`. `[AST:packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx:L9]`
 
 ## Architecture at a Glance
 
 - **`packages/registry/registry.json`** — Source of truth for the 278-item catalog (278 total, 171 react-shadcn). Shadcn-compatible format with `type`, `registryDependencies`, `dependencies`, `files`.
-- **`packages/components/react-shadcn/`** — Component source. Subtrees: `src/ui/` (19 shadcn/ui primitives — Button, Card, Dialog, etc.), `src/components/` (171 motion components grouped by category), `src/components/theme-provider.tsx`, `src/ui-library-provider.tsx` (setup entry points), `src/lib/utils.ts` (local `cn`).
+- **`packages/components/react-shadcn/`** — Component source. Subtrees: `src/ui/` (19 shadcn/ui primitives — Button, Card, Dialog, etc.), `src/components/` (171 motion components grouped by category), `src/components/theme-provider.tsx`, `src/ui-library-provider.tsx` (setup entry points), `src/lib/utils.ts` (a `cn` wrapper over `@uitripled/utils`' `cn`).
 - **`packages/uitripled/`** — Standalone CLI (`npx uitripled add <name>`). Fetches from `https://ui.tripled.work/r/<name>.json`. Independent from the shadcn CLI path.
 - **`packages/utils/`** — `@uitripled/utils` workspace package exporting `cn` (Tailwind class merger), `UILibrary`/`ComponentCategory`/`Component` types, and the Landing Builder helpers (`sanitizeSlug`, `generateGridCode`, `mergeComponentImports`, etc.).
 - **`apps/docs/public/llms.txt` + `llms-full.txt`** — Project-authored AI-optimized docs shipped alongside the gallery site. Authoritative CLI install command source.
@@ -182,7 +183,7 @@ The standalone CLI fetches JSON from `https://ui.tripled.work/r/{component}.json
 
 Detailed provider signatures, prop tables, hook return shapes, hydration behavior, and usage examples live in `references/setup.md` (`ThemeProvider`, `useTheme`, `UILibraryProvider`, `useUILibrary`) and `references/utils.md` (`cn` + Landing Builder helpers: `sanitizeSlug`, `generateUniqueSlug`, `GAP_VALUES`, `generateGridCode`, `initializeCells`, `mergeComponentImports`). The standalone `uitripled add` CLI implementation notes (interactive prompt, install-path priority `src/components` → `app/components` → `components`, `--overwrite` semantics, dependency hinting) and the `fetchComponent` helper pulling `https://ui.tripled.work/r/{name}.json` are in `references/catalog.md`. T1 provenance: `[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L18]` `[AST:packages/components/react-shadcn/src/ui-library-provider.tsx:L31]` `[AST:packages/utils/src/cn.ts:L4]` `[AST:packages/uitripled/src/commands/add.ts:L8]`.
 
-**Component API.** Every other export of `@uitripled/react-shadcn` `src/`, with its signature copied from the source, its install id and its purpose, is in four files: `references/ui-primitives.md` (the shadcn/ui primitives: `Avatar`, `Badge`, `Checkbox`, `Dialog*`, `DropdownMenu*`, `Select*`, `Tabs*`, `Tooltip*`, `badgeVariants`, `buttonVariants`, ...), `references/native-components.md` (the `Native*` components, `VerifiedBadge`, `SocialLoginButton`), `references/motion-components.md` (motion-core and category components, the Grid Generator panels) and `references/blocks-and-sections.md` (sections, blocks and composite components such as `AIChatInterface` and `KanbanBoard`). `bentoPresets` is in `references/utils.md`, and the `@uitripled/registry` arrays (`componentsRegistry`, `nativeComponents`, `uiComponents`) are in `references/catalog.md`. `[SRC:packages/components/react-shadcn/src/components/components/chat/ai-chat-interface.tsx:L54]` `[SRC:packages/registry/src/index.tsx:L8]`
+**Component API.** Every other export of `@uitripled/react-shadcn` `src/`, with its signature copied from the source, its install id and its purpose, is in four files: `references/ui-primitives.md` (the shadcn/ui primitives: `Avatar`, `Badge`, `Checkbox`, `Dialog*`, `DropdownMenu*`, `Select*`, `Tabs*`, `Tooltip*`, `badgeVariants`, `buttonVariants`, ...), `references/native-components.md` (the `Native*` components, `VerifiedBadge`, `SocialLoginButton`), `references/motion-components.md` (motion-core and category components, the Grid Generator panels and the `GridCell` component they render) and `references/blocks-and-sections.md` (sections, blocks and composite components such as `AIChatInterface` and `KanbanBoard`). `bentoPresets` is in `references/utils.md`, and the `@uitripled/registry` arrays (`componentsRegistry`, `nativeComponents`, `uiComponents`) are in `references/catalog.md`. `[SRC:packages/components/react-shadcn/src/components/components/chat/ai-chat-interface.tsx:L54]` `[SRC:packages/registry/src/index.tsx:L8]`
 
 <!-- [MANUAL:additional-notes-reference] -->
 <!-- Add custom notes here. This section is preserved during skill updates. -->

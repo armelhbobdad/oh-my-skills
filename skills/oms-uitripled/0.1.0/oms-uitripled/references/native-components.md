@@ -52,6 +52,8 @@ const NativeDialogTitle = BaseDialogTitle;
 const NativeDialogTrigger = DialogTrigger;
 // components/native/native-flip-text-shadcnui.tsx
 export function NativeFlipText({ words, duration = 2000, className }: NativeFlipTextProps)
+// components/native/native-hover-card-shadcnui.tsx
+export function NativeHoverCard({ imageSrc, imageAlt, name, username, description, buttonText = "View Profile", onButtonClick, buttonContent, size = "md", className, variant = "default" }: NativeHoverCardProps)
 // components/native/native-image-checkbox-shadcnui.tsx
 export function NativeImageCheckbox({ src, alt, selected, onSelect, size = "md", className, imageClassName }: NativeImageCheckboxProps)
 // components/native/native-likes-counter-shadcnui.tsx
@@ -109,6 +111,7 @@ const SocialLoginButton = ({ className, provider, animation = "none", children, 
 | `NativeDialogTitle` | `@uitripled/native-dialog-shadcnui` | exported with `NativeDialog`, same registry entry | `[SRC:packages/components/react-shadcn/src/components/native/native-dialog-shadcnui.tsx:L94]` |
 | `NativeDialogTrigger` | `@uitripled/native-dialog-shadcnui` | exported with `NativeDialog`, same registry entry | `[SRC:packages/components/react-shadcn/src/components/native/native-dialog-shadcnui.tsx:L95]` |
 | `NativeFlipText` | none | no `registry.json` entry ships this file; the registry's same-named entries copy the react-carbon file; props `NativeFlipTextProps` | `[SRC:packages/components/react-shadcn/src/components/native/native-flip-text-shadcnui.tsx:L20]` |
+| `NativeHoverCard` | `@uitripled/native-hover-card-shadcnui` | Avatar card that expands on hover to reveal profile information with smooth animations. `[SRC:packages/registry/registry.json:L3806]`; `native-hover-card.tsx`, which the `@uitripled/react-shadcn/components/native/native-hover-card` subpath builds, declares the same component and props `[AST:packages/components/react-shadcn/src/components/native/native-hover-card.tsx:L81]` | `[AST:packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx:L81]` |
 | `NativeImageCheckbox` | `@uitripled/native-image-checkbox-shadcnui` | Image checkbox component with grayscale filter and checkmark indicator. `[SRC:packages/registry/registry.json:L3868]` | `[SRC:packages/components/react-shadcn/src/components/native/native-image-checkbox-shadcnui.tsx:L63]` |
 | `NativeLikesCounter` | `@uitripled/native-likes-counter-shadcnui` | An interactive likes counter with avatar stack, popup details, and smooth animations. `[SRC:packages/registry/registry.json:L3910]` | `[SRC:packages/components/react-shadcn/src/components/native/native-likes-counter-shadcnui.tsx:L56]` |
 | `NativeLiquidButton` | `@uitripled/native-liquid-button-shadcnui` | Button with animated liquid fill effect, progress tracking, and multiple visual variants for engaging interactions. `[SRC:packages/registry/registry.json:L3952]` | `[SRC:packages/components/react-shadcn/src/components/native/native-liquid-button-shadcnui.tsx:L61]` |

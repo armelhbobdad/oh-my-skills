@@ -1935,6 +1935,20 @@
       "signature_source": "T1-low"
     },
     {
+      "export_name": "GridCell",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ cell, cols, isInSelection, onPointerDown, onPointerEnter }: GridCellProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/grid/grid-cell.tsx",
+      "source_line": 14,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
       "export_name": "GridPreview",
       "export_type": "function",
       "source_library": "@uitripled/react-shadcn",
@@ -1982,6 +1996,18 @@
       "extraction_method": "source-read",
       "ast_node_type": null,
       "signature_source": "T1-low"
+    },
+    {
+      "export_name": "HeroSection",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [],
+      "source_file": "packages/components/react-shadcn/src/components/sections/hero-section.tsx",
+      "source_line": 7,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
     },
     {
       "export_name": "HolographicWall",
@@ -2473,6 +2499,31 @@
       "extraction_method": "source-read",
       "ast_node_type": null,
       "signature_source": "T1-low"
+    },
+    {
+      "export_name": "NativeHoverCard",
+      "export_type": "function",
+      "source_library": "@uitripled/react-shadcn",
+      "params": [
+        "{ imageSrc, imageAlt, name, username, description, buttonText = \"View Profile\", onButtonClick, buttonContent, size = \"md\", className, variant = \"default\" }: NativeHoverCardProps"
+      ],
+      "source_file": "packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx",
+      "source_line": 81,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "NativeHoverCardProps",
+      "export_type": "interface",
+      "source_library": "@uitripled/react-shadcn",
+      "source_file": "packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx",
+      "source_line": 9,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
     },
     {
       "export_name": "NativeImageCheckbox",

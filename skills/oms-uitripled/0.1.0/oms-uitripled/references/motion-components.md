@@ -223,6 +223,8 @@ export function WebPerformancePage()
 ```tsx
 // components/grid/code-output.tsx
 export function CodeOutput({ code, copied, onCopyCode, options }: CodeOutputProps)
+// components/grid/grid-cell.tsx
+export function GridCell({ cell, cols, rows, isInSelection, onPointerDown, onPointerEnter }: GridCellProps)
 // components/grid/grid-preview.tsx
 export function GridPreview({ cells, cols, rows, gap, selectedCells, onPointerDown, onPointerEnter, onPointerUp, onPointerLeave, onAddCell, onResetGrid, onUndo, onRedo, canUndo, canRedo }: GridPreviewProps)
 // components/grid/presets-panel.tsx
@@ -231,9 +233,12 @@ export function PresetsPanel({ onApplyPreset }: PresetsPanelProps)
 export function SettingsPanel({ cols, maxCols = 12, maxGap = 12, gap, onColsChange, onGapChange }: SettingsPanelProps)
 ```
 
+The `GridCell` line lists the props of its props type, `GridCellProps`, which `grid-cell.tsx` declares but does not export: `cell`, `cols`, `rows`, `isInSelection`, `onPointerDown` and `onPointerEnter`, all six required. The function's own parameter destructures five of them and never reads `rows`, but a caller must still pass it, as `GridPreview` does. This component is a different export from the `GridCell` interface of `references/utils.md` → Grid helpers, which `grid-cell.tsx` imports as `GridCellType` for its `cell` prop. `[SRC:packages/components/react-shadcn/src/components/grid/grid-cell.tsx:L5]` `[AST:packages/components/react-shadcn/src/components/grid/grid-cell.tsx:L14]` `[SRC:packages/components/react-shadcn/src/components/grid/grid-cell.tsx:L3]`
+
 | Export | Install id | Purpose | Source |
 |--------|------------|---------|--------|
 | `CodeOutput` | none | no `registry.json` entry ships this file; props `CodeOutputProps` | `[SRC:packages/components/react-shadcn/src/components/grid/code-output.tsx:L14]` |
+| `GridCell` | none | no `registry.json` entry ships this file; one cell of the grid `GridPreview` renders `[SRC:packages/components/react-shadcn/src/components/grid/grid-preview.tsx:L132]` | `[AST:packages/components/react-shadcn/src/components/grid/grid-cell.tsx:L14]` |
 | `GridPreview` | none | no `registry.json` entry ships this file; props `GridPreviewProps` | `[SRC:packages/components/react-shadcn/src/components/grid/grid-preview.tsx:L28]` |
 | `PresetsPanel` | none | no `registry.json` entry ships this file; props `PresetsPanelProps` | `[SRC:packages/components/react-shadcn/src/components/grid/presets-panel.tsx:L12]` |
 | `SettingsPanel` | none | no `registry.json` entry ships this file; props `SettingsPanelProps` | `[SRC:packages/components/react-shadcn/src/components/grid/settings-panel.tsx:L15]` |

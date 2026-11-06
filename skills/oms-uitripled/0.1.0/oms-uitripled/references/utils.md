@@ -33,7 +33,7 @@ export function cn(...inputs: ClassValue[]): string {
 }
 ```
 
-Standard shadcn/ui class-merging helper. Identical implementation shipped at `packages/components/react-shadcn/src/lib/utils.ts` under a local path — if you copy-paste a component the helper comes with it; you don't need `@uitripled/utils` as a separate dependency.
+Standard shadcn/ui class-merging helper. `packages/components/react-shadcn/src/lib/utils.ts` is not a copy of it: that file imports this function as `baseCn` from `@uitripled/utils` and exports its own `cn`, a wrapper that passes every argument on to `baseCn`, so the `@uitripled/react-shadcn/lib/utils` subpath depends on `@uitripled/utils` (a `workspace:*` dependency of the react-shadcn package) `[SRC:packages/components/react-shadcn/src/lib/utils.ts:L1]` `[SRC:packages/components/react-shadcn/src/lib/utils.ts:L3]` `[SRC:packages/components/react-shadcn/package.json:L85]`. A component the CLI copies brings neither file: each `registry.json` entry ships one file, which imports `cn` from your project's `@/lib/utils` (the helper `npx shadcn init` writes) `[SRC:packages/registry/registry.json:L1]`.
 
 ## Landing Builder helpers
 
@@ -172,7 +172,7 @@ type SavedProject = {
 
 **Note — two `Component` definitions exist:**
 
-1. The one above from `@uitripled/utils` (used by the Landing Builder's in-memory `componentsRegistry`).
-2. A slightly different one in `packages/registry/src/types.ts` that extends with `baseuiVariants`, `duration`, `easing`, `baseuiComponent`, `baseuiCodePath`. `[SRC:packages/registry/src/types.ts:L4]`
+1. The one above from `@uitripled/utils`, the type of the Landing Builder's `BuilderComponent.animation` `[SRC:packages/utils/src/types.ts:L60]`.
+2. A different one in `packages/registry/src/types.ts` (the type of the `@uitripled/registry` arrays). It adds `componentName`, `baseuiVariants` and `baseuiCodePath`, has no `carbonComponent`, `code` or `isFree`, and types `variants` as `any[]`; both types declare `baseuiComponent`, `duration` and `easing`. Its full shape is in `references/types.md` → Component (registry). `[AST:packages/registry/src/types.ts:L4]` `[AST:packages/utils/src/types.ts:L24]`
 
 Both are distinct from the **shadcn-compatible schema in `registry.json`** — that uses `type` / `registryDependencies` / `dependencies` / `files` fields and is what the `shadcn` and `uitripled` CLIs consume. Don't confuse them.
