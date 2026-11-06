@@ -280,30 +280,30 @@
       "export_type": "function",
       "source_library": "@storybook/builder-vite",
       "params": [
-        "options: BuilderOptions"
+        "{ startTime, options, router, server: devServer }: { options: Options; startTime: ReturnType<typeof process.hrtime>; router: ServerApp; server: HttpServer; channel: ChannelLike }"
       ],
-      "return_type": "Promise<{ bail, stats, totalTime }>",
+      "return_type": "Promise<void | { stats?: ViteStats; totalTime: ReturnType<typeof process.hrtime>; bail: (e?: Error) => Promise<void> }>",
       "source_file": "code/builders/builder-vite/src/index.ts",
       "source_line": 41,
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "build",
       "export_type": "function",
       "source_library": "@storybook/builder-vite",
       "params": [
-        "options: BuilderOptions"
+        "{ options }: { options: Options; startTime: ReturnType<typeof process.hrtime> }"
       ],
-      "return_type": "Promise<any>",
+      "return_type": "Promise<void | ViteStats>",
       "source_file": "code/builders/builder-vite/src/index.ts",
       "source_line": 63,
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "bail",
@@ -759,19 +759,18 @@
     },
     {
       "export_name": "withActions",
-      "export_type": "function",
+      "export_type": "const",
       "source_library": "storybook",
       "params": [
-        "storyFn: StoryFn",
-        "context: StoryContext"
+        "storyFn: PartialStoryFn<T>"
       ],
-      "return_type": "StoryResult",
+      "return_type": "T['storyResult']",
       "source_file": "code/core/src/actions/decorator.ts",
       "source_line": 59,
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "create",
@@ -999,7 +998,7 @@
       "export_type": "component",
       "source_library": "@storybook/addon-docs",
       "params": [
-        "{ of?, include, exclude, sort }"
+        "{ of?, include?, exclude?, sort? }"
       ],
       "return_type": "ReactElement",
       "source_file": "code/addons/docs/src/blocks/blocks/ArgTypes.tsx",
@@ -1007,7 +1006,7 @@
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "export_statement",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "Source",
@@ -1334,7 +1333,7 @@
     },
     {
       "export_name": "ControlProps",
-      "export_type": "type",
+      "export_type": "interface",
       "source_library": "@storybook/addon-docs/blocks",
       "params": [
         "T"
@@ -2131,9 +2130,9 @@
       "export_type": "function",
       "source_library": "storybook/preview-api",
       "params": [
-        "annotations: ProjectAnnotations<R>"
+        "{ argTypes, argTypesEnhancers, decorators, loaders, beforeEach, afterEach, initialGlobals, ...annotations }: ProjectAnnotations<TRenderer>"
       ],
-      "return_type": "NormalizedProjectAnnotations<R>",
+      "return_type": "NormalizedProjectAnnotations<TRenderer>",
       "source_file": "code/core/src/preview-api/modules/store/csf/normalizeProjectAnnotations.ts",
       "source_line": 17,
       "confidence": "T1",
@@ -2180,7 +2179,7 @@
       "export_type": "function",
       "source_library": "storybook/preview-api",
       "params": [
-        "inputContextUpdate?: StoryContextUpdate"
+        "{ componentId, title, kind, id, name, story, parameters, initialArgs, argTypes, ...update }: StoryContextUpdate = {}"
       ],
       "return_type": "StoryContextUpdate",
       "source_file": "code/core/src/preview-api/modules/store/decorators.ts",
@@ -2285,16 +2284,18 @@
     },
     {
       "export_name": "isMockFunction",
-      "export_type": "const",
+      "export_type": "function",
       "source_library": "storybook/test",
-      "params": [],
-      "return_type": "typeof isMockFunction",
+      "params": [
+        "fn: any"
+      ],
+      "return_type": "fn is MockInstance",
       "source_file": "code/core/src/test/spy.ts",
       "source_line": 17,
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "export_specifier",
-      "signature_source": "T1"
+      "signature_source": "T1-low"
     },
     {
       "export_name": "clearAllMocks",
@@ -2519,9 +2520,9 @@
       "export_type": "const",
       "source_library": "@storybook/addon-themes",
       "params": [
-        "config: ClassNameStrategyConfiguration"
+        "{ themes, defaultTheme, parentSelector = DEFAULT_ELEMENT_SELECTOR }: ClassNameStrategyConfiguration"
       ],
-      "return_type": "DecoratorFunction<R>",
+      "return_type": "DecoratorFunction<TRenderer>",
       "source_file": "code/addons/themes/src/decorators/class-name.decorator.tsx",
       "source_line": 19,
       "confidence": "T1",
@@ -2534,9 +2535,9 @@
       "export_type": "const",
       "source_library": "@storybook/addon-themes",
       "params": [
-        "config: DataAttributeStrategyConfiguration"
+        "{ themes, defaultTheme, parentSelector = DEFAULT_ELEMENT_SELECTOR, attributeName = DEFAULT_DATA_ATTRIBUTE }: DataAttributeStrategyConfiguration"
       ],
-      "return_type": "DecoratorFunction<R>",
+      "return_type": "DecoratorFunction<TRenderer>",
       "source_file": "code/addons/themes/src/decorators/data-attribute.decorator.tsx",
       "source_line": 19,
       "confidence": "T1",
@@ -2549,9 +2550,9 @@
       "export_type": "const",
       "source_library": "@storybook/addon-themes",
       "params": [
-        "config: ProviderStrategyConfiguration"
+        "{ Provider, GlobalStyles, defaultTheme, themes = {} }: ProviderStrategyConfiguration"
       ],
-      "return_type": "DecoratorFunction<R>",
+      "return_type": "DecoratorFunction<TRenderer>",
       "source_file": "code/addons/themes/src/decorators/provider.decorator.tsx",
       "source_line": 23,
       "confidence": "T1",
@@ -2719,7 +2720,7 @@
     },
     {
       "export_name": "StoreOptions",
-      "export_type": "type",
+      "export_type": "interface",
       "source_library": "storybook/manager-api",
       "params": [],
       "return_type": "Options",
@@ -2732,7 +2733,7 @@
     },
     {
       "export_name": "StoriesHash",
-      "export_type": "type",
+      "export_type": "interface",
       "source_library": "storybook/manager-api",
       "params": [],
       "return_type": "API_IndexHash",
@@ -5282,6 +5283,187 @@
       "return_type": "typeof storybookTest",
       "source_file": "code/addons/vitest/src/vitest-plugin/index.ts",
       "source_line": 531,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnchorProps",
+      "export_type": "interface",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "{ storyId: string }",
+      "source_file": "code/addons/docs/src/blocks/blocks/Anchor.tsx",
+      "source_line": 6,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DocsContainerProps",
+      "export_type": "interface",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "TFramework extends Renderer = Renderer"
+      ],
+      "return_type": "{ context: DocsContextProps<TFramework>; theme?: ThemeVars }",
+      "source_file": "code/addons/docs/src/blocks/blocks/DocsContainer.tsx",
+      "source_line": 18,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DocsProps",
+      "export_type": "type",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "TRenderer extends Renderer = Renderer"
+      ],
+      "return_type": "{ docsParameter: Parameters; context: DocsContextProps<TRenderer> }",
+      "source_file": "code/addons/docs/src/blocks/blocks/Docs.tsx",
+      "source_line": 12,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DocsStoryProps",
+      "export_type": "type",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "{ of: ModuleExport; expanded?: boolean; withToolbar?: boolean; __forceInitialArgs?: boolean; __primary?: boolean }",
+      "source_file": "code/addons/docs/src/blocks/blocks/types.ts",
+      "source_line": 9,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "HeadingProps",
+      "export_type": "interface",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "{ disableAnchor?: boolean }",
+      "source_file": "code/addons/docs/src/blocks/blocks/Heading.tsx",
+      "source_line": 11,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "PropDescriptor",
+      "export_type": "type",
+      "source_library": "storybook/preview-api",
+      "params": [],
+      "return_type": "string[] | RegExp",
+      "source_file": "code/core/src/preview-api/modules/store/filterArgTypes.ts",
+      "source_line": 5,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "SourceParameters",
+      "export_type": "type",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "SourceCodeProps & { type?: SourceType; transform?: (code: string, storyContext: ReturnType<DocsContextProps['getStoryContext']>) => string | Promise<string>; originalSource?: string }",
+      "source_file": "code/addons/docs/src/blocks/blocks/Source.tsx",
+      "source_line": 16,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SourceProps",
+      "export_type": "type",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "SourceParameters & { of?: ModuleExport; __forceInitialArgs?: boolean }",
+      "source_file": "code/addons/docs/src/blocks/blocks/Source.tsx",
+      "source_line": 28,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "StoryProps",
+      "export_type": "type",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "StoryRefProps & StoryParameters",
+      "source_file": "code/addons/docs/src/blocks/blocks/Story.tsx",
+      "source_line": 60,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "MaybeMocked",
+      "export_type": "type",
+      "source_library": "storybook/test",
+      "params": [
+        "T"
+      ],
+      "return_type": "T extends Procedure ? MockedFunction<T> : T extends object ? MockedObject<T> : T",
+      "source_file": "code/core/src/test/spy.ts",
+      "source_line": 3,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "MaybeMockedDeep",
+      "export_type": "type",
+      "source_library": "storybook/test",
+      "params": [
+        "T"
+      ],
+      "return_type": "T extends Procedure ? MockedFunctionDeep<T> : T extends object ? MockedObjectDeep<T> : T",
+      "source_file": "code/core/src/test/spy.ts",
+      "source_line": 4,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "MaybePartiallyMocked",
+      "export_type": "type",
+      "source_library": "storybook/test",
+      "params": [
+        "T"
+      ],
+      "return_type": "T extends Procedure ? PartiallyMockedFunction<T> : T extends object ? MockedObject<T> : T",
+      "source_file": "code/core/src/test/spy.ts",
+      "source_line": 5,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "MaybePartiallyMockedDeep",
+      "export_type": "type",
+      "source_library": "storybook/test",
+      "params": [
+        "T"
+      ],
+      "return_type": "T extends Procedure ? PartiallyMockedFunctionDeep<T> : T extends object ? MockedObjectDeep<T> : T",
+      "source_file": "code/core/src/test/spy.ts",
+      "source_line": 6,
       "confidence": "T1-low",
       "extraction_method": "source-read",
       "ast_node_type": null,

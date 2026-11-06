@@ -58,7 +58,7 @@ export type Meta<TCmpOrArgs = Args> = [TCmpOrArgs] extends [ComponentType<any>]
   : ComponentAnnotations<ReactRenderer, TCmpOrArgs>;
 ```
 
-Metadata to configure stories for a component. When passed a component, infers `args` from `ComponentProps<T>`; otherwise uses the provided args type directly.
+Metadata to configure stories for a component. When passed a component, infers `args` from `ComponentProps<T>`; otherwise uses the provided args type directly. This is the React `Meta` type; the `Meta` doc block of `@storybook/addon-docs/blocks` is in `doc-blocks.md`. `[AST:code/renderers/react/src/public-types.ts:L29]`
 
 **The `satisfies` vs `as` choice:**
 
@@ -128,27 +128,35 @@ export const Primary: Story = { args: { label: 'Click me' } };
 ## `StoryFn<T>`
 
 ```ts
-// code/renderers/react/src/public-types.ts
+// code/renderers/react/src/public-types.ts:38
 export type StoryFn<TCmpOrArgs = Args> = [TCmpOrArgs] extends [ComponentType<any>]
   ? AnnotatedStoryFn<ReactRenderer, ComponentProps<TCmpOrArgs>>
   : AnnotatedStoryFn<ReactRenderer, TCmpOrArgs>;
 ```
 
-The **CSF2** story function type. Still exported for backwards compat and for stories that need a function form (e.g., `useState` directly in the story body, without going through `render`). In v10, prefer `StoryObj` + `render` unless you specifically need CSF2 semantics.
+The **CSF2** story function type. Still exported for backwards compat and for stories that need a function form (e.g., `useState` directly in the story body, without going through `render`). In v10, prefer `StoryObj` + `render` unless you specifically need CSF2 semantics. This is the React `StoryFn`; the CSF `StoryFn` that `storybook/internal/types` exports is another type (`core-api.md`). `[AST:code/renderers/react/src/public-types.ts:L38]`
 
 ## `Decorator<T>`
 
 ```ts
-// code/renderers/react/src/public-types.ts
+// code/renderers/react/src/public-types.ts:77
 export type Decorator<TArgs = StrictArgs> = DecoratorFunction<ReactRenderer, TArgs>;
 ```
 
-Function signature (from `DecoratorFunction<R, Args>`):
+`[AST:code/renderers/react/src/public-types.ts:L77]`
+
+Its function type is CSF's `DecoratorFunction`, which `storybook/internal/types` exports, with `ReactRenderer` as `TRenderer`:
 ```ts
-(storyFn: PartialStoryFn<R, Args>, context: StoryContext<R, Args>) => R['storyResult'];
+// code/core/src/csf/story.ts:331
+export type DecoratorFunction<TRenderer extends Renderer = Renderer, TArgs = Args> = (
+  fn: PartialStoryFn<TRenderer, TArgs>,
+  c: StoryContext<TRenderer, TArgs>
+) => TRenderer['storyResult'];
 ```
 
-For React: returns `ReactNode`. A decorator wraps the story — it receives a function that renders the next decorator (or the story) and the full story context.
+`[AST:code/core/src/csf/story.ts:L331]`
+
+For React: returns `ReactNode`. A decorator wraps the story — it receives `fn`, a function that renders the next decorator (or the story), and `c`, the full story context.
 
 **Usage:**
 ```ts
@@ -242,7 +250,7 @@ test('renders', () => {
 });
 ```
 
-`setProjectAnnotations` was expanded to more renderers/frameworks in PR #28907. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]` `[AST:code/renderers/react/src/portable-stories.tsx:L46]`
+`setProjectAnnotations` was expanded to more renderers/frameworks in PR #28907. `[QMD:oms-storybook-react-vite-temporal:changelog.md #5defd6]` `[AST:code/renderers/react/src/portable-stories.tsx:L46]` `[AST:code/renderers/react/src/portable-stories.tsx:L106]` `[AST:code/renderers/react/src/portable-stories.tsx:L148]`
 
 ## Manager / Store types (custom panel & toolbar authoring)
 
@@ -254,13 +262,13 @@ These types are needed when you're **writing a manager-side addon** — a toolba
 |---|---|---|---|
 | `Combo` | interface | `{ api: API; state: State }` — the payload `ManagerConsumer` renders its children with | `[AST:code/core/src/manager-api/root.tsx:L116]` |
 | `State` | type | `layout.SubState & stories.SubState & refs.SubState & …` — intersection of every manager slice | `[AST:code/core/src/manager-api/root.tsx:L82]` |
-| `StoreOptions` | type | `Options` — persistence options passed to `store.set` | `[AST:code/core/src/manager-api/root.tsx:L77]` |
+| `StoreOptions` | interface | `Options`, the store's `{ persistence: 'none' \| 'session' \| string }` — persistence options passed to `store.set` (exported under this name type-only) | `[AST:code/core/src/manager-api/root.tsx:L77]` `[AST:code/core/src/manager-api/store.ts:L45]` |
 | `ManagerContext` | const | `React.Context<{ api: API; state: State }>` — underlying context that `ManagerConsumer` / `useStorybookApi` read | `[AST:code/core/src/manager-api/root.tsx:L80]` |
 | `ManagerProviderProps` | type | `RouterData & API_ProviderData<API> & { children: ReactNode \| FC<Combo> }` — `children` is a node or a component that receives the `Combo` | `[AST:code/core/src/manager-api/root.tsx:L121]` |
 | `Refs` | type | `API_Refs` — map of composed refs keyed by ref ID | `[AST:code/core/src/manager-api/root.tsx:L314]` |
 | `API_EventMap` | interface | `{ [eventId: string]: Listener }` — `api.on(eventId, listener)` event registry | `[AST:code/core/src/manager-api/root.tsx:L318]` |
 | `API_KeyCollection` | type | `string[]` — shortcut key sequence representation | `[AST:code/core/src/manager-api/modules/shortcuts.ts:L99]` |
-| `StoriesHash` | type | `API_IndexHash` — manager-side story index (deprecated alias, use `IndexHash`) | `[AST:code/core/src/manager-api/root.tsx:L304]` |
+| `StoriesHash` | interface | `API_IndexHash` — manager-side story index (deprecated alias, use `IndexHash`) | `[AST:code/core/src/manager-api/root.tsx:L304]` `[AST:code/core/src/types/modules/api-stories.ts:L80]` |
 
 ### Story hierarchy (index hash)
 

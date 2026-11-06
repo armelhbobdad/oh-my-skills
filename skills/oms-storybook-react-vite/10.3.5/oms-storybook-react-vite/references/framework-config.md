@@ -162,18 +162,18 @@ Source: `code/builders/builder-vite/`. Users rarely import from here — the fra
 ```ts
 // code/builders/builder-vite/src/index.ts
 export async function bail(): Promise<void>;                         // L37
-export const start: ViteBuilder['start'] = async ({ startTime, options, router, server }) => …;  // L41
+export const start: ViteBuilder['start'] = async ({ startTime, options, router, server }) => …;  // L41 (binds server as devServer)
 export const build: ViteBuilder['build'] = async ({ options }) => …;  // L63
 export const corePresets: string[];
 export { withoutVitePlugins } from './utils/without-vite-plugins';    // L14
 export { hasVitePlugins } from './utils/has-vite-plugins';            // L15
 
-// ViteBuilder = Builder<UserConfig, ViteStats>, so start and build take ONE args object
-// (code/core/src/types/modules/core-common.ts:259), not a positional BuilderOptions:
-//   start: (args: { options: Options; startTime: ReturnType<typeof process.hrtime>; router: ServerApp;
+// ViteBuilder = Builder<UserConfig, ViteStats>, so start and build each take ONE object, typed by
+// Builder (code/core/src/types/modules/core-common.ts:259), and destructure it:
+//   start: ({ startTime, options, router, server }: { options: Options; startTime: ReturnType<typeof process.hrtime>; router: ServerApp;
 //                   server: HttpServer; channel: ChannelLike })
 //     => Promise<void | { stats?: ViteStats; totalTime: ReturnType<typeof process.hrtime>; bail: (e?: Error) => Promise<void> }>
-//   build: (arg: { options: Options; startTime: ReturnType<typeof process.hrtime> }) => Promise<void | ViteStats>
+//   build: ({ options }: { options: Options; startTime: ReturnType<typeof process.hrtime> }) => Promise<void | ViteStats>
 
 // code/builders/builder-vite/src/utils/without-vite-plugins.ts:2
 export const withoutVitePlugins = async <TPlugin>(plugins: TPlugin[] = [], namesToRemove: string[]): Promise<TPlugin[]> => …;
@@ -188,7 +188,7 @@ export type BuilderOptions = { viteConfigPath?: string };
 
 Both plugin helpers work on a plugin array (they resolve async plugins and recurse into nested arrays), not on an `InlineConfig`. The builder's own build uses them this way: `await hasVitePlugins(finalConfig.plugins, [turbosnapPluginName])` resolves to a boolean, and `finalConfig.plugins = await withoutVitePlugins(finalConfig.plugins, [turbosnapPluginName])` replaces the array with the filtered one. `[SRC:code/builders/builder-vite/src/build.ts:L82]` `[SRC:code/builders/builder-vite/src/build.ts:L89]`
 
-`[AST:code/builders/builder-vite/src/index.ts:L37]` `[AST:code/builders/builder-vite/src/index.ts:L41]` `[AST:code/builders/builder-vite/src/index.ts:L63]` `[SRC:code/builders/builder-vite/src/utils/without-vite-plugins.ts:L2]` `[SRC:code/builders/builder-vite/src/utils/has-vite-plugins.ts:L13]` `[AST:code/builders/builder-vite/src/types.ts:L10]` `[SRC:code/core/src/types/modules/core-common.ts:L259]`
+`[AST:code/builders/builder-vite/src/index.ts:L37]` `[AST:code/builders/builder-vite/src/index.ts:L41]` `[AST:code/builders/builder-vite/src/index.ts:L63]` `[SRC:code/builders/builder-vite/src/utils/without-vite-plugins.ts:L2]` `[SRC:code/builders/builder-vite/src/utils/has-vite-plugins.ts:L13]` `[AST:code/builders/builder-vite/src/types.ts:L10]` `[AST:code/builders/builder-vite/src/types.ts:L12]` `[AST:code/builders/builder-vite/src/types.ts:L17]` `[AST:code/builders/builder-vite/src/types.ts:L21]` `[AST:code/core/src/types/modules/core-common.ts:L259]`
 
 ## `main.ts` configuration contract
 

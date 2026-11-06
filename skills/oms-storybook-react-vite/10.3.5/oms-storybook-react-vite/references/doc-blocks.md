@@ -12,7 +12,7 @@ All doc blocks are React components imported from `@storybook/addon-docs/blocks`
 - [Visual blocks](#visual-blocks) — `Typeset`, `ColorPalette`, `ColorItem`, `IconGallery`, `IconItem`
 - [Container blocks](#container-blocks) — `Docs`, `DocsPage`, `DocsContainer`, `DocsStory`
 - [Utilities](#utilities) — `useOf`, `DocsContext`, `PureArgsTable`, `TableOfContents`
-- [Block internals and MDX helpers](#block-internals-and-mdx-helpers) — the MDX element overrides, the `Source` block plumbing, the story, title, anchor and heading helpers, external docs, and the block types and constants
+- [Block internals and MDX helpers](#block-internals-and-mdx-helpers) — the MDX element overrides, the `Source` block plumbing, the story, title, anchor and heading helpers, external docs, the block types and constants, and the block props types
 
 ## Import source
 
@@ -72,7 +72,7 @@ import * as ButtonStories from './Button.stories';
 
 | Component | Props | Purpose |
 |---|---|---|
-| `Meta` | `MetaProps = BaseAnnotations & { of?: ModuleExports; title?: string }` (`FC<MetaProps>`): `of?`, `title?`, plus every optional `BaseAnnotations` field (`decorators?`, `parameters?`, `args?`, `argTypes?`, `loaders?`, `beforeEach?`, `afterEach?`, `render?`, `tags?`, `mount?`). The component itself reads only `of`. | Declare component metadata in an MDX doc — connects the MDX page to a CSF module. Required once per doc. `[SRC:code/addons/docs/src/blocks/blocks/Meta.tsx:L9]` `[SRC:code/addons/docs/src/blocks/blocks/Meta.tsx:L15]` `[SRC:code/core/src/csf/story.ts:L347]` |
+| `Meta` | `MetaProps = BaseAnnotations & { of?: ModuleExports; title?: string }` (`FC<MetaProps>`): `of?`, `title?`, plus every optional `BaseAnnotations` field (`decorators?`, `parameters?`, `args?`, `argTypes?`, `loaders?`, `beforeEach?`, `afterEach?`, `render?`, `tags?`, `mount?`). The component itself reads only `of`. | Declare component metadata in an MDX doc — connects the MDX page to a CSF module. Required once per doc. This is the doc block; the React `Meta` type is in `story-types.md`. `[SRC:code/addons/docs/src/blocks/blocks/Meta.tsx:L9]` `[AST:code/addons/docs/src/blocks/blocks/Meta.tsx:L15]` `[AST:code/core/src/csf/story.ts:L347]` |
 | `Title` | `TitleProps = { of?: Of; children?: ReactNode }` | Render page title: `children` when given, else the last path segment of the meta's `title`. `of` names the CSF file's default export (meta) to read the title from (the attached meta when omitted); `of={undefined}` throws. `[SRC:code/addons/docs/src/blocks/blocks/Title.tsx:L11]` `[AST:code/addons/docs/src/blocks/blocks/Title.tsx:L55]` |
 | `Subtitle` | `SubtitleProps = { children?: ReactNode; of?: Of }` | Render page subtitle: `children` when given, else the meta's `parameters.docs.subtitle` (or the deprecated `parameters.componentSubtitle`). `of` names the meta to read it from (the attached CSF file's meta when omitted); `of={undefined}` throws. `[SRC:code/addons/docs/src/blocks/blocks/Subtitle.tsx:L11]` `[AST:code/addons/docs/src/blocks/blocks/Subtitle.tsx:L55]` |
 | `Description` | `{ of?: Of }` | Render the description of the resolved `of` (the attached meta when omitted): `parameters.docs.description.story` for a story, `parameters.docs.description.component` or the component's docgen description for a meta or component. There is no `markdown` prop. `[AST:code/addons/docs/src/blocks/blocks/Description.tsx:L74]` |
@@ -81,8 +81,8 @@ import * as ButtonStories from './Button.stories';
 
 | Component | Props | Purpose |
 |---|---|---|
-| `Controls` | `{ of?, include?, exclude?, sort? }` | Interactive controls panel for story args. |
-| `ArgTypes` | `{ of?, include?, exclude?, sort? }` | Static arg types documentation table (read-only). |
+| `Controls` | `{ of?, include?, exclude?, sort? }` | Interactive controls panel for story args. `[AST:code/addons/docs/src/blocks/blocks/Controls.tsx:L109]` |
+| `ArgTypes` | `{ of?, include?, exclude?, sort? }` | Static arg types documentation table (read-only). This is the doc block `@storybook/addon-docs/blocks` exports; the CSF type of the same name is in `story-types.md`. `[AST:code/addons/docs/src/blocks/blocks/ArgTypes.tsx:L108]` |
 | `Source` | `SourceProps` (full list below): `{ of?, code?, language?, format?, dark?, copyable?, type?, transform?, originalSource?, __forceInitialArgs? }` | Formatted source code block for a story. See [`Source` props detail](#source-props-detail) below. `[AST:code/addons/docs/src/blocks/blocks/Source.tsx:L181]` |
 
 ### `Source` props detail
@@ -102,7 +102,7 @@ import * as ButtonStories from './Button.stories';
 | `originalSource` | `string` | Internal: set by the CSF loader (`enrichCsf` in `storybook/internal/csf-tools`). |
 | `__forceInitialArgs` | `boolean` | Internal: controls whether the story re-renders on args updates. |
 
-`[SRC:code/addons/docs/src/blocks/blocks/Source.tsx:L16]` `[SRC:code/addons/docs/src/blocks/blocks/Source.tsx:L28]` `[SRC:code/addons/docs/src/blocks/components/Source.tsx:L39]` `[SRC:code/core/src/docs-tools/shared.ts:L7]`
+`[AST:code/addons/docs/src/blocks/blocks/Source.tsx:L16]` `[AST:code/addons/docs/src/blocks/blocks/Source.tsx:L28]` `[AST:code/addons/docs/src/blocks/components/Source.tsx:L39]` `[SRC:code/core/src/docs-tools/shared.ts:L7]`
 
 ## Content blocks
 
@@ -130,18 +130,18 @@ import * as ButtonStories from './Button.stories';
 |---|---|---|
 | `Docs` | `{ context, docsParameter }: DocsProps<TRenderer>`, both required: `Docs<TRenderer extends Renderer = Renderer>({ context, docsParameter }: DocsProps<TRenderer>)` with `DocsProps = { docsParameter: Parameters; context: DocsContextProps<TRenderer> }` | Root docs container: renders `docsParameter.page` (default `DocsPage`) inside `docsParameter.container` (default `DocsContainer`). Rarely used directly. `[AST:code/addons/docs/src/blocks/blocks/Docs.tsx:L17]` |
 | `DocsPage` | — | Default Autodocs layout function. |
-| `DocsContainer` | `{ context: DocsContextProps<Renderer>; theme?: ThemeVars; children?: ReactNode }` (`FC<PropsWithChildren<DocsContainerProps>>`: the component is not generic, so it takes `DocsContainerProps` at its default, `DocsContainerProps<TFramework extends Renderer = Renderer> = { context: DocsContextProps<TFramework>; theme? }`) | MDX docs wrapper: provides `context` through `DocsContext` and renders `children` inside a `ThemeProvider` for `theme` (passed through `ensure`). `[AST:code/addons/docs/src/blocks/blocks/DocsContainer.tsx:L18]` `[AST:code/addons/docs/src/blocks/blocks/DocsContainer.tsx:L23]` |
+| `DocsContainer` | `{ context: DocsContextProps<Renderer>; theme?: ThemeVars; children?: ReactNode }` (`FC<PropsWithChildren<DocsContainerProps>>`: the component is not generic, so it takes `DocsContainerProps` at its default, the interface `DocsContainerProps<TFramework extends Renderer = Renderer> { context: DocsContextProps<TFramework>; theme?: ThemeVars }`) | MDX docs wrapper: provides `context` through `DocsContext` and renders `children` inside a `ThemeProvider` for `theme` (passed through `ensure`). `[AST:code/addons/docs/src/blocks/blocks/DocsContainer.tsx:L18]` `[AST:code/addons/docs/src/blocks/blocks/DocsContainer.tsx:L23]` |
 | `DocsStory` | `DocsStoryProps = { of: ModuleExport; expanded?: boolean; withToolbar?: boolean; __forceInitialArgs?: boolean; __primary?: boolean }`, defaults `expanded = true`, `withToolbar = false`, `__forceInitialArgs = false`, `__primary = false` (the two `__` props are internal) | Internal story renderer used by `Primary`/`Stories`. `parameters.docs.canvas.withToolbar` overrides the `withToolbar` prop. `[AST:code/addons/docs/src/blocks/blocks/types.ts:L9]` `[AST:code/addons/docs/src/blocks/blocks/DocsStory.tsx:L42]` |
 
 ## Utilities
 
 | Export | Kind | Purpose |
 |---|---|---|
-| `useOf` | hook | Resolve CSF export references within MDX (`of={ButtonStories.Primary}`). |
-| `DocsContext` | React context | Provides story/component metadata to blocks. Access via `const ctx = useContext(DocsContext)`. |
+| `useOf` | hook | Resolve CSF export references within MDX (`of={ButtonStories.Primary}`). `[AST:code/addons/docs/src/blocks/blocks/useOf.ts:L18]` |
+| `DocsContext` | const | `Context<DocsContextProps<Renderer>>`, a React context (kept on `globalThis.__DOCS_CONTEXT__`, so one copy is shared even when the module loads twice) that provides story/component metadata to blocks. Access via `const ctx = useContext(DocsContext)`. This is the doc blocks' context; `storybook/preview-api` exports a `DocsContext` class (`core-api.md`), the object such a context holds. `[AST:code/addons/docs/src/blocks/blocks/DocsContext.ts:L18]` |
 | `PureArgsTable` | component | ArgsTable without Storybook integration: the `ArgsTable` component (`FC<ArgsTableProps>`), re-exported under this name. `ArgsTableProps = ArgsTableOptionProps & (ArgsTableDataProps \| ArgsTableErrorProps \| ArgsTableLoadingProps)`. Options, all optional: `{ children?: ReactNode; updateArgs?: (args: Args) => void; resetArgs?: (argNames?: string[]) => void; compact?: boolean; inAddonPanel?: boolean; inTabPanel?: boolean; initialExpandedArgs?: boolean; isLoading?: boolean; sort?: SortType }` (`sort` defaults to `'none'`). Plus one of: `{ rows: ArgTypes; args?: Args; globals?: Globals }` (the table data), `{ error: ArgsTableError }` or `{ isLoading: boolean }`. `[SRC:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L320]` `[AST:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L197]` `[AST:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L222]` `[AST:code/addons/docs/src/blocks.ts:L3]` |
-| `TableOfContents` | component | Auto-generated TOC from docs headings. Enable via `parameters.docs.toc`. |
-| `SortType` | type | `'alpha' \| 'requiredFirst' \| 'none'` (no function form) for the `sort` prop on `Controls`/`ArgTypes` (`code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:186`). |
+| `TableOfContents` | component | Auto-generated TOC from docs headings. Enable via `parameters.docs.toc`. `[AST:code/addons/docs/src/blocks/components/TableOfContents.tsx:L158]` `[AST:code/addons/docs/src/blocks.ts:L4]` |
+| `SortType` | type | `'alpha' \| 'requiredFirst' \| 'none'` (no function form) for the `sort` prop on `Controls`/`ArgTypes`. `[AST:code/addons/docs/src/blocks/components/ArgsTable/ArgsTable.tsx:L186]` |
 
 `[AST:code/addons/docs/src/blocks.ts]`
 
@@ -207,6 +207,21 @@ Doc blocks rendered from project annotations through an `ExternalPreview`, a `Pr
 | `PRIMARY_STORY` | const | `'^'` | Nothing else in the repository's `code/` tree reads it | `[AST:code/addons/docs/src/blocks/blocks/types.ts:L3]` |
 | `DescriptionType` | enum | `{ INFO = 'info', NOTES = 'notes', DOCGEN = 'docgen', AUTO = 'auto' }` | Declared in `Description.tsx`; the `Description` block's props hold only `of`, and nothing else in `code/` reads the enum | `[AST:code/addons/docs/src/blocks/blocks/Description.tsx:L9]` |
 
+### Block props types
+
+The props types the block modules export, each at its declaration. `blocks/blocks/index.ts` re-exports every block module, so `@storybook/addon-docs/blocks` exports these with the blocks.
+
+| Export | Kind | Type | Purpose | Source |
+|---|---|---|---|---|
+| `AnchorProps` | interface | `{ storyId: string }` | The `Anchor` block's own props; the block takes `PropsWithChildren<AnchorProps>`, so `children` too | `[AST:code/addons/docs/src/blocks/blocks/Anchor.tsx:L6]` |
+| `DocsContainerProps` | interface | `DocsContainerProps<TFramework extends Renderer = Renderer> { context: DocsContextProps<TFramework>; theme?: ThemeVars }` | The `DocsContainer` block's own props; the block takes `PropsWithChildren<DocsContainerProps>`, at the default `Renderer`, so `children` too | `[AST:code/addons/docs/src/blocks/blocks/DocsContainer.tsx:L18]` |
+| `DocsProps` | type | `DocsProps<TRenderer extends Renderer = Renderer> = { docsParameter: Parameters; context: DocsContextProps<TRenderer> }` | The `Docs` block's props, both required | `[AST:code/addons/docs/src/blocks/blocks/Docs.tsx:L12]` |
+| `DocsStoryProps` | type | `{ of: ModuleExport; expanded?: boolean; withToolbar?: boolean; __forceInitialArgs?: boolean; __primary?: boolean }` | The `DocsStory` block's props: `of` is required, and the two `__` props are internal | `[AST:code/addons/docs/src/blocks/blocks/types.ts:L9]` |
+| `HeadingProps` | interface | `{ disableAnchor?: boolean }` | The own props of `Heading` and `Subheading`, which take `PropsWithChildren<HeadingProps>`, so `children` too | `[AST:code/addons/docs/src/blocks/blocks/Heading.tsx:L11]` |
+| `SourceParameters` | type | `SourceCodeProps & { type?: SourceType; transform?: (code: string, storyContext: ReturnType<DocsContextProps['getStoryContext']>) => string \| Promise<string>; originalSource?: string }`, with `SourceCodeProps` the pure `Source` component's `{ language?: SupportedLanguage; code?: string; format?: ComponentProps<typeof SyntaxHighlighter>['format']; dark?: boolean; copyable?: boolean }`, which the blocks entry does not export | The type `useSourceProps` reads a story's `parameters.docs.source` as (it falls back to its `language` and `dark` when the props leave them out), and the base of `SourceProps` | `[AST:code/addons/docs/src/blocks/blocks/Source.tsx:L16]` `[AST:code/addons/docs/src/blocks/components/Source.tsx:L39]` `[SRC:code/addons/docs/src/blocks/blocks/Source.tsx:L141]` |
+| `SourceProps` | type | `SourceParameters & { of?: ModuleExport; __forceInitialArgs?: boolean }` | The `Source` block's props, every one optional (each listed in [`Source` props detail](#source-props-detail)) | `[AST:code/addons/docs/src/blocks/blocks/Source.tsx:L28]` |
+| `StoryProps` | type | `StoryRefProps & StoryParameters`, with the module-local `StoryRefProps = { of?: ModuleExport; meta?: ModuleExports }` and `StoryParameters = { inline?: boolean; height?: string; autoplay?: boolean; __forceInitialArgs?: boolean; __primary?: boolean }` | The `Story` block's props, every one optional (the two `__` props are internal); `getStoryId` takes them first | `[AST:code/addons/docs/src/blocks/blocks/Story.tsx:L60]` |
+
 ## DocsRenderer
 
 Entry: `code/addons/docs/src/index.ts` exports `DocsRenderer`, a plain class, not a React component: `class DocsRenderer<TRenderer extends Renderer>` with two members, `render: DocsRenderFunction<TRenderer>`, which mounts the `Docs` block for a docs entry (inside an `MDXProvider` and an error boundary) into a DOM element through React, and `unmount: (element: HTMLElement) => void`, which unmounts it. The docs preview instantiates it; rarely imported directly; registered via `addons: ['@storybook/addon-docs']` in `main.ts`. `[AST:code/addons/docs/src/DocsRenderer.tsx:L48]` `[AST:code/addons/docs/src/index.ts:L8]`
@@ -219,7 +234,7 @@ The primitive control components that back `Controls` / `ArgTypes` panels. Impor
 
 | Export | Kind | Signature | Source |
 |---|---|---|---|
-| `ControlProps<T>` | type | `{ name: string; value?: T; defaultValue?: T; argType?: ArgType; onChange: (value?: T) => T \| void; onFocus?: (evt: any) => void; onBlur?: (evt: any) => void }` — base props shared by all control components | `[AST:code/addons/docs/src/blocks/controls/types.ts:L3]` |
+| `ControlProps<T>` | interface | `{ name: string; value?: T; defaultValue?: T; argType?: ArgType; onChange: (value?: T) => T \| void; onFocus?: (evt: any) => void; onBlur?: (evt: any) => void }` — base props shared by all control components | `[AST:code/addons/docs/src/blocks/controls/types.ts:L3]` |
 | `BooleanValue` | type | `boolean` | `[AST:code/addons/docs/src/blocks/controls/types.ts:L13]` |
 | `BooleanConfig` | interface | `{}` — no boolean-specific config | `[AST:code/addons/docs/src/blocks/controls/types.ts:L14]` |
 | `ColorValue` | type | `string` — hex / rgb / hsl / named | `[AST:code/addons/docs/src/blocks/controls/types.ts:L16]` |
