@@ -30,7 +30,7 @@ const config: StorybookConfig = {
 export default config;
 ```
 
-`[AST:code/frameworks/react-vite/src/types.ts:L1]`
+`[AST:code/frameworks/react-vite/src/types.ts:L66]`
 
 ## `@storybook/addon-a11y`
 
@@ -47,7 +47,7 @@ Accessibility testing via axe-core. Runs checks in the browser during story rend
 | `PARAM_KEY` | const | String identifier for a11y parameters (used internally) | `[AST:code/addons/a11y/src/index.ts:L6]` |
 | `A11yParameters` | interface | `{ context?: ContextSpecWithoutNode; options?: RunOptions; config?: Spec; disable?: boolean; test?: A11yTest }` — per-story a11y config | `[AST:code/addons/a11y/src/params.ts:L20]` |
 | `A11yGlobals` | interface | `{ a11y?: { manual?: boolean } }` — global a11y settings (manual vs auto run) | `[AST:code/addons/a11y/src/types.ts:L16]` |
-| `A11yTypes` | interface | `{ parameters: A11yParameters; globals: A11yGlobals }` — addon type bundle. Its `parameters` type is not the `A11yParameters` row above but the unexported wrapper of the same name at `types.ts:L7`, whose one field `a11y?` holds that interface | `[AST:code/addons/a11y/src/types.ts:L55]` |
+| `A11yTypes` | interface | `{ parameters: A11yParameters; globals: A11yGlobals }` — addon type bundle. Its `parameters` type is not the `A11yParameters` row above but the wrapper of the same name at `types.ts:L7`, which the package root does not re-export (its `index.ts:L8` re-exports only `A11yGlobals`, `A11yTypes` and `A11yReport` from `types.ts`), whose one field `a11y?` holds that interface | `[AST:code/addons/a11y/src/types.ts:L55]` |
 | `A11yReport` | type | `EnhancedResults \| { error: Error }` — axe run result or error wrapper | `[AST:code/addons/a11y/src/types.ts:L5]` |
 | `SelectorWithoutNode` | type | `Omit<Selector, 'Node'> \| Omit<SelectorList, 'NodeList'>` — axe selector minus DOM-Node refs (safe to serialize in parameters) | `[AST:code/addons/a11y/src/params.ts:L3]` |
 | `ContextObjectWithoutNode` | type | `{ include: SelectorWithoutNode; exclude?: SelectorWithoutNode } \| { exclude: SelectorWithoutNode; include?: SelectorWithoutNode }` | `[AST:code/addons/a11y/src/params.ts:L6]` |
@@ -194,7 +194,7 @@ The main entry is deliberately thin — test execution happens in the vitest-plu
 | `TEST_PROVIDER_ID` | const | `'storybook/test/test-provider'` | `[AST:code/addons/vitest/src/constants.ts:L12]` |
 | `STORYBOOK_ADDON_TEST_CHANNEL` | const | `'storybook/test/channel'` | `[AST:code/addons/vitest/src/constants.ts:L13]` |
 | `COMPONENT_TESTING_PANEL_ID` | const | (core's component-testing `PANEL_ID`, re-exported under this name) | `[AST:code/addons/vitest/src/constants.ts:L5]` |
-| `A11Y_PANEL_ID`, `A11Y_ADDON_ID` | const | (addon-a11y's `PANEL_ID` and `ADDON_ID`, re-exported under these names) | `[AST:code/addons/vitest/src/constants.ts:L6]` |
+| `A11Y_PANEL_ID`, `A11Y_ADDON_ID` | const | (addon-a11y's `PANEL_ID` and `ADDON_ID`, re-exported under these names) | `[AST:code/addons/vitest/src/constants.ts:L7]` `[AST:code/addons/vitest/src/constants.ts:L8]` |
 | `storeOptions` | const | Store config, `satisfies StoreOptions<StoreState>`: `{ id: ADDON_ID, initialState: { config: { coverage, a11y }, watching, cancelling, fatalError, index, previewAnnotations, currentRun: { triggeredBy, config: { coverage, a11y }, componentTestStatuses, a11yStatuses, a11yReports, componentTestCount, a11yCount, storyIds, totalTestCount, startedAt, finishedAt, unhandledErrors, coverageSummary } } }`. `coverage` and `a11y` sit under `initialState.config` (and `currentRun.config`), the status lists under `initialState.currentRun` | `[AST:code/addons/vitest/src/constants.ts:L21]` |
 | `FULL_RUN_TRIGGERS` | const | `RunTrigger[]`, the value `['global', 'run-all']`: the triggers that count as a full run | `[AST:code/addons/vitest/src/constants.ts:L61]` |
 | `TriggerTestRunRequestPayload` | type | `{ requestId, actor, storyIds?, config? }` | `[AST:code/addons/vitest/src/constants.ts:L74]` |
@@ -249,7 +249,7 @@ Powers Autodocs and MDX. Registered once in `main.ts`; story files gain automati
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
 | `DocsRenderer` | class | `DocsRenderer<TRenderer extends Renderer>`, a plain class (not a React component) with two members, `render: DocsRenderFunction<TRenderer>` (mounts the `Docs` block for a docs entry into a DOM element through React) and `unmount: (element: HTMLElement) => void` | `[AST:code/addons/docs/src/DocsRenderer.tsx:L48]` `[AST:code/addons/docs/src/index.ts:L8]` |
-| `DocsTypes` | type | Addon type definitions | `[AST:code/addons/docs/src/index.ts:L1]` |
+| `DocsTypes` | type | Addon type definitions | `[AST:code/addons/docs/src/index.ts:L9]` |
 
 ### `parameters.docs` (story-level config)
 

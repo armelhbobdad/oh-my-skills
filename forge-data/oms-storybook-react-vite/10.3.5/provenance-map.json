@@ -223,10 +223,10 @@
       "return_type": "ReactPreview<ReactTypes & InferTypes<Addons>>",
       "source_file": "code/renderers/react/src/preview.tsx",
       "source_line": 55,
-      "confidence": "T1-low",
-      "extraction_method": "source-read",
-      "ast_node_type": null,
-      "signature_source": "T1-low"
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
     },
     {
       "export_name": "ReactPreview",
@@ -396,12 +396,12 @@
       "source_library": "storybook",
       "params": [],
       "return_type": "Expect",
-      "source_file": "code/core/src/test/expect.ts",
-      "source_line": 139,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_const",
-      "signature_source": "T1"
+      "source_file": "code/core/src/test/index.ts",
+      "source_line": 24,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "fn",
@@ -423,28 +423,29 @@
       "export_type": "function",
       "source_library": "storybook",
       "params": [
-        "element: HTMLElement"
+        "element: HTMLElement",
+        "queriesToBind?: T"
       ],
-      "return_type": "BoundFunctions",
+      "return_type": "BoundFunctions<T>",
       "source_file": "code/core/src/test/testing-library.ts",
       "source_line": 110,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_function",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "screen",
       "export_type": "const",
       "source_library": "storybook",
       "params": [],
-      "return_type": "BoundFunctions",
+      "return_type": "Screen",
       "source_file": "code/core/src/test/testing-library.ts",
       "source_line": 107,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_const",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "waitFor",
@@ -457,36 +458,36 @@
       "return_type": "Promise<T>",
       "source_file": "code/core/src/test/testing-library.ts",
       "source_line": 108,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_function",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "fireEvent",
       "export_type": "const",
       "source_library": "storybook",
       "params": [],
-      "return_type": "FireFunction",
+      "return_type": "Promisify<FireFunction> & PromisifyObject<FireObject>",
       "source_file": "code/core/src/test/testing-library.ts",
       "source_line": 43,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_const",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "userEvent",
       "export_type": "const",
       "source_library": "storybook",
       "params": [],
-      "return_type": "UserEvent",
+      "return_type": "UserEvent['userEvent']",
       "source_file": "code/core/src/test/testing-library.ts",
       "source_line": 123,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "export_const",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "spyOn",
@@ -1284,7 +1285,7 @@
       "export_type": "type",
       "source_library": "@storybook/addon-a11y",
       "params": [],
-      "return_type": "AxeResults | ErrorResult",
+      "return_type": "EnhancedResults | { error: Error }",
       "source_file": "code/addons/a11y/src/index.ts",
       "source_line": 8,
       "confidence": "T1",
@@ -2264,7 +2265,7 @@
       "source_line": 3,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_function",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -2399,7 +2400,7 @@
       "source_line": 20,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_interface",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -2525,7 +2526,7 @@
       "source_line": 19,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_const",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -2540,7 +2541,7 @@
       "source_line": 19,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_const",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -2555,7 +2556,7 @@
       "source_line": 23,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_const",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -2563,12 +2564,12 @@
       "export_type": "const",
       "source_library": "@storybook/addon-a11y/preview",
       "params": [],
-      "return_type": "[typeof withVisionSimulator]",
+      "return_type": "(typeof withVisionSimulator)[]",
       "source_file": "code/addons/a11y/src/preview.tsx",
       "source_line": 12,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_const",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -2596,7 +2597,7 @@
       "source_line": 98,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_const",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -2609,7 +2610,7 @@
       "source_line": 105,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_const",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -2674,7 +2675,7 @@
       "source_line": 5,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_type_alias",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -2687,7 +2688,7 @@
       "source_line": 16,
       "confidence": "T1",
       "extraction_method": "ast-grep",
-      "ast_node_type": "export_interface",
+      "ast_node_type": "export_statement",
       "signature_source": "T1"
     },
     {
@@ -3128,10 +3129,10 @@
       ],
       "source_file": "code/addons/docs/src/blocks/blocks/Docs.tsx",
       "source_line": 17,
-      "confidence": "T1-low",
-      "extraction_method": "source-read",
-      "ast_node_type": null,
-      "signature_source": "T1-low"
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
     },
     {
       "export_name": "Anchor",
@@ -3142,9 +3143,9 @@
       ],
       "source_file": "code/addons/docs/src/blocks/blocks/Anchor.tsx",
       "source_line": 10,
-      "confidence": "T1-low",
-      "extraction_method": "source-read",
-      "ast_node_type": null,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
       "signature_source": "T1-low"
     },
     {
@@ -3156,9 +3157,9 @@
       ],
       "source_file": "code/addons/docs/src/blocks/blocks/DocsStory.tsx",
       "source_line": 42,
-      "confidence": "T1-low",
-      "extraction_method": "source-read",
-      "ast_node_type": null,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
       "signature_source": "T1-low"
     },
     {
@@ -3170,9 +3171,9 @@
       ],
       "source_file": "code/addons/docs/src/blocks/blocks/Heading.tsx",
       "source_line": 33,
-      "confidence": "T1-low",
-      "extraction_method": "source-read",
-      "ast_node_type": null,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
       "signature_source": "T1-low"
     },
     {
@@ -3184,9 +3185,9 @@
       ],
       "source_file": "code/addons/docs/src/blocks/blocks/Subheading.tsx",
       "source_line": 23,
-      "confidence": "T1-low",
-      "extraction_method": "source-read",
-      "ast_node_type": null,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
       "signature_source": "T1-low"
     },
     {

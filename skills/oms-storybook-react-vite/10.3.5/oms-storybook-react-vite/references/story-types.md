@@ -25,9 +25,9 @@ This reference captures the full generic signatures for CSF types defined in `@s
 import type { Meta, StoryObj, Decorator, Parameters } from '@storybook/react-vite';
 ```
 
-This package re-exports every CSF type from `@storybook/react` and adds framework-specific types (`StorybookConfig`, `FrameworkOptions`). Framework-aligned imports make intent explicit and let you swap frameworks (e.g., `@storybook/nextjs-vite`) without changing story code structure. `[AST:code/frameworks/react-vite/src/index.ts:L1]`
+This package re-exports every CSF type from `@storybook/react` and adds framework-specific types (`StorybookConfig`, `FrameworkOptions`). Framework-aligned imports make intent explicit and let you swap frameworks (e.g., `@storybook/nextjs-vite`) without changing story code structure. `[SRC:code/frameworks/react-vite/src/index.ts:L1]`
 
-**Importing from `@storybook/react` is also valid** — the types are physically defined there, and this form is common in the Storybook repo's own template stories. `[AST:code/renderers/react/template/stories/decorators.stories.tsx:L3]`
+**Importing from `@storybook/react` is also valid** — the types are physically defined there, and this form is common in the Storybook repo's own template stories. `[SRC:code/renderers/react/template/stories/decorators.stories.tsx:L4]`
 
 **Do NOT import CSF types from `storybook/internal/types`** — that path exists but is an internal re-export aimed at non-React renderers. For React authoring, use `@storybook/react-vite` or `@storybook/react`.
 
@@ -323,7 +323,7 @@ export interface ReactStory<T extends ReactTypes, TInput extends StoryAnnotation
 }
 ```
 
-`ReactTypes`, which the factory types above build on (`ReactTypes & InferTypes<Addons>`, `T extends ReactTypes`), is a type-only export of `@storybook/react` (`index.ts:L9`, so also of `@storybook/react-vite`): `interface ReactTypes extends ReactRenderer { parameters: ReactParameters }`, where the unexported `ReactParameters` is `{ react?: { rsc?: boolean; rootOptions?: RootOptions } }` (`rsc`: "Whether to enable React Server Components"; `rootOptions`: "Options passed to React root creation", `RootOptions` from `react-dom/client`). `[AST:code/renderers/react/src/types.ts:L33]` `[SRC:code/renderers/react/src/types.ts:L19]`
+`ReactTypes`, which the factory types above build on (`ReactTypes & InferTypes<Addons>`, `T extends ReactTypes`), is a type-only export of `@storybook/react` (`index.ts:L9`, so also of `@storybook/react-vite`): `interface ReactTypes extends ReactRenderer { parameters: ReactParameters }`, where `ReactParameters` (exported by `types.ts`, but not re-exported by `@storybook/react`, whose `index.ts:L9` re-exports only `ReactTypes`) is `{ react?: { rsc?: boolean; rootOptions?: RootOptions } }` (`rsc`: "Whether to enable React Server Components"; `rootOptions`: "Options passed to React root creation", `RootOptions` from `react-dom/client`). `[AST:code/renderers/react/src/types.ts:L33]` `[AST:code/renderers/react/src/types.ts:L19]`
 
 **Usage (CSF4):**
 ```ts
@@ -345,4 +345,4 @@ Primary.test('clicks', async ({ canvas, userEvent, args }) => {
 });
 ```
 
-`[AST:code/renderers/react/src/preview.tsx]` `[AST:code/renderers/react/template/stories/test-fn.stories.tsx:L1]`
+`[AST:code/renderers/react/src/preview.tsx]` `[SRC:code/renderers/react/template/stories/test-fn.stories.tsx:L25]`

@@ -20,7 +20,7 @@ All doc blocks are React components imported from `@storybook/addon-docs/blocks`
 import { Meta, Canvas, Controls, Primary, Stories } from '@storybook/addon-docs/blocks';
 ```
 
-`[AST:code/addons/docs/src/blocks.ts:L1]`
+`[SRC:code/addons/docs/src/blocks.ts:L8]`
 
 **Do NOT import from** `@storybook/blocks` — that was the v9 path and does not exist in v10's consolidated package layout. The blocks live under `@storybook/addon-docs/blocks`.
 
@@ -29,9 +29,9 @@ import { Meta, Canvas, Controls, Primary, Stories } from '@storybook/addon-docs/
 | Component | Props (simplified) | Purpose | Source |
 |---|---|---|---|
 | `Canvas` | `{ of?, meta?, sourceState?, layout?, source?, story?, withToolbar?, additionalActions?, className? }` (all optional) | Render story preview with optional source panel. `of` → story export from `import * as stories`. See [`Canvas` props detail](#canvas-props-detail) below. | `[AST:code/addons/docs/src/blocks/blocks/Canvas.tsx:L100]` |
-| `Story` | `{ of?, meta?, inline?, height?, autoplay? }` (`StoryProps`; also the internal `__forceInitialArgs?`, `__primary?`) | Render a single story by import reference (`of`; defaults to the current story). Pass `meta` (all exports of the CSF file) when the MDX page is unattached. `expanded` is a `DocsStory` prop, not a `Story` prop. | `[SRC:code/addons/docs/src/blocks/blocks/Story.tsx:L134]` |
-| `Primary` | none (`FC` with no props) | Render the primary story of the attached CSF file (`usePrimaryStory()`); it takes no `of`. | `[SRC:code/addons/docs/src/blocks/blocks/Primary.tsx:L16]` |
-| `Stories` | `{ title?: ReactElement \| string; includePrimary?: boolean }` | Render every story of the attached CSF file (`DocsContext.componentStories()`) as a list; it takes no `of`. `title` defaults to `'Stories'`, `includePrimary` to `true`. | `[SRC:code/addons/docs/src/blocks/blocks/Stories.tsx:L74]` |
+| `Story` | `{ of?, meta?, inline?, height?, autoplay? }` (`StoryProps`; also the internal `__forceInitialArgs?`, `__primary?`) | Render a single story by import reference (`of`; defaults to the current story). Pass `meta` (all exports of the CSF file) when the MDX page is unattached. `expanded` is a `DocsStory` prop, not a `Story` prop. | `[AST:code/addons/docs/src/blocks/blocks/Story.tsx:L134]` |
+| `Primary` | none (`FC` with no props) | Render the primary story of the attached CSF file (`usePrimaryStory()`); it takes no `of`. | `[AST:code/addons/docs/src/blocks/blocks/Primary.tsx:L16]` |
+| `Stories` | `{ title?: ReactElement \| string; includePrimary?: boolean }` | Render every story of the attached CSF file (`DocsContext.componentStories()`) as a list; it takes no `of`. `title` defaults to `'Stories'`, `includePrimary` to `true`. | `[AST:code/addons/docs/src/blocks/blocks/Stories.tsx:L74]` |
 
 ### `Canvas` props detail
 
@@ -49,7 +49,7 @@ The full prop shape accepted by `<Canvas>` in MDX. Defined inline in `code/addon
 | `additionalActions` | `ActionItem[]` | — | Extra buttons rendered into the canvas toolbar. |
 | `className` | `string` | — | Forwarded to the canvas wrapper element for custom styling. |
 
-`[AST:code/addons/docs/src/blocks/blocks/Canvas.tsx:L18]` `[AST:code/addons/docs/src/blocks/blocks/Canvas.tsx:L100]`
+`[SRC:code/addons/docs/src/blocks/blocks/Canvas.tsx:L18]` `[AST:code/addons/docs/src/blocks/blocks/Canvas.tsx:L100]`
 
 **MDX usage:**
 ```mdx
@@ -73,9 +73,9 @@ import * as ButtonStories from './Button.stories';
 | Component | Props | Purpose |
 |---|---|---|
 | `Meta` | `MetaProps = BaseAnnotations & { of?: ModuleExports; title?: string }` (`FC<MetaProps>`): `of?`, `title?`, plus every optional `BaseAnnotations` field (`decorators?`, `parameters?`, `args?`, `argTypes?`, `loaders?`, `beforeEach?`, `afterEach?`, `render?`, `tags?`, `mount?`). The component itself reads only `of`. | Declare component metadata in an MDX doc — connects the MDX page to a CSF module. Required once per doc. `[SRC:code/addons/docs/src/blocks/blocks/Meta.tsx:L9]` `[SRC:code/addons/docs/src/blocks/blocks/Meta.tsx:L15]` `[SRC:code/core/src/csf/story.ts:L347]` |
-| `Title` | `TitleProps = { of?: Of; children?: ReactNode }` | Render page title: `children` when given, else the last path segment of the meta's `title`. `of` names the CSF file's default export (meta) to read the title from (the attached meta when omitted); `of={undefined}` throws. `[SRC:code/addons/docs/src/blocks/blocks/Title.tsx:L11]` `[SRC:code/addons/docs/src/blocks/blocks/Title.tsx:L55]` |
-| `Subtitle` | `SubtitleProps = { children?: ReactNode; of?: Of }` | Render page subtitle: `children` when given, else the meta's `parameters.docs.subtitle` (or the deprecated `parameters.componentSubtitle`). `of` names the meta to read it from (the attached CSF file's meta when omitted); `of={undefined}` throws. `[SRC:code/addons/docs/src/blocks/blocks/Subtitle.tsx:L11]` `[SRC:code/addons/docs/src/blocks/blocks/Subtitle.tsx:L55]` |
-| `Description` | `{ of?: Of }` | Render the description of the resolved `of` (the attached meta when omitted): `parameters.docs.description.story` for a story, `parameters.docs.description.component` or the component's docgen description for a meta or component. There is no `markdown` prop. `[SRC:code/addons/docs/src/blocks/blocks/Description.tsx:L74]` |
+| `Title` | `TitleProps = { of?: Of; children?: ReactNode }` | Render page title: `children` when given, else the last path segment of the meta's `title`. `of` names the CSF file's default export (meta) to read the title from (the attached meta when omitted); `of={undefined}` throws. `[SRC:code/addons/docs/src/blocks/blocks/Title.tsx:L11]` `[AST:code/addons/docs/src/blocks/blocks/Title.tsx:L55]` |
+| `Subtitle` | `SubtitleProps = { children?: ReactNode; of?: Of }` | Render page subtitle: `children` when given, else the meta's `parameters.docs.subtitle` (or the deprecated `parameters.componentSubtitle`). `of` names the meta to read it from (the attached CSF file's meta when omitted); `of={undefined}` throws. `[SRC:code/addons/docs/src/blocks/blocks/Subtitle.tsx:L11]` `[AST:code/addons/docs/src/blocks/blocks/Subtitle.tsx:L55]` |
+| `Description` | `{ of?: Of }` | Render the description of the resolved `of` (the attached meta when omitted): `parameters.docs.description.story` for a story, `parameters.docs.description.component` or the component's docgen description for a meta or component. There is no `markdown` prop. `[AST:code/addons/docs/src/blocks/blocks/Description.tsx:L74]` |
 
 ## Control blocks
 
@@ -83,7 +83,7 @@ import * as ButtonStories from './Button.stories';
 |---|---|---|
 | `Controls` | `{ of?, include?, exclude?, sort? }` | Interactive controls panel for story args. |
 | `ArgTypes` | `{ of?, include?, exclude?, sort? }` | Static arg types documentation table (read-only). |
-| `Source` | `SourceProps` (full list below): `{ of?, code?, language?, format?, dark?, copyable?, type?, transform?, originalSource?, __forceInitialArgs? }` | Formatted source code block for a story. See [`Source` props detail](#source-props-detail) below. `[SRC:code/addons/docs/src/blocks/blocks/Source.tsx:L181]` |
+| `Source` | `SourceProps` (full list below): `{ of?, code?, language?, format?, dark?, copyable?, type?, transform?, originalSource?, __forceInitialArgs? }` | Formatted source code block for a story. See [`Source` props detail](#source-props-detail) below. `[AST:code/addons/docs/src/blocks/blocks/Source.tsx:L181]` |
 
 ### `Source` props detail
 
@@ -108,30 +108,30 @@ import * as ButtonStories from './Button.stories';
 
 | Component | Props | Purpose |
 |---|---|---|
-| `Markdown` | `MarkdownProps`, the props of `markdown-to-jsx`'s default export mirrored: `children` (a single string), `options?` (markdown-to-jsx options) and the rest of that component's props, all spread onto it | Render markdown content inside MDX. No `children` renders nothing; a non-string child throws (wrap the markdown in a template string). `options` is spread last over the block's own `{ forceBlock: true, overrides }`, so a key you pass wins. `[SRC:code/addons/docs/src/blocks/blocks/Markdown.tsx:L11]` `[SRC:code/addons/docs/src/blocks/blocks/Markdown.tsx:L55]` |
-| `Heading` | `{ children?: ReactNode; disableAnchor?: boolean }` (`PropsWithChildren<HeadingProps>`, `HeadingProps = { disableAnchor?: boolean }`) | H2 with an anchor id slugged from a string child. `disableAnchor` (or a non-string child) renders a plain H2 with no anchor. `[SRC:code/addons/docs/src/blocks/blocks/Heading.tsx:L11]` `[SRC:code/addons/docs/src/blocks/blocks/Heading.tsx:L33]` |
-| `Subheading` | `{ children?: ReactNode; disableAnchor?: boolean }` (`PropsWithChildren<HeadingProps>`, the `Heading` props type) | H3 with an anchor id slugged from a string child. `disableAnchor` (or a non-string child) renders a plain H3 with no anchor. `[SRC:code/addons/docs/src/blocks/blocks/Subheading.tsx:L23]` |
-| `Anchor` | `{ storyId: string; children?: ReactNode }` (`FC<PropsWithChildren<AnchorProps>>`, `AnchorProps = { storyId: string }`) | Create an anchor for a story: wraps `children` in `<div id="anchor--{storyId}" className="sb-anchor">`. `[SRC:code/addons/docs/src/blocks/blocks/Anchor.tsx:L6]` `[SRC:code/addons/docs/src/blocks/blocks/Anchor.tsx:L10]` |
-| `Unstyled` | `React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>`: every optional `<div>` prop (`children`, `id`, `style`, `ref`, event handlers, ...) | Wrapper that removes Storybook's docs styling — use for custom-styled sections. Spreads its props onto a `<div>` whose `className` is always `sb-unstyled` (a `className` you pass is replaced). `[SRC:code/addons/docs/src/blocks/blocks/Unstyled.tsx:L9]` |
+| `Markdown` | `MarkdownProps`, the props of `markdown-to-jsx`'s default export mirrored: `children` (a single string), `options?` (markdown-to-jsx options) and the rest of that component's props, all spread onto it | Render markdown content inside MDX. No `children` renders nothing; a non-string child throws (wrap the markdown in a template string). `options` is spread last over the block's own `{ forceBlock: true, overrides }`, so a key you pass wins. `[SRC:code/addons/docs/src/blocks/blocks/Markdown.tsx:L11]` `[AST:code/addons/docs/src/blocks/blocks/Markdown.tsx:L55]` |
+| `Heading` | `{ children?: ReactNode; disableAnchor?: boolean }` (`PropsWithChildren<HeadingProps>`, `HeadingProps = { disableAnchor?: boolean }`) | H2 with an anchor id slugged from a string child. `disableAnchor` (or a non-string child) renders a plain H2 with no anchor. `[AST:code/addons/docs/src/blocks/blocks/Heading.tsx:L11]` `[AST:code/addons/docs/src/blocks/blocks/Heading.tsx:L33]` |
+| `Subheading` | `{ children?: ReactNode; disableAnchor?: boolean }` (`PropsWithChildren<HeadingProps>`, the `Heading` props type) | H3 with an anchor id slugged from a string child. `disableAnchor` (or a non-string child) renders a plain H3 with no anchor. `[AST:code/addons/docs/src/blocks/blocks/Subheading.tsx:L23]` |
+| `Anchor` | `{ storyId: string; children?: ReactNode }` (`FC<PropsWithChildren<AnchorProps>>`, `AnchorProps = { storyId: string }`) | Create an anchor for a story: wraps `children` in `<div id="anchor--{storyId}" className="sb-anchor">`. `[AST:code/addons/docs/src/blocks/blocks/Anchor.tsx:L6]` `[AST:code/addons/docs/src/blocks/blocks/Anchor.tsx:L10]` |
+| `Unstyled` | `React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>`: every optional `<div>` prop (`children`, `id`, `style`, `ref`, event handlers, ...) | Wrapper that removes Storybook's docs styling — use for custom-styled sections. Spreads its props onto a `<div>` whose `className` is always `sb-unstyled` (a `className` you pass is replaced). `[AST:code/addons/docs/src/blocks/blocks/Unstyled.tsx:L9]` |
 
 ## Visual blocks
 
 | Component | Props | Purpose |
 |---|---|---|
 | `Typeset` | `{ fontSizes: (string \| number)[]; fontFamily?: string; fontWeight?: number; sampleText?: string }` (only `fontSizes` is required) | Font family / size display for design system docs. `[SRC:code/addons/docs/src/blocks/components/Typeset.tsx:L39]` |
-| `ColorPalette` | `{ children?: React.ReactNode }` | Color swatch collection: pass `ColorItem` elements as its children. `[SRC:code/addons/docs/src/blocks/components/ColorPalette.tsx:L202]` |
+| `ColorPalette` | `{ children?: React.ReactNode }` | Color swatch collection: pass `ColorItem` elements as its children. `[AST:code/addons/docs/src/blocks/components/ColorPalette.tsx:L202]` |
 | `ColorItem` | `{ title, subtitle, colors }` | Single color swatch with label. |
-| `IconGallery` | `{ children?: React.ReactNode }` | Icon grid: pass `IconItem` elements as its children. `[SRC:code/addons/docs/src/blocks/components/IconGallery.tsx:L74]` |
+| `IconGallery` | `{ children?: React.ReactNode }` | Icon grid: pass `IconItem` elements as its children. `[AST:code/addons/docs/src/blocks/components/IconGallery.tsx:L74]` |
 | `IconItem` | `{ name: string; children?: React.ReactNode }` | Single icon display: a caption (`name`) and the icon passed as `children`. `[SRC:code/addons/docs/src/blocks/components/IconGallery.tsx:L62]` |
 
 ## Container blocks
 
 | Component | Props | Purpose |
 |---|---|---|
-| `Docs` | `{ context, docsParameter }: DocsProps<TRenderer>`, both required: `Docs<TRenderer extends Renderer = Renderer>({ context, docsParameter }: DocsProps<TRenderer>)` with `DocsProps = { docsParameter: Parameters; context: DocsContextProps<TRenderer> }` | Root docs container: renders `docsParameter.page` (default `DocsPage`) inside `docsParameter.container` (default `DocsContainer`). Rarely used directly. `[SRC:code/addons/docs/src/blocks/blocks/Docs.tsx:L17]` |
+| `Docs` | `{ context, docsParameter }: DocsProps<TRenderer>`, both required: `Docs<TRenderer extends Renderer = Renderer>({ context, docsParameter }: DocsProps<TRenderer>)` with `DocsProps = { docsParameter: Parameters; context: DocsContextProps<TRenderer> }` | Root docs container: renders `docsParameter.page` (default `DocsPage`) inside `docsParameter.container` (default `DocsContainer`). Rarely used directly. `[AST:code/addons/docs/src/blocks/blocks/Docs.tsx:L17]` |
 | `DocsPage` | — | Default Autodocs layout function. |
-| `DocsContainer` | `{ context: DocsContextProps<Renderer>; theme?: ThemeVars; children?: ReactNode }` (`FC<PropsWithChildren<DocsContainerProps>>`: the component is not generic, so it takes `DocsContainerProps` at its default, `DocsContainerProps<TFramework extends Renderer = Renderer> = { context: DocsContextProps<TFramework>; theme? }`) | MDX docs wrapper: provides `context` through `DocsContext` and renders `children` inside a `ThemeProvider` for `theme` (passed through `ensure`). `[SRC:code/addons/docs/src/blocks/blocks/DocsContainer.tsx:L18]` `[SRC:code/addons/docs/src/blocks/blocks/DocsContainer.tsx:L23]` |
-| `DocsStory` | `DocsStoryProps = { of: ModuleExport; expanded?: boolean; withToolbar?: boolean; __forceInitialArgs?: boolean; __primary?: boolean }`, defaults `expanded = true`, `withToolbar = false`, `__forceInitialArgs = false`, `__primary = false` (the two `__` props are internal) | Internal story renderer used by `Primary`/`Stories`. `parameters.docs.canvas.withToolbar` overrides the `withToolbar` prop. `[SRC:code/addons/docs/src/blocks/blocks/types.ts:L9]` `[SRC:code/addons/docs/src/blocks/blocks/DocsStory.tsx:L42]` |
+| `DocsContainer` | `{ context: DocsContextProps<Renderer>; theme?: ThemeVars; children?: ReactNode }` (`FC<PropsWithChildren<DocsContainerProps>>`: the component is not generic, so it takes `DocsContainerProps` at its default, `DocsContainerProps<TFramework extends Renderer = Renderer> = { context: DocsContextProps<TFramework>; theme? }`) | MDX docs wrapper: provides `context` through `DocsContext` and renders `children` inside a `ThemeProvider` for `theme` (passed through `ensure`). `[AST:code/addons/docs/src/blocks/blocks/DocsContainer.tsx:L18]` `[AST:code/addons/docs/src/blocks/blocks/DocsContainer.tsx:L23]` |
+| `DocsStory` | `DocsStoryProps = { of: ModuleExport; expanded?: boolean; withToolbar?: boolean; __forceInitialArgs?: boolean; __primary?: boolean }`, defaults `expanded = true`, `withToolbar = false`, `__forceInitialArgs = false`, `__primary = false` (the two `__` props are internal) | Internal story renderer used by `Primary`/`Stories`. `parameters.docs.canvas.withToolbar` overrides the `withToolbar` prop. `[AST:code/addons/docs/src/blocks/blocks/types.ts:L9]` `[AST:code/addons/docs/src/blocks/blocks/DocsStory.tsx:L42]` |
 
 ## Utilities
 

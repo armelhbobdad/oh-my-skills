@@ -105,7 +105,7 @@ export default config;
 
 #### `StorybookConfig`
 
-The `main.ts` config interface (framework-augmented — `framework`, `addons`, `stories`, `viteFinal`, `docs`, `typescript`, `staticDirs`, …). `[AST:code/frameworks/react-vite/src/types.ts:L1]`
+The `main.ts` config interface (framework-augmented — `framework`, `addons`, `stories`, `viteFinal`, `docs`, `typescript`, `staticDirs`, …). `[AST:code/frameworks/react-vite/src/types.ts:L66]`
 
 ### `./preset` entry (internal)
 
@@ -142,7 +142,7 @@ Definitive source for CSF story types — `Meta`, `StoryObj`, `StoryFn`, `Decora
 - `composeStory`, `composeStories`, `setProjectAnnotations`, `INTERNAL_DEFAULT_PROJECT_ANNOTATIONS` (portable stories)
 - `__definePreview`, `ReactPreview`, `ReactMeta`, `ReactStory` (CSF4 factory API)
 
-`[AST:code/renderers/react/src/index.ts:L1]` `[AST:code/renderers/react/src/public-types.ts:L1]`
+`[SRC:code/renderers/react/src/index.ts]` `[SRC:code/renderers/react/src/public-types.ts]`
 
 ### `./experimental-playwright`
 
@@ -309,7 +309,7 @@ const preview: Preview = {
 export default preview;
 ```
 
-`[AST:code/renderers/react/src/public-types.ts:L80]` `[AST:code/core/src/types/index.ts]`
+`[AST:code/renderers/react/src/public-types.ts:L80]` `[SRC:code/core/src/types/index.ts]`
 
 **Preview vs meta vs story:** parameters, decorators, loaders, and tags cascade preview → meta → story, with later levels overriding. Use `preview.ts` for global concerns (theming, a11y, top-level mocks); use meta for per-component concerns; use story for per-variant concerns.
 

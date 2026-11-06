@@ -1,6 +1,6 @@
 # `storybook` Core Package — Full API Reference
 
-The consolidated `storybook` package exposes 40 subpath exports. This reference covers the 28 authoring-surface and type-surface subpaths extracted for v10.3.5. All provenance is T1 — read from source via AST. The Testing Library queries and helpers are the exception: the bindings that re-export them are read by eye (`[SRC:]`), and their signatures are `@testing-library/dom`'s own types (`[EXT:]`).
+The consolidated `storybook` package exposes 40 subpath exports. This reference covers the 28 authoring-surface and type-surface subpaths extracted for v10.3.5. Source citations point at the pinned source: `[AST:]` at a line SKF's ast-grep extractor records, `[SRC:]` at one read by eye. The `storybook/test` bindings made by destructuring (`expect`, and every Testing Library query and helper) have no extractor record and cite `[SRC:]`, as do the entry files' module-level lines and the infrastructure subpaths outside the extraction scope; the Testing Library signatures are `@testing-library/dom`'s own types (`[EXT:]`).
 
 ## v10 Consolidated Imports Map (all packages in scope)
 
@@ -15,11 +15,11 @@ Every import this skill teaches, grouped by source package and subpath. Column 3
 | `useState`, `useArgs`, `useParameter`, `useChannel`, `useEffect`, `useGlobals`, `useCallback`, `useMemo`, `useRef`, `useReducer`, `useStoryContext` | hook | `storybook/preview-api` `[AST:code/core/src/preview-api/index.ts:L5]` |
 | `addons`, `makeDecorator`, `mockChannel` | runtime | `storybook/preview-api` `[AST:code/core/src/preview-api/index.ts:L21]` |
 | `composeStories`, `composeStory`, `setProjectAnnotations` | runtime | **`@storybook/react-vite`** *(canonical for React+Vite — re-exported from `@storybook/react` where they're defined)* `[AST:code/renderers/react/src/portable-stories.tsx:L148]` |
-| `definePreview` / `__definePreview` *(CSF4 factory — `@storybook/react-vite` exports `definePreview`, its alias for the renderer's `__definePreview`, and `__definePreview` itself through `export *`; `@storybook/react` exports only `__definePreview`. `storybook/preview-api` exports neither)* | runtime | `@storybook/react-vite` `[AST:code/frameworks/react-vite/src/index.ts:L2]` `[SRC:code/renderers/react/src/preview.tsx:L55]` |
-| `action` | runtime | `storybook/actions` `[AST:code/core/src/actions/index.ts:L1]` |
+| `definePreview` / `__definePreview` *(CSF4 factory — `@storybook/react-vite` exports `definePreview`, its alias for the renderer's `__definePreview`, and `__definePreview` itself through `export *`; `@storybook/react` exports only `__definePreview`. `storybook/preview-api` exports neither)* | runtime | `@storybook/react-vite` `[AST:code/frameworks/react-vite/src/index.ts:L2]` `[AST:code/renderers/react/src/preview.tsx:L55]` |
+| `action` | runtime | `storybook/actions` `[AST:code/core/src/actions/runtime/action.ts:L50]` |
 | `create`, `themes`, `styled`, `css`, `useTheme`, `ThemeProvider` | runtime | `storybook/theming` / `storybook/theming/create` `[AST:code/core/src/theming/create.ts:L29]` |
 | `HIGHLIGHT`, `RESET_HIGHLIGHT` | const | `storybook/highlight` `[AST:code/core/src/highlight/index.ts:L1]` |
-| `Canvas`, `Meta`, `Controls`, `Primary`, `Stories`, `Story`, `ArgTypes`, `Source`, `Description`, `Title`, `Markdown`, `Typeset`, `ColorPalette`, `IconGallery`, `Unstyled`, `useOf`, `DocsContainer`, `DocsPage` | MDX block | `@storybook/addon-docs/blocks` `[AST:code/addons/docs/src/blocks.ts:L1]` |
+| `Canvas`, `Meta`, `Controls`, `Primary`, `Stories`, `Story`, `ArgTypes`, `Source`, `Description`, `Title`, `Markdown`, `Typeset`, `ColorPalette`, `IconGallery`, `Unstyled`, `useOf`, `DocsContainer`, `DocsPage` | MDX block | `@storybook/addon-docs/blocks` `[SRC:code/addons/docs/src/blocks.ts:L8]` |
 | `withThemeByClassName`, `withThemeByDataAttribute`, `withThemeFromJSXProvider` | decorator | `@storybook/addon-themes` `[AST:code/addons/themes/src/decorators/class-name.decorator.tsx:L19]` `[AST:code/addons/themes/src/decorators/data-attribute.decorator.tsx:L19]` `[AST:code/addons/themes/src/decorators/provider.decorator.tsx:L23]` |
 | a11y `parameters: { a11y: { test: ... } }`, runtime `afterEach`, `decorators`, `initialGlobals` | param + runtime | `@storybook/addon-a11y` / `@storybook/addon-a11y/preview` — the runtime `afterEach(context)` runs axe-core per story and attaches an `A11yReport` to `context.reporting`; compose it manually in your `preview.ts` only when you need multiple `afterEach` hooks `[AST:code/addons/a11y/src/preview.tsx:L14]` |
 
@@ -49,17 +49,17 @@ Entry: `code/core/src/test/index.ts`. These are the `play` function utilities �
 
 | Export | Kind | Signature / Purpose | Source |
 |---|---|---|---|
-| `expect` | const | Vitest/Chai-compatible assertion function with full matcher set | `[AST:code/core/src/test/expect.ts:L139]` |
+| `expect` | const | Vitest/Chai-compatible assertion function with full matcher set: the instrumented copy `test/index.ts` makes of `expect.ts`'s `expect` | `[SRC:code/core/src/test/index.ts:L24]` |
 | `fn` | function | `fn<T>(implementation?: T): Mock<T>` — create a mock function for `args` | `[AST:code/core/src/test/spy.ts:L48]` |
 | `spyOn` | function | Declared `spyOn: typeof vitestSpyOn` (`@vitest/spy` 3.2.4), so it has vitest's overloads and return types: `spyOn(obj: T, methodName: M)` for a method or class, `spyOn(obj: T, methodName: S, accessType: 'get')` for a getter and `spyOn(obj: T, methodName: G, accessType: 'set')` for a setter — spy on an existing member | `[AST:code/core/src/test/spy.ts:L41]` |
-| `within` | function | `within(element)` — scope DOM queries to a subtree | `[AST:code/core/src/test/testing-library.ts:L110]` |
-| `screen` | const proxy | Global DOM query object (warns inside docs mode) | `[AST:code/core/src/test/testing-library.ts:L107]` |
-| `waitFor` | function | Wait for an async DOM condition | `[AST:code/core/src/test/testing-library.ts:L108]` |
-| `fireEvent` | const | Promisified `@testing-library/dom` fireEvent | `[AST:code/core/src/test/testing-library.ts:L43]` |
-| `userEvent` | const | Full `@testing-library/user-event` API | `[AST:code/core/src/test/testing-library.ts:L123]` |
+| `within` | function | `within(element)` — scope DOM queries to a subtree | `[SRC:code/core/src/test/testing-library.ts:L110]` |
+| `screen` | const proxy | Global DOM query object (warns inside docs mode) | `[SRC:code/core/src/test/testing-library.ts:L107]` |
+| `waitFor` | function | Wait for an async DOM condition | `[SRC:code/core/src/test/testing-library.ts:L108]` |
+| `fireEvent` | const | Promisified `@testing-library/dom` fireEvent | `[SRC:code/core/src/test/testing-library.ts:L43]` |
+| `userEvent` | const | Full `@testing-library/user-event` API | `[SRC:code/core/src/test/testing-library.ts:L123]` |
 | `getByRole` / `findByRole` / `queryByRole` (and the 45 other `getBy*`, `getAllBy*`, `queryBy*`, `queryAllBy*`, `findBy*` and `findAllBy*` queries) | function | DOM element query helpers, each taking the `container` element first: every query, with its signature, is in [Testing Library queries and helpers](#testing-library-queries-and-helpers-storybooktest) below | `[SRC:code/core/src/test/testing-library.ts:L39-112]` |
 | `sb` | const | `{ mock }` — module-level mock utilities | `[AST:code/core/src/test/index.ts:L54]` |
-| `Mock`, `MockInstance`, `MaybeMocked` | type | Mock function type helpers | `[AST:code/core/src/test/spy.ts]` |
+| `Mock`, `MockInstance`, `MaybeMocked` | type | Mock function type helpers | `[SRC:code/core/src/test/spy.ts:L15]` |
 
 **Migration note:** `@storybook/test` is the v9-and-earlier package name and is **deprecated**. Always import from `storybook/test` in v10. `[QMD:oms-storybook-react-vite-temporal:issues.md #9b8716]`
 
@@ -93,8 +93,8 @@ Entry: `code/core/src/preview-api/index.ts`. Hooks run inside decorators and `re
 | `mockChannel` | function | Create a mock channel for unit tests | `[AST:code/core/src/preview-api/index.ts:L28]` |
 | `composeStory` | function | Core's renderer-agnostic form: `composeStory<TRenderer extends Renderer = Renderer, TArgs extends Args = Args>(storyAnnotations: LegacyStoryAnnotationsOrFn<TRenderer>, componentAnnotations: ComponentAnnotations<TRenderer, TArgs>, projectAnnotations?: ProjectAnnotations<TRenderer>, defaultConfig?: ProjectAnnotations<TRenderer>, exportsName?: string): ComposedStoryFn<TRenderer, Partial<TArgs>>`. `exportsName` is the fifth parameter here (the fourth binds to `defaultConfig`). Story authors on React+Vite import the four-parameter React wrapper from `@storybook/react-vite` instead; see `story-types.md` "Portable stories utilities". | `[SRC:code/core/src/preview-api/modules/store/csf/portable-stories.ts:L90]` `[AST:code/core/src/preview-api/index.ts:L52]` |
 | `composeStories` | function | Core's renderer-agnostic form: `composeStories<TModule extends Store_CSFExports>(storiesImport: TModule, globalConfig: ProjectAnnotations<Renderer>, composeStoryFn: ComposeStoryFn = defaultComposeStory)`, with `globalConfig` required and no annotated return type. Story authors on React+Vite import `composeStories(csfExports, projectAnnotations?)` from `@storybook/react-vite` instead; see `story-types.md` "Portable stories utilities". | `[SRC:code/core/src/preview-api/modules/store/csf/portable-stories.ts:L274]` `[AST:code/core/src/preview-api/index.ts:L51]` |
-| `setProjectAnnotations` | function | Set global project annotations for portable stories (call once in test setup) | `[AST:code/core/src/preview-api/index.ts:L46]` |
-| `decorateStory`, `defaultDecorateStory`, `combineArgs`, `combineParameters`, `composeConfigs`, `composeStepRunners`, `normalizeArrays`, `normalizeStory`, `normalizeProjectAnnotations`, `prepareStory`, `prepareMeta`, `filterArgTypes`, `sanitizeStoryContextUpdate`, `setDefaultProjectAnnotations`, `inferControls`, `userOrAutoTitleFromSpecifier`, `userOrAutoTitle`, `sortStoriesV7` | function | Internal composition utilities (rarely imported by authors) | `[AST:code/core/src/preview-api/index.ts:L46-68]` |
+| `setProjectAnnotations` | function | Set global project annotations for portable stories (call once in test setup) | `[AST:code/core/src/preview-api/index.ts:L62]` |
+| `decorateStory`, `defaultDecorateStory`, `combineArgs`, `combineParameters`, `composeConfigs`, `composeStepRunners`, `normalizeArrays`, `normalizeStory`, `normalizeProjectAnnotations`, `prepareStory`, `prepareMeta`, `filterArgTypes`, `sanitizeStoryContextUpdate`, `setDefaultProjectAnnotations`, `inferControls`, `userOrAutoTitleFromSpecifier`, `userOrAutoTitle`, `sortStoriesV7` | function | Internal composition utilities (rarely imported by authors) | `[AST:code/core/src/preview-api/index.ts:L47-67]` |
 | `HooksContext` | type | Hooks context shape | `[AST:code/core/src/preview-api/index.ts:L17]` |
 | `DocsContext` | type | Autodocs rendering context | `[AST:code/core/src/preview-api/index.ts:L41]` |
 | `Preview`, `PreviewWeb`, `PreviewWithSelection`, `StoryStore`, `UrlStore`, `WebView` | class | Preview runtime classes (internal). **Not to be confused with the `Preview` type** exported by `@storybook/react-vite` / `@storybook/react` (which is `ProjectAnnotations<ReactRenderer>` — the `.storybook/preview.ts` default-export shape). The runtime `Preview` class lives at `code/core/src/preview-api/modules/preview-web/Preview.tsx:60` and is aliased to `PreviewWeb` at `PreviewWeb.tsx:11`. | `[AST:code/core/src/preview-api/modules/preview-web/Preview.tsx:L60]` |
@@ -227,7 +227,7 @@ Entry: `code/core/src/manager-api/index.ts`. Used when writing a **manager-side*
 
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
-| (re-exports `./root`) | — | Full addon manager API: story selection, notifications, refs, globals, settings | `[AST:code/core/src/manager-api/index.ts]` |
+| (re-exports `./root`) | — | Full addon manager API: story selection, notifications, refs, globals, settings | `[SRC:code/core/src/manager-api/index.ts:L1]` |
 | `experimental_UniversalStore` | class | Cross-environment state store | `[AST:code/core/src/manager-api/index.ts:L3]` |
 | `experimental_useUniversalStore` | hook | Access universal store in manager components. `storybook/manager-api` exports it only with the `experimental_` prefix | `[AST:code/core/src/manager-api/index.ts:L4]` |
 | `experimental_MockUniversalStore` | class | Mock store for tests. `storybook/manager-api` exports the class only with the `experimental_` prefix (the unprefixed name is a type-only export of `storybook/internal/types`) | `[AST:code/core/src/manager-api/index.ts:L5]` |
@@ -244,12 +244,12 @@ Entry: `code/core/src/theming/index.ts`. Emotion-based styling used by Storybook
 | `styled` | const | Emotion `styled` — `styled.div\`...\`` | `[AST:code/core/src/theming/index.ts:L6]` |
 | `css` | function | Emotion `css` tagged template | `[AST:code/core/src/theming/index.ts:L13]` |
 | `keyframes` | function | Emotion `keyframes` for animations | `[AST:code/core/src/theming/index.ts:L16]` |
-| `Global` | component | Emotion `Global` styles | `[AST:code/core/src/theming/index.ts:L10]` |
+| `Global` | component | Emotion `Global` styles | `[AST:code/core/src/theming/index.ts:L14]` |
 | `ThemeProvider` | component | Emotion `ThemeProvider` with Storybook theme type | `[AST:code/core/src/theming/index.ts:L17]` |
 | `useTheme` | hook | Access current theme | `[AST:code/core/src/theming/index.ts:L18]` |
-| `withTheme` | HOC | HOC wrapper for class components | `[AST:code/core/src/theming/index.ts:L10]` |
-| `jsx` | function | Emotion JSX runtime | `[AST:code/core/src/theming/index.ts:L10]` |
-| `CacheProvider`, `ClassNames` | component | Emotion cache/classnames | `[AST:code/core/src/theming/index.ts:L10]` |
+| `withTheme` | HOC | HOC wrapper for class components | `[AST:code/core/src/theming/index.ts:L19]` |
+| `jsx` | function | Emotion JSX runtime | `[AST:code/core/src/theming/index.ts:L15]` |
+| `CacheProvider`, `ClassNames` | component | Emotion cache/classnames | `[AST:code/core/src/theming/index.ts:L11]` `[AST:code/core/src/theming/index.ts:L12]` |
 | `createCache` | function | Create an emotion cache | `[AST:code/core/src/theming/index.ts:L33]` |
 | `isPropValid` | function | `@emotion/is-prop-valid` filter | `[AST:code/core/src/theming/index.ts:L34]` |
 | `createGlobal`, `createReset`, `srOnlyStyles` | function/const | Global style helpers | `[AST:code/core/src/theming/index.ts:L36]` |
@@ -294,7 +294,7 @@ Entry: `code/core/src/actions/index.ts`. The `action()` function logs events to 
 |---|---|---|---|
 | `action` | function | `action(name: string, options: ActionOptions = {}): HandlerFunction` — create an action logger for an arg; `options` is optional | `[AST:code/core/src/actions/runtime/action.ts:L50]` |
 | `configureActions` | function | Global action config (max depth, clearOnStoryChange) | `[AST:code/core/src/actions/runtime/configureActions.ts:L9]` |
-| `ActionDisplay`, `ActionsFunction`, `ActionOptions`, `ActionsMap`, `HandlerFunction` | type | Action payload types | `[AST:code/core/src/actions/models/index.ts:L1]` |
+| `ActionDisplay`, `ActionsFunction`, `ActionOptions`, `ActionsMap`, `HandlerFunction` | type | Action payload types | `[AST:code/core/src/actions/models/ActionDisplay.ts:L3]` `[AST:code/core/src/actions/models/ActionsFunction.ts:L4]` `[AST:code/core/src/actions/models/ActionOptions.ts:L11]` `[AST:code/core/src/actions/models/ActionsMap.ts:L3]` `[AST:code/core/src/actions/models/HandlerFunction.ts:L1]` |
 | `actions` | function | Declared `actions: ActionsFunction = (...args: any[]) => …`, so it has the `ActionsFunction` overloads: `actions<T extends string>(handlerMap: Record<T, string>, options?: ActionOptions): ActionsMap<T>`, `actions<T extends string>(...handlers: T[]): ActionsMap<T>`, and one overload per count of one to ten handler names followed by `options?: ActionOptions` — create one action handler per name and return them as `ActionsMap<T>` (`Record<T, HandlerFunction>`). With a map, each key names a handler and its value the action name; a single array argument is read as the list of names, and a last argument that is not a string, when there is more than one, as options spread over `config` | `[AST:code/core/src/actions/runtime/actions.ts:L5]` `[SRC:code/core/src/actions/models/ActionsFunction.ts:L4]` |
 | `config` | const | `ActionOptions`, starting as `{ depth: 10, clearOnStoryChange: true, limit: 50 }`: the module-wide action options that `action` and `actions` spread under their own options, and that `configureActions` merges new options into (`Object.assign`) | `[AST:code/core/src/actions/runtime/configureActions.ts:L3]` |
 | `PANEL_ID` | const | `'storybook/actions/panel'` (`` `${ADDON_ID}/panel` ``): the id the Actions panel is registered under in the manager | `[AST:code/core/src/actions/constants.ts:L3]` |
@@ -331,7 +331,7 @@ Entry: `code/core/src/viewport/index.ts`. Viewport addon API — responsive view
 
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
-| (re-exports) | const/type | Viewport constants, defaults, responsive viewport definitions | `[AST:code/core/src/viewport/index.ts:L1]` |
+| (re-exports) | const/type | Viewport constants, defaults, responsive viewport definitions | `[SRC:code/core/src/viewport/index.ts]` |
 | `INITIAL_VIEWPORTS` | const | The 28 built-in device viewports, `as const satisfies ViewportMap`: `iphone5`, `iphone6`, `iphone6p`, `iphone8p`, `iphonex`, `iphonexr`, `iphonexsmax`, `iphonese2`, `iphone12mini`, `iphone12`, `iphone12promax`, `iphoneSE3`, `iphone13`, `iphone13pro`, `iphone13promax`, `iphone14`, `iphone14pro`, `iphone14promax`, `ipad`, `ipad10p`, `ipad11p`, `ipad12p`, `galaxys5`, `galaxys9`, `nexus5x`, `nexus6p`, `pixel`, `pixelxl`, each `{ name, styles: { height, width }, type }` (`iphone5` is `{ name: 'iPhone 5', styles: { height: '568px', width: '320px' }, type: 'mobile' }`). Its keys are the `InitialViewportKeys` type | `[AST:code/core/src/viewport/defaults.ts:L3]` |
 | `MINIMAL_VIEWPORTS` | const | Four generic viewports, `as const satisfies ViewportMap`: `mobile1` (`'Small mobile'`, 320×568), `mobile2` (`'Large mobile'`, 414×896), `tablet` (834×1112) and `desktop` (1280×1024), width × height in `px` | `[AST:code/core/src/viewport/defaults.ts:L234]` |
 | `DEFAULT_VIEWPORT` | const | `'responsive'`; nothing else in the repository's `code/` tree reads it | `[AST:code/core/src/viewport/defaults.ts:L232]` |
@@ -369,13 +369,13 @@ Entry: `code/core/src/types/index.ts`. This is the canonical home of the **CSF t
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
 | `ViewMode` | type | `OrString<'story' \| 'docs' \| 'settings'> \| undefined`: any string (`OrString<T> = T \| (string & {})`) or `undefined`, with `'story'`, `'docs'` and `'settings'` as the named values | `[AST:code/core/src/types/modules/csf.ts:L71]` |
-| `StorybookParameters` | interface | Storybook-specific parameters | `[AST:code/core/src/types/index.ts]` |
-| `WebRenderer` | interface | Base renderer with `canvasElement` | `[AST:code/core/src/types/index.ts]` |
-| `RenderToCanvas` | type | Renderer render function signature | `[AST:code/core/src/types/index.ts]` |
-| `CSFFile` | type | Parsed CSF file structure | `[AST:code/core/src/types/index.ts]` |
-| `PreparedStory` | type | Story with decorators/loaders applied | `[AST:code/core/src/types/index.ts]` |
-| `NormalizedComponentAnnotations`, `NormalizedStoryAnnotations`, `NormalizedProjectAnnotations` | type | Internal normalized forms | `[AST:code/core/src/types/index.ts]` |
-| `RenderContext` | type | Renderer context passed to `render` | `[AST:code/core/src/types/index.ts]` |
+| `StorybookParameters` | interface | Storybook-specific parameters | `[SRC:code/core/src/types/index.ts]` |
+| `WebRenderer` | interface | Base renderer with `canvasElement` | `[SRC:code/core/src/types/index.ts]` |
+| `RenderToCanvas` | type | Renderer render function signature | `[SRC:code/core/src/types/index.ts]` |
+| `CSFFile` | type | Parsed CSF file structure | `[SRC:code/core/src/types/index.ts]` |
+| `PreparedStory` | type | Story with decorators/loaders applied | `[SRC:code/core/src/types/index.ts]` |
+| `NormalizedComponentAnnotations`, `NormalizedStoryAnnotations`, `NormalizedProjectAnnotations` | type | Internal normalized forms | `[SRC:code/core/src/types/index.ts]` |
+| `RenderContext` | type | Renderer context passed to `render` | `[SRC:code/core/src/types/index.ts]` |
 
 ## storybook/internal/csf
 
@@ -419,7 +419,7 @@ Categories:
 - **Utilities:** `ErrorFormatter`, `SyntaxHighlighter`, `Placeholder`, `Zoom`, `Spaced`, `getStoryHref`
 - **Brand:** `StorybookLogo`, `StorybookIcon`
 
-`[AST:code/core/src/components/index.ts:L1]`
+`[SRC:code/core/src/components/index.ts]`
 
 ## Infrastructure subpaths (tier C)
 
@@ -428,16 +428,16 @@ These are imported when building **custom addons**, NOT when authoring stories. 
 | Subpath | Purpose | Source |
 |---|---|---|
 | `storybook/internal/common` | Preset / config helpers (`loadMainConfig`, `normalizeStories`, `getStorybookInfo`) | `[AST:code/core/src/common/index.ts]` |
-| `storybook/internal/channels` | `Channel`, `PostMessageTransport`, `WebsocketTransport`, `createBrowserChannel` | `[AST:code/core/src/channels/index.ts:L5]` |
-| `storybook/internal/core-events` | 100+ event constants: `CHANNEL_CREATED`, `STORY_SPECIFIED`, `STORY_PREPARED`, `STORY_RENDERED`, `UPDATE_STORY_ARGS`, `GLOBALS_UPDATED`, `SELECT_STORY`, `PREVIEW_INITIALIZED`, etc. | `[AST:code/core/src/core-events/index.ts]` |
+| `storybook/internal/channels` | `Channel`, `PostMessageTransport`, `WebsocketTransport`, `createBrowserChannel` | `[SRC:code/core/src/channels/index.ts]` |
+| `storybook/internal/core-events` | 100+ event constants: `CHANNEL_CREATED`, `STORY_SPECIFIED`, `STORY_PREPARED`, `STORY_RENDERED`, `UPDATE_STORY_ARGS`, `GLOBALS_UPDATED`, `SELECT_STORY`, `PREVIEW_INITIALIZED`, etc. | `[SRC:code/core/src/core-events/index.ts]` |
 | `storybook/internal/instrumenter` | `instrument()` wraps functions for tracking in `play` | `[AST:code/core/src/instrumenter/index.ts:L1]` |
-| `storybook/internal/router` | Router utilities | `[AST:code/core/src/router/index.ts]` |
+| `storybook/internal/router` | Router utilities | `[SRC:code/core/src/router/index.ts]` |
 | `storybook/internal/client-logger` | `logger`, `once`, `deprecate`, `pretty` — browser-side logging | `[AST:code/core/src/client-logger/index.ts:L23]` |
-| `storybook/internal/node-logger` | Node-side logger + CLI helpers (`prompt`, `logTracker`, `colors`) | `[AST:code/core/src/node-logger/index.ts:L67]` |
-| `storybook/internal/telemetry` | `telemetry`, `getStorybookMetadata`, `getSessionId`, `addToGlobalContext` | `[AST:code/core/src/telemetry/index.ts:L31]` |
-| `storybook/internal/csf-tools` | `CsfFile`, `ConfigFile`, `babelParse`, `enrichCsf`, `getStorySortParameter`, `vitestTransform`, `componentTransform` | `[AST:code/core/src/csf-tools/index.ts:L1]` |
-| `storybook/internal/docs-tools` | ArgTypes utilities, shared docgen helpers | `[AST:code/core/src/docs-tools/index.ts]` |
-| `storybook/internal/mocking-utils` | `automock`, `extract`, `resolve`, `esmWalker`, `runtime`, `redirect` | `[AST:code/core/src/mocking-utils/index.ts:L1]` |
-| `storybook/internal/core-server` | `StoryIndexGenerator`, `generateStoryFile`, `experimental_loadStorybook`, `getPreviewHeadTemplate`, `getPreviewBodyTemplate` | `[AST:code/core/src/core-server/index.ts:L3]` |
-| `storybook/internal/cli` | Framework detection, project type detection, ESLint plugin integration | `[AST:code/core/src/cli/index.ts]` |
-| `storybook/internal/babel` | Babel core (`core`, `generate`, `traverse`, `types`, `parser`, `transformSync`), `recast`, `BabelFile`, `NodePath` | `[AST:code/core/src/babel/index.ts:L35]` |
+| `storybook/internal/node-logger` | Node-side logger + CLI helpers (`prompt`, `logTracker`, `colors`) | `[SRC:code/core/src/node-logger/index.ts:L67]` |
+| `storybook/internal/telemetry` | `telemetry`, `getStorybookMetadata`, `getSessionId`, `addToGlobalContext` | `[SRC:code/core/src/telemetry/index.ts:L31]` |
+| `storybook/internal/csf-tools` | `CsfFile`, `ConfigFile`, `babelParse`, `enrichCsf`, `getStorySortParameter`, `vitestTransform`, `componentTransform` | `[SRC:code/core/src/csf-tools/index.ts:L1]` |
+| `storybook/internal/docs-tools` | ArgTypes utilities, shared docgen helpers | `[SRC:code/core/src/docs-tools/index.ts]` |
+| `storybook/internal/mocking-utils` | `automock`, `extract`, `resolve`, `esmWalker`, `runtime`, `redirect` | `[SRC:code/core/src/mocking-utils/index.ts:L1]` |
+| `storybook/internal/core-server` | `StoryIndexGenerator`, `generateStoryFile`, `experimental_loadStorybook`, `getPreviewHeadTemplate`, `getPreviewBodyTemplate` | `[SRC:code/core/src/core-server/index.ts:L3]` |
+| `storybook/internal/cli` | Framework detection, project type detection, ESLint plugin integration | `[SRC:code/core/src/cli/index.ts]` |
+| `storybook/internal/babel` | Babel core (`core`, `generate`, `traverse`, `types`, `parser`, `transformSync`), `recast`, `BabelFile`, `NodePath` | `[SRC:code/core/src/babel/index.ts:L35]` |
