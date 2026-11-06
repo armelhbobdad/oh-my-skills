@@ -267,7 +267,7 @@ The primitive control components that back `Controls` / `ArgTypes` panels. Impor
 |---|---|---|---|
 | `BooleanProps` | type | `ControlProps<BooleanValue> & BooleanConfig` | `[AST:code/addons/docs/src/blocks/controls/Boolean.tsx:L104]` |
 | `BooleanControl` | component | `FC<BooleanProps>` — toggle switch | `[AST:code/addons/docs/src/blocks/controls/Boolean.tsx:L117]` |
-| `ColorControlProps` | type | `ControlProps<ColorValue> & ColorConfig` | `[AST:code/addons/docs/src/blocks/controls/Color.tsx:L360]` |
+| `ColorControlProps` | type | `ControlProps<ColorValue> & ColorConfig` — declared in `Color.tsx` only: `@storybook/addon-docs/blocks` does not export this name (the controls barrel imports it type-only, `[SRC:code/addons/docs/src/blocks/controls/index.tsx:L4]`), so import its alias `ColorProps` | `[AST:code/addons/docs/src/blocks/controls/Color.tsx:L360]` |
 | `ColorProps` | type | `ColorControlProps` — the controls barrel's alias for the color control's props | `[AST:code/addons/docs/src/blocks/controls/index.tsx:L10]` |
 | `ColorControl` | component | `(props: ColorControlProps) => JSX.Element` — color picker with color-space cycling | `[AST:code/addons/docs/src/blocks/controls/Color.tsx:L361]` |
 | `DateProps` | type | `ControlProps<DateValue> & DateConfig` | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L68]` |
