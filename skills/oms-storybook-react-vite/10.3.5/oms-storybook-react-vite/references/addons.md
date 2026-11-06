@@ -226,6 +226,14 @@ setProjectAnnotations([previewAnnotations]);
 
 `[AST:code/addons/vitest/src/vitest-plugin/setup-file.ts]`
 
+### Vitest plugin entry: default export
+
+| Export | Kind | Purpose | Source |
+|---|---|---|---|
+| `default` | default export | `export default storybookTest`: the default export of `@storybook/addon-vitest/vitest-plugin` is its named `storybookTest` plugin factory, so `import storybookTest from '@storybook/addon-vitest/vitest-plugin'` gives the same function as the named import above | `[SRC:code/addons/vitest/src/vitest-plugin/index.ts:L531]` |
+
+The addons' `./postinstall` entries default-export a function as well (tier B, run when the addon is added, not imported by stories): `@storybook/addon-a11y/postinstall`'s is an `async` function of `options: PostinstallOptions` (a type from the CLI's `add` command) that runs `storybook automigrate addon-a11y-addon-test` through the project's package manager. `[SRC:code/addons/a11y/src/postinstall.ts:L5]`
+
 ## `@storybook/addon-docs`
 
 Powers Autodocs and MDX. Registered once in `main.ts`; story files gain automatic docs when tagged with `tags: ['autodocs']`, and `*.mdx` files can reference stories via the blocks API.

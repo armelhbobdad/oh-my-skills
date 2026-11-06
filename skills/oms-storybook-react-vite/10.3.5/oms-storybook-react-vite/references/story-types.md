@@ -96,6 +96,19 @@ The CSF3 story object type. Three overload paths:
 2. **Component-aware:** pass `typeof Component` — args are `ComponentProps<Component>`.
 3. **Raw args:** pass an args type directly.
 
+`AddMocks<TArgs, DefaultArgs>`, the meta-aware path's args type, is exported too (`@storybook/react`, so `@storybook/react-vite`). Per its comment it "performs a downcast to function types that are mocks, when a mock fn is given to meta args": each arg the meta also sets keeps the meta's type when that is a function, else the component's. `[AST:code/renderers/react/src/public-types.ts:L69]`
+
+```ts
+// code/renderers/react/src/public-types.ts:69
+export type AddMocks<TArgs, DefaultArgs> = Simplify<{
+  [T in keyof TArgs]: T extends keyof DefaultArgs
+    ? DefaultArgs[T] extends (...args: any) => any & { mock: {} } // allow any function with a mock object
+      ? DefaultArgs[T]
+      : TArgs[T]
+    : TArgs[T];
+}>;
+```
+
 `StoryAnnotations<R, Args, RequiredArgs>` has these fields: the `BaseAnnotations` ones (`decorators`, `parameters`, `args`, `argTypes`, `loaders`, `beforeEach`, `afterEach`, `render`, `tags`, `mount`) and its own `name`, `storyName`, `play`, `globals`, `story`. All are optional except `args`, which is required when `RequiredArgs` has a required member (the component args the meta does not supply). Same shape as meta minus `title`/`id`/`component`/`subcomponents`/`includeStories`/`excludeStories`, plus `name`, `storyName` and `story`. `[AST:code/core/src/csf/story.ts:L543]`
 
 **Canonical v10 story file:**
@@ -275,6 +288,11 @@ Import these names from `storybook/manager-api`: its `root.tsx` re-exports the `
 | `ViewportStyles` | interface | `{ height: string; width: string }` — CSS dimensions | `[AST:code/core/src/viewport/types.ts:L9]` |
 | `ViewportType` | type | `'desktop' \| 'mobile' \| 'tablet' \| 'watch' \| 'other'` | `[AST:code/core/src/viewport/types.ts:L7]` |
 | `InitialViewportKeys` | type | `keyof typeof INITIAL_VIEWPORTS` — keys of the built-in viewport map | `[AST:code/core/src/viewport/defaults.ts:L230]` |
+| `Viewport` | interface | `{ name: string; styles: ViewportStyles; type?: ViewportType }` — one viewport definition | `[AST:code/core/src/viewport/types.ts:L1]` |
+| `ViewportMap` | type | `Record<string, Viewport>` — viewports keyed by name; `INITIAL_VIEWPORTS` and `MINIMAL_VIEWPORTS` (`core-api.md`) satisfy it | `[AST:code/core/src/viewport/types.ts:L14]` |
+| `GlobalStateUpdate` | type | `Partial<GlobalState>` — a partial update of the viewport global | `[AST:code/core/src/viewport/types.ts:L31]` |
+| `ViewportGlobals` | interface | `{ viewport?: GlobalState \| GlobalState['value'] }` — the `viewport` global, either the full state or just its `value` | `[AST:code/core/src/viewport/types.ts:L56]` |
+| `ViewportTypes` | interface | `{ parameters: ViewportParameters; globals: ViewportGlobals }` — the viewport feature's type bundle (`ViewportGlobals` and `ViewportTypes` are also re-exported from `storybook/internal/csf`, through `core-annotations.ts`) | `[AST:code/core/src/viewport/types.ts:L65]` |
 
 ## CSF4 factory API
 
@@ -304,6 +322,8 @@ export interface ReactStory<T extends ReactTypes, TInput extends StoryAnnotation
   Component: ComponentType<Partial<T['args']>>;  // for portable stories
 }
 ```
+
+`ReactTypes`, which the factory types above build on (`ReactTypes & InferTypes<Addons>`, `T extends ReactTypes`), is a type-only export of `@storybook/react` (`index.ts:L9`, so also of `@storybook/react-vite`): `interface ReactTypes extends ReactRenderer { parameters: ReactParameters }`, where the unexported `ReactParameters` is `{ react?: { rsc?: boolean; rootOptions?: RootOptions } }` (`rsc`: "Whether to enable React Server Components"; `rootOptions`: "Options passed to React root creation", `RootOptions` from `react-dom/client`). `[AST:code/renderers/react/src/types.ts:L33]` `[SRC:code/renderers/react/src/types.ts:L19]`
 
 **Usage (CSF4):**
 ```ts

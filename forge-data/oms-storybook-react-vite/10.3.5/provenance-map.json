@@ -3203,6 +3203,2088 @@
       "extraction_method": "ast-grep",
       "ast_node_type": "export_specifier",
       "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getByRole",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "role: ByRoleMatcher",
+        "options?: ByRoleOptions"
+      ],
+      "return_type": "T",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 72,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getByText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: SelectorMatcherOptions"
+      ],
+      "return_type": "T",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 74,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getByLabelText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: SelectorMatcherOptions"
+      ],
+      "return_type": "T",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 70,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getByAltText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 68,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getByDisplayValue",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 69,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getByPlaceholderText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 71,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getByTestId",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 73,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getByTitle",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 75,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getAllByRole",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "role: ByRoleMatcher",
+        "options?: ByRoleOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 64,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getAllByText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: SelectorMatcherOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 66,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getAllByLabelText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: SelectorMatcherOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 62,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getAllByAltText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 60,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getAllByDisplayValue",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 61,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getAllByPlaceholderText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 63,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getAllByTestId",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 65,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getAllByTitle",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 67,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryByRole",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "role: ByRoleMatcher",
+        "options?: ByRoleOptions"
+      ],
+      "return_type": "T | null",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 102,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryByText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: SelectorMatcherOptions"
+      ],
+      "return_type": "T | null",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 104,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryByLabelText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: SelectorMatcherOptions"
+      ],
+      "return_type": "T | null",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 100,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryByAltText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T | null",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 97,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryByDisplayValue",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T | null",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 99,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryByPlaceholderText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T | null",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 101,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryByTestId",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T | null",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 103,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryByTitle",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T | null",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 105,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryAllByRole",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "role: ByRoleMatcher",
+        "options?: ByRoleOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 93,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryAllByText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: SelectorMatcherOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 95,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryAllByLabelText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: SelectorMatcherOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 91,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryAllByAltText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 88,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryAllByDisplayValue",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 90,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryAllByPlaceholderText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 92,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryAllByTestId",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 94,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryAllByTitle",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "T[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 96,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findByRole",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "role: ByRoleMatcher",
+        "options?: ByRoleOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 56,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findByText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: SelectorMatcherOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 58,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findByLabelText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: SelectorMatcherOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 54,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findByAltText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 52,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findByDisplayValue",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 53,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findByPlaceholderText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 55,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findByTestId",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 57,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findByTitle",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 59,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findAllByRole",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "role: ByRoleMatcher",
+        "options?: ByRoleOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T[]>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 48,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findAllByText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: SelectorMatcherOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T[]>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 50,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findAllByLabelText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: SelectorMatcherOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T[]>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 46,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findAllByAltText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T[]>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 44,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findAllByDisplayValue",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T[]>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 45,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findAllByPlaceholderText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T[]>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 47,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findAllByTestId",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T[]>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 49,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "findAllByTitle",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions",
+        "waitForElementOptions?: waitForOptions"
+      ],
+      "return_type": "Promise<T[]>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 51,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryByAttribute",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "attribute: string",
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "HTMLElement | null",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 98,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryAllByAttribute",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "attribute: string",
+        "container: HTMLElement",
+        "id: Matcher",
+        "options?: MatcherOptions"
+      ],
+      "return_type": "HTMLElement[]",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 89,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "buildQueries",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "queryAllBy: GetAllBy<Arguments>",
+        "getMultipleError: GetErrorFunction<Arguments>",
+        "getMissingError: GetErrorFunction<Arguments>"
+      ],
+      "return_type": "BuiltQueryMethods<Arguments>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 40,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "configure",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "configDelta: ConfigFn | Partial<Config>"
+      ],
+      "return_type": "void",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 41,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getConfig",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "Config",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 76,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "createEvent",
+      "export_type": "const",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "CreateObject & CreateFunction",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 42,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getDefaultNormalizer",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "options?: DefaultNormalizerOptions"
+      ],
+      "return_type": "NormalizerFn",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 77,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getElementError",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "message: string | null",
+        "container: HTMLElement"
+      ],
+      "return_type": "Error",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 78,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getNodeText",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "node: HTMLElement"
+      ],
+      "return_type": "string",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 79,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getQueriesForElement",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "element: HTMLElement",
+        "queriesToBind?: T"
+      ],
+      "return_type": "BoundFunctions<T>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 80,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getRoles",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement"
+      ],
+      "return_type": "{ [index: string]: HTMLElement[] }",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 81,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "getSuggestedQuery",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "element: HTMLElement",
+        "variant?: Variant",
+        "method?: Method"
+      ],
+      "return_type": "Suggestion | undefined",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 82,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "isInaccessible",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "element: Element"
+      ],
+      "return_type": "boolean",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 83,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "logDOM",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "dom?: Element | HTMLDocument",
+        "maxLength?: number",
+        "options?: PrettyDOMOptions"
+      ],
+      "return_type": "void",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 84,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "logRoles",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "container: HTMLElement",
+        "options?: LogRolesOptions"
+      ],
+      "return_type": "string",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 85,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "prettyDOM",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "dom?: Element | HTMLDocument",
+        "maxLength?: number",
+        "options?: PrettyDOMOptions"
+      ],
+      "return_type": "string | false",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 86,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "prettyFormat",
+      "export_type": "const",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "typeof import('pretty-format') (namespace)",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 111,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queries",
+      "export_type": "const",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "typeof import('@testing-library/dom') queries module (namespace)",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 87,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "queryHelpers",
+      "export_type": "const",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "typeof import('@testing-library/dom') query-helpers module (namespace)",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 106,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "waitForElementToBeRemoved",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "callback: T | (() => T)",
+        "options?: waitForOptions"
+      ],
+      "return_type": "Promise<void>",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 109,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "UserEvent",
+      "export_type": "interface",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "extends _UserEvent {}",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 119,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "uninstrumentedUserEvent",
+      "export_type": "const",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "_userEvent.userEvent",
+      "source_file": "code/core/src/test/testing-library.ts",
+      "source_line": 121,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "UserEventObject",
+      "export_type": "type",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "ReturnType<typeof userEvent.setup>",
+      "source_file": "code/core/src/test/index.ts",
+      "source_line": 15,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "color",
+      "export_type": "const",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "{ primary, secondary, tertiary, ancillary, orange, gold, green, seafoam, purple, ultraviolet, lightest, lighter, light, mediumlight, medium, mediumdark, dark, darker, darkest, border, positive, warning, negative, critical, defaultText, inverseText, positiveText, warningText, negativeText }",
+      "source_file": "code/core/src/theming/base.ts",
+      "source_line": 1,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "background",
+      "export_type": "const",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "{ app, bar, content, preview, gridCellSize, hoverable, positive, warning, negative, critical }",
+      "source_file": "code/core/src/theming/base.ts",
+      "source_line": 44,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "typography",
+      "export_type": "const",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "{ fonts: { base, mono }, weight: { regular, bold }, size: { s1, s2, s3, m1, m2, m3, l1, l2, l3, code } }",
+      "source_file": "code/core/src/theming/base.ts",
+      "source_line": 59,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "tokens",
+      "export_type": "const",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "{ light: { fgColor, bgColor, borderColor }, dark: { fgColor, bgColor, borderColor } }",
+      "source_file": "code/core/src/theming/base.ts",
+      "source_line": 104,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "convert",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "inherit: ThemeVars = themes[getPreferredColorScheme()]"
+      ],
+      "return_type": "StorybookTheme",
+      "source_file": "code/core/src/theming/convert.ts",
+      "source_line": 78,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "ensure",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "input: ThemeVars"
+      ],
+      "return_type": "StorybookTheme",
+      "source_file": "code/core/src/theming/ensure.ts",
+      "source_line": 10,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "Easing",
+      "export_type": "type",
+      "source_library": "storybook/theming",
+      "params": [],
+      "return_type": "typeof easing",
+      "source_file": "code/core/src/theming/types.ts",
+      "source_line": 61,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "actions",
+      "export_type": "function",
+      "source_library": "storybook",
+      "params": [
+        "...args: any[]"
+      ],
+      "return_type": "ActionsMap<T> (ActionsFunction overloads)",
+      "source_file": "code/core/src/actions/runtime/actions.ts",
+      "source_line": 5,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "config",
+      "export_type": "const",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "ActionOptions",
+      "source_file": "code/core/src/actions/runtime/configureActions.ts",
+      "source_line": 3,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "PANEL_ID",
+      "export_type": "const",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "string",
+      "source_file": "code/core/src/actions/constants.ts",
+      "source_line": 3,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "EVENT_ID",
+      "export_type": "const",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "string",
+      "source_file": "code/core/src/actions/constants.ts",
+      "source_line": 4,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "CLEAR_ID",
+      "export_type": "const",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "string",
+      "source_file": "code/core/src/actions/constants.ts",
+      "source_line": 5,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "CYCLIC_KEY",
+      "export_type": "const",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "string",
+      "source_file": "code/core/src/actions/constants.ts",
+      "source_line": 6,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "HighlightTypes",
+      "export_type": "interface",
+      "source_library": "storybook",
+      "params": [],
+      "return_type": "{ parameters: HighlightParameters }",
+      "source_file": "code/core/src/highlight/types.ts",
+      "source_line": 3,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "INITIAL_VIEWPORTS",
+      "export_type": "const",
+      "source_library": "storybook/viewport",
+      "params": [],
+      "return_type": "{ iphone5, ..., pixelxl } as const satisfies ViewportMap (28 viewports)",
+      "source_file": "code/core/src/viewport/defaults.ts",
+      "source_line": 3,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "DEFAULT_VIEWPORT",
+      "export_type": "const",
+      "source_library": "storybook/viewport",
+      "params": [],
+      "return_type": "string",
+      "source_file": "code/core/src/viewport/defaults.ts",
+      "source_line": 232,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "MINIMAL_VIEWPORTS",
+      "export_type": "const",
+      "source_library": "storybook/viewport",
+      "params": [],
+      "return_type": "{ mobile1, mobile2, tablet, desktop } as const satisfies ViewportMap",
+      "source_file": "code/core/src/viewport/defaults.ts",
+      "source_line": 234,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "responsiveViewport",
+      "export_type": "const",
+      "source_library": "storybook/viewport",
+      "params": [],
+      "return_type": "Viewport",
+      "source_file": "code/core/src/viewport/responsiveViewport.tsx",
+      "source_line": 4,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "TOOL_ID",
+      "export_type": "const",
+      "source_library": "storybook/viewport",
+      "params": [],
+      "return_type": "string",
+      "source_file": "code/core/src/viewport/constants.ts",
+      "source_line": 4,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "Viewport",
+      "export_type": "interface",
+      "source_library": "storybook/viewport",
+      "params": [],
+      "return_type": "{ name: string; styles: ViewportStyles; type?: ViewportType }",
+      "source_file": "code/core/src/viewport/types.ts",
+      "source_line": 1,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ViewportMap",
+      "export_type": "type",
+      "source_library": "storybook/viewport",
+      "params": [],
+      "return_type": "Record<string, Viewport>",
+      "source_file": "code/core/src/viewport/types.ts",
+      "source_line": 14,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "GlobalStateUpdate",
+      "export_type": "type",
+      "source_library": "storybook/viewport",
+      "params": [],
+      "return_type": "Partial<GlobalState>",
+      "source_file": "code/core/src/viewport/types.ts",
+      "source_line": 31,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "ViewportGlobals",
+      "export_type": "interface",
+      "source_library": "storybook/viewport",
+      "params": [],
+      "return_type": "{ viewport?: GlobalState | GlobalState['value'] }",
+      "source_file": "code/core/src/viewport/types.ts",
+      "source_line": 56,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ViewportTypes",
+      "export_type": "interface",
+      "source_library": "storybook/viewport",
+      "params": [],
+      "return_type": "{ parameters: ViewportParameters; globals: ViewportGlobals }",
+      "source_file": "code/core/src/viewport/types.ts",
+      "source_line": 65,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "createPlaywrightTest",
+      "export_type": "function",
+      "source_library": "storybook/preview-api",
+      "params": [
+        "baseTest: TFixture"
+      ],
+      "return_type": "TFixture",
+      "source_file": "code/core/src/preview-api/modules/store/csf/portable-stories.ts",
+      "source_line": 319,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "getCsfFactoryAnnotations",
+      "export_type": "function",
+      "source_library": "storybook/preview-api",
+      "params": [
+        "story: LegacyStoryAnnotationsOrFn<TRenderer> | Story<Renderer>",
+        "meta?: ComponentAnnotations<TRenderer, TArgs> | Meta<Renderer>",
+        "projectAnnotations?: ProjectAnnotations<TRenderer>"
+      ],
+      "source_file": "code/core/src/preview-api/modules/store/csf/csf-factory-utils.ts",
+      "source_line": 10,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "emitTransformCode",
+      "export_type": "function",
+      "source_library": "storybook/preview-api",
+      "params": [
+        "source: string | undefined",
+        "context: ReducedStoryContext"
+      ],
+      "source_file": "code/core/src/preview-api/modules/preview-web/emitTransformCode.ts",
+      "source_line": 15,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "pauseAnimations",
+      "export_type": "function",
+      "source_library": "storybook/preview-api",
+      "params": [
+        "atEnd = true"
+      ],
+      "return_type": "CleanupCallback",
+      "source_file": "code/core/src/preview-api/modules/preview-web/render/animation-utils.ts",
+      "source_line": 18,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "waitForAnimations",
+      "export_type": "function",
+      "source_library": "storybook/preview-api",
+      "params": [
+        "signal?: AbortSignal"
+      ],
+      "source_file": "code/core/src/preview-api/modules/preview-web/render/animation-utils.ts",
+      "source_line": 54,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "simulateDOMContentLoaded",
+      "export_type": "function",
+      "source_library": "storybook/preview-api",
+      "params": [],
+      "source_file": "code/core/src/preview-api/modules/preview-web/simulate-pageload.ts",
+      "source_line": 31,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "simulatePageLoad",
+      "export_type": "function",
+      "source_library": "storybook/preview-api",
+      "params": [
+        "$container: any"
+      ],
+      "source_file": "code/core/src/preview-api/modules/preview-web/simulate-pageload.ts",
+      "source_line": 83,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "ReporterAPI",
+      "export_type": "class",
+      "source_library": "storybook/preview-api",
+      "params": [],
+      "return_type": "{ reports: Report[]; addReport(report: Report): Promise<void> }",
+      "source_file": "code/core/src/preview-api/modules/store/reporter-api.ts",
+      "source_line": 8,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Report",
+      "export_type": "interface",
+      "source_library": "storybook/preview-api",
+      "params": [],
+      "return_type": "{ type: string; version?: number; result: T; status: 'failed' | 'passed' | 'warning' }",
+      "source_file": "code/core/src/preview-api/modules/store/reporter-api.ts",
+      "source_line": 1,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SelectionStore",
+      "export_type": "interface",
+      "source_library": "storybook/preview-api",
+      "params": [],
+      "return_type": "{ selectionSpecifier: SelectionSpecifier | null; selection?: Selection; setSelection(selection: Selection): void; setQueryParams(queryParams: Record<PropertyKey, unknown>): void }",
+      "source_file": "code/core/src/preview-api/modules/preview-web/SelectionStore.ts",
+      "source_line": 17,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "View",
+      "export_type": "interface",
+      "source_library": "storybook/preview-api",
+      "params": [],
+      "return_type": "{ prepareForStory, prepareForDocs, showErrorDisplay, showNoPreview, showPreparingStory, showPreparingDocs, showMain, showDocs, showStory, showStoryDuringRender }",
+      "source_file": "code/core/src/preview-api/modules/preview-web/View.ts",
+      "source_line": 3,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AddMocks",
+      "export_type": "type",
+      "source_library": "@storybook/react",
+      "params": [
+        "TArgs",
+        "DefaultArgs"
+      ],
+      "return_type": "Simplify<{ [T in keyof TArgs]: T extends keyof DefaultArgs ? (DefaultArgs[T] extends (...args: any) => any & { mock: {} } ? DefaultArgs[T] : TArgs[T]) : TArgs[T] }>",
+      "source_file": "code/renderers/react/src/public-types.ts",
+      "source_line": 69,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ReactTypes",
+      "export_type": "interface",
+      "source_library": "@storybook/react",
+      "params": [],
+      "return_type": "extends ReactRenderer { parameters: ReactParameters }",
+      "source_file": "code/renderers/react/src/types.ts",
+      "source_line": 33,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AddContext",
+      "export_type": "component",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "props: PropsWithChildren<DocsContextProps>"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/mdx.tsx",
+      "source_line": 27,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "AnchorMdx",
+      "export_type": "component",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "props: PropsWithChildren<AnchorMdxProps>"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/mdx.tsx",
+      "source_line": 98,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "CodeOrSourceMdx",
+      "export_type": "component",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "{ className, children, ...rest }: PropsWithChildren<CodeOrSourceMdxProps>"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/mdx.tsx",
+      "source_line": 39,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "HeaderMdx",
+      "export_type": "component",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "props: PropsWithChildren<HeaderMdxProps>"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/mdx.tsx",
+      "source_line": 215,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "HeadersMdx",
+      "export_type": "const",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "{ h1, h2, h3, h4, h5, h6 } (typed {})",
+      "source_file": "code/addons/docs/src/blocks/blocks/mdx.tsx",
+      "source_line": 232,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "assertIsFn",
+      "export_type": "function",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "val: any"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/mdx.tsx",
+      "source_line": 19,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "Component",
+      "export_type": "type",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "any",
+      "source_file": "code/addons/docs/src/blocks/blocks/types.ts",
+      "source_line": 7,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "PRIMARY_STORY",
+      "export_type": "const",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "string",
+      "source_file": "code/addons/docs/src/blocks/blocks/types.ts",
+      "source_line": 3,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "DescriptionType",
+      "export_type": "enum",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "{ INFO = 'info', NOTES = 'notes', DOCGEN = 'docgen', AUTO = 'auto' }",
+      "source_file": "code/addons/docs/src/blocks/blocks/Description.tsx",
+      "source_line": 9,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ExternalDocs",
+      "export_type": "component",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "{ projectAnnotationsList, children }: PropsWithChildren<ExternalDocsProps<TRenderer>>"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/external/ExternalDocs.tsx",
+      "source_line": 26,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "ExternalDocsProps",
+      "export_type": "type",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "TRenderer extends Renderer = Renderer"
+      ],
+      "return_type": "{ projectAnnotationsList: ProjectAnnotations<TRenderer>[] }",
+      "source_file": "code/addons/docs/src/blocks/blocks/external/ExternalDocs.tsx",
+      "source_line": 11,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "ExternalDocsContainer",
+      "export_type": "component",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "{ projectAnnotations, children }: React.PropsWithChildren<{ projectAnnotations: any }>"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/external/ExternalDocsContainer.tsx",
+      "source_line": 12,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Of",
+      "export_type": "type",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "Parameters<DocsContextProps['resolveOf']>[0]",
+      "source_file": "code/addons/docs/src/blocks/blocks/useOf.ts",
+      "source_line": 11,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "argsHash",
+      "export_type": "function",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "args: Args"
+      ],
+      "return_type": "ArgsHash",
+      "source_file": "code/addons/docs/src/blocks/blocks/SourceContainer.tsx",
+      "source_line": 11,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "SourceItem",
+      "export_type": "interface",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "{ code: string; format?: SyntaxHighlighterFormatTypes }",
+      "source_file": "code/addons/docs/src/blocks/blocks/SourceContainer.tsx",
+      "source_line": 15,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "StorySources",
+      "export_type": "type",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "Record<StoryId, Record<ArgsHash, SourceItem>>",
+      "source_file": "code/addons/docs/src/blocks/blocks/SourceContainer.tsx",
+      "source_line": 20,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "SourceContextProps",
+      "export_type": "interface",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "{ sources: StorySources; setSource?: (id: StoryId, item: SourceItem) => void }",
+      "source_file": "code/addons/docs/src/blocks/blocks/SourceContainer.tsx",
+      "source_line": 22,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "SourceContext",
+      "export_type": "const",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "Context<SourceContextProps>",
+      "source_file": "code/addons/docs/src/blocks/blocks/SourceContainer.tsx",
+      "source_line": 27,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "UNKNOWN_ARGS_HASH",
+      "export_type": "const",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "string",
+      "source_file": "code/addons/docs/src/blocks/blocks/SourceContainer.tsx",
+      "source_line": 36,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "SourceContainer",
+      "export_type": "component",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "{ children, channel }: PropsWithChildren<{ channel: DocsContextProps['channel'] }>"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/SourceContainer.tsx",
+      "source_line": 38,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "Wrapper",
+      "export_type": "component",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "props: React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/Wrapper.tsx",
+      "source_line": 10,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1-low"
+    },
+    {
+      "export_name": "anchorBlockIdFromId",
+      "export_type": "function",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "storyId: string"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/Anchor.tsx",
+      "source_line": 4,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "extractTitle",
+      "export_type": "function",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "title: ComponentTitle"
+      ],
+      "source_file": "code/addons/docs/src/blocks/blocks/Title.tsx",
+      "source_line": 24,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "getStoryId",
+      "export_type": "function",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "props: StoryProps",
+        "context: DocsContextProps"
+      ],
+      "return_type": "StoryId",
+      "source_file": "code/addons/docs/src/blocks/blocks/Story.tsx",
+      "source_line": 62,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "getStoryProps",
+      "export_type": "function",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "props: StoryParameters",
+        "story: PreparedStory<TFramework>",
+        "context: DocsContextProps<TFramework>"
+      ],
+      "return_type": "PureStoryProps",
+      "source_file": "code/addons/docs/src/blocks/blocks/Story.tsx",
+      "source_line": 75,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "slugs",
+      "export_type": "const",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "GithubSlugger",
+      "source_file": "code/addons/docs/src/blocks/blocks/Heading.tsx",
+      "source_line": 15,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "useSourceProps",
+      "export_type": "function",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [
+        "props: SourceProps",
+        "docsContext: DocsContextProps<any>",
+        "sourceContext: SourceContextProps"
+      ],
+      "return_type": "PureSourceProps",
+      "source_file": "code/addons/docs/src/blocks/blocks/Source.tsx",
+      "source_line": 101,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "ColorProps",
+      "export_type": "type",
+      "source_library": "@storybook/addon-docs/blocks",
+      "params": [],
+      "return_type": "ColorControlProps",
+      "source_file": "code/addons/docs/src/blocks/controls/index.tsx",
+      "source_line": 10,
+      "confidence": "T1",
+      "extraction_method": "ast-grep",
+      "ast_node_type": "export_statement",
+      "signature_source": "T1"
+    },
+    {
+      "export_name": "default",
+      "export_type": "function",
+      "source_library": "@storybook/addon-vitest",
+      "params": [],
+      "return_type": "typeof storybookTest",
+      "source_file": "code/addons/vitest/src/vitest-plugin/index.ts",
+      "source_line": 531,
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     }
   ],
   "last_update": "2026-11-03T08:27:32Z",

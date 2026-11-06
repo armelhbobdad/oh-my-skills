@@ -12,6 +12,7 @@ All doc blocks are React components imported from `@storybook/addon-docs/blocks`
 - [Visual blocks](#visual-blocks) — `Typeset`, `ColorPalette`, `ColorItem`, `IconGallery`, `IconItem`
 - [Container blocks](#container-blocks) — `Docs`, `DocsPage`, `DocsContainer`, `DocsStory`
 - [Utilities](#utilities) — `useOf`, `DocsContext`, `PureArgsTable`, `TableOfContents`
+- [Block internals and MDX helpers](#block-internals-and-mdx-helpers) — the MDX element overrides, the `Source` block plumbing, the story, title, anchor and heading helpers, external docs, and the block types and constants
 
 ## Import source
 
@@ -144,6 +145,68 @@ import * as ButtonStories from './Button.stories';
 
 `[AST:code/addons/docs/src/blocks.ts]`
 
+## Block internals and MDX helpers
+
+The rest of what `@storybook/addon-docs/blocks` exports: `blocks.ts` re-exports `blocks/blocks/index.ts`, which re-exports every block module, the two external-docs modules, `SourceContainer.tsx`, `types.ts` and `mdx.tsx` `[SRC:code/addons/docs/src/blocks.ts:L8]` `[SRC:code/addons/docs/src/blocks/blocks/index.ts:L13]` `[SRC:code/addons/docs/src/blocks/blocks/index.ts:L31]`. The blocks above are built from these; an MDX page rarely imports them.
+
+### MDX element overrides (`mdx.tsx`)
+
+Components that stand in for MDX's own elements, and two helpers. Where a row says a click navigates, the component emits the `NAVIGATE_URL` event with that URL on the docs channel.
+
+| Export | Kind | Props / Usage | Purpose | Source |
+|---|---|---|---|---|
+| `AnchorMdx` | component | `{ href: string; target: string; children?: ReactNode }` (`FC<PropsWithChildren<AnchorMdxProps>>`, `AnchorMdxProps` module-local) | MDX link. It renders a plain link when `href` is empty, `target` is `'_blank'` or `href` starts with `http://` or `https://`, and an in-page anchor for a `#hash` (a click navigates when the target element exists); any other link navigates on a plain left click (no modifier key) instead of being followed, because, the comment says, links to other Storybook pages "should use the base URL of the top level iframe" | `[AST:code/addons/docs/src/blocks/blocks/mdx.tsx:L98]` |
+| `CodeOrSourceMdx` | component | `{ className?: string; children?: ReactNode }` (`FC<PropsWithChildren<CodeOrSourceMdxProps>>`) | MDX code. It renders inline `Code` when `className` is not a string and `children` is not a string holding a line break (the comment: markdown-to-jsx adds no `className` to inline code); otherwise a `Source` block with the language of a `lang-<language>` `className` (default `'text'`), `format={false}` and `children` as its code, the other props passed through | `[AST:code/addons/docs/src/blocks/blocks/mdx.tsx:L39]` |
+| `HeaderMdx` | component | `{ as: string; id: string; children?: ReactNode }` (`FC<PropsWithChildren<HeaderMdxProps>>`) | MDX heading. With an `id` (which, the comment says, the `remark-slug` plugin adds to every heading) it renders the `as` heading with a hover link icon to `#id` whose click navigates; without one, a plain `as` element | `[AST:code/addons/docs/src/blocks/blocks/mdx.tsx:L215]` |
+| `HeadersMdx` | const | — | `{ h1, h2, h3, h4, h5, h6 }`, each mapping its tag to `HeaderMdx` with that `as`; typed `{}`, its `reduce` seed | `[AST:code/addons/docs/src/blocks/blocks/mdx.tsx:L232]` |
+| `Wrapper` | component | `<Wrapper>{children}</Wrapper>` (props `React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>`, of which it reads `children`) | Renders `children` in a `<div style={{ fontFamily: 'sans-serif' }}>`. Like `Title`, `Heading` and the other blocks `withMdxComponentOverride` wraps, an MDX `components.Wrapper` override takes its place | `[AST:code/addons/docs/src/blocks/blocks/Wrapper.tsx:L10]` |
+| `AddContext` | component | `<AddContext {...docsContextProps}>{children}</AddContext>` (props `PropsWithChildren<DocsContextProps>`) | Provides `DocsContext` to `children` with its props spread over the enclosing context's value; the comment calls it a "hacky utility for adding mdxStoryToId to the default context" | `[AST:code/addons/docs/src/blocks/blocks/mdx.tsx:L27]` |
+| `assertIsFn` | function | `assertIsFn(val: any)` (return type not annotated) | Returns `val` when it is a function, else throws `` Expected story function, got: ${val} ``; the comment calls it a "hacky utility for asserting identifiers in MDX Story elements" | `[AST:code/addons/docs/src/blocks/blocks/mdx.tsx:L19]` |
+
+### Source block plumbing (`SourceContainer.tsx`, `Source.tsx`)
+
+How the `Source` block, and `Canvas`, which calls the same hook, find the snippet a story rendered.
+
+| Export | Kind | Props / Signature | Purpose | Source |
+|---|---|---|---|---|
+| `SourceContainer` | component | `{ channel: DocsContextProps['channel']; children?: ReactNode }` | Listens for `SNIPPET_RENDERED` on `channel`, stores each snippet under its story id and the hash of its args (`UNKNOWN_ARGS_HASH` when the event carries none), and provides `{ sources }` to `children` through `SourceContext` | `[AST:code/addons/docs/src/blocks/blocks/SourceContainer.tsx:L38]` |
+| `SourceContext` | const | `Context<SourceContextProps>` | `createContext({ sources: {} })`, the context `SourceContainer` fills | `[AST:code/addons/docs/src/blocks/blocks/SourceContainer.tsx:L27]` |
+| `SourceContextProps` | interface | `{ sources: StorySources; setSource?: (id: StoryId, item: SourceItem) => void }` | The `SourceContext` value | `[AST:code/addons/docs/src/blocks/blocks/SourceContainer.tsx:L22]` |
+| `SourceItem` | interface | `{ code: string; format?: SyntaxHighlighterFormatTypes }` | One stored snippet | `[AST:code/addons/docs/src/blocks/blocks/SourceContainer.tsx:L15]` |
+| `StorySources` | type | `Record<StoryId, Record<ArgsHash, SourceItem>>` (`ArgsHash = string`, module-local) | Snippets by story id, then by args hash | `[AST:code/addons/docs/src/blocks/blocks/SourceContainer.tsx:L20]` |
+| `argsHash` | function | `argsHash(args: Args): ArgsHash` | telejson's `stringify(args, { maxDepth: 50 })`: the key a snippet is stored under for those args | `[AST:code/addons/docs/src/blocks/blocks/SourceContainer.tsx:L11]` |
+| `UNKNOWN_ARGS_HASH` | const | `'--unknown--'` | The key of a snippet whose event carries no args; `Source` falls back to it when no snippet matches the story's args | `[AST:code/addons/docs/src/blocks/blocks/SourceContainer.tsx:L36]` |
+| `useSourceProps` | function | `useSourceProps(props: SourceProps, docsContext: DocsContextProps<any>, sourceContext: SourceContextProps): PureSourceProps` (`PureSourceProps`: the pure `Source` component's props) | Computes what the `Source` block renders: resolves `of` (else the primary story), takes that story's snippet from `sourceContext` and applies `type` and `transform`. With neither a `code` prop nor a story it returns `{ error: SourceError.SOURCE_UNAVAILABLE }`, else `{ code, format, language, dark }` (`language` defaults to `'jsx'`, `dark` to `false`); it throws on `of={undefined}` | `[AST:code/addons/docs/src/blocks/blocks/Source.tsx:L101]` |
+
+### Story, title, anchor and heading helpers
+
+| Export | Kind | Signature | Purpose | Source |
+|---|---|---|---|---|
+| `getStoryId` | function | `getStoryId(props: StoryProps, context: DocsContextProps): StoryId` | The `Story` block's story id: throws on `of={undefined}`, registers `meta` with `context.referenceMeta(meta, false)` when it is given, then resolves `of` (`'story'` when it is absent) to a story and returns its `id` | `[AST:code/addons/docs/src/blocks/blocks/Story.tsx:L62]` |
+| `getStoryProps` | function | `getStoryProps<TFramework extends Renderer>(props: StoryParameters, story: PreparedStory<TFramework>, context: DocsContextProps<TFramework>): PureStoryProps` (`StoryParameters`, module-local, is `{ inline?, height?, autoplay?, __forceInitialArgs?, __primary? }`; `PureStoryProps` the pure `Story` component's props) | The `Story` block's render props, the block's props taking precedence over `parameters.docs.story`: `null` when `parameters.docs.disable` is set; inline (`inline` defaults to `false`) `{ story, inline: true, height, autoplay, forceInitialArgs, primary, renderStoryToElement }`; otherwise `{ story, inline: false, height, primary }`, `height` falling back to `docs.story.iframeHeight`, then `'100px'` | `[AST:code/addons/docs/src/blocks/blocks/Story.tsx:L75]` |
+| `extractTitle` | function | `extractTitle(title: ComponentTitle)` (return type not annotated) | The last `/`-separated segment of the trimmed `title` (or `title` itself when that segment is empty): what `Title` shows for a meta's title | `[AST:code/addons/docs/src/blocks/blocks/Title.tsx:L24]` |
+| `anchorBlockIdFromId` | function | `anchorBlockIdFromId(storyId: string)` (return type not annotated) | Returns `` `anchor--${storyId}` ``, the id `Anchor` gives its `div` | `[AST:code/addons/docs/src/blocks/blocks/Anchor.tsx:L4]` |
+| `slugs` | const | `GithubSlugger` (`new GithubSlugger()`) | The one `github-slugger` instance `Heading` and `Subheading` share to turn a string child, lowercased, into the heading's anchor id | `[AST:code/addons/docs/src/blocks/blocks/Heading.tsx:L15]` |
+
+### External docs
+
+Doc blocks rendered from project annotations through an `ExternalPreview`, a `Preview` subclass in `blocks/external/`.
+
+| Export | Kind | Props / Type | Purpose | Source |
+|---|---|---|---|---|
+| `ExternalDocs` | component | `ExternalDocs<TRenderer extends Renderer = Renderer>({ projectAnnotationsList, children }: PropsWithChildren<ExternalDocsProps<TRenderer>>)` | Composes `projectAnnotationsList` (`composeConfigs`), keeps one `ExternalPreview` of the result across renders, and renders the `Docs` block with the preview's docs context and a page that renders `children` | `[AST:code/addons/docs/src/blocks/blocks/external/ExternalDocs.tsx:L26]` |
+| `ExternalDocsProps` | type | `ExternalDocsProps<TRenderer extends Renderer = Renderer> = { projectAnnotationsList: ProjectAnnotations<TRenderer>[] }` | `ExternalDocs`'s own props | `[AST:code/addons/docs/src/blocks/blocks/external/ExternalDocs.tsx:L11]` |
+| `ExternalDocsContainer` | component | `{ projectAnnotations: any; children?: ReactNode }` (`React.FC<React.PropsWithChildren<{ projectAnnotations: any }>>`) | Creates a module-level `ExternalPreview` from `projectAnnotations` on its first render (later renders reuse it), provides the preview's docs context through `DocsContext`, and renders `children` in a `ThemeProvider` with `ensure(themes.light)` | `[AST:code/addons/docs/src/blocks/blocks/external/ExternalDocsContainer.tsx:L12]` |
+
+### Block types and constants
+
+| Export | Kind | Type / Value | Purpose | Source |
+|---|---|---|---|---|
+| `Of` | type | `Parameters<DocsContextProps['resolveOf']>[0]`, that is `ModuleExport \| 'component' \| 'meta' \| 'story'` | What an `of` prop takes: `Title`, `Subtitle` and `Description` take `of?: Of`, and `useOf` takes an `Of` first | `[AST:code/addons/docs/src/blocks/blocks/useOf.ts:L11]` |
+| `Component` | type | `any` | Declared `export type Component = any`, under a `// TODO` comment | `[AST:code/addons/docs/src/blocks/blocks/types.ts:L7]` |
+| `PRIMARY_STORY` | const | `'^'` | Nothing else in the repository's `code/` tree reads it | `[AST:code/addons/docs/src/blocks/blocks/types.ts:L3]` |
+| `DescriptionType` | enum | `{ INFO = 'info', NOTES = 'notes', DOCGEN = 'docgen', AUTO = 'auto' }` | Declared in `Description.tsx`; the `Description` block's props hold only `of`, and nothing else in `code/` reads the enum | `[AST:code/addons/docs/src/blocks/blocks/Description.tsx:L9]` |
+
 ## DocsRenderer
 
 Entry: `code/addons/docs/src/index.ts` exports `DocsRenderer`, a plain class, not a React component: `class DocsRenderer<TRenderer extends Renderer>` with two members, `render: DocsRenderFunction<TRenderer>`, which mounts the `Docs` block for a docs entry (inside an `MDXProvider` and an error boundary) into a DOM element through React, and `unmount: (element: HTMLElement) => void`, which unmounts it. The docs preview instantiates it; rarely imported directly; registered via `addons: ['@storybook/addon-docs']` in `main.ts`. `[AST:code/addons/docs/src/DocsRenderer.tsx:L48]` `[AST:code/addons/docs/src/index.ts:L8]`
@@ -190,6 +253,7 @@ The primitive control components that back `Controls` / `ArgTypes` panels. Impor
 | `BooleanProps` | type | `ControlProps<BooleanValue> & BooleanConfig` | `[AST:code/addons/docs/src/blocks/controls/Boolean.tsx:L104]` |
 | `BooleanControl` | component | `FC<BooleanProps>` — toggle switch | `[AST:code/addons/docs/src/blocks/controls/Boolean.tsx:L117]` |
 | `ColorControlProps` | type | `ControlProps<ColorValue> & ColorConfig` | `[AST:code/addons/docs/src/blocks/controls/Color.tsx:L360]` |
+| `ColorProps` | type | `ColorControlProps` — the controls barrel's alias for the color control's props | `[AST:code/addons/docs/src/blocks/controls/index.tsx:L10]` |
 | `ColorControl` | component | `(props: ColorControlProps) => JSX.Element` — color picker with color-space cycling | `[AST:code/addons/docs/src/blocks/controls/Color.tsx:L361]` |
 | `DateProps` | type | `ControlProps<DateValue> & DateConfig` | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L68]` |
 | `DateControl` | component | `FC<DateProps>` — date + time picker | `[AST:code/addons/docs/src/blocks/controls/Date.tsx:L69]` |

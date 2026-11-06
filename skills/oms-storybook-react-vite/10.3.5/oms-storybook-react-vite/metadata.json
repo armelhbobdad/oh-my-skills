@@ -111,18 +111,18 @@
     "skf": "1.0.0"
   },
   "confidence_distribution": {
-    "t1": 215,
-    "t1_low": 13,
+    "t1": 254,
+    "t1_low": 111,
     "t2": 0,
     "t3": 0
   },
   "stats": {
-    "exports_documented": 228,
+    "exports_documented": 365,
     "exports_public_api": 1335,
     "exports_internal": 1874,
     "exports_total": 3209,
-    "public_api_coverage": 0.1708,
-    "total_coverage": 0.0711,
+    "public_api_coverage": 0.2734,
+    "total_coverage": 0.1137,
     "scripts_count": 0,
     "assets_count": 0,
     "effective_denominator": 370

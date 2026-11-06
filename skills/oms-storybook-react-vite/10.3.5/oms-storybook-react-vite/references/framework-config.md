@@ -383,6 +383,7 @@ Needed when you're authoring a **custom Storybook theme** — either for the man
 | `Color` | type | `typeof color` — named color tokens (primary, secondary, gold, green, etc.) | `[AST:code/core/src/theming/types.ts:L57]` |
 | `Background` | type | `typeof background` — background color tokens (app, bar, content, critical, warning, hoverable) | `[AST:code/core/src/theming/types.ts:L58]` |
 | `Animation` | type | `typeof animation` — keyframes and motion tokens | `[AST:code/core/src/theming/types.ts:L60]` |
+| `Easing` | type | `typeof easing` — the easing tokens of `theming/animation.ts`, `{ rubber: 'cubic-bezier(0.175, 0.885, 0.335, 1.05)' }`, the type of the theme's `easing` field (`storybook/theming` exports the type, not the `easing` value) | `[AST:code/core/src/theming/types.ts:L61]` |
 
 **Building a custom theme:**
 
