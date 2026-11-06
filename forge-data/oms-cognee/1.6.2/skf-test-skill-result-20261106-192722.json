@@ -1,0 +1,41 @@
+{
+  "skill": "skf-test-skill",
+  "status": "error",
+  "skill_name": "oms-cognee",
+  "verdict": "FAIL",
+  "score": null,
+  "threshold": null,
+  "report_path": "forge-data/oms-cognee/1.6.2/test-report-oms-cognee-20261106T185511Z-d1bc353b.md",
+  "next_workflow": "update-skill",
+  "exit_code": 2,
+  "halt_reason": "hard-gate-blocked",
+  "outputs": [
+    {
+      "type": "report",
+      "path": "forge-data/oms-cognee/1.6.2/test-report-oms-cognee-20261106T185511Z-d1bc353b.md"
+    }
+  ],
+  "summary": {
+    "score": null,
+    "threshold": null,
+    "result": "FAIL",
+    "testMode": "naive",
+    "activeCategories": [],
+    "gapCounts": {
+      "Critical": 8,
+      "High": 1,
+      "Medium": 4,
+      "Low": 1,
+      "Info": 46
+    },
+    "hardGate": "blocked"
+  },
+  "runId": "20261106T185511Z-d1bc353b",
+  "healthCheckDispatched": true,
+  "timestamp": "2026-11-06T19:27:22Z",
+  "run_id": "20261106T185511Z-d1bc353b",
+  "headless_decisions": [],
+  "warnings": [
+    "customization_resolver_unavailable: not found"
+  ]
+}
