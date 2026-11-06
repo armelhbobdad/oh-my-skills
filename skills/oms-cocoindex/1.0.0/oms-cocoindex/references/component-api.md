@@ -154,24 +154,27 @@ async with coco.runtime():
 `coco.fn` is a singleton instance of `_FunctionDecorator`. It exposes both the decorator namespace (`@coco.fn(...)`) and an `as_async` variant. [SRC:python/cocoindex/_internal/function.py:L1578] [:L1811]
 
 ```python
-# All overloads
-@coco.fn                                                # bare — preserves sync/async
+# @coco.fn — preserves sync/async (sync fn -> SyncFunction, async fn -> AsyncFunction)
+@coco.fn                                                # bare
 @coco.fn(memo=True)                                     # memoize results
-@coco.fn(batching=True, max_batch_size=64)              # batch — function takes list[T], returns list[R]; requires async
-@coco.fn(runner=GPU)                                    # serialize through a Runner (e.g. GPU)
 @coco.fn(version=2)                                     # explicit version for change tracking
 @coco.fn(logic_tracking="full"|"self"|None)             # tracking granularity (default "full")
 @coco.fn(deps={"prompt": SYSTEM_PROMPT, "model": MODEL_NAME})  # external dependency snapshot at decoration time
 
-# Always-async variant (use when you need batching/runner on a sync function)
+# @coco.fn.as_async — always yields an AsyncFunction, for a sync or an async function;
+# the form to use for batching and runners
 @coco.fn.as_async
+@coco.fn.as_async(batching=True, max_batch_size=64)     # batch — function takes list[T], returns list[R]
+@coco.fn.as_async(runner=GPU)                           # serialize through a Runner (e.g. GPU)
 @coco.fn.as_async(batching=True, runner=GPU)
 ```
 
+`@coco.fn(...)` also declares the `batching`, `max_batch_size` and `runner` keywords, but at this commit passing `batching=True` or a `runner` to it makes decoration raise `ValueError` for any function. Whenever one of the three is set, `@coco.fn` uses `_SyncFunctionBuilder` [SRC:python/cocoindex/_internal/function.py:L1700], which raises for an async function [SRC:python/cocoindex/_internal/function.py:L1519] and then, for a sync one, raises because batching and runners need an async function [SRC:python/cocoindex/_internal/function.py:L1479]. Its docstring says async functions are accepted [SRC:python/cocoindex/_internal/function.py:L1681]; the code does not accept them. `cocoindex.ops` uses `@coco.fn.as_async(...)` for both [SRC:python/cocoindex/ops/sentence_transformers.py:L94] [SRC:python/cocoindex/ops/litellm.py:L81].
+
 Behavior:
 - **Memoization** (`memo=True`): skip execution when inputs unchanged; without batching/runner requires a `ComponentContext`; with batching/runner, ComponentContext is optional.
-- **Batching** (`batching=True`): the underlying function receives `list[T]` and returns `list[R]`. Requires async signature with the bare decorator; use `as_async` to wrap a sync fn into async batching.
-- **`runner=GPU`** (the singleton from `_internal/runner.py:L282`): sync fns run on a dedicated single-worker thread pool; async fns run in-process. Setting `COCOINDEX_RUN_GPU_IN_SUBPROCESS=1` switches to subprocess isolation.
+- **Batching** (`@coco.fn.as_async(batching=True)`): the underlying function receives `list[T]` and returns `list[R]`, while callers pass one item and await one result; the underlying function may be sync or async. [SRC:python/tests/core/test_function_batching.py:L35]
+- **`runner=GPU`** on `@coco.fn.as_async` (the singleton from `_internal/runner.py:L282`): sync fns run on a dedicated single-worker thread pool; async fns run in-process. Setting `COCOINDEX_RUN_GPU_IN_SUBPROCESS=1` switches to subprocess isolation.
 - **`version`**: when set, the integer version replaces the AST-derived logic fingerprint. Bump it to force re-execution.
 - **`logic_tracking`**: `"full"` propagates code changes transitively; `"self"` only tracks the function itself (children invalidate independently); `None` disables tracking and is incompatible with `deps`.
 - **`deps`**: external values that affect logic but aren't visible in the body (e.g. module-level prompts). Canonicalized through the memoization-key pipeline at decoration time. For per-call values, pass arguments instead.

@@ -65,7 +65,7 @@ async def mount_collection_target(
 ```
 [SRC:python/cocoindex/connectors/qdrant/_target.py:L561]
 
-The third parameter is `schema`, not `collection_schema`. Build the schema with the async `CollectionSchema.create(vectors=...)`, which takes one `QdrantVectorDef` (unnamed vector) or a `dict` of vector name to `QdrantVectorDef`. `QdrantVectorDef` is a NamedTuple `(schema, distance="cosine", multivector_comparator="max_sim")`: its `schema` is a `VectorSchemaProvider` (an embedder, or a `VectorSchema(dtype=..., size=...)`), and `distance` is `"cosine"`, `"dot"` or `"euclid"`. [SRC:python/cocoindex/connectors/qdrant/_target.py:L50] [:L150]
+The third parameter is `schema`, not `collection_schema`. Build the schema with the async `CollectionSchema.create(vectors=...)`, which takes one `QdrantVectorDef` (unnamed vector) or a `dict` of vector name to `QdrantVectorDef`. `QdrantVectorDef` is a NamedTuple `(schema, distance="cosine", multivector_comparator="max_sim")`: its `schema` is a `VectorSchemaProvider` (an embedder, or a `VectorSchema(dtype=..., size=...)`), a `MultiVectorSchemaProvider` for a multivector, or a `ContextKey` holding either, and `distance` is `"cosine"`, `"dot"` or `"euclid"`. [SRC:python/cocoindex/connectors/qdrant/_target.py:L50] [:L150]
 
 ```python
 import numpy as np
@@ -73,7 +73,7 @@ from cocoindex.connectors import qdrant
 from cocoindex.resources.schema import VectorSchema
 
 schema = await qdrant.CollectionSchema.create(
-    vectors={"embedding": qdrant.QdrantVectorDef(schema=VectorSchema(dtype=np.float32, size=384), distance="cosine")}
+    vectors={"embedding": qdrant.QdrantVectorDef(schema=VectorSchema(dtype=np.dtype(np.float32), size=384), distance="cosine")}
 )
 target = await qdrant.mount_collection_target(QDRANT_KEY, "docs", schema)
 ```

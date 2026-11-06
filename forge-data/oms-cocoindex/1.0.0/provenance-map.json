@@ -333,7 +333,7 @@
       "extraction_method": "source-read",
       "ast_node_type": null,
       "value": "GPURunner()",
-      "note": "Singleton instance — pass runner=GPU to @coco.fn for GPU isolation",
+      "note": "Singleton instance — pass runner=GPU to @coco.fn.as_async for GPU isolation; @coco.fn(runner=...) raises ValueError at decoration (function.py:1700 picks _SyncFunctionBuilder, which raises at :1519 for an async fn and at :1479 for a sync one)",
       "signature_source": "T1-low"
     },
     {
@@ -371,6 +371,7 @@
       "confidence": "T1-low",
       "extraction_method": "source-read",
       "ast_node_type": null,
+      "note": "Declares batching, max_batch_size and runner, but with any of them set the body (L1690-1707) builds a _SyncFunctionBuilder: batching=True or a runner then raises ValueError for every function (:1519 async, :1479 sync), despite the docstring at :1681. The skill documents @coco.fn.as_async (L1754) for batching and runners",
       "signature_source": "T1-low"
     },
     {
@@ -1670,7 +1671,7 @@
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "function_definition",
-      "note": "Click group; -e/--env-file, -d/--app-dir",
+      "note": "Click group; -V/--version (L480), -e/--env-file (L487, click.Path exists=True; without it find_dotenv(usecwd=True) at L507), -d/--app-dir (L498; only sys.path.insert(0, app_dir) at L513-514, no chdir, so a path-like APP_TARGET is still resolved against the CWD by user_app_loader.py:54-58)",
       "signature_source": "T1"
     },
     {
@@ -1760,7 +1761,7 @@
       "confidence": "T1-low",
       "extraction_method": "source-read",
       "ast_node_type": null,
-      "note": "internal — loads APP_TARGET module and finds top-level App instance",
+      "note": "internal — parses APP_TARGET (_parse_app_target, L82), loads the module with user_app_loader.load_user_app (L286), then picks among the App instances of the registered environments (L291-338)",
       "signature_source": "T1-low"
     },
     {

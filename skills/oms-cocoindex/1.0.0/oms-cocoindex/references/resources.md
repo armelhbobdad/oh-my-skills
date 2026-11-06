@@ -209,7 +209,7 @@ async def get_vector_schema(obj: object) -> VectorSchema | None: ...
 
 `get_vector_schema` accepts a `ContextKey` (looks it up via `coco.use_context`), an instance implementing `VectorSchemaProvider`, or anything else (returns `None`). This is what connector targets call when resolving an `Annotated[NDArray, EMBEDDER]` column type — they walk the annotation, hit a `ContextKey`, and ask for its provider's schema.
 
-`MultiVectorSchema` / `MultiVectorSchemaProvider` are the analog for multi-vector embeddings (ColPali-style); same shape but with a `vector_schema: VectorSchema` field.
+`MultiVectorSchema` / `MultiVectorSchemaProvider` are the analog for multi-vector embeddings (ColPali-style). `MultiVectorSchema` is also a frozen, tagged `msgspec.Struct`, but its one field is `vector_schema: VectorSchema` (no `dtype` or `size` of its own), and it provides itself through `async __coco_multi_vector_schema__()`; `MultiVectorSchemaProvider` is the matching `@runtime_checkable` Protocol, whose `__coco_multi_vector_schema__()` returns an `Awaitable[MultiVectorSchema]`. [SRC:python/cocoindex/resources/schema.py:L43] [SRC:python/cocoindex/resources/schema.py:L49]
 
 ```python
 class FixedSizeEmbedder:                   # any object with this method is a VectorSchemaProvider

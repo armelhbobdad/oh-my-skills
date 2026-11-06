@@ -201,7 +201,7 @@ from cocoindex.ops.entity_resolution.llm_resolver import LlmPairResolver
 class LlmPairResolver:                      # satisfies er.PairResolver; uses instructor + litellm
     def __init__(self, *, model: str, entity_type: str | None = None,
                  extra_guidance: str | None = None, retries: int = 5) -> None: ...
-    async def __call__(self, entity: str, candidates: list[str]) -> PairDecision: ...  # @coco.fn(memo=True)
+    async def __call__(self, entity: str, candidates: list[str]) -> PairDecision: ...  # decorated @coco.fn(memo=True, logic_tracking="self")
 
 resolver = LlmPairResolver(model="openai/gpt-4o-mini", entity_type="person")
 resolved = await er.resolve_entities(names, embedder=embedder, resolve_pair=resolver)  # embedder: any Embedder

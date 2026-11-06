@@ -5,7 +5,7 @@ description: Build data ingestion + transformation pipelines on top of cocoindex
 
 # Cocoindex v1.0.0 — Component-based Pipelines
 
-Cocoindex authors data pipelines as Python *components* mounted into an *Environment* and orchestrated by an *App*. State is reconciled into target connectors via a `TargetState` / `TargetHandler` declarative API. Functions are decorated with `@coco.fn` (memoized, batchable, optionally GPU-runner-isolated). Lifespan-scoped resources (DB pools, embedders) are provided via `@coco.lifespan` and retrieved with `coco.use_context(KEY)`. Persistent state lives in a local LMDB store at `Settings.db_path`.
+Cocoindex authors data pipelines as Python *components* mounted into an *Environment* and orchestrated by an *App*. State is reconciled into target connectors via a `TargetState` / `TargetHandler` declarative API. Functions are decorated with `@coco.fn` (optionally memoized), or with `@coco.fn.as_async` when they need batching or a runner such as the GPU. Lifespan-scoped resources (DB pools, embedders) are provided via `@coco.lifespan` and retrieved with `coco.use_context(KEY)`. Persistent state lives in a local LMDB store at `Settings.db_path`.
 
 **v0.3.37 → v1.0.0 paradigm shift:** the old API (`FlowBuilder`, `DataScope`, `DataSlice`, `flow_def`, `open_flow`, `transform_flow`, `cocoindex.sources.*`, `cocoindex.targets.*`, `cocoindex.functions.*`, `LlmSpec`, `LlmApiType`, `VectorSimilarityMetric`, `DatabaseConnectionSpec`, `Postgres`-backed state) is **entirely removed**. There is no `flow.py`, no `op.py`, no `index.py`, no `llm.py`, no `lib.py`, no `auth_registry.py`. Migration is a full rewrite, not a rename pass — see the [migration section](#migration-from-v0337) for the new vocabulary.
 
@@ -177,7 +177,7 @@ Provenance: [AST:python/cocoindex/_internal/api.py:L603] [:L608] [:L613] [:L618]
 | `EnvironmentBuilder` | class | Lifespan builder. `provide(key, value)`, `provide_with(key, cm)`, `provide_async_with(key, cm)` (async), `set_exception_handler(handler)`. | [AST:python/cocoindex/_internal/environment.py:L87] |
 | `LifespanFn` | type alias | `Callable[[EnvironmentBuilder], Iterator[None]] \| Callable[[EnvironmentBuilder], AsyncIterator[None]]`. | [SRC:python/cocoindex/_internal/environment.py:L118] |
 | `lifespan` | decorator | `@coco.lifespan` registers an environment lifespan. Optional parens. | [AST:python/cocoindex/_internal/environment.py:L449] |
-| `fn` | decorator namespace | `@coco.fn` (preserves sync/async), `@coco.fn(memo=True)`, `@coco.fn(batching=True, max_batch_size=N, runner=GPU)`, `@coco.fn(version=N, logic_tracking="full"\|"self"\|None, deps=...)`. `@coco.fn.as_async(...)` always yields async. | [SRC:python/cocoindex/_internal/function.py:L1578] [SRC:python/cocoindex/_internal/function.py:L1811] |
+| `fn` | decorator namespace | `@coco.fn` (preserves sync/async), `@coco.fn(memo=True)`, `@coco.fn(version=N, logic_tracking="full"\|"self"\|None, deps=...)`. Batching and runners go through `@coco.fn.as_async(batching=True, max_batch_size=N, runner=GPU)`, which always yields async and takes sync or async functions. `@coco.fn(...)` with `batching=True` or a `runner` raises `ValueError` when it decorates any function. | [SRC:python/cocoindex/_internal/function.py:L1578] [SRC:python/cocoindex/_internal/function.py:L1811] [SRC:python/cocoindex/_internal/function.py:L1700] |
 | `LogicTracking` | type alias | `Literal["full", "self"] \| None` — value type of the `logic_tracking=` kwarg on `@coco.fn`. `"full"` (default) tracks own code + transitive children, `"self"` tracks own code only, `None` disables tracking (incompatible with `deps`). | [SRC:python/cocoindex/_internal/function.py:L65] |
 | `mount` | async fn | `await coco.mount([subpath,] processor_fn, *args, **kwargs) -> ComponentMountHandle`. Optional leading `subpath: ComponentSubpath`. | [AST:python/cocoindex/_internal/api.py:L333] |
 | `mount_each` | async fn | `await coco.mount_each([subpath,] fn, items, *args, **kwargs) -> ComponentMountHandle`. Optional leading `subpath: ComponentSubpath`. | [AST:python/cocoindex/_internal/api.py:L427] |
@@ -187,7 +187,7 @@ Provenance: [AST:python/cocoindex/_internal/api.py:L603] [:L608] [:L613] [:L618]
 | `start` / `stop` | async fns | Start/stop the default environment. | [AST:python/cocoindex/_internal/api.py:L603] [:L608] |
 | `start_blocking` / `stop_blocking` | fns | Sync variants. | [AST:python/cocoindex/_internal/api.py:L613] [:L618] |
 | `runtime()` | dual-mode ctxmgr | `with coco.runtime(): ...` or `async with coco.runtime(): ...`. | [AST:python/cocoindex/_internal/api.py:L655] |
-| `Runner` / `GPU` | class / singleton | Abstract base for execution runners. `GPU` is a `GPURunner()` singleton — pass `runner=GPU` to `@coco.fn`. Enable subprocess isolation with `COCOINDEX_RUN_GPU_IN_SUBPROCESS=1`. | [AST:python/cocoindex/_internal/runner.py:L34] [SRC:python/cocoindex/_internal/runner.py:L282] |
+| `Runner` / `GPU` | class / singleton | Abstract base for execution runners. `GPU` is a `GPURunner()` singleton — pass `runner=GPU` to `@coco.fn.as_async` (`@coco.fn(runner=GPU)` raises `ValueError`). Enable subprocess isolation with `COCOINDEX_RUN_GPU_IN_SUBPROCESS=1`. | [AST:python/cocoindex/_internal/runner.py:L34] [SRC:python/cocoindex/_internal/runner.py:L282] |
 | `TargetState[OptChildHandlerT]` | class | Bundled (provider, key, value) triple. Built via `TargetStateProvider.target_state(key, value)`. | [AST:python/cocoindex/_internal/target_state.py:L248] |
 | `TargetStateProvider[ValueT, OptChildHandlerT, MaybePendingS]` | class | Provider for target states. `target_state(key, value)`, `attachment(att_type)`, `memo_key`. | [AST:python/cocoindex/_internal/target_state.py:L208] |
 | `TargetHandler[ValueT_contra, TrackingRecordT, OptChildHandlerT_co]` | Protocol | `reconcile(key, desired_target_state, prev_possible_records, prev_may_be_missing) -> TargetReconcileOutput \| None`. | [AST:python/cocoindex/_internal/target_state.py:L197] |
@@ -272,7 +272,7 @@ Provenance: [SRC:python/cocoindex/_internal/stable_path.py:L9] [AST:python/cocoi
 - **Public API entry point:** `python/cocoindex/__init__.py` does `from ._internal.api import *` and re-exports `_internal.api.__all__` (~74 symbols). Always import as `import cocoindex as coco`. [SRC:python/cocoindex/__init__.py:L13]
 - **API hub:** `python/cocoindex/_internal/api.py` is the canonical re-export module. It defines `mount`, `mount_each`, `mount_target`, `use_mount`, `map`, `start`, `stop`, `start_blocking`, `stop_blocking`, `default_env`, `runtime`, `ComponentMountHandle`, and re-exports the rest. [SRC:python/cocoindex/_internal/api.py:L669]
 - **Component runtime:** `_internal/app.py` (App, AppConfig, UpdateHandle, DropHandle, show_progress), `_internal/environment.py` (Environment, EnvironmentBuilder, lifespan, start/stop), `_internal/runner.py` (Runner, GPU singleton).
-- **Component model:** `_internal/function.py` (`@coco.fn` builder + SyncFunction/AsyncFunction Protocols), `_internal/component_ctx.py` (ComponentContext, ComponentSubpath, exception_handler, use_context).
+- **Component model:** `_internal/function.py` (the `@coco.fn` decorator, a `_FunctionDecorator` instance; the `Function` Protocol; `SyncFunction` / `AsyncFunction`, the concrete classes with `__slots__` that subclass it and that `@coco.fn` returns) [SRC:python/cocoindex/_internal/function.py:L138] [SRC:python/cocoindex/_internal/function.py:L491] [SRC:python/cocoindex/_internal/function.py:L903], `_internal/component_ctx.py` (ComponentContext, ComponentSubpath, exception_handler, use_context).
 - **Target reconciliation:** `_internal/target_state.py` — TargetState/TargetStateProvider/TargetHandler/TargetActionSink + declare_target_state / declare_target_state_with_child / register_root_target_states_provider.
 - **Live components:** `_internal/live_component.py` — LiveComponent, LiveComponentOperator, LiveMapFeed/View, LiveMapSubscriber.
 - **Plumbing:** `_internal/context_keys.py` (ContextKey, ContextProvider), `_internal/stable_path.py` (StablePath/StableKey/Symbol), `_internal/memo_fingerprint.py` (memo_fingerprint, NotMemoKeyable), `_internal/serde.py` (unpickle_safe, serialize_by_pickle).
@@ -287,7 +287,7 @@ Provenance: [SRC:python/cocoindex/_internal/stable_path.py:L9] [AST:python/cocoi
 The `cocoindex` CLI is a click group ([AST:python/cocoindex/cli.py:L505]) with five subcommands ([AST:python/cocoindex/cli.py:L530] [:L581] [:L692] [:L761] [:L819]):
 
 ```sh
-cocoindex -e .env -d app_dir <subcommand> ...
+cocoindex [-V] [-e ENV_FILE] [-d APP_DIR] <subcommand> ...
 
 cocoindex ls   [APP_TARGET] [--db PATH]                 # List apps (from the module, or from the LMDB store)
 cocoindex show [APP_TARGET] [--db PATH --app-name NAME] [--tree]  # Show the app's stable paths
@@ -296,7 +296,7 @@ cocoindex drop APP_TARGET [-f|--force] [-q|--quiet]     # Drop an app's target s
 cocoindex init [PROJECT_NAME] [--dir PATH]              # Scaffold a new project
 ```
 
-`show` takes either `APP_TARGET` or both `--db` and `--app-name`. `update --reset` drops the existing state first (asks for confirmation unless `-f`).
+`show` takes either `APP_TARGET` or both `--db` and `--app-name`. `update --reset` drops the existing state first (asks for confirmation unless `-f`). `-e` loads a `.env` file; without it the CLI loads the nearest `.env` from the current directory upward. `-d APP_DIR` only prepends `APP_DIR` to `sys.path` and does not change the working directory: it lets a module-name `APP_TARGET` be imported from `APP_DIR`, while a `.py` path is still resolved against the current directory. [SRC:python/cocoindex/cli.py:L507] [SRC:python/cocoindex/cli.py:L513] [SRC:python/cocoindex/user_app_loader.py:L54]
 
 `APP_TARGET` is a path to a `.py` file or a module name, optionally followed by `:app_name` or `:app_name@env_name` to pick one app by its `App` name (the `AppConfig.name`) when the module registers several. The CLI resolves it via `_load_app()` ([SRC:python/cocoindex/cli.py:L274]), which loads the module and selects among the `App` instances it registered. v0.3.37's `main.py:flow_name` meaning (selecting a flow) is gone: the suffix names an app, not a flow.
 
@@ -311,7 +311,7 @@ The 0.3.37 → 1.0.0 transition is **not a rename** — every public module from
 | `cocoindex.transform_flow()` | `@coco.fn` decorator (component-level transform) |
 | `FlowBuilder.add_source(spec)` | `coco.mount_each(process_fn, source.items())` over `localfs.walk_dir`, `postgres.PgTableSource`, `kafka.topic_as_map`, etc. |
 | `DataSlice.transform(fn_spec)` / `DataSlice.row()` | `await coco.map(fn, items)` for fan-out, or `await coco.mount(child_fn, *args)` for sub-components |
-| `DataCollector.collect(...)` / `.export(target_name, target_spec, ...)` | `await postgres.mount_table_target(...).declare_row(row)` (or per-connector equivalent) |
+| `DataCollector.collect(...)` / `.export(target_name, target_spec, ...)` | `target = await postgres.mount_table_target(...)`, then `target.declare_row(row=row)` (`row` is keyword-only) from the components that produce rows (or the per-connector equivalent) |
 | `Flow.update()` / `Flow.update_async()` | `app.update_blocking()` / `await app.update()` |
 | `Flow.setup()` / `Flow.drop()` | `app.update_blocking()` (setup is implicit on first run); `app.drop()` / `app.drop_blocking()` |
 | `FlowLiveUpdater(fl)` with `start()`/`wait()` | `app.update(live=True)` returns an `UpdateHandle`; iterate `handle.watch()` for `UpdateSnapshot`s |
@@ -338,7 +338,7 @@ The 0.3.37 → 1.0.0 transition is **not a rename** — every public module from
 
 - **Cocoindex v1.0.0 does NOT preserve API stability across minor versions** despite the 1.0 tag. The 0.3 → 1.0 jump itself was a wholesale rewrite; treat future minor versions cautiously and pin in your `requirements.txt` / `pyproject.toml`.
 - **All `mount*`, `App.update`, `App.drop`, `start`/`stop`, `coco.map` are async** — wrap in `asyncio.run()` or use `app.update_blocking()` / `app.drop_blocking()` / `start_blocking()` / `stop_blocking()` for sync entry points.
-- **`@coco.fn` preserves sync/async** — sync function → `SyncFunction`, async function → `AsyncFunction`. `@coco.fn(batching=True)` requires async; for sync underlying fns that need batching, use `@coco.fn.as_async(batching=True)`.
+- **`@coco.fn` preserves sync/async** — sync function → `SyncFunction`, async function → `AsyncFunction`. For batching or a runner use `@coco.fn.as_async(batching=True, runner=GPU)`, which always yields an `AsyncFunction` and takes sync or async functions. `@coco.fn(batching=True)` and `@coco.fn(runner=GPU)` raise `ValueError` when they decorate any function, sync or async, although `@coco.fn`'s docstring says async functions are accepted: with `batching`, `runner` or `max_batch_size` set, `@coco.fn` uses a builder that rejects async functions and then rejects batching and runners. [SRC:python/cocoindex/_internal/function.py:L1700] [SRC:python/cocoindex/_internal/function.py:L1519] [SRC:python/cocoindex/_internal/function.py:L1479]
 - **`logic_tracking` controls memoization invalidation:** `"full"` (default) tracks own code + transitive children; `"self"` tracks own code only; `None` disables tracking (incompatible with `deps`).
 - **`deps` is snapshotted at decoration time**, not per-call. For per-call values pass them as regular function arguments; reserve `deps` for module-level constants like prompts or model identifiers.
 - **`ContextKey` keys must be globally unique per process** — re-using a key string raises `ValueError`. Use module-qualified names (`"my_module.PG_DB"`) or namespaced strings.
