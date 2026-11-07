@@ -32,6 +32,7 @@ These rules apply to every step in this workflow:
 - Never allow a rename to collide with an existing skill name
 - Never rename a folder SKF did not generate: select.md §4a takes that verdict from the inventory helper
 - Only load one step file at a time — never preload future steps
+- Run every subagent in the foreground (parallel ones as several calls in one message, never with `run_in_background`) and wait for every long-running command to exit before the next instruction; in a headless run, never end a turn while either still runs, since under `claude -p` a run stops when its turn ends.
 - Every helper is required: select.md §1, §5's validator call and execute.md §0 halt (exit 4) without one, and no stage does a helper's write, scan or check by hand
 - Always communicate in `{communication_language}`
 - At any interactive prompt, the inputs `cancel`, `exit`, `[X]`, `q`, or `:q` exit cleanly with exit code 6 (`halt_reason: "user-cancelled"`)
@@ -63,10 +64,10 @@ Headless callers: the inputs, flags, gate map, outputs, concurrency rule and `SK
    - `{dry_run}`: true if `--dry-run` was passed, else false.
    - `{old_name_arg}` and `{new_name_arg}`: the current name and the new name the invocation supplied, as arguments or in a request such as "rename cognee to cognee-ai", each null when absent. select.md §4 and §5 take a supplied name in either mode instead of asking for it.
 
-3. **Resolve workflow customization.** Run:
+3. **Resolve workflow customization.** Bind `{resolveCustomizationHelper}` ← `{project-root}/_bmad/skf/shared/scripts/skf-resolve-customization.py`, else `{project-root}/src/shared/scripts/skf-resolve-customization.py` (the first that exists), and run:
 
    ```bash
-   uv run {project-root}/_bmad/scripts/resolve_customization.py --skill {skill-root} --project-root {project-root} --key workflow
+   uv run {resolveCustomizationHelper} --skill {skill-root} --project-root {project-root} --key workflow
    ```
 
    It merges the bundled `{skill-root}/customize.toml` with `{project-root}/_bmad/custom/skf-rename-skill.toml` (team overrides, committed) and `.user.toml` (personal overrides, gitignored). When it exits non-zero, prints no JSON or is missing, print one line, `[activation/warn] customization_resolver_unavailable: <reason>` (`<reason>`: its first stderr line, `not found` when the script is missing, `no JSON` when it printed none). If the resolver cannot run, read `{skill-root}/customize.toml` alone and use its bundled defaults: the `{project-root}/_bmad/custom/` overrides do not apply to this run. In that case keep the reason as `{customization_resolver_unavailable}` (unset when the resolver ran) for select.md §1 to record once it has created `{run_dir}`.

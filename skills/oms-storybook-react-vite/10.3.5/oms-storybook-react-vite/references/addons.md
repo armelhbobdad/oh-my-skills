@@ -30,7 +30,7 @@ const config: StorybookConfig = {
 export default config;
 ```
 
-`[AST:code/frameworks/react-vite/src/types.ts:L1]`
+`[AST:code/frameworks/react-vite/src/types.ts:L66]`
 
 ## `@storybook/addon-a11y`
 
@@ -44,10 +44,10 @@ Accessibility testing via axe-core. Runs checks in the browser during story rend
 
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
-| `PARAM_KEY` | const | String identifier for a11y parameters (used internally) | `[AST:code/addons/a11y/src/index.ts:L6]` |
+| `PARAM_KEY` | const | `'a11y'`, the key of the a11y parameters (used internally); not the actions or viewport `PARAM_KEY` | `[AST:code/addons/a11y/src/index.ts:L6]` `[AST:code/addons/a11y/src/constants.ts:L3]` |
 | `A11yParameters` | interface | `{ context?: ContextSpecWithoutNode; options?: RunOptions; config?: Spec; disable?: boolean; test?: A11yTest }` — per-story a11y config | `[AST:code/addons/a11y/src/params.ts:L20]` |
 | `A11yGlobals` | interface | `{ a11y?: { manual?: boolean } }` — global a11y settings (manual vs auto run) | `[AST:code/addons/a11y/src/types.ts:L16]` |
-| `A11yTypes` | interface | `{ parameters: A11yParameters; globals: A11yGlobals }` — addon type bundle | `[AST:code/addons/a11y/src/types.ts:L55]` |
+| `A11yTypes` | interface | `{ parameters: A11yParameters; globals: A11yGlobals }` — addon type bundle. Its `parameters` type is not the `A11yParameters` row above but the wrapper of the same name at `types.ts:L7`, which the package root does not re-export (its `index.ts:L8` re-exports only `A11yGlobals`, `A11yTypes` and `A11yReport` from `types.ts`), whose one field `a11y?` holds that interface | `[AST:code/addons/a11y/src/types.ts:L55]` |
 | `A11yReport` | type | `EnhancedResults \| { error: Error }` — axe run result or error wrapper | `[AST:code/addons/a11y/src/types.ts:L5]` |
 | `SelectorWithoutNode` | type | `Omit<Selector, 'Node'> \| Omit<SelectorList, 'NodeList'>` — axe selector minus DOM-Node refs (safe to serialize in parameters) | `[AST:code/addons/a11y/src/params.ts:L3]` |
 | `ContextObjectWithoutNode` | type | `{ include: SelectorWithoutNode; exclude?: SelectorWithoutNode } \| { exclude: SelectorWithoutNode; include?: SelectorWithoutNode }` | `[AST:code/addons/a11y/src/params.ts:L6]` |
@@ -59,8 +59,8 @@ Runtime subpath: `@storybook/addon-a11y/preview`. These are imported as `import 
 
 | Export | Kind | Value/Shape | Source |
 |---|---|---|---|
-| `decorators` | const | `[typeof withVisionSimulator]` — auto-applied vision-simulation decorator | `[AST:code/addons/a11y/src/preview.tsx:L12]` |
-| `afterEach` | const | `AfterEach<any>` — async hook `({ id, reporting, parameters, globals, viewMode }) => Promise<void>` that runs axe-core per story and attaches an `A11yReport` to `reporting` | `[AST:code/addons/a11y/src/preview.tsx:L14]` |
+| `decorators` | const | `[withVisionSimulator]` (unannotated, so an array, `(typeof withVisionSimulator)[]`, not a tuple) — auto-applied vision-simulation decorator | `[AST:code/addons/a11y/src/preview.tsx:L12]` |
+| `afterEach` | function | `AfterEach<any>` — async hook `({ id, reporting, parameters, globals, viewMode }) => Awaitable<void>` (the return `AfterEach` declares, `Awaitable<T> = T \| PromiseLike<T>`) that runs axe-core per story and attaches an `A11yReport` to `reporting` | `[AST:code/addons/a11y/src/preview.tsx:L14]` `[SRC:code/core/src/csf/story.ts:L262]` `[SRC:code/core/src/csf/story.ts:L253]` |
 | `initialGlobals` | const | `{ a11y: { manual: false }; vision: undefined }` | `[AST:code/addons/a11y/src/preview.tsx:L98]` |
 | `parameters` | const | `{ a11y: A11yParameters }` — default a11y parameters (`test: 'todo'`, etc.) | `[AST:code/addons/a11y/src/preview.tsx:L105]` |
 
@@ -86,7 +86,7 @@ const meta = {
 } satisfies Meta<typeof Button>;
 ```
 
-**`test` values:**
+**`test` values** (`A11yParameters['test']`, typed by `type A11yTest = 'off' | 'todo' | 'error'`, which `params.ts` declares without exporting it, so there is no importable test-mode type) `[SRC:code/addons/a11y/src/params.ts:L18]`:
 - `'off'` — do not run a11y checks
 - `'todo'` — run checks, show violations in panel, do NOT fail tests (default)
 - `'error'` — run checks, fail any Vitest integration tests on violations
@@ -105,11 +105,11 @@ Theme switching decorators. Register once in `preview.ts` and toggle themes from
 
 | Export | Kind | Signature | Source |
 |---|---|---|---|
-| `withThemeByClassName` | const | `<R extends Renderer = Renderer>(config: ClassNameStrategyConfiguration) => DecoratorFunction<R>` — toggles CSS class on the parent element | `[AST:code/addons/themes/src/decorators/class-name.decorator.tsx:L19]` |
+| `withThemeByClassName` | function | `<TRenderer extends Renderer = Renderer>({ themes, defaultTheme, parentSelector = DEFAULT_ELEMENT_SELECTOR }: ClassNameStrategyConfiguration) => DecoratorFunction<TRenderer>` — toggles the selected theme's CSS class on the parent element (`parentSelector` defaults to the module-local `DEFAULT_ELEMENT_SELECTOR`, `'html'`) | `[AST:code/addons/themes/src/decorators/class-name.decorator.tsx:L19]` |
 | `ClassNameStrategyConfiguration` | interface | `{ themes: Record<string, string>; defaultTheme: string; parentSelector?: string }` — strategy config for `withThemeByClassName` | `[AST:code/addons/themes/src/decorators/class-name.decorator.tsx:L8]` |
-| `withThemeByDataAttribute` | const | `<R extends Renderer = any>(config: DataAttributeStrategyConfiguration) => DecoratorFunction<R>` — toggles `data-*` attribute (default `data-theme`) | `[AST:code/addons/themes/src/decorators/data-attribute.decorator.tsx:L19]` |
+| `withThemeByDataAttribute` | function | `<TRenderer extends Renderer = any>({ themes, defaultTheme, parentSelector = DEFAULT_ELEMENT_SELECTOR, attributeName = DEFAULT_DATA_ATTRIBUTE }: DataAttributeStrategyConfiguration) => DecoratorFunction<TRenderer>` — sets a `data-*` attribute on the parent element to the selected theme (`parentSelector` defaults to the module-local `DEFAULT_ELEMENT_SELECTOR`, `'html'`, and `attributeName` to `DEFAULT_DATA_ATTRIBUTE`, `'data-theme'`) | `[AST:code/addons/themes/src/decorators/data-attribute.decorator.tsx:L19]` |
 | `DataAttributeStrategyConfiguration` | interface | `{ themes: Record<string, string>; defaultTheme: string; parentSelector?: string; attributeName?: string }` | `[AST:code/addons/themes/src/decorators/data-attribute.decorator.tsx:L8]` |
-| `withThemeFromJSXProvider` | const | `<R extends Renderer = any>(config: ProviderStrategyConfiguration) => DecoratorFunction<R>` — wraps story in a JSX provider (emotion / styled-components / MUI ThemeProvider) | `[AST:code/addons/themes/src/decorators/provider.decorator.tsx:L23]` |
+| `withThemeFromJSXProvider` | function | `<TRenderer extends Renderer = any>({ Provider, GlobalStyles, defaultTheme, themes = {} }: ProviderStrategyConfiguration) => DecoratorFunction<TRenderer>` — when `Provider` is given, wraps the story in it (emotion / styled-components / MUI `ThemeProvider`) with the selected theme as its `theme`, and renders `GlobalStyles` before the story when given | `[AST:code/addons/themes/src/decorators/provider.decorator.tsx:L23]` |
 | `ProviderStrategyConfiguration` | interface | `{ Provider?: any; GlobalStyles?: any; defaultTheme?: string; themes?: ThemeMap }` | `[AST:code/addons/themes/src/decorators/provider.decorator.tsx:L13]` |
 | `ThemeAddonState` | interface | `{ themesList: string[]; themeDefault?: string }` — registered theme state. Declared in `types.ts` but not re-exported: `@storybook/addon-themes` exports only the `ThemesGlobals` and `ThemesTypes` types (`index.ts:L6`) | `[AST:code/addons/themes/src/types.ts:L1]` |
 | `ThemesParameters` | interface | `{ themes?: { disable?: boolean; themeOverride?: string } }` — per-story theme override. Declared in `types.ts` but not re-exported; reach it as `ThemesTypes['parameters']` | `[AST:code/addons/themes/src/types.ts:L6]` |
@@ -192,14 +192,14 @@ The main entry is deliberately thin — test execution happens in the vitest-plu
 |---|---|---|---|
 | `ADDON_ID` | const | `'storybook/test'` | `[AST:code/addons/vitest/src/constants.ts:L11]` |
 | `TEST_PROVIDER_ID` | const | `'storybook/test/test-provider'` | `[AST:code/addons/vitest/src/constants.ts:L12]` |
-| `STORYBOOK_ADDON_TEST_CHANNEL` | const | `'storybook/test/channel'` | `[AST:code/addons/vitest/src/constants.ts]` |
-| `COMPONENT_TESTING_PANEL_ID` | const | (re-exported from core) | `[AST:code/addons/vitest/src/constants.ts]` |
-| `A11Y_PANEL_ID`, `A11Y_ADDON_ID` | const | (re-exported from addon-a11y) | `[AST:code/addons/vitest/src/constants.ts]` |
-| `storeOptions` | object | Store config: `{ initialState: { coverage, a11y, watching, componentTestStatuses, ... } }` | `[AST:code/addons/vitest/src/constants.ts:L21]` |
-| `FULL_RUN_TRIGGERS` | type | `('global' \| 'run-all')[]` | `[AST:code/addons/vitest/src/constants.ts]` |
-| `TriggerTestRunRequestPayload` | type | `{ requestId, actor, storyIds?, config? }` | `[AST:code/addons/vitest/src/constants.ts]` |
-| `TestRunResult` | type | `CurrentRun` | `[AST:code/addons/vitest/src/constants.ts]` |
-| `TriggerTestRunResponsePayload` | type | `{ requestId, status, result?, error? }` | `[AST:code/addons/vitest/src/constants.ts]` |
+| `STORYBOOK_ADDON_TEST_CHANNEL` | const | `'storybook/test/channel'` | `[AST:code/addons/vitest/src/constants.ts:L13]` |
+| `COMPONENT_TESTING_PANEL_ID` | const | (core's component-testing `PANEL_ID`, re-exported under this name) | `[AST:code/addons/vitest/src/constants.ts:L5]` |
+| `A11Y_PANEL_ID`, `A11Y_ADDON_ID` | const | (addon-a11y's `PANEL_ID` and `ADDON_ID`, re-exported under these names) | `[AST:code/addons/vitest/src/constants.ts:L7]` `[AST:code/addons/vitest/src/constants.ts:L8]` |
+| `storeOptions` | const | Store config, `satisfies StoreOptions<StoreState>` (the universal store's options type, which `storybook/internal/types` exports under that name, not the manager-api `StoreOptions` of `story-types.md`): `{ id: ADDON_ID, initialState: { config: { coverage, a11y }, watching, cancelling, fatalError, index, previewAnnotations, currentRun: { triggeredBy, config: { coverage, a11y }, componentTestStatuses, a11yStatuses, a11yReports, componentTestCount, a11yCount, storyIds, totalTestCount, startedAt, finishedAt, unhandledErrors, coverageSummary } } }`. `coverage` and `a11y` sit under `initialState.config` (and `currentRun.config`), the status lists under `initialState.currentRun` | `[AST:code/addons/vitest/src/constants.ts:L21]` `[AST:code/core/src/shared/universal-store/types.ts:L67]` |
+| `FULL_RUN_TRIGGERS` | const | `RunTrigger[]`, the value `['global', 'run-all']`: the triggers that count as a full run | `[AST:code/addons/vitest/src/constants.ts:L61]` |
+| `TriggerTestRunRequestPayload` | type | `{ requestId, actor, storyIds?, config? }` | `[AST:code/addons/vitest/src/constants.ts:L74]` |
+| `TestRunResult` | type | `CurrentRun` | `[AST:code/addons/vitest/src/constants.ts:L81]` |
+| `TriggerTestRunResponsePayload` | type | `{ requestId, status, result?, error? }` | `[AST:code/addons/vitest/src/constants.ts:L83]` |
 
 ### Vitest setup wiring
 
@@ -226,6 +226,14 @@ setProjectAnnotations([previewAnnotations]);
 
 `[AST:code/addons/vitest/src/vitest-plugin/setup-file.ts]`
 
+### Vitest plugin entry: default export
+
+| Export | Kind | Purpose | Source |
+|---|---|---|---|
+| `default` | default export | `export default storybookTest`: the default export of `@storybook/addon-vitest/vitest-plugin` is its named `storybookTest` plugin factory, so `import storybookTest from '@storybook/addon-vitest/vitest-plugin'` gives the same function as the named import above | `[SRC:code/addons/vitest/src/vitest-plugin/index.ts:L531]` |
+
+The addons' `./postinstall` entries default-export a function as well (tier B, run when the addon is added, not imported by stories): `@storybook/addon-a11y/postinstall`'s is an `async` function of `options: PostinstallOptions` (a type from the CLI's `add` command) that runs `storybook automigrate addon-a11y-addon-test` through the project's package manager. `[SRC:code/addons/a11y/src/postinstall.ts:L5]`
+
 ## `@storybook/addon-docs`
 
 Powers Autodocs and MDX. Registered once in `main.ts`; story files gain automatic docs when tagged with `tags: ['autodocs']`, and `*.mdx` files can reference stories via the blocks API.
@@ -240,8 +248,8 @@ Powers Autodocs and MDX. Registered once in `main.ts`; story files gain automati
 
 | Export | Kind | Purpose | Source |
 |---|---|---|---|
-| `DocsRenderer` | component | Main renderer for docs pages | `[AST:code/addons/docs/src/index.ts:L8]` |
-| `DocsTypes` | type | Addon type definitions | `[AST:code/addons/docs/src/index.ts:L1]` |
+| `DocsRenderer` | class | `DocsRenderer<TRenderer extends Renderer>`, a plain class (not a React component) with two members, `render: DocsRenderFunction<TRenderer>` (mounts the `Docs` block for a docs entry into a DOM element through React) and `unmount: (element: HTMLElement) => void` | `[AST:code/addons/docs/src/DocsRenderer.tsx:L48]` `[AST:code/addons/docs/src/index.ts:L8]` |
+| `DocsTypes` | interface | `{ parameters: DocsParameters }`, the addon's type bundle (`DocsParameters` holds the `docs` parameter's options), exported type-only | `[AST:code/addons/docs/src/index.ts:L9]` `[AST:code/addons/docs/src/types.ts:L254]` |
 
 ### `parameters.docs` (story-level config)
 

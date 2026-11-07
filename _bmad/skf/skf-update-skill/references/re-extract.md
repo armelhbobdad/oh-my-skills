@@ -66,7 +66,7 @@ The halt leaves `{run_dir}` in place.
 **Forge tier (AST structural extraction):**
 
 - Step 2's Category B ran the recipe runner (`{extractPublicApiHelper}` `--mode full`, the recipes of the AST Extraction Protocol in `{extractionPatternsData}`) over every file to extract, `{run_dir}/extract-files.json`, and wrote `{run_dir}/extraction.json`: never run it again here. §4's helper takes each file's exports from its `exports[]`, each at the line of its name, never a decorator or `export` line above it: T1 (AST-verified structural truth) with `extraction_method: ast-grep` and the recipe's labels.
-- Read by eye only what the recipes leave out: an export a file defines in a form Known Limitation #11 in `{extractionPatternsData}` lists, a file `file_issues[]` names (not UTF-8, or code the parser could not read, where a recipe can miss an export), a name `entry_point_diff.extraction_gaps[]` lists, a map entry `{run_dir}/baseline-gaps.json` lists (a module, an alias that renames, `__version__` or another underscore name the runner never reports, which its file still declares), and each file step 2 told the user it read by eye. Step 2 already read those of the modified and added files into `{run_dir}/export-details.json` (its entries with an `export_type`), and §4's helper takes them from there. An export read by eye is T1-low with `extraction_method: source-read` and `ast_node_type: null`.
+- Read by eye only what the recipes leave out: an export a file defines in a form Known Limitation #11 in `{extractionPatternsData}` lists, a file `file_issues[]` names (not UTF-8, or code the parser could not read, where a recipe can miss an export), a name `entry_point_diff.extraction_gaps[]` lists, a map entry `{run_dir}/baseline-gaps.json` lists (a module, an alias that renames, `__version__` or another Python or Rust underscore name the runner never reports, which its file still declares), and each file step 2 told the user it read by eye. Step 2 already read those of the modified and added files into `{run_dir}/export-details.json` (its entries with an `export_type`), and §4's helper takes them from there. An export read by eye is T1-low with `extraction_method: source-read` and `ast_node_type: null`.
 
 **Tier degradation handling (Forge/Forge+/Deep):** If step 2's runner could run no ast-grep, or left files unread (step 2 told the user which), follow `{tierDegradationRulesData}` for fallback strategy and user notification requirements. Silent degradation is forbidden: the user must always know which files were read by eye instead of matched, and why.
 
@@ -115,6 +115,8 @@ Launch a subprocess that loads qmd_bridge and for each changed export:
 1. Queries the `{skill_name}-extraction` collection for semantic context related to the export
 2. Searches for usage patterns, documentation references, temporal history
 3. Returns T2 evidence per export (usage frequency, context snippets, related concepts), as patches §4 merges: write one `{"file_path", "exports": [{"name", "qmd_evidence"}]}` block per file to its own file in `{run_dir}/reextract-patches/`
+
+Then bind `{qmd_version}` ← the version `qmd --version` prints (`qmd 2.0.1` gives `2.0.1`): write.md §2 records it as `tool_versions.qmd`.
 
 **If no matching collection found in registry:**
 Log: "No QMD extraction collection found for {skill_name}. T2 enrichment skipped. Re-run [CS] Create Skill to generate the collection."

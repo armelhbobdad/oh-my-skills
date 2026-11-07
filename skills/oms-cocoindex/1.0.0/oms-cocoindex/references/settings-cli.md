@@ -36,12 +36,13 @@ class Settings:
 - `COCOINDEX_LMDB_MAX_DBS` (parsed as int, defaults to `1024`)
 - `COCOINDEX_LMDB_MAP_SIZE` (parsed as int, defaults to `0x1_0000_0000` = 4 GiB)
 
-The default db_path env var is read by `cocoindex._internal.setting.get_default_db_path()` ([AST:python/cocoindex/_internal/setting.py:L12]) which checks `COCOINDEX_DB`. `Settings.from_env` (in either module) does NOT read `COCOINDEX_DB` — pass `db_path` explicitly or set it in your `lifespan` builder:
+The default db_path env var is read by `cocoindex._internal.setting.get_default_db_path()` ([SRC:python/cocoindex/_internal/setting.py:L12]) which checks `COCOINDEX_DB`. `Settings.from_env` (in either module) does NOT read `COCOINDEX_DB`. The default environment calls `get_default_db_path()` when its lifespan leaves `db_path` unset, and raises `ValueError` if `COCOINDEX_DB` is unset too ([SRC:python/cocoindex/_internal/environment.py:L390]). So set `COCOINDEX_DB`, or set `db_path` in your `lifespan` builder:
 
 ```python
 @coco.lifespan
 async def lifespan(builder: coco.EnvironmentBuilder):
     # builder.settings already populated from Settings.from_env() in __init__
+    builder.settings.db_path = pathlib.Path("./cocoindex.db")   # else COCOINDEX_DB is used
     yield
 ```
 
@@ -100,20 +101,22 @@ class QueryOutput(Generic[R]):
 
 `QueryInfo.similarity_metric` was removed because v1.0.0 has no top-level `VectorSimilarityMetric` enum (similarity is per-connector now). If you stored `similarity_metric` in tracking records, drop the field on read.
 
-The query-handler types are metadata for tools like CocoInsight to introspect the structure of query results — they are not invoked by the runtime directly. `Flow.add_query_handler(...)` from v0.3.37 is gone; query handlers in v1.0.0 attach via the connector's target API (e.g., `target.add_query_handler(name, handler, result_fields=...)` where supported).
+The query-handler types are plain dataclasses describing query results (`QueryHandlerResultFields` is metadata for tools like CocoInsight to recognize their structure, [SRC:python/cocoindex/query_handler.py:L13]); the runtime does not invoke them. v0.3.37's `Flow.add_query_handler` is gone with no v1.0.0 replacement: nothing under `python/cocoindex` registers query handlers or imports `cocoindex.query_handler`, and no connector target offers a handler-registration method.
 
 ## CLI — `cocoindex` command
 
 ```python
 @click.group()
-@click.version_option(...)
-@click.option("-e", "--env-file", "env_file", ...)
-@click.option("-d", "--app-dir", "app_dir", default="", ...)
+@click.version_option(None, "-V", "--version", package_name="cocoindex", message="%(prog)s version %(version)s")
+@click.option("-e", "--env-file", type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True), default=None, ...)
+@click.option("-d", "--app-dir", default="", ...)
 def cli(env_file: str | None = None, app_dir: str | None = "") -> None: ...
 ```
-[AST:python/cocoindex/cli.py:L505]
+[SRC:python/cocoindex/cli.py:L479] [AST:python/cocoindex/cli.py:L505]
 
-`-e <path>` loads a `.env` file via `python-dotenv` before subcommand dispatch. `-d <path>` sets the working directory for app loading (so `app_target` paths can be relative to a project root rather than CWD).
+- `-V` / `--version` prints the installed `cocoindex` version and exits.
+- `-e <path>` / `--env-file <path>` loads that `.env` file with `python-dotenv` before the subcommand runs; click rejects a path that does not exist or is a directory. Without `-e`, the CLI loads the `.env` that `find_dotenv(usecwd=True)` finds, searching the current directory and then its parents. `load_dotenv` is called without `override=True`, so a variable already set in the environment keeps its value. [SRC:python/cocoindex/cli.py:L507]
+- `-d <dir>` / `--app-dir <dir>` only runs `sys.path.insert(0, <dir>)`; its default `""` puts the current directory first on `sys.path`. [SRC:python/cocoindex/cli.py:L513] It does **not** change the working directory. A module-name `APP_TARGET` (`indexer`, `pkg.indexer`) is then importable from `<dir>`. A path-like `APP_TARGET` (one that contains a path separator or ends in `.py`) is still checked with `os.path.isfile` against the current directory, so `-d` never makes a `.py` path relative to `<dir>`. [SRC:python/cocoindex/user_app_loader.py:L54]
 
 ### Subcommands
 
@@ -126,7 +129,12 @@ cocoindex init [PROJECT_NAME] [--dir PATH]
 ```
 [AST:python/cocoindex/cli.py:L530] [:L581] [:L692] [:L761] [:L819]
 
-`show` needs either `APP_TARGET` or both `--db` and `--app-name` (inspect an app straight from its database without loading the module); `--tree` prints the stable paths as a tree. `update --reset` drops the app's existing state before updating, asking for confirmation unless `-f`.
+- `ls` with `APP_TARGET` lists the apps the module defines, grouped by environment, and marks with `[+]` those with no persisted state (it ignores `--db` then). Without `APP_TARGET` it lists the apps persisted in the database at `--db`, or at `COCOINDEX_DB` when `--db` is not given, and fails when both are unset. [SRC:python/cocoindex/cli.py:L538]
+- `show` needs either `APP_TARGET` or both `--db` and `--app-name` (inspect an app straight from its database without loading the module); `--tree` prints the stable paths as an indented tree, marking components. [SRC:python/cocoindex/cli.py:L592]
+- `update` runs one catch-up update; `-L` / `--live` runs it in live mode, and `--full-reprocess` reprocesses everything and invalidates existing caches. `--reset` drops the app's existing state before updating, asking for confirmation unless `-f` / `--force`, which only skips that prompt. [SRC:python/cocoindex/cli.py:L652]
+- `drop` reverts the app's target states and clears its internal state, asking for confirmation unless `-f` / `--force`. [SRC:python/cocoindex/cli.py:L745]
+- `-q` / `--quiet` on `update` and `drop` suppresses their progress, statistics and status lines [SRC:python/cocoindex/cli.py:L712] [:L780]. It does not suppress a confirmation prompt: `update --reset`, and `drop` on an app with persisted state, still print theirs to standard output unless `-f` is also given (`click.prompt` writes to standard output) [SRC:python/cocoindex/cli.py:L155] [:L720] [:L793].
+- `init` writes `main.py`, `pyproject.toml` and `README.md` into `--dir` or a `PROJECT_NAME` directory (either created if missing), or into the current directory, and asks before overwriting when that directory is not empty (declining prints `Init cancelled.` and writes nothing); `PROJECT_NAME` defaults to that directory's name. [SRC:python/cocoindex/cli.py:L811] [:L853] [:L347]
 
 **APP_TARGET** is `path/to/app.py` or a module name, optionally followed by `:app_name` or `:app_name@env_name`. `_load_app(app_target)` ([SRC:python/cocoindex/cli.py:L274]) imports the module, collects the `App` instances it registered, and picks the one named `app_name` (or the only one when no name is given).
 
@@ -135,14 +143,15 @@ cocoindex init [PROJECT_NAME] [--dir PATH]
 - `cocoindex evaluate` — gone. There is no `Flow.evaluate_and_dump` equivalent in v1.0.0.
 - `cocoindex server` — gone (the embedded HTTP server is gone too, see ServerSettings note above).
 - `cocoindex init` — NEW. Scaffolds a project skeleton.
-- `cocoindex ls` — semantics changed. Listed flows in v0.3.37; lists registered apps from the LMDB store in v1.0.0. `_get_persisted_app_names(env)` ([SRC:python/cocoindex/cli.py:L131]) is the discovery mechanism.
+- `cocoindex ls` — semantics changed. Listed flows in v0.3.37; in v1.0.0 it lists apps: those a module defines (with their persisted status), or those persisted in an LMDB store. `_get_persisted_app_names(env)` ([SRC:python/cocoindex/cli.py:L131]) reads the persisted names in both cases.
 
 ### Specifying APP_TARGET
 
 ```sh
 cocoindex update main.py                  # Path to a .py file
 cocoindex update my_package.indexer       # Installed module name
-cocoindex -d ./src update indexer.py      # Path relative to ./src
+cocoindex -d ./src update indexer         # Module name, imported from ./src (-d prepends it to sys.path)
+cocoindex update src/indexer.py           # A path is resolved against the current directory, with or without -d
 cocoindex update main.py:MyApp            # The app whose AppConfig.name is "MyApp"
 cocoindex update main.py:MyApp@alpha      # ... registered in the environment named "alpha"
 ```

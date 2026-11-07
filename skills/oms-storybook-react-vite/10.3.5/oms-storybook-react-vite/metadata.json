@@ -111,21 +111,21 @@
     "skf": "1.0.0"
   },
   "confidence_distribution": {
-    "t1": 220,
-    "t1_low": 8,
+    "t1": 247,
+    "t1_low": 131,
     "t2": 0,
     "t3": 0
   },
   "stats": {
-    "exports_documented": 228,
+    "exports_documented": 378,
     "exports_public_api": 1335,
     "exports_internal": 1874,
     "exports_total": 3209,
-    "public_api_coverage": 0.1708,
-    "total_coverage": 0.0711,
+    "public_api_coverage": 0.2831,
+    "total_coverage": 0.1178,
     "scripts_count": 0,
     "assets_count": 0,
-    "effective_denominator": 280
+    "effective_denominator": 370
   },
   "generated_by": "create-skill",
   "dependencies": [

@@ -105,22 +105,26 @@ export default config;
 
 #### `StorybookConfig`
 
-The `main.ts` config interface (framework-augmented — `framework`, `addons`, `stories`, `viteFinal`, `docs`, `typescript`, `staticDirs`, …). `[AST:code/frameworks/react-vite/src/types.ts:L1]`
+The `main.ts` config interface (framework-augmented — `framework`, `addons`, `stories`, `viteFinal`, `docs`, `typescript`, `staticDirs`, …). `[AST:code/frameworks/react-vite/src/types.ts:L66]`
 
 ### `./preset` entry (internal)
 
 ```ts
 // code/frameworks/react-vite/src/preset.ts
 export const core: PresetProperty<'core'> = {
-  builder: '@storybook/builder-vite',
-  renderer: '@storybook/react/preset',
+  builder: import.meta.resolve('@storybook/builder-vite'),
+  renderer: import.meta.resolve('@storybook/react/preset'),
 };
-export const viteFinal: PresetProperty<'viteFinal'> = async (config, options) => {
-  // Injects react-docgen-typescript plugin and friends
+export const viteFinal: NonNullable<StorybookConfig['viteFinal']> = async (config, { presets }) => {
+  // Reads `typescript.reactDocgen` through presets.apply('typescript'), adds the
+  // react-docgen-typescript plugin (when that option is 'react-docgen-typescript' and
+  // typescript resolves) and the react-docgen plugin (when the option is a string)
+  // ...
+  return { ...config, plugins };
 };
 ```
 
-Storybook itself calls this preset during setup — rarely imported by users. `[AST:code/frameworks/react-vite/src/preset.ts:L1]`
+`core` gives the builder and renderer as resolved module URLs (`import.meta.resolve(...)`), not as bare package names. `viteFinal` is typed by the framework's own `StorybookConfig` (`./types`), and destructures `presets` from its second argument. Storybook itself calls this preset during setup — rarely imported by users. `[AST:code/frameworks/react-vite/src/preset.ts:L5]` `[AST:code/frameworks/react-vite/src/preset.ts:L10]`
 
 ## `@storybook/react` — renderer
 
@@ -138,15 +142,16 @@ Definitive source for CSF story types — `Meta`, `StoryObj`, `StoryFn`, `Decora
 - `composeStory`, `composeStories`, `setProjectAnnotations`, `INTERNAL_DEFAULT_PROJECT_ANNOTATIONS` (portable stories)
 - `__definePreview`, `ReactPreview`, `ReactMeta`, `ReactStory` (CSF4 factory API)
 
-`[AST:code/renderers/react/src/index.ts:L1]` `[AST:code/renderers/react/src/public-types.ts:L1]`
+`[SRC:code/renderers/react/src/index.ts]` `[SRC:code/renderers/react/src/public-types.ts]`
 
 ### `./experimental-playwright`
 
 ```ts
-export { createTest } from 'storybook/preview-api';
+// code/renderers/react/src/playwright.ts
+export { createPlaywrightTest as createTest } from 'storybook/preview-api';
 ```
 
-Helper for portable stories in Playwright CT. `[AST:code/renderers/react/src/playwright.ts:L1]`
+Helper for portable stories in Playwright CT. `storybook/preview-api` exports it as `createPlaywrightTest<TFixture extends { extend: any }>(baseTest: TFixture): TFixture`, which extends a Playwright CT `test` with a `mount` fixture that accepts story references; the renderer re-exports it under the name `createTest`. `[AST:code/renderers/react/src/playwright.ts:L1]` `[AST:code/core/src/preview-api/index.ts:L71]` `[AST:code/core/src/preview-api/modules/store/csf/portable-stories.ts:L319]`
 
 ## `@storybook/builder-vite` — builder
 
@@ -157,18 +162,18 @@ Source: `code/builders/builder-vite/`. Users rarely import from here — the fra
 ```ts
 // code/builders/builder-vite/src/index.ts
 export async function bail(): Promise<void>;                         // L37
-export const start: ViteBuilder['start'] = async ({ startTime, options, router, server }) => …;  // L41
+export const start: ViteBuilder['start'] = async ({ startTime, options, router, server }) => …;  // L41 (binds server as devServer)
 export const build: ViteBuilder['build'] = async ({ options }) => …;  // L63
 export const corePresets: string[];
 export { withoutVitePlugins } from './utils/without-vite-plugins';    // L14
 export { hasVitePlugins } from './utils/has-vite-plugins';            // L15
 
-// ViteBuilder = Builder<UserConfig, ViteStats>, so start and build take ONE args object
-// (code/core/src/types/modules/core-common.ts:259), not a positional BuilderOptions:
-//   start: (args: { options: Options; startTime: ReturnType<typeof process.hrtime>; router: ServerApp;
+// ViteBuilder = Builder<UserConfig, ViteStats>, so start and build each take ONE object, typed by
+// Builder (code/core/src/types/modules/core-common.ts:259), and destructure it:
+//   start: ({ startTime, options, router, server }: { options: Options; startTime: ReturnType<typeof process.hrtime>; router: ServerApp;
 //                   server: HttpServer; channel: ChannelLike })
 //     => Promise<void | { stats?: ViteStats; totalTime: ReturnType<typeof process.hrtime>; bail: (e?: Error) => Promise<void> }>
-//   build: (arg: { options: Options; startTime: ReturnType<typeof process.hrtime> }) => Promise<void | ViteStats>
+//   build: ({ options }: { options: Options; startTime: ReturnType<typeof process.hrtime> }) => Promise<void | ViteStats>
 
 // code/builders/builder-vite/src/utils/without-vite-plugins.ts:2
 export const withoutVitePlugins = async <TPlugin>(plugins: TPlugin[] = [], namesToRemove: string[]): Promise<TPlugin[]> => …;
@@ -183,7 +188,7 @@ export type BuilderOptions = { viteConfigPath?: string };
 
 Both plugin helpers work on a plugin array (they resolve async plugins and recurse into nested arrays), not on an `InlineConfig`. The builder's own build uses them this way: `await hasVitePlugins(finalConfig.plugins, [turbosnapPluginName])` resolves to a boolean, and `finalConfig.plugins = await withoutVitePlugins(finalConfig.plugins, [turbosnapPluginName])` replaces the array with the filtered one. `[SRC:code/builders/builder-vite/src/build.ts:L82]` `[SRC:code/builders/builder-vite/src/build.ts:L89]`
 
-`[AST:code/builders/builder-vite/src/index.ts:L37]` `[AST:code/builders/builder-vite/src/index.ts:L41]` `[AST:code/builders/builder-vite/src/index.ts:L63]` `[SRC:code/builders/builder-vite/src/utils/without-vite-plugins.ts:L2]` `[SRC:code/builders/builder-vite/src/utils/has-vite-plugins.ts:L13]` `[AST:code/builders/builder-vite/src/types.ts:L10]` `[SRC:code/core/src/types/modules/core-common.ts:L259]`
+`[AST:code/builders/builder-vite/src/index.ts:L37]` `[AST:code/builders/builder-vite/src/index.ts:L41]` `[AST:code/builders/builder-vite/src/index.ts:L63]` `[SRC:code/builders/builder-vite/src/utils/without-vite-plugins.ts:L2]` `[SRC:code/builders/builder-vite/src/utils/has-vite-plugins.ts:L13]` `[AST:code/builders/builder-vite/src/types.ts:L10]` `[AST:code/builders/builder-vite/src/types.ts:L12]` `[AST:code/builders/builder-vite/src/types.ts:L17]` `[AST:code/builders/builder-vite/src/types.ts:L21]` `[AST:code/core/src/types/modules/core-common.ts:L259]`
 
 ## `main.ts` configuration contract
 
@@ -232,7 +237,9 @@ framework: {
 };
 ```
 
-`[EXT:https://storybook.js.org/docs/get-started/frameworks/react-vite/]` `[AST:code/frameworks/react-vite/src/types.ts:L1]`
+The object form's `options` is `FrameworkOptions = { builder?: BuilderOptions; strictMode?: boolean; legacyRootApi?: boolean }`, where `BuilderOptions = { viteConfigPath?: string }` (builder-vite) and `legacyRootApi` (default `false`) mounts with React's legacy root API.
+
+`[EXT:https://storybook.js.org/docs/get-started/frameworks/react-vite/]` `[AST:code/frameworks/react-vite/src/types.ts:L14]` `[AST:code/builders/builder-vite/src/types.ts:L21]`
 
 ### Available `main.ts` keys (partial)
 
@@ -302,7 +309,7 @@ const preview: Preview = {
 export default preview;
 ```
 
-`[AST:code/renderers/react/src/public-types.ts:L80]` `[AST:code/core/src/types/index.ts]`
+`[AST:code/renderers/react/src/public-types.ts:L80]` `[SRC:code/core/src/types/index.ts]`
 
 **Preview vs meta vs story:** parameters, decorators, loaders, and tags cascade preview → meta → story, with later levels overriding. Use `preview.ts` for global concerns (theming, a11y, top-level mocks); use meta for per-component concerns; use story for per-variant concerns.
 
@@ -372,10 +379,11 @@ Needed when you're authoring a **custom Storybook theme** — either for the man
 | `ThemeVarsColors` | interface | `{ colorPrimary: string; colorSecondary: string; … }` — complete color palette | `[AST:code/core/src/theming/types.ts:L12]` |
 | `Typography` | type | `typeof typography` — fonts, weights, sizes namespace | `[AST:code/core/src/theming/types.ts:L59]` |
 | `TextSize` | type | `number \| string` — pixel count or CSS unit | `[AST:code/core/src/theming/types.ts:L63]` |
-| `Brand` | interface | `{ title: string \| undefined; url: string \| null \| undefined; image?: string \| null; target?: string }` — sidebar brand block | `[AST:code/core/src/theming/types.ts:L64]` |
+| `Brand` | interface | `{ title: string \| undefined; url: string \| null \| undefined; image: string \| null \| undefined; target: string \| null \| undefined }` — sidebar brand block; all four keys are required, each accepting `undefined` | `[AST:code/core/src/theming/types.ts:L64]` |
 | `Color` | type | `typeof color` — named color tokens (primary, secondary, gold, green, etc.) | `[AST:code/core/src/theming/types.ts:L57]` |
 | `Background` | type | `typeof background` — background color tokens (app, bar, content, critical, warning, hoverable) | `[AST:code/core/src/theming/types.ts:L58]` |
 | `Animation` | type | `typeof animation` — keyframes and motion tokens | `[AST:code/core/src/theming/types.ts:L60]` |
+| `Easing` | type | `typeof easing` — the easing tokens of `theming/animation.ts`, `{ rubber: 'cubic-bezier(0.175, 0.885, 0.335, 1.05)' }`, the type of the theme's `easing` field (`storybook/theming` exports the type, not the `easing` value) | `[AST:code/core/src/theming/types.ts:L61]` |
 
 **Building a custom theme:**
 

@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "run_id": "20261106T225241Z-1907bdd0",
+  "stages": [
+    "coverage-check",
+    "coherence-check",
+    "external-validators",
+    "report"
+  ],
+  "records": [
+    {
+      "id": "GAP-001",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: add",
+      "source": "packages/uitripled/src/commands/add.ts:8",
+      "remediation": "No change: `add` is a documented extra, a name the source still declares at `packages/uitripled/src/commands/add.ts:8` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`SKILL.md:7` documents `add`, which the enumerated source API surface lacks and the source still declares",
+      "export": "add",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-002",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: fetchComponent",
+      "source": "packages/uitripled/src/utils/registry.ts:5",
+      "remediation": "No change: `fetchComponent` is a documented extra, a name the source still declares at `packages/uitripled/src/utils/registry.ts:5` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`SKILL.md:187` documents `fetchComponent`, which the enumerated source API surface lacks and the source still declares",
+      "export": "fetchComponent",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-003",
+      "severity": "Medium",
+      "category": "brief-scope-stale",
+      "group": "Coverage",
+      "title": "stale brief scope: scope.include globs match no source file",
+      "source": "forge-data/oms-uitripled/skill-brief.yaml",
+      "remediation": "Edit `scope.include` in `forge-data/oms-uitripled/skill-brief.yaml` by hand so each glob matches the files it meant in this version of the source (update-skill does not rewrite an include glob), and add to `scope.exclude` any restored file the brief meant to leave out.",
+      "issue": "the `scope.include` globs `apps/docs/app/**/page.mdx`, `apps/docs/components/demos/**` match no file in the source tested; no root export was restored",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-004",
+      "severity": "Medium",
+      "category": "metadata-drift",
+      "group": "Coverage",
+      "title": "metadata drift — barrel export counts diverge",
+      "source": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json",
+      "remediation": "Re-run Create Skill, which rebuilds `exports[]` and `stats.exports_public_api` in `skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json` from the source. Update Skill does not repair this drift: each time it writes the skill it recounts `stats.exports_public_api` from the source and keeps `exports[]`, adding or dropping only the names its provenance map changes, so a metadata patch does not hold.",
+      "issue": "stats.exports_public_api=445, exports[].length=297 → 33% drift",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-005",
+      "severity": "Info",
+      "category": "multi-denominator",
+      "group": "Coverage",
+      "title": "multi-denominator reporting — barrel vs documented surface",
+      "source": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json",
+      "remediation": "No action required: the barrel and the documented surface measure different sets by design, and the report records both counts.",
+      "issue": "barrel=445, documented=315",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-006",
+      "severity": "Info",
+      "category": "discovery",
+      "group": "Discovery",
+      "title": "Discovery testing not performed: subagents unavailable, routing test requires isolated context",
+      "source": "SKILL.md:3",
+      "remediation": "Re-run test-skill for oms-uitripled in an environment that can spawn subagents, so the three realistic prompts drawn from the SKILL.md frontmatter description are routed against the catalog before export; no change to SKILL.md is needed for this record.",
+      "issue": "The discovery routing test needs isolated subagents with no knowledge of the skill under test; this session could spawn none, and the main thread would self-route, so the three realistic prompts were not routed against the 4-skill catalog (oms-cocoindex, oms-cognee, oms-storybook-react-vite, oms-uitripled).",
+      "stage": "report"
+    }
+  ]
+}

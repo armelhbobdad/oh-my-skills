@@ -65,7 +65,7 @@ async def mount_collection_target(
 ```
 [SRC:python/cocoindex/connectors/qdrant/_target.py:L561]
 
-The third parameter is `schema`, not `collection_schema`. Build the schema with the async `CollectionSchema.create(vectors=...)`, which takes one `QdrantVectorDef` (unnamed vector) or a `dict` of vector name to `QdrantVectorDef`. `QdrantVectorDef` is a NamedTuple `(schema, distance="cosine", multivector_comparator="max_sim")`: its `schema` is a `VectorSchemaProvider` (an embedder, or a `VectorSchema(dtype=..., size=...)`), and `distance` is `"cosine"`, `"dot"` or `"euclid"`. [SRC:python/cocoindex/connectors/qdrant/_target.py:L50] [:L150]
+The third parameter is `schema`, not `collection_schema`. Build the schema with the async `CollectionSchema.create(vectors=...)`, which takes one `QdrantVectorDef` (unnamed vector) or a `dict` of vector name to `QdrantVectorDef`. `QdrantVectorDef` is a NamedTuple `(schema, distance="cosine", multivector_comparator="max_sim")`: its `schema` is a `VectorSchemaProvider` (an embedder, or a `VectorSchema(dtype=..., size=...)`), a `MultiVectorSchemaProvider` for a multivector, or a `ContextKey` holding either, and `distance` is `"cosine"`, `"dot"` or `"euclid"`. [SRC:python/cocoindex/connectors/qdrant/_target.py:L50] [:L150]
 
 ```python
 import numpy as np
@@ -73,7 +73,7 @@ from cocoindex.connectors import qdrant
 from cocoindex.resources.schema import VectorSchema
 
 schema = await qdrant.CollectionSchema.create(
-    vectors={"embedding": qdrant.QdrantVectorDef(schema=VectorSchema(dtype=np.float32, size=384), distance="cosine")}
+    vectors={"embedding": qdrant.QdrantVectorDef(schema=VectorSchema(dtype=np.dtype(np.float32), size=384), distance="cosine")}
 )
 target = await qdrant.mount_collection_target(QDRANT_KEY, "docs", schema)
 ```
@@ -199,9 +199,14 @@ files = localfs.walk_dir(
     recursive=True,
     path_matcher=PatternFilePathMatcher(included_patterns=["**/*.md"]),
 )
-# files is a LiveMapView — supports both one-shot iteration and live mode
+# files is a DirWalker. files.items() yields (relative_path, File) pairs: a plain
+# AsyncIterable here (one-shot updates); with walk_dir(..., live=True) it is a
+# LiveMapView, which mount_each also watches for changes under app.update(live=True)
 await coco.mount_each(process_file, files.items(), target)
 ```
+[SRC:python/cocoindex/connectors/localfs/_source.py:L68] [:L147] · `walk_dir` [AST:python/cocoindex/connectors/localfs/_source.py:L234]
+
+`async for file in files:` iterates the `File` objects themselves.
 
 ## Amazon S3 — `cocoindex.connectors.amazon_s3`
 
@@ -210,7 +215,7 @@ Source only. [SRC:python/cocoindex/connectors/amazon_s3/_source.py:L12]
 __all__ = ["S3File", "S3FilePath", "S3Walker", "get_object", "list_objects", "read"]
 ```
 
-`S3Walker` is the source counterpart of `localfs.DirWalker` — yields `(key, S3File)` pairs over a bucket+prefix.
+`S3Walker` (what `list_objects` returns) is the source counterpart of `localfs.DirWalker`: iterating it yields `S3File` objects and its `items()` yields `(key, S3File)` pairs over a bucket and prefix, with no live mode. [SRC:python/cocoindex/connectors/amazon_s3/_source.py:L247] [:L337]
 
 ## Google Drive — `cocoindex.connectors.google_drive`
 

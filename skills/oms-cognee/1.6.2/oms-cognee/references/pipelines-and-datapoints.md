@@ -275,7 +275,7 @@ Provenance: `[AST:cognee/modules/pipelines/operations/run_tasks.py:L39]`
 ## run_tasks_parallel
 
 ```python
-def run_tasks_parallel(tasks: list[Task]) -> Callable[[Any], Generator[Any, Any, Any]]  # actually returns Task(parallel_run)
+def run_tasks_parallel(tasks: list[Task]) -> Task  # declared annotation: Callable[[Any], Generator[Any, Any, Any]]; the body returns Task(parallel_run)
 ```
 
 Wraps a list of tasks in a new `Task` that runs all of them concurrently via `asyncio.gather`. Returns the last task's result if multiple tasks are supplied; returns `[]` if only one task. Each task's `run()` result goes to `asyncio.create_task`, so the wrapped executables must be coroutine functions. `[SRC:cognee/modules/pipelines/operations/run_parallel.py:L9-L15]`
@@ -428,7 +428,7 @@ async def extract_people(text: str) -> List[Person]:
     return people.persons
 ```
 
-- `acreate_structured_output(text, system_prompt, PydanticModel, **kwargs)` — static method returning a coroutine; await it to get a validated instance of the Pydantic model. `[SRC:cognee/infrastructure/llm/LLMGateway.py:L112-L118]`
+- `acreate_structured_output(text_input: str, system_prompt: str, response_model: type[T], **kwargs)` — static method returning a coroutine; await it to get a validated instance of the Pydantic model. `[SRC:cognee/infrastructure/llm/LLMGateway.py:L112-L118]`
 - Backend-agnostic: controlled by `STRUCTURED_OUTPUT_FRAMEWORK` env var. Default `litellm_native`: plain litellm with a schema-native `response_format` (or a prompted-JSON fallback) and no instructor; set `instructor` or `baml` to opt back. `[SRC:cognee/infrastructure/llm/config.py:L101-L107]` · `[SRC:cognee/infrastructure/llm/LLMGateway.py:L121-L154]`
 - Internal module path: `cognee.infrastructure.llm.LLMGateway` (not re-exported at the top level; import directly).
 

@@ -304,11 +304,11 @@
       ],
       "return_type": "Any",
       "source_file": "python/cocoindex/_internal/environment.py",
-      "source_line": 452,
+      "source_line": 449,
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "function_definition",
-      "note": "decorator; overloads at L449/L451",
+      "note": "decorator; the ast-grep location is the first @overload at L449 (second overload at L451); params and return type are the implementation's at L452",
       "signature_source": "T1"
     },
     {
@@ -333,7 +333,7 @@
       "extraction_method": "source-read",
       "ast_node_type": null,
       "value": "GPURunner()",
-      "note": "Singleton instance — pass runner=GPU to @coco.fn for GPU isolation",
+      "note": "Singleton instance — pass runner=GPU to @coco.fn.as_async for GPU isolation; @coco.fn(runner=...) raises ValueError at decoration (function.py:1700 picks _SyncFunctionBuilder, which raises at :1519 for an async fn and at :1479 for a sync one)",
       "signature_source": "T1-low"
     },
     {
@@ -371,6 +371,7 @@
       "confidence": "T1-low",
       "extraction_method": "source-read",
       "ast_node_type": null,
+      "note": "Declares batching, max_batch_size and runner, but with any of them set the body (L1690-1707) builds a _SyncFunctionBuilder: batching=True or a runner then raises ValueError for every function (:1519 async, :1479 sync), despite the docstring at :1681. The skill documents @coco.fn.as_async (L1754) for batching and runners",
       "signature_source": "T1-low"
     },
     {
@@ -403,10 +404,10 @@
       "source_library": "cocoindex",
       "source_file": "python/cocoindex/_internal/function.py",
       "source_line": 1814,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "fn_ret_deserializer",
@@ -418,10 +419,10 @@
       "return_type": "DeserializeFn",
       "source_file": "python/cocoindex/_internal/function.py",
       "source_line": 1841,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "LogicTracking",
@@ -1041,10 +1042,10 @@
       "return_type": "bool",
       "source_file": "python/cocoindex/_internal/live_component.py",
       "source_line": 35,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low"
     },
     {
       "export_name": "ComponentContext",
@@ -1670,7 +1671,7 @@
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "function_definition",
-      "note": "Click group; -e/--env-file, -d/--app-dir",
+      "note": "Click group; -V/--version (L480), -e/--env-file (L487, click.Path exists=True; without it find_dotenv(usecwd=True) at L507), -d/--app-dir (L498; only sys.path.insert(0, app_dir) at L513-514, no chdir, so a path-like APP_TARGET is still resolved against the CWD by user_app_loader.py:54-58)",
       "signature_source": "T1"
     },
     {
@@ -1760,7 +1761,7 @@
       "confidence": "T1-low",
       "extraction_method": "source-read",
       "ast_node_type": null,
-      "note": "internal — loads APP_TARGET module and finds top-level App instance",
+      "note": "internal — parses APP_TARGET (_parse_app_target, L82), loads the module with user_app_loader.load_user_app (L286), then picks among the App instances of the registered environments (L291-338)",
       "signature_source": "T1-low"
     },
     {
@@ -1900,7 +1901,7 @@
         "mount_dir_target"
       ],
       "all_source": "python/cocoindex/connectors/localfs/_common.py:L78 + _source.py:L263 + _target.py:L500",
-      "note": "walk_dir returns LiveMapView — supports both one-shot and live modes",
+      "note": "walk_dir returns a DirWalker (_source.py:234-240); DirWalker.items() is a LiveMapView only with live=True, otherwise a plain AsyncIterable of (relative_path, File) pairs (_source.py:147-155)",
       "signature_source": "T1-low"
     },
     {
@@ -2146,7 +2147,7 @@
         "ResolvedEntities",
         "resolve_entities"
       ],
-      "note": "Plus llm_resolver.py for LLMResolver",
+      "note": "Plus llm_resolver.py, whose only export is LlmPairResolver (llm_resolver.py:19, :49); no LLMResolver is defined",
       "signature_source": "T1-low"
     },
     {
@@ -2259,7 +2260,6 @@
       "export_type": "class",
       "source_library": "cocoindex.resources.file",
       "params": [
-        "*",
         "included_patterns: list[str] | None = None",
         "excluded_patterns: list[str] | None = None"
       ],
@@ -2269,7 +2269,8 @@
       "confidence": "T1",
       "extraction_method": "ast-grep",
       "ast_node_type": "class_definition",
-      "signature_source": "T1"
+      "signature_source": "T1",
+      "note": "params read from __init__ at resources/file.py:240-244 (positional-or-keyword, no keyword-only marker); the class location is the ast-grep record"
     },
     {
       "export_name": "resources.id.IdGenerator",
@@ -2479,14 +2480,6 @@
         "start: TextPosition",
         "end: TextPosition"
       ],
-      "confidence": "T1-low",
-      "extraction_method": "source-read",
-      "ast_node_type": null,
-      "signature_source": "T1-low"
-    },
-    {
-      "export_name": "LLMResolver",
-      "source_library": "cocoindex",
       "confidence": "T1-low",
       "extraction_method": "source-read",
       "ast_node_type": null,

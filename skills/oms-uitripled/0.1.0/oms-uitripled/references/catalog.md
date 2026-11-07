@@ -20,9 +20,9 @@ Source: `packages/registry/registry.json` — 278 total items, 171 react-shadcn.
 | `registry:page` | 15 | Index tier — full-page or section-level templates for a whole screen |
 | `registry:block` | 38 | Index tier — larger composable sections (hero, footer, pricing) |
 | `registry:component` | 99 | Reference tier — smaller composable components |
-| `registry:ui` | 19 | Reference tier — leaf primitives (single-file UI elements) |
+| `registry:ui` | 19 | Reference tier — small animated pieces: 8 micro-interactions, 9 decorative effects and 2 data displays (`ai-unlock-animation-shadcnui`, `cash-flow-chart`, ...), not shadcn/ui primitives |
 
-**Tiering rule for composition:** `page` and `block` entries are the discovery surface — browse by category. `component` and `ui` entries are the reference surface — they usually appear as `registryDependencies` of pages/blocks and are pulled in transitively by the shadcn CLI.
+**Tiering rule for composition:** `page` and `block` entries are the discovery surface — browse by category. `component` and `ui` entries are the reference surface — install each by its own name: `registryDependencies` name only the upstream shadcn/ui `button` and `card`, never a uitripled entry, so the shadcn CLI does not pull one in transitively.
 
 ## Categories & subcategories
 
@@ -60,11 +60,11 @@ npx uitripled add <name>
 npx uitripled add <name> --overwrite
 ```
 
-Both install the same files. `[AST:packages/uitripled/src/commands/add.ts:L8]` `[SRC:apps/docs/public/llms-full.txt:L49]`
+Both install the same files. `[SRC:packages/uitripled/src/commands/add.ts:L8]` `[SRC:apps/docs/public/llms-full.txt:L49]`
 
 ## Manual import paths (workspace-mode)
 
-Used by the project's own docs site (`apps/docs/`) and documented in `llms-full.txt`. For external consumers who `npm install @uitripled/react-shadcn` directly (instead of copy-paste), the project exposes these subpath exports `[SRC:packages/components/react-shadcn/package.json:L7]`:
+Used by the project's own docs site (`apps/docs/`) and documented in `llms-full.txt`. For external consumers who `npm install @uitripled/react-shadcn` directly (instead of copy-paste), the project exposes these subpath exports `[SRC:packages/components/react-shadcn/package.json:L8]`:
 
 | Subpath | Maps to | Use for |
 |---------|---------|---------|
@@ -111,8 +111,8 @@ export async function add(componentName: string | undefined, options: { overwrit
 export async function fetchComponent(componentName: string)
 ```
 
-- `fetchComponent(componentName)` requests `https://ui.tripled.work/r/{componentName}.json` and resolves to the parsed JSON, or to `null` on a 404; any other failed status throws `Failed to fetch component: {statusText}`. `[AST:packages/uitripled/src/utils/registry.ts:L5]`
-- `add(componentName, options)` prompts for a name when none is given, fetches the item with `fetchComponent`, and stops when it has no `files`. It installs under the first of `src/components`, `app/components` and `components` that exists (`components` when none does), asks for confirmation, then writes each file at its `target` (else `path`) less the first segment; an existing file is skipped unless `options.overwrite` is true. It ends with an `npm install` hint for the item's `dependencies`. `[AST:packages/uitripled/src/commands/add.ts:L8]` `[SRC:packages/uitripled/src/commands/add.ts:L45]`
+- `fetchComponent(componentName)` requests `https://ui.tripled.work/r/{componentName}.json` and resolves to the parsed JSON, or to `null` on a 404; any other failed status throws `Failed to fetch component: {statusText}`. `[SRC:packages/uitripled/src/utils/registry.ts:L5]`
+- `add(componentName, options)` prompts for a name when none is given, fetches the item with `fetchComponent`, and stops when it has no `files`. It installs under the first of `src/components`, `app/components` and `components` that exists (`components` when none does), asks for confirmation, then writes each file at its `target` (else `path`) less the first segment; an existing file is skipped unless `options.overwrite` is true. It ends with an `npm install` hint for the item's `dependencies`. `[SRC:packages/uitripled/src/commands/add.ts:L8]` `[SRC:packages/uitripled/src/commands/add.ts:L45]`
 - `npx uitripled add [component] [-o, --overwrite]` calls `add(component, options)`. `[SRC:packages/uitripled/src/index.ts:L15]`
 
 The `uitripled` package publishes only its `dist` bin, so `fetchComponent` is called from inside `packages/uitripled/src/`, as `add` does:
@@ -135,7 +135,7 @@ if (item === null) {
 - `button` → 95 entries depend on upstream shadcn/ui `button`
 - `card` → 5 entries depend on upstream shadcn/ui `card`
 
-When `npx shadcn@latest add @uitripled/<name>` runs, shadcn walks the DAG and installs upstream shadcn/ui primitives into your project's `components/ui/` directory (or wherever your `components.json` points). `[SRC:packages/registry/registry.json:L1]`
+When `npx shadcn@latest add @uitripled/<name>` runs, shadcn walks the DAG and installs the upstream shadcn/ui primitives the entry names into your project's `components/ui/` directory (or wherever your `components.json` points). Many files import primitives their entry does not name (`references/integration.md` → Page ← block ← component composition), so add those yourself. `[SRC:packages/registry/registry.json:L1]`
 
 ## Universal dependencies
 
@@ -145,4 +145,4 @@ When `npx shadcn@latest add @uitripled/<name>` runs, shadcn walks the DAG and in
 {"dependencies": ["framer-motion", "react"]}
 ```
 
-A minority also depend on `lucide-react` (7 entries). Every component must be rendered in a client component (`"use client"`), and every parent must load under React 19. `[SRC:packages/registry/registry.json:L1]`
+Only 7 entries also declare `lucide-react`, although 127 of the 171 files import it: install it yourself. Every component must be rendered in a client component (`"use client"`), and every parent must load under React 19. `[SRC:packages/registry/registry.json:L1]`

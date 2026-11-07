@@ -239,4 +239,4 @@ export const Primary: Story = {
 - `import { Canvas, Meta } from '@storybook/addon-docs/blocks'` ✓ — NOT `'@storybook/blocks'` (v9 path, removed in v10)
 - Types can come from `'@storybook/react-vite'` or `'@storybook/react'` — both work. Prefer `react-vite` for framework alignment.
 
-`[AST:code/renderers/react/template/stories/decorators.stories.tsx:L1]` `[AST:code/renderers/react/template/stories/test-fn.stories.tsx:L1]` `[AST:code/renderers/react/template/stories/mount-in-play.stories.tsx:L1]` `[AST:code/core/package.json:L48]`
+`[SRC:code/renderers/react/template/stories/decorators.stories.tsx:L6]` `[SRC:code/renderers/react/template/stories/test-fn.stories.tsx:L5]` `[SRC:code/renderers/react/template/stories/mount-in-play.stories.tsx:L4]` `[SRC:code/core/package.json:L48]`

@@ -39,7 +39,7 @@ class TargetActionSink(Generic[ActionT_contra, OptChildHandlerT_co]):
 ```
 [AST:python/cocoindex/_internal/target_state.py:L143] [SRC:python/cocoindex/_internal/target_state.py:L151] [:L158]
 
-Sink-fn signature ([AST:python/cocoindex/_internal/target_state.py:L99] [:L121]):
+Sink-fn signature ([SRC:python/cocoindex/_internal/target_state.py:L99] [:L121]):
 ```python
 # Sync
 def __call__(

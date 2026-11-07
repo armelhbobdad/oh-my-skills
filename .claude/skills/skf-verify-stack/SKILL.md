@@ -33,6 +33,7 @@ These rules apply to every step in this workflow:
 - Every verdict must cite evidence from the generated skills
 - Only load one step file at a time — never preload future steps
 - If any instruction references a subprocess or tool you lack, achieve the outcome in your main context thread
+- Run every subagent in the foreground (parallel ones as several calls in one message, never with `run_in_background`) and wait for every long-running command to exit before the next instruction; in a headless run, never end a turn while either still runs, since under `claude -p` a run stops when its turn ends.
 - Always communicate in `{communication_language}`
 - At any interactive prompt, the inputs `cancel`, `exit`, `[X]`, `q`, or `:q` exit cleanly with exit code 6 (`halt_reason: "user-cancelled"`)
 - If `{headless_mode}` is true, auto-proceed through confirmation gates with their default action and log each auto-decision; a gate that picks its default for the user (step 1's offer of the newest earlier report) also records that decision in the run sink the moment it decides
@@ -61,7 +62,7 @@ These rules apply to every step in this workflow:
 | **Flags** | `--headless` / `-H` (auto-resolve all gates); `--architecture-doc <path>` (skip step 1 prompt for the required input); `--prd <path>` (skip step 1 prompt for the optional PRD); `--previous-report <path>` (skip step 1 prompt for delta comparison) |
 | **Gates** | step 1 Input Gate (use args), including the offer to compare against the newest earlier report (headless default: use it). No later stage waits for input: a run with 0% coverage or only Blocked pairs prints one warning and continues, so its report still carries the recommendations. |
 | **Outputs** | `feasibility-report-{project_slug}-{timestamp}.md` and its `feasibility-report-{project_slug}-latest.md` copy (not a symlink), written by step 6 once the finished report passes the feasibility-report check, both per the SKF shared feasibility report schema (`{project-root}/_bmad/skf/shared/references/feasibility-report-schema.md`; `{project-root}/src/shared/references/feasibility-report-schema.md` in a dev checkout), with integration verdicts, coverage analysis, recommendations, and evidence sources; plus `verify-stack-result-{YYYYMMDD-HHmmss}.json` and `verify-stack-result-latest.json` in `{forge_data_folder}` |
-| **Headless** | All gates auto-resolve with default action when `{headless_mode}` is true. Per-flag args (`--architecture-doc`, `--prd`, `--previous-report`) consumed at the gates that would otherwise prompt. |
+| **Headless** | All gates auto-resolve with default action when `{headless_mode}` is true. Per-flag args (`--architecture-doc`, `--prd`, `--previous-report`) consumed at the gates that would otherwise prompt. A caller reads the run's own `SKF_VERIFY_STACK_RESULT_JSON` line. A run that printed no envelope line has no result to read, whatever the process exit code: it was cut off, or could not write its result, and `verify-stack-result-latest.json` may then describe an earlier run, so it is never read in its place. |
 | **Exit codes** | See `references/exit-codes.md` |
 
 ## Result Contract (Headless)
@@ -84,10 +85,10 @@ When `{headless_mode}` is true, step 6 prints one `SKF_VERIFY_STACK_RESULT_JSON:
 
    **Bind the inputs** in every mode: `{architecture_doc_path}` ← the `--architecture-doc` value, `{prd_path}` ← `--prd` and `{previous_report_path}` ← `--previous-report`, each null when its flag is absent. init.md §1 asks only for those still null.
 
-4. **Resolve workflow customization.** Run:
+4. **Resolve workflow customization.** Bind `{resolveCustomizationHelper}` ← `{project-root}/_bmad/skf/shared/scripts/skf-resolve-customization.py`, else `{project-root}/src/shared/scripts/skf-resolve-customization.py` (the first that exists), and run:
 
    ```bash
-   uv run {project-root}/_bmad/scripts/resolve_customization.py --skill {skill-root} --project-root {project-root} --key workflow
+   uv run {resolveCustomizationHelper} --skill {skill-root} --project-root {project-root} --key workflow
    ```
 
    It merges the bundled `{skill-root}/customize.toml` with `{project-root}/_bmad/custom/skf-verify-stack.toml` (team overrides, committed) and `.user.toml` (personal overrides, gitignored). When it exits non-zero, prints no JSON or is missing, print one line, `[activation/warn] customization_resolver_unavailable: <reason>` (`<reason>`: its first stderr line, `not found` when the script is missing, `no JSON` when it printed none). If the resolver cannot run, read `{skill-root}/customize.toml` alone and use its bundled defaults: the `{project-root}/_bmad/custom/` overrides do not apply to this run. In that case keep the reason as `{customization_resolver_unavailable}` (unset when the resolver ran) for init.md to record once it has created `{run_dir}`.

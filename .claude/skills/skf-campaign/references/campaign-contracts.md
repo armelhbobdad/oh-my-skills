@@ -36,6 +36,8 @@ SKF_CAMPAIGN_HALT
 
 `<class>` is the Exit Codes meaning (e.g. `circular-deps`, `inaccessible-repo`), from which the emitter derives `exit_code`; `<step slug>` is the kebab portion of the step file where the HALT occurred. `halt-payload` adds the `completed` and `failed` counts of the state (0 before Setup wrote it) and the decision log (null before the campaign workspace exists). The emitter prints one line on stderr, with `status` `error`, `exit_code`, `halt_reason`, `phase` and an `error` object holding `code` and `message`. If either command exits non-zero, display the halt message alone.
 
+A caller reads the run's own `SKF_CAMPAIGN_RESULT_JSON` line, at the end or at a HARD HALT. A run that printed no envelope line has no result to read, whatever the process exit code: it was cut off, or could not write its result. Campaign writes no result file of its own, so nothing stands in for the line; its state stays on disk for `@Ferris campaign resume`.
+
 ## State Contract
 
 Every write to `_campaign-state.yaml` goes through `scripts/campaign-state.py`. Each write reads the state and validates it (an invalid state is never rotated into `.bak`, and nothing is written), applies the operation, stamps `campaign.last_updated` (and any `started_at` or `completed_at` the operation sets) from the clock in UTC, validates the result (a change that would make the state invalid is refused), copies the valid primary it read to `_campaign-state.yaml.bak`, and writes the new state to a temporary file renamed over the old one. A crash therefore leaves the old file or the new one, never half of one, and `.bak` always holds the last valid state. `--stage N` on a write also sets `campaign.current_stage`: each stage writes its number only in its final write, after every gate, because resume starts at `current_stage + 1`.
@@ -49,7 +51,7 @@ Every write to `_campaign-state.yaml` goes through `scripts/campaign-state.py`. 
 | `set-skill` | step-05, step-10, step-resume | a skill's `status`, `quality_score`, `skill_path`, `brief_path` or `export` outcome (`--export`); `active` stamps `started_at` once, `completed` stamps `completed_at`, `pending` clears both and the `export` outcome |
 | `append-workarounds` | step-05 | entries of a skill's `workarounds_applied`, each once |
 | `apply-batch` | step-06 | the Tier B batch from its line-to-skill map: `--start`, `--results-file` or `--no-results` |
-| `set-campaign` | steps 07 to 09 | `architecture_doc_path`, and the capstone, verification or refinement summary read from the sub-skill's envelope line (`capstone.verified` with the verification) |
+| `set-campaign` | steps 07 to 09 | `architecture_doc_path`, and the capstone, verification or refinement summary read from the sub-skill's envelope line (`capstone.verified` with the verification); null for a stage skipped on purpose (`--no-<field>`) or a sub-skill that printed no line (`--no-result <field>`, a `not_recorded` row with halt reason `no-result`) |
 | `set-stage` | steps 05, 10, 11 | `current_stage` alone |
 | `recover` | step-resume | `.bak` over the primary, when `.bak` validates (exit 9 otherwise) |
 | `archive` | SKILL.md (overwrite) | nothing: it moves the state, its `.bak` and the brief into a new folder under `archive/` and returns it |

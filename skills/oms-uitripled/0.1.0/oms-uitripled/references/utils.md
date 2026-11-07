@@ -22,18 +22,20 @@ export * from "./types";
 ## cn
 
 **Source:** `packages/utils/src/cn.ts`
-**Provenance:** `[AST:packages/utils/src/cn.ts:L4]`
+**Provenance:** `[SRC:packages/utils/src/cn.ts:L4]`
 
 ```ts
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-export function cn(...inputs: ClassValue[]): string {
+export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 ```
 
-Standard shadcn/ui class-merging helper. Identical implementation shipped at `packages/components/react-shadcn/src/lib/utils.ts` under a local path — if you copy-paste a component the helper comes with it; you don't need `@uitripled/utils` as a separate dependency.
+The source leaves the return type to inference: `twMerge` returns a `string`.
+
+Standard shadcn/ui class-merging helper. `packages/components/react-shadcn/src/lib/utils.ts` is not a copy of it: that file imports this function as `baseCn` from `@uitripled/utils` and exports its own `cn`, a wrapper that passes every argument on to `baseCn`, so the `@uitripled/react-shadcn/lib/utils` subpath depends on `@uitripled/utils` (a `workspace:*` dependency of the react-shadcn package) `[SRC:packages/components/react-shadcn/src/lib/utils.ts:L1]` `[SRC:packages/components/react-shadcn/src/lib/utils.ts:L3]` `[SRC:packages/components/react-shadcn/package.json:L85]`. A component the CLI copies brings neither file: each react-shadcn entry ships one file, and the 40 of those 171 files that use `cn` import it from your project's `@/lib/utils` (the helper `npx shadcn init` writes); the other 131 import no `cn`. The react-baseui and react-carbon entries, outside this skill, import `cn` from `@uitripled/utils` instead `[SRC:packages/registry/registry.json:L1]` `[SRC:packages/components/react-shadcn/src/components/native/native-hover-card-shadcnui.tsx:L5]` `[SRC:packages/components/react-baseui/src/components/native/native-button-baseui.tsx:L3]`.
 
 ## Landing Builder helpers
 
@@ -53,7 +55,7 @@ export function countSavedProjectComponents(project: SavedProject): number;   //
 - `extractSavedPages`: normalizes a `SavedProject` into `SavedProjectPage[]`. If the project already has `pages[]`, returns it as-is. Otherwise synthesizes a single `"Landing"` page using `project.entryPageId` (or a slugified project name) as the id, `project.components ?? []` as content, and `project.code` if present — this handles the legacy single-page project shape.
 - `countSavedProjectComponents`: totals the `components.length` across all pages (via `extractSavedPages`) for display in project lists.
 
-Used by the Landing Builder (`apps/docs/app/builder/`) to name and manage saved pages. `[AST:packages/utils/src/builder-utils.ts:L7]` `[SRC:packages/utils/src/builder-utils.ts:L33]` `[SRC:packages/utils/src/builder-utils.ts:L52]` `[SRC:packages/utils/src/builder-utils.ts:L70]`
+Used by the Landing Builder (`apps/docs/app/builder/`) to name and manage saved pages. `[SRC:packages/utils/src/builder-utils.ts:L7]` `[SRC:packages/utils/src/builder-utils.ts:L33]` `[SRC:packages/utils/src/builder-utils.ts:L52]` `[SRC:packages/utils/src/builder-utils.ts:L70]`
 
 ## Grid helpers
 
@@ -77,9 +79,9 @@ export const getCellKey: (row: number, col: number) => string;
 export const isCellInSelection: (row: number, col: number, selectedCells: string[]) => boolean;
 ```
 
-`GAP_VALUES` deliberately skips `7`, `9`, and `11` (Tailwind's non-canonical gap steps). `[AST:packages/utils/src/grid-utils.ts:L23]`
+`GAP_VALUES` deliberately skips `7`, `9`, and `11` (Tailwind's non-canonical gap steps). `[SRC:packages/utils/src/grid-utils.ts:L23]`
 
-`getGapSliderIndex(gapValue)` returns the index of `gapValue` in `GAP_VALUES`, or `0` when it is not one of them. `packages/components/react-shadcn/src/lib/grid-utils.ts` is a byte-identical copy of this file, so the react-shadcn subpath `@uitripled/react-shadcn/lib/grid-utils` exports the same helpers. `[AST:packages/utils/src/grid-utils.ts:L32]` `[SRC:packages/components/react-shadcn/src/lib/grid-utils.ts:L32]`
+`getGapSliderIndex(gapValue)` returns the index of `gapValue` in `GAP_VALUES`, or `0` when it is not one of them. `packages/components/react-shadcn/src/lib/grid-utils.ts` is a byte-identical copy of this file, so the react-shadcn subpath `@uitripled/react-shadcn/lib/grid-utils` exports the same helpers. `[SRC:packages/utils/src/grid-utils.ts:L32]` `[SRC:packages/components/react-shadcn/src/lib/grid-utils.ts:L32]`
 
 Used by the Grid Generator (`apps/docs/app/grid-generator/`) and Background Builder.
 
@@ -115,7 +117,7 @@ Takes a concatenated blob of multiple React component files (what the Landing Bu
 2. Duplicate imports merged (default / named / namespace / side-effect)
 3. A single `"use client"` directive at the top if any source file had one
 
-`[AST:packages/utils/src/merge-imports.ts:L6]`
+`[SRC:packages/utils/src/merge-imports.ts:L6]`
 
 ## Types re-exported from utils
 
@@ -172,7 +174,7 @@ type SavedProject = {
 
 **Note — two `Component` definitions exist:**
 
-1. The one above from `@uitripled/utils` (used by the Landing Builder's in-memory `componentsRegistry`).
-2. A slightly different one in `packages/registry/src/types.ts` that extends with `baseuiVariants`, `duration`, `easing`, `baseuiComponent`, `baseuiCodePath`. `[SRC:packages/registry/src/types.ts:L4]`
+1. The one above from `@uitripled/utils`, the type of the Landing Builder's `BuilderComponent.animation` `[SRC:packages/utils/src/types.ts:L60]`.
+2. A different one in `packages/registry/src/types.ts` (the type of the `@uitripled/registry` arrays). It adds `componentName`, `baseuiVariants` and `baseuiCodePath`, has no `carbonComponent`, `code` or `isFree`, and types `variants` as `any[]`; both types declare `baseuiComponent`, `duration` and `easing`. Its full shape is in `references/types.md` → Component (registry). `[AST:packages/registry/src/types.ts:L4]` `[AST:packages/utils/src/types.ts:L24]`
 
 Both are distinct from the **shadcn-compatible schema in `registry.json`** — that uses `type` / `registryDependencies` / `dependencies` / `files` fields and is what the `shadcn` and `uitripled` CLIs consume. Don't confuse them.

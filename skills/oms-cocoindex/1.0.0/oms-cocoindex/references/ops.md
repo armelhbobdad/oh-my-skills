@@ -120,9 +120,16 @@ class SentenceTransformerEmbedder(VectorSchemaProvider):
     ) -> None: ...
 
     async def __coco_vector_schema__(self) -> VectorSchema: ...   # auto-discovers dim + dtype
-    async def embed(self, text: str) -> NDArray: ...
+    async def embed(
+        self,
+        text: str,
+        prompt_name: str | None = None,       # prompt for instruction-following models (query vs document)
+        normalize_embeddings: bool = True,    # unit-length vectors, for cosine similarity
+    ) -> NDArray: ...
 ```
-[AST:python/cocoindex/ops/sentence_transformers.py:L25] [SRC:python/cocoindex/ops/sentence_transformers.py:L52]
+[AST:python/cocoindex/ops/sentence_transformers.py:L25] [SRC:python/cocoindex/ops/sentence_transformers.py:L52] [:L127]
+
+Concurrent `embed` calls are batched (up to 64 texts) on the `GPU` runner; calls with different `prompt_name` or `normalize_embeddings` values go to separate batches, so pass them consistently. [SRC:python/cocoindex/ops/sentence_transformers.py:L94]
 
 Replaces v0.3.37's `cocoindex.functions.SentenceTransformerEmbed`. Implements `VectorSchemaProvider` (`cocoindex.resources.schema.VectorSchemaProvider`), so connectors can derive vector column dimensions automatically — no need to pass dim/dtype manually.
 
@@ -151,9 +158,9 @@ __all__ = ["LiteLLMEmbedder", "litellm"]
 class LiteLLMEmbedder(VectorSchemaProvider):
     def __init__(self, model: str, **kwargs: Any) -> None: ...
     async def __coco_vector_schema__(self) -> VectorSchema: ...   # probes a "hello" embedding to discover dim
-    async def embed(self, text: str) -> NDArray: ...
+    async def embed(self, text: str, input_type: str | None = None) -> NDArray: ...   # input_type: e.g. Cohere's "search_query" / "search_document"
 ```
-[AST:python/cocoindex/ops/litellm.py:L22]
+[AST:python/cocoindex/ops/litellm.py:L22] [SRC:python/cocoindex/ops/litellm.py:L113]
 
 An embedding provider only. Replaces v0.3.37's `cocoindex.functions.EmbedText(api_type=LlmApiType..., model=...)` and, for embeddings, its provider-specific config classes (`OpenAiConfig`, `AzureOpenAiConfig`, `VertexAiConfig`). v0.3.37's `cocoindex.functions.ExtractByLlm` has **no built-in replacement**: `cocoindex.ops` has no LLM-extraction op, so call LiteLLM's completion API yourself inside a `@coco.fn` (as `examples/hn_trending_topics` does with `acompletion`, [SRC:examples/hn_trending_topics/main.py:L99]). Embeddings use LiteLLM's model-string convention:
 
@@ -165,7 +172,7 @@ LiteLLMEmbedder("voyage/voyage-3", api_key=...)                    # Voyage
 LiteLLMEmbedder("cohere/embed-english-v3.0", api_key=...)          # Cohere
 ```
 
-Provider configuration flows through `**kwargs` to `litellm.aembedding`. Common kwargs: `api_key`, `api_base`, `api_version`, `dimensions`, `input_type` (Voyage/Cohere). Internally uses `@coco.fn.as_async(batching=True, max_batch_size=64)` for batched embedding ([SRC:python/cocoindex/ops/litellm.py:L82]).
+Provider configuration flows through `**kwargs` to `litellm.aembedding`. Common kwargs: `api_key`, `api_base`, `api_version`, `dimensions`. For asymmetric models, pass `input_type` to `embed` per call instead: it overrides a constructor `input_type`, and calls with different values go to separate batches. Internally uses `@coco.fn.as_async(batching=True, max_batch_size=64)` for batched embedding ([SRC:python/cocoindex/ops/litellm.py:L82]).
 
 The `litellm` symbol in `__all__` is the underlying `litellm` library, re-exported for convenience (lets users access `litellm.completion`, `litellm.acompletion`, etc. without a separate import).
 
@@ -194,7 +201,7 @@ from cocoindex.ops.entity_resolution.llm_resolver import LlmPairResolver
 class LlmPairResolver:                      # satisfies er.PairResolver; uses instructor + litellm
     def __init__(self, *, model: str, entity_type: str | None = None,
                  extra_guidance: str | None = None, retries: int = 5) -> None: ...
-    async def __call__(self, entity: str, candidates: list[str]) -> PairDecision: ...  # @coco.fn(memo=True)
+    async def __call__(self, entity: str, candidates: list[str]) -> PairDecision: ...  # decorated @coco.fn(memo=True, logic_tracking="self")
 
 resolver = LlmPairResolver(model="openai/gpt-4o-mini", entity_type="person")
 resolved = await er.resolve_entities(names, embedder=embedder, resolve_pair=resolver)  # embedder: any Embedder

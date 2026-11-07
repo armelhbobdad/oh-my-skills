@@ -71,8 +71,15 @@ not read as a missing public export nor as an orphan.
 Definition lines: after a citation resolves (the file exists and the line
 is in range, so the older reasons win), the line must define the entry's
 export. NAME is the raw `export_name` (not canonicalized); for a dotted
-name (`App.update`) it is the last segment. The rules follow the
-`source_file` extension:
+name (`App.update`) it is the last segment. A bookkeeping variant
+(`X_def`, `X_exact`, `a11y_X`, test-skill's Source Access Protocol fold
+without `--fold-prefix` or `--keep`) that the cited file never names (no
+whole identifier in its text) is checked against its base `X` instead,
+its finding carries `folded_to`, and `summary.line_check_folded` counts
+it; the raw name always comes first, so an export really named
+`parse_exact`, or bound in a shape the rules do not cover, is judged as
+written. classify-stale never folds. The rules
+follow the `source_file` extension:
 
   - Python (`.py`, `.pyi`): the `def` / `async def` / `class NAME` line
     itself (a decorator line above it does not count); an assignment
@@ -89,7 +96,19 @@ name (`App.update`) it is the last segment. The rules follow the
     a keyword argument or a parameter never matches; a file that does not
     tokenize is matched line by line. A `from X import *` line counts only
     when no other line of the file defines NAME (a re-export the
-    extraction could not trace is cited at its star import).
+    extraction could not trace is cited at its star import). An
+    `@overload` group, where every line found is a `def` / `async def
+    NAME` line at one indentation in one enclosing block (one class, not
+    two) and every one but at most the last has `@overload` or
+    `@<module>.overload` (`@typing.overload`,
+    `@typing_extensions.overload`, `@t.overload` after
+    `import typing as t`) in its contiguous decorator block, defines NAME
+    at each of its lines, the stubs and the implementation. A comment line
+    may sit in the decorator block, and so may a decorator's arguments on
+    lines of their own, unless the file does not tokenize. A recorded line
+    that misses the group gives its first line alone, which is its first
+    stub: the public-API runner, its merge rule and the structural diff
+    all record that line, so `fix` can move the entry there.
   - TS/JS (`.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.jsx`, `.mjs`, `.cjs`): a
     `function` (or `function*`), `class`, `interface`, `type`, `enum`,
     `namespace`, `const`, `let` or `var` declaration of NAME, with any of
@@ -98,7 +117,11 @@ name (`App.update`) it is the last segment. The rules follow the
     and `class`; a name inside a decorator's arguments is not declared);
     a later declarator of a `const`, `let` or `var` list
     (`export const a = 1, NAME = 2;`, or `export const a = 1,` then
-    `  NAME = 2;` as Prettier writes it: see Declarator lists below); NAME
+    `  NAME = 2;` as Prettier writes it: see Declarator lists below);
+    NAME bound by a destructuring pattern that begins such a list
+    (`export const { a, b: NAME } = obj;`, `const [NAME] = list`, the
+    pattern on one line or several), on the line where NAME appears (see
+    Declarator lists below); NAME
     on the line right after a line that ends in its declaration keyword
     (`export function`, `export interface`, `export const` and so on),
     which is the line cited;
@@ -125,14 +148,23 @@ name (`App.update`) it is the last segment. The rules follow the
 Declarator lists: a `const`, `let` or `var` list is split at its
 top-level commas, outside strings, regular expression literals and
 brackets, a type-argument list included (`Map<K, V>`: a `<` right after
-a name), up to a top-level `;`, and a destructuring pattern declares
-nothing. The list goes on to the next line when a line ends inside a
-bracket, after a top-level comma or after an operator waiting for its
-operand, or when the next line starts with an operator (a member chain or
-a ternary broken over lines), so a declarator on a line of its own
-counts. A `<` where an expression begins (JSX, a type assertion, a generic
+a name), up to a top-level `;`. The list goes on to the next line when a
+line ends inside a bracket, after a top-level comma or after an operator
+waiting for its operand, or when the next line starts with an operator (a
+member chain or a ternary broken over lines), so a declarator on a line
+of its own counts. A `<` where an expression begins (JSX, a type assertion, a generic
 arrow function's type parameters) is not followed: no later declarator of
-the list counts after it.
+the list counts after it. A destructuring pattern that begins the list,
+on the keyword's line, declares the names it binds: a shorthand key, the
+target after `key:`, an array element, a rest `...NAME` and the names of
+a nested pattern, each on the line where it appears (the pattern may
+span lines), with its statement's column. A renamed or computed key, a
+default value, the type annotation after the pattern and anything inside
+a string or a comment bind nothing, and neither does a pattern that does
+not close. The later declarators after a pattern count as any others. A
+pattern that is a later declarator (`export const a = 1, { b } = c`) or
+that sits on the line after a split keyword (`export const`, then
+`  { b } = c;`) is not covered: it declares nothing.
 
 Indentation: for a dotted name every match counts. For an undotted name,
 matches at any indentation count, but when the file has a column-0 match
@@ -140,7 +172,8 @@ the indented ones are dropped, so a local shadow never outranks the
 module-level definition. A line inside a multi-line import, export list
 or `module.exports` object takes the column of the line its statement
 starts on, and so do the name line of a declaration split after its
-keyword and a later declarator on a line of its own. When the recorded
+keyword, a later declarator on a line of its own and the line of a name
+a destructuring pattern binds. When the recorded
 line is itself an indented match that this rule dropped (a method
 recorded under an undotted name beside a module-level function of the
 same name), the finding lists the recorded line too, so it carries
@@ -149,7 +182,11 @@ several lines and no caller auto-moves it.
 Entries in other files, and entries whose `export_type` is `module` or
 `package` (case-insensitive; neither has a definition line), are skipped
 and counted in `summary.line_check_skipped`. A `line-not-definition` item
-lists every defining line in the file in `definition_lines`. An empty list
+lists every defining line in the file in `definition_lines`, the recorded
+line included when it is an indented match the column-0 rule dropped (see
+Indentation). The one exception is a Python `@overload` group: it lists
+the group's first line alone, unless the recorded line is such a dropped
+indented match, which still gives several lines. An empty list
 means the rules found no definition line, which may be a shape they do not
 cover: the entry is unverified, not gone, and no caller auto-fixes it.
 
@@ -232,7 +269,9 @@ Subcommands:
            "source_line": <int|null>,
            "reason": "file-missing" | "line-out-of-bounds" | "line-invalid"
                      | "line-not-definition",
-           "definition_lines": [<int>, ...]},   # line-not-definition only
+           "definition_lines": [<int>, ...],    # line-not-definition only
+           "folded_to": "<base name>"},         # line-not-definition only,
+                                                # a variant checked as its base
           ...
         ],
         "citations": [
@@ -272,6 +311,7 @@ Subcommands:
           "stale_count":      <int>,
           "citations_checked": <int>,  # entries whose citation was resolved
           "line_check_skipped": <int>, # resolved entries with no line rule
+          "line_check_folded": <int>,  # variants checked against their base
           "stale_check": "checked" | "skipped-no-source-root",
           "skill_citations_scanned": <int>,  # [AST:]/[SRC:] with a line
           "skill_citations_matched": <int>,  # of those, citing an entry
@@ -383,11 +423,15 @@ Subcommands:
                       | "skipped-language",
         "definition_lines": [<int>, ...] | null,   # checked only
         "source_line": <int> | null,               # --line
-        "line_is_definition": <bool> | null        # --line, checked only
+        "line_is_definition": <bool> | null,       # --line, checked only
+        "folded_to": "<base name>"                 # a folded variant only
       }
 
     With `--line`, a recorded line that is an indented match the column-0
-    rule dropped joins `definition_lines`, as in `verify`.
+    rule dropped joins `definition_lines`, and one that misses a Python
+    `@overload` group gives its first line alone, as in `verify`. A
+    bookkeeping variant the file never names is checked against its base,
+    as in `verify`, and only then does the key `folded_to` appear.
 
   classify-stale --names <coverage.json> --provenance <provenance-map.json>
                  --source-root <path> [--inventory <inventory.json>]
@@ -397,7 +441,8 @@ Subcommands:
     documented name the enumerated source surface lacks): the
     definition-lines rules above, run for every provenance entry whose raw
     `export_name` is the name, at its `source_file` and `source_line`, with
-    its `export_type`. `--names` holds reconcile-coverage.py's result (its
+    its `export_type`, and with no bookkeeping-variant fold (the name is
+    judged as written). `--names` holds reconcile-coverage.py's result (its
     `stale` names) or a JSON array of names. `--inventory` holds the
     documented inventory, validate-inventory.py's `--output` file or its
     whole result: the `kind` it gives each name decides the module rule
@@ -410,7 +455,8 @@ Subcommands:
          "source": "<source_file>:<source_line>" | "<source_file>" | null,
          "defined_at": "<path>:<line>" | null,
          "declared_in": ["<path>:<line>", ...] | null,
-         "reason": "not-defined" | "defined" | "unchecked" | "no-entry",
+         "reason": "not-defined" | "aliased" | "defined" | "unchecked"
+                   | "no-entry",
          "entries": [{"source_file": "<as recorded>",
                       "source_line": <as recorded>,
                       "line_check": "checked" | "file-missing"
@@ -424,9 +470,30 @@ Subcommands:
     `fabricated` is true, with reason `not-defined`, when the name has an
     entry and every entry's `line_check` is `file-missing`, or `checked`
     with an empty `definition_lines`: the export is in neither the surface
-    nor the cited file. Otherwise the reason is `defined` (a cited file
-    defines the name), `unchecked` (no rule could check a cited file, and
-    none defines it) or `no-entry` (the map has no entry for the name).
+    nor the cited file, and no item of an export list or of a Python
+    `from X import` clause elsewhere renames to it a name that file
+    declares. Such an alias (`export { API_Entry as Entry }` or
+    `export type { ... }`, on one line or an item of a multi-line list;
+    `from X import L as NAME`, on one line or an item in parentheses or
+    after a backslash) gives the reason `aliased` and `fabricated` false:
+    the first of the name's declarations the lookup below finds (its
+    `declared_in`, else the cited file's) that is such an item
+    `L as NAME`, where a file of a `checked` entry of the name declares
+    `L` by the same rule (no module or package so named counting), is its
+    `defined_at`. A TS/JS line is read with its comments removed and its
+    one-line strings blanked, a Python line with its `#` comment cut.
+    Neither the rename's `from` module nor `L`'s own binding is resolved,
+    so an `L` that another file declares under the same name counts too.
+    Any other rename stays fabricated: `export { default as NAME }`,
+    `const NAME = L`, `type NAME = L`, an import then an export of NAME,
+    Python `NAME = L`, a TS type assertion (`x as NAME`) and `as NAME` in
+    a comment or a string; and so does a name whose cited file is the
+    module so named and itself the export (a column-0 `export default` or
+    `module.exports =`), which settles it at its line 1, so no walk looks
+    for an alias elsewhere.
+    Otherwise the reason is `defined` (a cited file defines the name),
+    `unchecked` (no rule could check a cited file, and none defines it) or
+    `no-entry` (the map has no entry for the name).
     An entry with no `source_file` (update-skill writes one for an
     `unknown` NEW_EXPORT) cites no file to check: its `line_check` is
     `no-file`, which, like a skipped or unreadable check, neither proves
@@ -438,7 +505,8 @@ Subcommands:
     `defined_at` is where the source declares a name that is not
     fabricated, so test-skill can tell a documented extra (a name outside
     the surface that the source still declares) from stale documentation;
-    a fabricated name is not looked up (null). A declaration is a line at
+    a fabricated name has none and no `declared_in` (both null), the
+    lookup reading it only for an alias. A declaration is a line at
     column 0 that the definition-line rules match with imports left out:
     a `def`, `class`, assignment, annotation, type alias, TS/JS
     declaration, `exports.NAME =`, or an alias that renames
@@ -450,11 +518,15 @@ Subcommands:
     `export default NAME`, an export-list item without `as`, a
     `module.exports` shorthand key, a binding whose value is an import
     (`require(...)` or `(await) import(...)`, on its line or the next:
-    `const NAME = require(...)`, `exports.NAME = require(...)`,
-    `{ NAME: require(...) }`), an indented line and any line of a Python
-    file that does not tokenize never count. A module or package named
-    NAME (`NAME.py`, `NAME/__init__.py`, a TS/JS `NAME.<ext>` or
-    `NAME/index.<ext>`) declares NAME too: at its line 1 when no line of it
+    `const NAME = require(...)`, `const { NAME } = require(...)`,
+    `exports.NAME = require(...)`, `{ NAME: require(...) }`), an
+    indented line and any line of a Python
+    file that does not tokenize never count (an item of a multi-line list
+    counts at its own line, the list's opening line at column 0, so an
+    `aliased` name's `defined_at` is its rename's line). A module or
+    package named NAME (`NAME.py`, `NAME/__init__.py`, a TS/JS
+    `NAME.<ext>` or `NAME/index.<ext>`) declares NAME too: at its line 1
+    when no line of it
     declares NAME, unless `--inventory` gives NAME a `function`, `hook`,
     `class`, `interface`, `enum` or `type` kind (any of its kinds, when it
     gives several; a `method` kind is not read), no entry of NAME is a
@@ -478,10 +550,12 @@ Subcommands:
     and `defined_at` is the one item when the list has exactly one and no
     walked Python file that does not tokenize holds the name (a homonym,
     two files or more, gives null: test-skill decides it by the files the
-    skill cites). The walk reads, sorted by path, every file below the
-    walk root: the deepest folder that the files of the map's entries
-    share, widened to its package root (Python: the nearest folder at or
-    above it that holds `__init__.py`, then up while the parent holds
+    skill cites), save for an `aliased` name, whose `defined_at` is its
+    alias whatever the list holds. The walk reads, sorted by path, every
+    file below the walk root: the deepest folder that the files of the
+    map's entries share, widened to its package root (Python: the nearest
+    folder at or above it that holds `__init__.py`, then up while the
+    parent holds
     one, never the source root itself; TS/JS: the nearest folder at or
     above it that holds `package.json`), leaving out the entries whose
     file lies outside every package; the source root when none lies in
@@ -505,9 +579,12 @@ Subcommands:
     skips, those walk-only ones aside. The path is relative to the source
     root. A dotted name, or a map whose entries cite files
     but no Python or TS/JS one, is not looked up (`defined_at` and
-    `declared_in` null, as for a fabricated name), and a filesystem error
-    during the lookup gives every name null in both (the exit code stays
-    0).
+    `declared_in` null, as for a fabricated name). A filesystem error
+    during the lookup of the names that are not fabricated gives each of
+    them null in both (the exit code stays 0). The `not-defined` names are
+    looked up apart, after the others and whether or not that lookup
+    failed: an error in their walk or their alias check keeps only them
+    fabricated, and clears no other name's answer.
 
   kind-at --file <path> --line <n> --recipes <recipes>
           [--language <lang>] [--name <export_name>]
@@ -599,6 +676,7 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import bisect
 import copy
 import importlib.util
 import io
@@ -913,6 +991,10 @@ _PY_SPLIT_DECL_RE = re.compile(r"^\s*(?:async\s+def|def|class)\s*\\$")
 # A line that can matter to a name it does not hold: an import (which may go
 # on over the next lines) or a `def \` / `class \` whose name is on the next.
 _PY_NAMELESS_MATCH_RE = re.compile(r"^\s*(?:from|import|async|def|class)\b")
+# The decorator of an `@overload` stub, imported by name or used through its
+# module under any name (`typing`, `typing_extensions`, `t` after
+# `import typing as t`).
+_PY_OVERLOAD_RE = re.compile(r"^\s*@\s*(?:[A-Za-z_]\w*\.)?overload\s*$")
 # Tokens that never begin a statement.
 _PY_LAYOUT_TOKENS = frozenset(
     {
@@ -989,6 +1071,11 @@ _DECL_MAYBE = "maybe"
 # What `_js_declarators` gives: None, or (brackets left open, how) the list
 # goes on with, and the pieces that begin a declarator.
 _DeclSplit = tuple[tuple[str, str] | None, list[str]]
+# What `_js_destructured` gives for a `const` / `let` / `var` statement
+# whose first declarator is a destructuring pattern: the (name, line) of
+# each name it binds, and the (line, text after the `=` on that line) its
+# initializer starts at, None when it has none.
+_PatternDecl = tuple[list[tuple[str, int]], tuple[int, str] | None]
 # After one of these, `/` begins a regular expression and `<` begins JSX, a
 # type assertion or a generic arrow function's type parameters.
 _JS_EXPRESSION_START = frozenset("([{,;=?:&|^%+-*/<>!~")
@@ -1002,6 +1089,28 @@ def definition_name(export_name: str) -> str:
     """The name a definition line must carry: the last segment of a dotted
     export name (`App.update` -> `update`), else the name itself."""
     return export_name.rsplit(".", 1)[-1]
+
+
+# Bookkeeping variants folded to their base name, in rule order: test-skill's
+# Source Access Protocol defines the fold (`X_def`, `X_exact`, `a11y_X` -> `X`).
+# Keep identical to FOLD_SUFFIXES and FOLD_PREFIX in load-coverage-inputs.py.
+FOLD_SUFFIXES = ("_def", "_exact")
+FOLD_PREFIX = "a11y_"
+
+
+def fold_base(export_name: str) -> str | None:
+    """The base name a bookkeeping variant folds to, None for a name that is
+    no variant: a suffix in FOLD_SUFFIXES first, else FOLD_PREFIX, never the
+    whole name (`_def` alone is no variant). The rules of
+    load-coverage-inputs.py `fold_names`, without `--fold-prefix` or
+    `--keep`: the line check tries the raw name first, so a real export
+    named like a variant is never folded."""
+    for suffix in FOLD_SUFFIXES:
+        if export_name.endswith(suffix) and len(export_name) > len(suffix):
+            return export_name[: -len(suffix)]
+    if export_name.startswith(FOLD_PREFIX) and len(export_name) > len(FOLD_PREFIX):
+        return export_name[len(FOLD_PREFIX):]
+    return None
 
 
 def _read_lines(path: Path) -> list[str] | None:
@@ -1105,15 +1214,17 @@ def _js_code_lines(lines: list[str]) -> list[str]:
 
 
 class _SourceCache:
-    """Source lines, Python statement starts and TS/JS comment-free lines,
-    read once per file, and TS/JS declarator lists, split once per line
-    (the split does not depend on the export looked up)."""
+    """Source lines, Python statement starts, TS/JS comment-free lines and
+    the names TS/JS destructuring patterns bind, read once per file, and
+    TS/JS declarator lists, split once per line (neither depends on the
+    export looked up)."""
 
     def __init__(self) -> None:
         self._lines: dict[Path, list[str] | None] = {}
         self._starts: dict[Path, set[int] | None] = {}
         self._js_code: dict[Path, list[str]] = {}
         self._js_quiet: dict[Path, list[bool]] = {}
+        self._js_patterns: dict[Path, dict[int, _PatternDecl]] = {}
         self._js_decl: dict[tuple[str, str, bool], _DeclSplit] = {}
 
     def lines(self, path: Path) -> list[str] | None:
@@ -1135,6 +1246,13 @@ class _SourceCache:
         if path not in self._js_quiet:
             self._js_quiet[path] = _js_quiet_lines(code_lines)
         return self._js_quiet[path]
+
+    def js_destructured(
+        self, path: Path, code_lines: list[str]
+    ) -> dict[int, _PatternDecl]:
+        if path not in self._js_patterns:
+            self._js_patterns[path] = _js_destructured(code_lines)
+        return self._js_patterns[path]
 
     def js_declarators(
         self, text: str, opened: str = "", fresh: bool = True
@@ -1267,6 +1385,76 @@ def _python_definition_lines(
         if _py_import_binds(rest, name, from_import, declarations_only):
             found.append((number, top))
     return found or star_imports
+
+
+def _py_overloaded(lines: list[str], number: int, starts: set[int] | None) -> bool:
+    """True when the `def` on line `number` has `@overload` or
+    `@<module>.overload` (`@typing.overload`, `@t.overload`) in its
+    contiguous decorator block: the decorator lines at its indentation
+    right above it, up to a blank line or a line that is not a decorator.
+    A comment line is passed over, and so, in a file that tokenizes, is a
+    line on which no statement begins (a decorator's arguments over
+    several lines)."""
+    text = lines[number - 1]
+    indent = text[: len(text) - len(text.lstrip())]
+    i = number - 1
+    while i >= 1:
+        text = lines[i - 1]
+        code = text.split("#", 1)[0]
+        if not text.strip():
+            return False
+        if not code.strip() or (starts is not None and i not in starts):
+            i -= 1
+            continue
+        if not code.lstrip().startswith("@") or text[: len(text) - len(text.lstrip())] != indent:
+            return False
+        if _PY_OVERLOAD_RE.match(code):
+            return True
+        i -= 1
+    return False
+
+
+def _py_enclosing_line(
+    lines: list[str], number: int, indent: str, starts: set[int] | None
+) -> int | None:
+    """The line of the block that holds the statement on line `number`,
+    indented by `indent`: the nearest line above it where a statement
+    begins with less indentation. None at module level."""
+    i = number - 1
+    while indent and i >= 1:
+        text = lines[i - 1]
+        if text.split("#", 1)[0].strip() and (starts is None or i in starts):
+            if len(text) - len(text.lstrip()) < len(indent):
+                return i
+        i -= 1
+    return None
+
+
+def _python_overload_start(
+    lines: list[str], name: str, defs: list[int], starts: set[int] | None
+) -> int | None:
+    """The first of `defs` when they are one `@overload` group: two lines
+    or more, each a `def` / `async def NAME` line, all at one indentation
+    in one enclosing block (`_py_enclosing_line`, so two classes'
+    methods never make one group), and each but at most the last
+    decorated as an overload (`_py_overloaded`). None otherwise."""
+    if len(defs) < 2:
+        return None
+    decl = re.compile(rf"^(\s*)(?:async\s+def|def)\s+{re.escape(name)}(?!\w)")
+    indents = set()
+    for number in defs:
+        m = decl.match(lines[number - 1].split("#", 1)[0])
+        if m is None:
+            return None
+        indents.add(m.group(1))
+    if len(indents) > 1:
+        return None
+    (indent,) = indents
+    if len({_py_enclosing_line(lines, number, indent, starts) for number in defs}) > 1:
+        return None
+    if not all(_py_overloaded(lines, number, starts) for number in defs[:-1]):
+        return None
+    return defs[0]
 
 
 def _js_export_item_binds(item: str, name: str, alias_only: bool = False) -> bool:
@@ -1469,6 +1657,252 @@ def _js_paren_tail_is_call(after_open: str) -> bool:
     return False
 
 
+def _js_pattern_bindings(
+    text: str, start: int
+) -> tuple[list[tuple[str, int]], int | None]:
+    """The names the destructuring pattern whose `{` or `[` is at
+    `text[start]` binds, each with its offset in `text`, and the offset
+    just past the pattern's closing bracket.
+
+    An object pattern's property is `...target`, a shorthand key or
+    `key: target` (a key is a name, a string, a number or a computed
+    `[...]`, and only a shorthand key binds itself); an array pattern's
+    element is `...target`, a target or a hole; a target is a name or a
+    nested pattern. A `= default` is skipped to the next comma at the
+    pattern's depth, and so is a property or element of any other shape,
+    which binds nothing. '...', "..." and `...` strings are skipped
+    whole, so no bracket or comma inside one counts. Whitespace, newlines
+    included, may sit anywhere between the parts.
+
+    Returns ([], None) when `text[start]` opens no pattern, the pattern
+    does not close in `text`, a string in it does not end, or a bracket in
+    it closes one it did not open. A pure function of its arguments (no
+    module state), so another script can carry a copy of it.
+    """
+    n = len(text)
+    names: list[tuple[str, int]] = []
+
+    def space(i: int) -> int:
+        while i < n and text[i].isspace():
+            i += 1
+        return i
+
+    def name_end(i: int) -> int:
+        """The end of the identifier at `i`, `i` itself when none starts there."""
+        if i < n and (text[i].isalpha() or text[i] in "_$"):
+            i += 1
+            while i < n and (text[i].isalnum() or text[i] in "_$"):
+                i += 1
+        return i
+
+    def string_end(i: int) -> int | None:
+        """The offset past the string whose quote is at `i`."""
+        quote = text[i]
+        i += 1
+        while i < n:
+            if text[i] == "\\":
+                i += 2
+            elif text[i] == quote:
+                return i + 1
+            else:
+                i += 1
+        return None
+
+    def skip(i: int, to_comma: bool = True) -> int | None:
+        """From `i`, the offset of the next comma (unless not `to_comma`)
+        or closing bracket at depth 0; with `to_comma` False, `text[i]`
+        opens a bracket and the offset past the one closing it."""
+        depth = 0
+        while i < n:
+            ch = text[i]
+            if ch in "'\"`":
+                end = string_end(i)
+                if end is None:
+                    return None
+                i = end
+                continue
+            if ch in "([{":
+                depth += 1
+            elif ch in ")]}":
+                if depth == 0:
+                    return i
+                depth -= 1
+                if depth == 0 and not to_comma:
+                    return i + 1
+            elif ch == "," and depth == 0 and to_comma:
+                return i
+            i += 1
+        return None
+
+    def default(i: int) -> int | None:
+        """After a target: past its `= default`, when it has one."""
+        i = space(i)
+        if i < n and text[i] == "=" and text[i + 1 : i + 2] not in ("=", ">"):
+            return skip(i + 1)
+        return i
+
+    def bind(i: int, end: int, close: str) -> int | None:
+        """The name `text[i:end]` is bound when its property or element
+        ends after it or takes a default (any other text: another shape)."""
+        after = space(end)
+        if after < n and (
+            text[after] in (",", close)
+            or text[after] == "=" and text[after + 1 : after + 2] not in ("=", ">")
+        ):
+            names.append((text[i:end], i))
+            return default(after)
+        return after
+
+    def target(i: int, close: str) -> int | None:
+        if i < n and text[i] in "{[":
+            end = pattern(i)
+            return None if end is None else default(end)
+        end = name_end(i)
+        return i if end == i else bind(i, end, close)
+
+    def element(i: int, close: str) -> int | None:
+        """One property or element at `i`: the offset after it."""
+        if text.startswith("...", i):
+            return target(space(i + 3), close)
+        if close == "]":
+            return target(i, close)
+        if text[i] in "'\"":
+            end = string_end(i)
+        elif text[i] == "[":
+            end = skip(i, to_comma=False)  # a computed key
+        else:
+            end = name_end(i)
+            if end > i:
+                after = space(end)
+                if after < n and text[after] == ":":
+                    return target(space(after + 1), close)
+                return bind(i, end, close)  # a shorthand key
+            while end < n and (text[end].isalnum() or text[end] in "._"):
+                end += 1  # a number key
+        if end is None:
+            return None
+        after = space(end)
+        if end > i and after < n and text[after] == ":":
+            return target(space(after + 1), close)
+        return after
+
+    def pattern(i: int) -> int | None:
+        """The pattern opening at `i`: the offset past its closing bracket."""
+        close = "}" if text[i] == "{" else "]"
+        i += 1
+        while True:
+            i = space(i)
+            if i >= n:
+                return None
+            if text[i] == close:
+                return i + 1
+            if text[i] in ")]}":
+                return None
+            if text[i] == ",":
+                i += 1  # a hole, or a stray comma
+                continue
+            end = element(i, close)
+            if end is None:
+                return None
+            end = space(end)
+            if end < n and text[end] not in (",", close):
+                end = skip(end)  # any other shape binds nothing
+                if end is None:
+                    return None
+            i = end + 1 if end < n and text[end] == "," else end
+
+    if not (0 <= start < n and text[start] in "{["):
+        return [], None
+    end = pattern(start)
+    return (names, end) if end is not None else ([], None)
+
+
+def _js_initializer_start(text: str, end: int) -> int | None:
+    """The offset just past the `=` that begins the initializer of a
+    declarator whose name or pattern ends at `end`, a type annotation
+    (`: T`, brackets, strings and `=>` in it included) skipped. None when
+    neither `=` nor `:` follows, or when a `,` or `;` outside the
+    annotation's brackets, or the end of `text`, comes first."""
+    n = len(text)
+    i = end
+    while i < n and text[i].isspace():
+        i += 1
+    if i < n and text[i] == "=":
+        return None if text[i + 1 : i + 2] == "=" else i + 1
+    if not (i < n and text[i] == ":"):
+        return None
+    i += 1
+    depth = 0
+    while i < n:
+        ch = text[i]
+        if ch in "'\"`":
+            i += 1
+            while i < n and text[i] != ch:
+                i += 2 if text[i] == "\\" else 1
+        elif text.startswith("=>", i):
+            i += 1
+        elif ch in "([{<":
+            depth += 1
+        elif ch in ")]}>":
+            depth -= 1
+            if depth < 0:
+                return None
+        elif ch in ",;" and depth == 0:
+            return None
+        elif ch == "=" and depth == 0:
+            return None if text[i + 1 : i + 2] == "=" else i + 1
+        i += 1
+    return None
+
+
+def _js_destructured(code_lines: list[str]) -> dict[int, _PatternDecl]:
+    """For each line that opens a `const` / `let` / `var` statement whose
+    first declarator is a destructuring pattern (`_JS_VAR_DECL_RE`, the
+    rest starting with `{` or `[`): the names the pattern binds, each with
+    the line it appears on, and where its initializer starts.
+
+    The patterns are read from the comment-free lines joined with `\\n`
+    (`_js_pattern_bindings`), so a pattern may span lines and a name's
+    offset maps back to its line. A pattern that does not close, or that
+    nests deeper than the interpreter's recursion limit, binds nothing and
+    gives no item.
+    """
+    starts: list[tuple[int, int]] = []
+    for number, code in enumerate(code_lines, start=1):
+        if "{" not in code and "[" not in code:
+            continue
+        m = _JS_VAR_DECL_RE.match(code)
+        if m is not None and m.group(1)[:1] in ("{", "["):
+            starts.append((number, m.start(1)))
+    if not starts:
+        return {}
+    text = "\n".join(code_lines)
+    offsets: list[int] = []
+    pos = 0
+    for code in code_lines:
+        offsets.append(pos)
+        pos += len(code) + 1
+
+    def line_of(offset: int) -> int:
+        return bisect.bisect_right(offsets, offset)
+
+    out: dict[int, _PatternDecl] = {}
+    for number, column in starts:
+        try:
+            names, end = _js_pattern_bindings(text, offsets[number - 1] + column)
+        except RecursionError:
+            continue  # patterns nested past the interpreter's limit: none bound
+        if end is None:
+            continue
+        value = _js_initializer_start(text, end)
+        at = None
+        if value is not None:
+            line = line_of(value)
+            at = (line, code_lines[line - 1][value - offsets[line - 1] :])
+        out[number] = ([(name, line_of(offset)) for name, offset in names], at)
+    return out
+
+
 def _tsjs_definition_lines(
     lines: list[str],
     code_lines: list[str],
@@ -1477,6 +1911,7 @@ def _tsjs_definition_lines(
     declarators: Callable[..., _DeclSplit] = _js_declarators,
     declarations_only: bool = False,
     quiet: list[bool] | None = None,
+    destructured: dict[int, _PatternDecl] | None = None,
 ) -> list[tuple[int, bool]]:
     """(line, at column 0) for every line that defines `name`.
 
@@ -1486,15 +1921,20 @@ def _tsjs_definition_lines(
     JSDoc line or a commented-out declaration never matches. A line inside
     a multi-line `export { ... }` list or `module.exports = { ... }` object
     takes the column of the line the statement starts on, and so do the
-    name line of a declaration whose keyword ends the line above it and a
-    later declarator on a line of its own. Class members count only for a
+    name line of a declaration whose keyword ends the line above it, a
+    later declarator on a line of its own and the line of a name that a
+    destructuring pattern binds. `destructured` is
+    `_js_destructured(code_lines)` when the caller has it (it does not
+    depend on the name either): a name its pattern binds counts when the
+    `const` / `let` / `var` line it is keyed by opens a statement here.
+    Class members count only for a
     dotted export name. `declarators` splits a declarator list
     (`_js_declarators`, or `_SourceCache.js_declarators`, which splits each
     line once for every export looked up). With `declarations_only`,
     `export import NAME =`, `export default NAME`, an export-list item
     without an `as` that renames, a `module.exports` shorthand key and an
-    import-valued binding (a declarator, `exports.NAME =` or a
-    `module.exports` key whose value starts with `require(` or an
+    import-valued binding (a declarator, a destructured name, `exports.NAME =`
+    or a `module.exports` key whose value starts with `require(` or an
     `(await) import(`, on its line or the next one) never count, nor does
     a class member.
     """
@@ -1515,7 +1955,8 @@ def _tsjs_definition_lines(
         ]
     # One declarator of a `const` / `let` / `var` list: `NAME = v`,
     # `NAME: T = v`, `NAME!: T`, or a bare `NAME`. A destructuring pattern
-    # starts with `{` or `[` and never matches.
+    # starts with `{` or `[` and never matches: the names a pattern that
+    # begins the list binds come from `destructured` (`_js_pattern_bindings`).
     declarator = re.compile(rf"^\s*{esc}{end}\s*(?:!?\s*:|=|$)")
     # With declarations_only, the value bound to NAME (the rest of a
     # declarator, of `exports.NAME =` or of a `module.exports` key), to
@@ -1590,6 +2031,22 @@ def _tsjs_definition_lines(
     decls: list[tuple[bool, str, str]] = []
     if quiet is None:
         quiet = _js_quiet_lines(code_lines)
+    if destructured is None:
+        destructured = _js_destructured(code_lines)
+
+    def pattern_binds(number: int) -> list[int]:
+        """The lines on which the pattern that begins the `const` / `let` /
+        `var` list of line `number` binds `name` (none with
+        `declarations_only` when its value is an import)."""
+        decl = destructured.get(number)
+        if decl is None:
+            return []
+        bound, value = decl
+        at = [line for bound_name, line in bound if bound_name == name]
+        if at and declarations_only and value is not None and imported(value[1], value[0]):
+            return []
+        return at
+
     for number, (text, code) in enumerate(zip(lines, code_lines), start=1):
         if quiet[number - 1] and not (decls or split or cont) and name not in code:
             continue  # no rule below can match it: spares a scan per name
@@ -1637,7 +2094,8 @@ def _tsjs_definition_lines(
                 found.append((number, top))
             continue
         top = _is_column_0(text)
-        # every rule that matches a line needs the name in it
+        # every rule that matches a line needs the name in it, but for a
+        # destructuring pattern, whose names may sit on the lines below
         named = name in code
         if named and is_statement(code, number):
             found.append((number, top))
@@ -1647,6 +2105,9 @@ def _tsjs_definition_lines(
             carry, pieces = declarators(m.group(1))
             if carry is not None:
                 decls.append((top, *carry))
+            # `export const { a, b: NAME } = obj;`, on one line or several:
+            # each name's line, at the statement's column
+            found.extend((line, top) for line in pattern_binds(number))
             if named and any(declares(p, number) for p in pieces):
                 # a later declarator: `export const a = 1, NAME = 2;`
                 found.append((number, top))
@@ -1741,6 +2202,42 @@ def _definition_matches(
     return _line_matches(suffix, path, lines, export_name, cache, declarations_only)
 
 
+def _folded_matches(
+    source_file: str,
+    export_name: str,
+    source_root: Path,
+    cache: _SourceCache | None = None,
+) -> tuple[tuple[list[int], set[int]] | None, str | None]:
+    """(`_definition_matches` of the name the line check judges, the base
+    name a bookkeeping variant was folded to, else None).
+
+    The raw name comes first. Only when the file never names it (no whole
+    identifier in its text, so no shape the rules miss can define it) and
+    `fold_base` gives a base that some line matches are the base's matches
+    returned, with the base; otherwise the raw name's, with None. So a real
+    export named like a variant (`parse_exact` defined as itself, or bound
+    in a shape the rules do not cover) is judged as written, and
+    classify-stale, which never folds, does not call this.
+    """
+    cache = cache if cache is not None else _SourceCache()
+    matches = _definition_matches(source_file, export_name, source_root, cache)
+    if matches is None or matches[1]:
+        return matches, None
+    base = fold_base(export_name)
+    if base is None:
+        return matches, None
+    # the variant's own identifiers: `mockChannel_def`, or `a11y_App` of `a11y_App.update`
+    own = sorted(set(export_name.split(".")) - set(base.split(".")))
+    named = re.compile(r"(?<![\w$])(?:" + "|".join(map(re.escape, own)) + r")(?![\w$])")
+    lines = cache.lines((source_root / source_file.strip().replace("\\", "/")).resolve())
+    if not own or lines is None or any(named.search(text) for text in lines):
+        return matches, None
+    folded = _definition_matches(source_file, base, source_root, cache)
+    if folded is None or not folded[1]:
+        return matches, None
+    return folded, base
+
+
 def _line_matches(
     suffix: str,
     path: Path,
@@ -1766,7 +2263,7 @@ def _line_matches(
         code_lines = cache.js_code_lines(path, lines)
         found = _tsjs_definition_lines(
             lines, code_lines, name, dotted, cache.js_declarators, declarations_only,
-            cache.js_quiet_lines(path, code_lines),
+            cache.js_quiet_lines(path, code_lines), cache.js_destructured(path, code_lines),
         )
     if declarations_only:
         top = {n for n, at_column_0 in found if at_column_0}
@@ -1790,21 +2287,63 @@ def find_definition_lines(
     return None if matches is None else matches[0]
 
 
+def _missed_definition_lines(
+    source_file: str,
+    export_name: str,
+    source_root: Path,
+    cache: _SourceCache,
+    line: int,
+    defs: list[int],
+    every: set[int],
+) -> list[int]:
+    """The `definition_lines` a finding lists for a recorded `line` that is
+    not one of `defs` (`_definition_matches` over the same `cache`).
+
+    A recorded line that is an indented match the column-0 rule dropped
+    joins them, so the finding carries several lines and nobody moves it.
+    Otherwise a Python file's `@overload` group gives its first line alone
+    (`_python_overload_start`), the line to move the entry to, and any
+    other answer gives `defs` as they are.
+    """
+    if line in every:
+        return sorted(set(defs) | {line})
+    rel = source_file.strip().replace("\\", "/")
+    if Path(rel).suffix.lower() not in PYTHON_EXTENSIONS or len(defs) < 2:
+        return defs
+    path = (source_root / rel).resolve()
+    lines = cache.lines(path)
+    if lines is None:
+        return defs
+    first = _python_overload_start(
+        lines, definition_name(export_name), defs, cache.py_statement_starts(path, lines)
+    )
+    return defs if first is None else [first]
+
+
 def definition_lines_report(
     source_file: str,
     export_name: str,
     source_root: Path,
     line: int | None = None,
     export_type: str | None = None,
+    fold: bool = True,
 ) -> dict:
     """What `verify` would say about one entry's line (the definition-lines
     subcommand). Raises ValueError when the file exists but cannot be read.
 
     `line_check` is `file-missing`, `skipped-export-type` (a `module` or
     `package`, no definition line), `skipped-language` (no rule for the
-    extension) or `checked`. With `line`, a recorded line that is an
-    indented match the column-0 rule dropped joins `definition_lines`, as in
-    `verify`, so the answer carries several lines.
+    extension) or `checked`. With `line`, a recorded line that is not a
+    definition line gets the lines `verify` would list
+    (`_missed_definition_lines`): an indented match the column-0 rule
+    dropped joins `definition_lines`, so the answer carries several lines,
+    and a Python `@overload` group gives its first line alone.
+
+    With `fold` (the default, as `verify` checks), a bookkeeping variant the
+    file never names is checked against its base name (`_folded_matches`),
+    and the report gains `folded_to`, the base, only when it folded.
+    classify-stale passes `fold=False`: the fabricated-signature test judges
+    the documented name as written.
     """
     report: dict = {
         "source_file": source_file,
@@ -1823,14 +2362,23 @@ def definition_lines_report(
         covered = suffix in PYTHON_EXTENSIONS or suffix in TSJS_EXTENSIONS
         report["line_check"] = "skipped-export-type" if covered else "skipped-language"
         return report
-    matches = _definition_matches(source_file, export_name, source_root)
+    cache = _SourceCache()
+    if fold:
+        matches, folded_to = _folded_matches(source_file, export_name, source_root, cache)
+    else:
+        matches, folded_to = _definition_matches(source_file, export_name, source_root, cache), None
     if matches is None:
         raise ValueError(f"failed to read source file {source_root / rel}")
+    if folded_to is not None:
+        report["folded_to"] = folded_to
+    judged = folded_to or export_name
     defs, every = matches
     if line is not None:
         report["line_is_definition"] = line in defs
-        if line not in defs and line in every:
-            defs = sorted(set(defs) | {line})
+        if line not in defs:
+            defs = _missed_definition_lines(
+                source_file, judged, source_root, cache, line, defs, every
+            )
     report["definition_lines"] = defs
     return report
 
@@ -1843,6 +2391,8 @@ STALE_NOT_DEFINED = "not-defined"
 STALE_DEFINED = "defined"
 STALE_UNCHECKED = "unchecked"
 STALE_NO_ENTRY = "no-entry"
+# a not-defined name a declaration renames to it from a name a cited file declares
+STALE_ALIASED = "aliased"
 
 
 def stale_names(data: object) -> list[str]:
@@ -1875,7 +2425,10 @@ def _entry_citation(entry: dict) -> str | None:
 def _stale_line_check(
     entry: dict, name: str, source_root: Path
 ) -> tuple[str, list[int] | None]:
-    """(line_check, definition_lines) of one provenance entry of a stale name."""
+    """(line_check, definition_lines) of one provenance entry of a stale name.
+
+    The documented name is judged as written, with no bookkeeping-variant
+    fold: a variant the cited file never defines stays fabricated."""
     source_file = _entry_file(entry)
     if source_file is None:
         # no file to check: it neither proves the name fabricated nor clears it
@@ -1889,6 +2442,7 @@ def _stale_line_check(
             source_root,
             line if isinstance(line, int) else None,
             export_type if isinstance(export_type, str) else None,
+            fold=False,
         )
     except ValueError:
         # the file exists but cannot be read: nothing proves it
@@ -2161,8 +2715,8 @@ def baseline_gaps(
 ) -> tuple[list[dict], list[dict]]:
     """The provenance entries an extraction left out whose cited file still
     declares them: the recipe runner never reports a module, an alias that
-    renames, a dunder such as `__version__` or another underscore name, so
-    a diff would read each as removed.
+    renames, a dunder such as `__version__` or another Python or Rust
+    underscore name, so a diff would read each as removed.
 
     `held` holds the (name, file) of every export the extraction found,
     `files` the files whose entries are checked (the ones read), and
@@ -2224,6 +2778,68 @@ def baseline_gaps(
     return gaps, unchecked
 
 
+# A one-line TS/JS string literal, blanked before an export list is read.
+_JS_STRING_RE = re.compile(r"'(?:[^'\\]|\\.)*'|\"(?:[^\"\\]|\\.)*\"|`(?:[^`\\]|\\.)*`")
+_JS_IDENT_RE = re.compile(r"[A-Za-z_$][\w$]*")
+
+
+def _renamed_locals(lines: list[str], index: int, name: str, family: str) -> list[str]:
+    """The names line `index` (from 0) of a file renames to `name` as an item
+    of an export list (`export { L as NAME }` or `export type { ... }`, on
+    one line or an item of a multi-line list) or of a Python
+    `from X import` clause (on one line, or an item of one in parentheses
+    or continued with a backslash): each `L` an identifier other than
+    `name`, and in TS/JS other than `default` (`export { default as NAME }`
+    renames the default export, no declared name). A TS/JS line is read
+    with its `//` and `/* */` comments removed and each one-line string
+    blanked, a Python line with its `#` comment cut (a `from X import`
+    clause holds no string). The list opens at the nearest column-0
+    `export {` (`from X import`) at or above the line, and must not close
+    above it. Empty for any other line: `as NAME` in a comment or a string,
+    a TS type assertion (`const NAME = x as NAME`), `import { L as NAME }`
+    and Python's `import M as NAME` rename nothing here. Neither the `from`
+    module nor the binding of `L` is resolved: the caller takes `L` as
+    the name a cited file declares."""
+    if not 0 <= index < len(lines) or not re.search(
+        rf"(?<![\w$])as\s+{re.escape(name)}(?![\w$])", lines[index]
+    ):
+        return []
+    python = family == "python"
+    if python:
+        code = [line.split("#", 1)[0] for line in lines[: index + 1]]
+        opener, close, item_re = _PY_FROM_IMPORT_RE, ")", _PY_IMPORT_ITEM_RE
+    else:
+        code = [_JS_STRING_RE.sub('""', line) for line in _js_code_lines(lines[: index + 1])]
+        opener, close, item_re = _JS_EXPORT_LIST_RE, "}", _JS_EXPORT_ITEM_RE
+    for start in range(index, -1, -1):
+        opened = opener.match(code[start]) if _is_column_0(code[start]) else None
+        if opened is not None:
+            break
+        if start < index and close in code[start]:
+            return []  # a list that closes above the line holds it not
+    else:
+        return []
+    head = opened.group(1)
+    if start < index:
+        # an item of a list the opening line leaves open: in parentheses, or
+        # a Python clause each of whose lines above ends with a backslash
+        continued = all(line.rstrip().endswith("\\") for line in code[start:index])
+        if close in head or (python and not head.lstrip().startswith("(") and not continued):
+            return []
+        head = code[index]
+    locals_: list[str] = []
+    for item in head.split(close, 1)[0].replace("(", " ").replace("\\", " ").split(","):
+        found = item_re.match(item.strip())
+        if found is None or found.group(2) != name:
+            continue
+        local = found.group(1)
+        if local == name or (not python and local == "default"):
+            continue
+        if (_PY_IDENT_RE if python else _JS_IDENT_RE).fullmatch(local):
+            locals_.append(local)
+    return locals_
+
+
 class _DeclarationLookup:
     """Where the source declares the stale names (classify-stale's
     `defined_at`): a column-0 declaration, an alias that renames included, a
@@ -2245,7 +2861,10 @@ class _DeclarationLookup:
     on its path and the same skips but the walk-only ones, judged below the
     walk root when it lies there. The walk runs once for all the names no
     cited file settles: each file is read once, and only a file whose text
-    holds a name goes through the rules. Any error of the filesystem raises
+    holds a name goes through the rules. `renamed` then tells which of a
+    name's declarations is an alias of a name a cited file declares (an
+    item of an export list or of a Python `from X import` clause), from
+    the lines the lookup read. Any error of the filesystem raises
     (`_LOOKUP_ERRORS`)."""
 
     def __init__(self, entries: list[dict], source_root: Path) -> None:
@@ -2265,6 +2884,9 @@ class _DeclarationLookup:
         # the cited files read, kept for the walk: a few files at most
         self._cited: dict[tuple[str, ...], list[str] | None] = {}
         self._cited_cache = _SourceCache()
+        # during the suspects' pass only (`keep_declaring`): the lines of each
+        # file a declaration was found in, by path, which `renamed` reads
+        self._declaring: dict[str, list[str]] | None = None
 
     # -- the walk root ------------------------------------------------------
 
@@ -2400,8 +3022,8 @@ class _DeclarationLookup:
                     found.append((*below, filename))
         return sorted(found)
 
-    @staticmethod
     def _first(
+        self,
         parts: tuple[str, ...],
         lines: list[str],
         name: str,
@@ -2410,11 +3032,16 @@ class _DeclarationLookup:
     ) -> str | None:
         """`file:line` of the first line of a file that declares `name`, else,
         with `module_fallback`, its line 1 when it is the module or package
-        so named (`declared_line`)."""
+        so named (`declared_line`). After `keep_declaring`, the file's lines
+        are kept for `renamed`."""
         line = declared_line(
             parts, name, lines=lines, cache=cache, module_fallback=module_fallback
         )
-        return f"{'/'.join(parts)}:{line}" if line is not None else None
+        if line is None:
+            return None
+        if self._declaring is not None:
+            self._declaring['/'.join(parts)] = lines
+        return f"{'/'.join(parts)}:{line}"
 
     # -- the answer ---------------------------------------------------------
 
@@ -2497,6 +3124,36 @@ class _DeclarationLookup:
                     hits[name].append(hit)
         return {name: sorted(_without_stubs(h)) for name, h in hits.items()}, unsure
 
+    def keep_declaring(self) -> None:
+        """From now on, keep the lines of each file a declaration is found in,
+        for `renamed`: the suspects' pass, which comes last."""
+        self._declaring = {}
+
+    def renamed(self, name: str, hits: list[str], files: list[str]) -> str | None:
+        """The first of `hits` (`file:line` declarations of `name` the lookup
+        found, sorted) whose line renames to `name`, as an item of an export
+        list or of a Python `from X import` clause (`_renamed_locals`), a
+        name `L` one of `files` (source_file values, as recorded) declares:
+        `declared_line` gives `L` a line of that file, no module or package
+        so named counting. The lines are the ones the lookup read after
+        `keep_declaring` (`_first`), never read again. None when no hit is
+        such an alias."""
+        cited = list(dict.fromkeys(filter(None, map(_cited_parts, files))))
+        for hit in sorted(hits):
+            file, _, number = hit.rpartition(":")
+            lines, family = (self._declaring or {}).get(file), _rule_family(file)
+            if lines is None or family is None or not number.isdigit():
+                continue
+            for local in _renamed_locals(lines, int(number) - 1, name, family):
+                for parts in cited:
+                    source = self._cited_lines(parts)
+                    if source is not None and declared_line(
+                        parts, local, lines=source, cache=self._cited_cache,
+                        module_fallback=False,
+                    ) is not None:
+                        return hit
+        return None
+
 
 def inventory_kinds(data: object, path: str) -> dict[str, frozenset[str]]:
     """name -> the kinds a documented inventory gives it (`--inventory`):
@@ -2533,18 +3190,26 @@ def classify_stale(
     """The fabricated-signature test for each stale name: the definition-lines
     rules at every provenance entry whose raw `export_name` is the name, and
     for a name that is not fabricated, where the source declares it
-    (`defined_at`, and `declared_in` when the walk looked for it). The
-    classify-stale section of the module docstring gives each reason, what
-    a `no-file` entry means, which entry gives `source` and how
-    `defined_at` and `declared_in` are found. `kinds` (`inventory_kinds`,
-    None without `--inventory`) keeps a name of a `NO_MODULE_KINDS` kind
-    from a module or package so named, unless an entry of the name is a
-    `module` or `package` one.
+    (`defined_at`, and `declared_in` when the walk looked for it). A name
+    the cited files do not define is looked up too, after the others and
+    in a lookup of its own (an error there keeps it fabricated and clears
+    no other name), with no module or package so named counting unless it
+    is the export, and is `aliased`, not fabricated, when one of its
+    declarations is an export-list or `from X import` item renaming to it
+    a name a `checked` entry's file declares (`_DeclarationLookup.renamed`);
+    any other such name keeps both null. The classify-stale section of the
+    module docstring gives each reason, what a `no-file` entry means, which
+    entry gives `source` and how `defined_at` and `declared_in` are found.
+    `kinds` (`inventory_kinds`, None without `--inventory`) keeps a name of
+    a `NO_MODULE_KINDS` kind from a module or package so named, unless an
+    entry of the name is a `module` or `package` one.
     """
     entries = [e for e in prov.get("entries") or [] if isinstance(e, dict)]
     results: list[dict] = []
-    # the names to look up (never a fabricated one): name -> its cited files
+    # the names to look up that are not fabricated: name -> its cited files
     cited: dict[str, list[str]] = {}
+    # the not-defined names an alias may clear: name -> its checked entries' files
+    suspects: dict[str, list[str]] = {}
     # the names a module so named does not declare
     strict: set[str] = set()
     for name in names:
@@ -2576,7 +3241,12 @@ def classify_stale(
             reason = STALE_UNCHECKED
         source = next(filter(None, map(_entry_citation, mine)), None)
         fabricated = reason == STALE_NOT_DEFINED
-        if not fabricated:
+        if fabricated:
+            # a missing file declares nothing an alias could rename
+            checked = [c["source_file"] for c in checks if c["line_check"] == "checked"]
+            if checked:
+                suspects[name] = checked
+        else:
             cited[name] = [f for f in map(_entry_file, mine) if f is not None]
             documented = (kinds or {}).get(name, frozenset())
             if documented & NO_MODULE_KINDS and not any(map(_module_entry, mine)):
@@ -2592,16 +3262,43 @@ def classify_stale(
                 "entries": checks,
             }
         )
+    lookup: _DeclarationLookup | None = None
     try:
-        found, declared = _DeclarationLookup(entries, source_root).find(
-            cited, frozenset(strict)
-        )
+        lookup = _DeclarationLookup(entries, source_root)
+        found, declared = lookup.find(cited, frozenset(strict))
     except _LOOKUP_ERRORS:
         # a lookup that fails proves nothing: every name stays null
         found, declared = {}, {}
+    # the suspects' own lookup, after: an error there clears no name settled
+    # above, and keeps every suspect fabricated
+    aliased: dict[str, str] = {}
+    suspect_declared: dict[str, list[str]] = {}
+    if suspects and lookup is not None:
+        try:
+            # a suspect is strict: a cited module so named settles it before
+            # the walk only when it is the export
+            lookup.keep_declaring()
+            suspect_found, suspect_declared = lookup.find(suspects, frozenset(suspects))
+            for name, files in suspects.items():
+                hits = suspect_declared[name] if name in suspect_declared else (
+                    [suspect_found[name]] if name in suspect_found else []
+                )
+                hit = lookup.renamed(name, hits, files)
+                if hit is not None:
+                    aliased[name] = hit
+        except _LOOKUP_ERRORS:
+            aliased, suspect_declared = {}, {}
     for item in results:
-        item["defined_at"] = found.get(item["name"])
-        item["declared_in"] = declared.get(item["name"])
+        name = item["name"]
+        if name in suspects:
+            if name in aliased:
+                item.update(
+                    fabricated=False, reason=STALE_ALIASED,
+                    defined_at=aliased[name], declared_in=suspect_declared.get(name),
+                )
+            continue  # any other suspect stays fabricated, both null
+        item["defined_at"] = found.get(name)
+        item["declared_in"] = declared.get(name)
     return results
 
 
@@ -3245,6 +3942,7 @@ def verify(
     stale: list[dict] = []
     citations_checked = 0
     line_check_skipped = 0
+    line_check_folded = 0
     if source_root is not None:
         cache = _SourceCache()
         entries = prov.get("entries")
@@ -3285,19 +3983,25 @@ def verify(
                 if not line_rule_applies(sf, entry.get("export_type")):
                     line_check_skipped += 1
                     continue
-                matches = _definition_matches(sf, name, source_root, cache)
+                # A bookkeeping variant the file never names is checked
+                # against its base name (`folded_to`).
+                matches, folded_to = _folded_matches(sf, name, source_root, cache)
                 if matches is None:
                     line_check_skipped += 1
                     continue
+                if folded_to is not None:
+                    line_check_folded += 1
                 defs, every = matches
                 if line not in defs:
-                    if line in every:
-                        # The recorded line is an indented match the
-                        # column-0 rule dropped: keep it, so the finding
-                        # lists several lines and nobody auto-moves it.
-                        defs = sorted(set(defs) | {line})
+                    # An indented match the column-0 rule dropped joins
+                    # the lines, so nobody auto-moves it; an @overload
+                    # group gives its first line alone, the move target.
                     item["reason"] = STALE_LINE_NOT_DEFINITION
-                    item["definition_lines"] = defs
+                    item["definition_lines"] = _missed_definition_lines(
+                        sf, folded_to or name, source_root, cache, line, defs, every
+                    )
+                    if folded_to is not None:
+                        item["folded_to"] = folded_to
                     stale.append(item)
         stale.sort(key=lambda s: (s["export_name"], s.get("source_file") or ""))
 
@@ -3339,6 +4043,7 @@ def verify(
         "stale_count": len(stale),
         "citations_checked": citations_checked,
         "line_check_skipped": line_check_skipped,
+        "line_check_folded": line_check_folded,
         "stale_check": "checked"
         if source_root is not None
         else "skipped-no-source-root",

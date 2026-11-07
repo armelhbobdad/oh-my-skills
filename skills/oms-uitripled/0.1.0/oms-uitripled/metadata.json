@@ -319,18 +319,18 @@
     "skf": "1.0.0"
   },
   "confidence_distribution": {
-    "t1": 18,
-    "t1_low": 293,
+    "t1": 10,
+    "t1_low": 305,
     "t2": 0,
     "t3": 0
   },
   "stats": {
-    "exports_documented": 311,
+    "exports_documented": 315,
     "exports_public_api": 445,
     "exports_internal": 8,
     "exports_total": 453,
-    "public_api_coverage": 0.6989,
-    "total_coverage": 0.6865,
+    "public_api_coverage": 0.7079,
+    "total_coverage": 0.6954,
     "scripts_count": 0,
     "assets_count": 0,
     "effective_denominator": 327,

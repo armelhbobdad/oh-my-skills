@@ -135,8 +135,7 @@
     "resources.embedder.Embedder",
     "topic_as_map",
     "mount_collection_target",
-    "Chunk",
-    "LLMResolver"
+    "Chunk"
   ],
   "tool_versions": {
     "ast_grep": "0.42.0",
@@ -144,18 +143,18 @@
     "skf": "1.0.0"
   },
   "confidence_distribution": {
-    "t1": 101,
-    "t1_low": 54,
+    "t1": 98,
+    "t1_low": 56,
     "t2": 0,
     "t3": 0
   },
   "stats": {
-    "exports_documented": 155,
+    "exports_documented": 154,
     "exports_public_api": 140,
     "exports_internal": 146,
     "exports_total": 286,
-    "public_api_coverage": 1.1071,
-    "total_coverage": 0.542,
+    "public_api_coverage": 1.1,
+    "total_coverage": 0.5385,
     "scripts_count": 0,
     "assets_count": 0,
     "exports_documented_in_array": 115,

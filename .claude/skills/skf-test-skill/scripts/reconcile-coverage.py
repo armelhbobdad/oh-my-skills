@@ -19,11 +19,25 @@ It covers the four branches §2c enumerates:
     Missing = barrel_set − documented_set, Stale = documented_set − barrel_set,
     Export Coverage = |Documented| / |barrel_set| * 100.
 
-  * "scalar"  (§2b's scalar branch, stats.effective_denominator, no enumerated name set):
-    look each documented name up in SKILL.md ∪ references/*.md;
-    Documented = count present, denominator = effective_denominator,
-    Missing = max(0, denominator − Documented), Stale not enumerable (empty),
-    Export Coverage = min(100, Documented / denominator * 100).
+  * "scalar"  (§2b's scalar branch, stats.effective_denominator): the
+    denominator is effective_denominator, Missing = max(0, denominator −
+    Documented), Export Coverage = min(100, Documented / denominator * 100).
+    The numerator's set: when the surface counts its named set S
+    (`setCounted`, the surface's `denominator.setCounted`: a scope set, not
+    `all`, each of whose names sits at the file that defines it, read
+    whole), Documented = |documented_set ∩ S| (`numeratorSource`
+    "surface"; the doc-text lookup and `verifiedNumerator` are not read),
+    `missing` = S − documented_set, and a warning when |S| differs from the
+    denominator. Otherwise (`all`, a set read by eye or from an incomplete
+    extraction, no surface, or an empty S, which warns): look each
+    documented name up in SKILL.md ∪ references/*.md, Documented = count
+    present, or `verifiedNumerator`; `missing` lists no name.
+    Stale: on a surface read from the source (`sourceRead`, its
+    `guards.deflation.applicable`, or a counted set), documented_set − (S ∪
+    the whole public surface, `allSet`, the `all` set: a nested package's
+    name is in the scope sets alone), so a documented name outside S that
+    the source exports is neither counted nor stale; else not enumerable
+    (empty).
 
   * "stack"   (skill_type == "stack", empty source barrel): look each
     composition-surface name (provenance-map cited contracts, ::-excluded, or
@@ -39,8 +53,9 @@ It covers the four branches §2c enumerates:
     description and, for a function or method, params and a return type
     (validate-inventory.py's rule).
 
-The two lookup branches bound their outputs because the numerator and the
-denominator are independent measures of different sets: the lookup count can
+The two lookup branches (and a scalar set larger than its stored count)
+bound their outputs because the numerator and the denominator are
+independent measures of different sets: the lookup count can
 exceed a consumer-surface denominator without either being wrong. Unbounded,
 that produced a negative Missing and a >100% coverage that compute-score.py
 rejects as out of range. `documented` is left as the true count (it is reported
@@ -68,7 +83,12 @@ each sets the input field it names and wins over the same field in the JSON:
   --inventory PATH      exports: the validated inventory validate-inventory.py
                         wrote with --output
   --surface PATH        barrelSet: one name set of load-coverage-inputs.py
-                        surface, chosen by --surface-set (default "all")
+                        surface, chosen by --surface-set (default "all"),
+                        with what the scalar branch reads: surfaceSet (that
+                        name), allSet (its `all` set), sourceRead (its
+                        `guards.deflation.applicable`) and setCounted (its
+                        `denominator.setCounted`, when --surface-set names
+                        its `denominator.surfaceSet`)
   --coverage-inputs PATH  load-coverage-inputs.py metadata output: for the
                         scalar branch, denominatorValue from its
                         `effectiveDenominator` (stats.effective_denominator);
@@ -76,7 +96,7 @@ each sets the input field it names and wins over the same field in the JSON:
                         denominatorValue from its `stack` object
   --verified PATH       scalar: verify-declared-numerator.py's result; when it
                         found the declared count inflated, its `verified`
-                        count is the numerator
+                        count is the numerator (not on a counted set)
   --output PATH         also write the result to this file (UTF-8 JSON); a
                         refused input removes a file left there earlier
 
@@ -84,8 +104,12 @@ Input schema (one object):
   {
     "denominatorSource": "barrel" | "scalar" | "stack" | "docsOnly",  # required
     "exports": [ {"name": "...", "kind": "..."}, ... ],    # §1 inventory
-    "barrelSet": ["a", "b", ...],                          # barrel: resolved name set
+    "barrelSet": ["a", "b", ...],                          # barrel, scalar: resolved name set
     "perFileResults": [ {"exports_found": ["a", ...]} ],   # barrel: union'd if no barrelSet
+    "surfaceSet": "tier_a_include",                        # scalar: barrelSet's name (null or "" is "all")
+    "allSet": ["a", "b", "c", ...],                        # scalar: the whole public surface
+    "sourceRead": <bool>,                                  # scalar: the surface was read from the source
+    "setCounted": <bool>,                                  # scalar: count barrelSet (a trusted scope set)
     "denominatorValue": <int>,                             # scalar/stack: resolved denominator
     "compositionNames": ["lib::x", ...],                   # stack: names to look up
     "skillPackagePath": "/path/to/skill",                  # scalar/stack: SKILL.md ∪ references
@@ -98,17 +122,20 @@ Output (stdout, one object):
     "denominatorSource": "barrel" | "scalar" | "stack" | "docsOnly",
     "denominator": <int>,
     "documented": <int>,
-    "documentedNames": [names],  # enumerated only: the documented names the denominator counts
-    "missing": [names],          # enumerated: source names not documented; others: []
+    "documentedNames": [names],  # enumerated, scalar counting its set: the documented names the numerator counts
+    "missing": [names],          # enumerated, scalar counting its set: source names not documented; others: []
     "missingCount": <int>,       # always present; never negative
-    "stale": [names],            # enumerated: documented names not in source; others: []
+    "stale": [names],            # enumerated, scalar on a source-read surface: documented names not in source
     "staleCount": <int>,         # always present
-    "staleApplicable": <bool>,   # false for scalar/stack/docsOnly (no barrel to enumerate)
+    "staleApplicable": <bool>,   # true for enumerated and scalar on a source-read surface
     "exportCoverage": <float>,   # scalar/stack: capped at 100
     "numeratorSurplus": <int>,   # scalar/stack only: max(0, documented − denominator)
     "coverageUncapped": <float>, # scalar/stack only: the ratio before the cap
     "coverageCapped": <bool>,    # scalar/stack only: true when the cap bound the ratio
-    "numeratorSource": "lookup" | "verified",  # scalar only
+    "numeratorSource": "lookup" | "verified" | "surface",  # scalar only
+    "surfaceSet": "<name>",      # scalar counting its set: the set it counted
+    "surfaceSetSize": <int>,     # scalar counting its set: |S|
+    "warnings": [str],           # scalar on a source-read surface: an empty S, or |S| unlike the denominator
     "incomplete": [{"name", "kind", "missing"}]  # docsOnly only: the incomplete items
   }
 
@@ -130,18 +157,31 @@ header lines, from the run files:
                        signature mismatches, by name:
       Type             the first kind the surface records for the name, else -
       Documented       no for a missing name, else yes
-      Signature        no for a mismatch, yes for a compared name that
+      Signature        no for a Critical mismatch, yes (Low) or yes (Info)
+                       for a name whose mismatches score-signatures.py
+                       graded Low or Info alone (they count as matching;
+                       Low when it has both), yes for a compared name that
                        matches, unverified for a documented name when no
                        --signatures was given, - otherwise
-      Source Location  the file:line the surface records for the name, a
-                       record with a line preferred (gap-ledger.py's rule
-                       for a missing export's Source), else -
-      Status           FAIL for a signature mismatch, WARN for a missing or
-                       stale name, PASS otherwise
-                       The scalar and stack branches count without naming
-                       the exports, and a docs-only run has no source
+      Source Location  for a name whose signature mismatches, the file:line
+                       of its most severe mismatch (the declaration it was
+                       compared with); else the file:line the surface
+                       records for the name, a record with a line preferred
+                       (gap-ledger.py's rule for a missing export's
+                       Source), else -
+      Status           FAIL for a Critical signature mismatch (a mismatch
+                       with no `severity`, from an older signatures.json,
+                       counts as one), WARN for a missing or stale name or
+                       a mismatch graded Low or Info alone, PASS otherwise
+                       A scalar result with `documentedNames` (a counted
+                       set) gets the same table. The stack branch, and the
+                       scalar one with no set, count without naming the
+                       exports, and a docs-only run has no source
                        surface: one line says so instead (NO_TABLE).
-  ### Coverage Summary the --coverage counts, the --signatures mismatch count
+  ### Coverage Summary the --coverage counts and warnings, the
+                       --signatures count of
+                       Critical mismatches (with the Low and Info ones,
+                       counted as matching, beside it when there are any)
                        and warnings, the numerator surplus when the ratio
                        was capped, and the names the --surface leaves out
                        or puts back: `excluded.outsideScope` (scoped out
@@ -165,6 +205,8 @@ import sys
 from pathlib import Path
 
 VALID_SOURCES = ("barrel", "scalar", "stack", "docsOnly")
+# The grades score-signatures.py gives a caller-invisible signature difference, most severe first.
+NON_BLOCKING_MISMATCH = ("Low", "Info")
 
 _INVENTORY_MODULE = None
 
@@ -269,7 +311,63 @@ def _validate(inp):
         verified = inp.get("verifiedNumerator")
         if verified is not None and (not isinstance(verified, int) or isinstance(verified, bool) or verified < 0):
             return "verifiedNumerator must be an integer >= 0"
+        if source == "scalar" and inp.get("barrelSet") is not None:
+            if not isinstance(inp["barrelSet"], list):
+                return "scalar branch: `barrelSet` must be a list of names"
+            set_name = _surface_set_name(inp)
+            if set_name is None:
+                return "scalar branch: `surfaceSet` must be a set name (a string)"
+            all_set = inp.get("allSet")
+            if all_set is not None and not isinstance(all_set, list):
+                return "scalar branch: `allSet` must be a list of names"
+            if all_set is None and set_name != "all" and _reads_surface(inp):
+                return ("scalar branch on a surface read from the source requires `allSet` (the surface's "
+                        "`all` set) to find the stale names")
     return None
+
+
+def _surface_set_name(inp):
+    """`surfaceSet`, normalized once: null or empty is `all`; None for a value that is not a string.
+
+    >>> [_surface_set_name({"surfaceSet": v}) for v in (None, "", "tier_a_include", 3)]
+    ['all', 'all', 'tier_a_include', None]
+    """
+    name = inp.get("surfaceSet")
+    if name is None or name == "":
+        return "all"
+    return name if isinstance(name, str) else None
+
+
+def _reads_surface(inp):
+    """True when the scalar branch reads its surface: a `barrelSet` read from the source (a counted set is)."""
+    return inp.get("barrelSet") is not None and (inp.get("sourceRead") is True or inp.get("setCounted") is True)
+
+
+def _scalar_surface(inp, denominator):
+    """What the scalar branch reads from a surface read from the source: the stale names, the documented names
+    (S ∪ `allSet`, where a nested package's name sits in the scope sets alone) lacks, and, when it counts its
+    named set S (`setCounted`, a non-empty scope set), the documented names S holds, the names of S the skill
+    does not document and the set's size, with the warnings. The denominator stays the stored count."""
+    documented_set = build_documented_set(inp.get("exports"))
+    named = {n for n in inp["barrelSet"] if isinstance(n, str) and n}
+    set_name = _surface_set_name(inp)
+    whole = named | {n for n in inp.get("allSet") or [] if isinstance(n, str) and n}
+    warnings = []
+    counted = inp.get("setCounted") is True and set_name != "all"
+    if counted and not named:
+        # An empty set would read 0% by construction: the lookup counts instead.
+        warnings.append(f"the `{set_name}` set names no export: the numerator is looked up in the skill instead")
+        counted = False
+    out = {"counted": counted, "stale": sorted(documented_set - whole), "warnings": warnings}
+    if counted:
+        if len(named) != denominator:
+            warnings.append(
+                f"the `{set_name}` set holds {len(named)} names and the stored count "
+                f"(`stats.effective_denominator`) is {denominator}: the denominator stays the stored count, so "
+                "`missing` and `missingCount` can differ")
+        out.update({"documentedNames": sorted(documented_set & named), "missing": sorted(named - documented_set),
+                    "surfaceSet": set_name, "surfaceSetSize": len(named)})
+    return out
 
 
 def _docs_only(inp):
@@ -342,7 +440,14 @@ def reconcile(inp, doc_text=None):
         )
 
     numerator_source = "lookup"
-    if source == "scalar" and inp.get("verifiedNumerator") is not None:
+    surface = _scalar_surface(inp, denominator) if source == "scalar" and _reads_surface(inp) else None
+    if surface is not None and surface["counted"]:
+        # The named set the surface counts: the numerator counts only its documented names, so a documented
+        # extra never offsets an undocumented export. Neither the doc-text lookup nor §2b's verified count is
+        # read: both count names without knowing which the set holds.
+        documented = len(surface["documentedNames"])
+        numerator_source = "surface"
+    elif source == "scalar" and inp.get("verifiedNumerator") is not None:
         # §2b's numerator ground truth found the declared count padded: its
         # verified count is authoritative and replaces the lookup.
         documented = inp["verifiedNumerator"]
@@ -356,12 +461,14 @@ def reconcile(inp, doc_text=None):
             candidates = [n for n in inp["compositionNames"] if isinstance(n, str) and n]
         documented = len(names_present(candidates, doc_text))
 
-    # The looked-up numerator and the resolved denominator are independent
-    # measures, so `documented` can legitimately exceed `denominator`: a
-    # consumer-surface denominator counts one surface while the documented body
-    # may also name migration aliases, re-exported sibling symbols, and other
-    # extras. Left unbounded that yields a negative Missing and >100% coverage
-    # (which compute-score.py then rejects outright as out of range).
+    # The numerator and the resolved denominator can measure different sets,
+    # so `documented` can legitimately exceed `denominator`: a looked-up
+    # numerator counts every documented name the skill writes, migration
+    # aliases, re-exported sibling symbols and other extras included, against
+    # a consumer-surface denominator, and a counted set can hold more names
+    # than the stored count. Left unbounded that yields a negative Missing and
+    # >100% coverage (which compute-score.py then rejects outright as out of
+    # range).
     #
     # `documented` stays the true count: it is reported as "Documented in
     # SKILL.md", so capping it would print a number that was never measured.
@@ -386,6 +493,13 @@ def reconcile(inp, doc_text=None):
     }
     if source == "scalar":
         result["numeratorSource"] = numerator_source
+    if surface is not None:
+        # Stale is valid against the whole surface whether or not the branch counts its set.
+        result.update({"stale": surface["stale"], "staleCount": len(surface["stale"]), "staleApplicable": True})
+        if surface["counted"]:
+            result.update({key: surface[key] for key in ("documentedNames", "missing", "surfaceSet",
+                                                         "surfaceSetSize")})
+        result["warnings"] = surface["warnings"]
     return result
 
 
@@ -512,29 +626,45 @@ def _rows(coverage, surface, signatures):
     documented = set(_string_list(coverage, "documentedNames", "--coverage"))
     missing = set(_string_list(coverage, "missing", "--coverage"))
     stale = set(_string_list(coverage, "stale", "--coverage"))
-    mismatched, compared = set(), set()
+    mismatched, critical, compared, graded, compared_at = set(), set(), set(), {}, {}
     if signatures is not None:
-        mismatched = {m["name"] for m in signatures.get("mismatches") or []
-                      if isinstance(m, dict) and isinstance(m.get("name"), str)}
+        named = [m for m in signatures.get("mismatches") or []
+                 if isinstance(m, dict) and isinstance(m.get("name"), str)]
+        mismatched = {m["name"] for m in named}
+        # A Low or an Info mismatch (a caller-invisible difference) warns; any other fails.
+        critical = {m["name"] for m in named if m.get("severity") not in NON_BLOCKING_MISMATCH}
+        # The more severe non-blocking grade of each name: Low over Info.
+        for severity in reversed(NON_BLOCKING_MISMATCH):
+            graded.update({m["name"]: severity for m in named if m.get("severity") == severity})
         compared = set(_string_list(signatures, "comparedNames", "--signatures"))
+        # A mismatched name sits at the declaration its most severe mismatch was compared with, which the
+        # surface's first record of a name it records in several files need not be.
+        for m in sorted(named, key=lambda m: (NON_BLOCKING_MISMATCH.index(m["severity"]) + 1
+                                              if m.get("severity") in NON_BLOCKING_MISMATCH else 0)):
+            if isinstance(m.get("file"), str) and m["file"] and isinstance(m.get("line"), int):
+                compared_at.setdefault(m["name"], f"{m['file']}:{m['line']}")
     kinds, sources = {}, {}
     if surface is not None:
         for record in surface["exports"]:
             if isinstance(record, dict) and isinstance(record.get("name"), str) and record.get("kind"):
                 kinds.setdefault(record["name"], str(record["kind"]))
         sources = _gap_ledger()._surface_sources(surface)
+    sources.update(compared_at)
     rows = ["| Export | Type | Documented | Signature | Source Location | Status |",
             "|--------|------|------------|-----------|-----------------|--------|"]
     for name in sorted(documented | missing | stale | mismatched):
-        if name in mismatched:
+        if name in critical:
             signature = "no"
+        elif name in mismatched:
+            signature = f"yes ({graded[name]})"
         elif name in compared:
             signature = "yes"
         elif signatures is None and name not in missing:
             signature = "unverified"
         else:
             signature = "-"
-        status = "FAIL" if name in mismatched else "WARN" if name in missing or name in stale else "PASS"
+        status = ("FAIL" if name in critical
+                  else "WARN" if name in mismatched or name in missing or name in stale else "PASS")
         rows.append(f"| `{_cell(name)}` | {_cell(kinds.get(name, '-'))} | {'no' if name in missing else 'yes'} "
                     f"| {signature} | {_cell(sources.get(name, '-'))} | {status} |")
     return rows
@@ -557,7 +687,9 @@ def render(coverage, surface=None, signatures=None):
         files = len({r["file"] for r in surface["exports"]
                      if isinstance(r, dict) and isinstance(r.get("file"), str) and r["file"]})
     lines = [f"**Files Analyzed:** {files}", "", "### Export Coverage", ""]
-    lines += _rows(coverage, surface, signatures) if branch == "enumerated" else [NO_TABLE[branch]]
+    # A scalar result that counts its set names its exports as the enumerated branch does.
+    named = branch == "enumerated" or (branch == "scalar" and "documentedNames" in coverage)
+    lines += _rows(coverage, surface, signatures) if named else [NO_TABLE[branch]]
 
     denominator, documented = coverage.get("denominator"), coverage.get("documented")
     missing_count, coverage_pct = coverage.get("missingCount"), _pct(coverage.get("exportCoverage"))
@@ -575,11 +707,21 @@ def render(coverage, surface=None, signatures=None):
                   f"- **Documented:** {documented} ({coverage_pct})",
                   f"- **Missing Documentation:** {missing_count}{floored}"]
     mismatches = signatures.get("mismatches") if signatures is not None else None
-    lines.append(f"- **Signature Mismatches:** {len(mismatches) if isinstance(mismatches, list) else 'N/A'}")
+    if isinstance(mismatches, list):
+        named = [m for m in mismatches if isinstance(m, dict)]
+        lenient = sum(1 for m in named if m.get("severity") in NON_BLOCKING_MISMATCH)
+        lines.append(f"- **Signature Mismatches:** {len(named) - lenient}"
+                     + (f", plus {lenient} graded Low or Info and counted as matching" if lenient else ""))
+    else:
+        lines.append("- **Signature Mismatches:** N/A")
     if coverage.get("staleApplicable"):
         lines.append(f"- **Stale Documentation:** {coverage.get('staleCount')}, documented extras included")
     else:
         lines.append(f"- **Stale Documentation:** N/A: {NO_NAMES.get(branch, 'the denominator names no stale export')}")
+    noted = _string_list(coverage, "warnings", "--coverage")
+    if noted:
+        lines.append("- **Coverage Warnings:**")
+        lines += [f"  - {w}" for w in noted]
     warnings = _string_list(signatures, "warnings", "--signatures") if signatures is not None else []
     if warnings:
         lines.append("- **Scoring Warnings:**")
@@ -656,6 +798,17 @@ def apply_file_inputs(inp, args):
         if not isinstance(names, list):
             raise InputFileError(f"--surface {args.surface} has no name set `{args.surface_set}`")
         inp["barrelSet"] = names
+        # The scalar branch counts the set only when the surface trusts it (`denominator.setCounted`, for the set
+        # it picked), and finds a stale name on any surface read from the source, against the whole public
+        # surface (the `all` set), not the set it counts.
+        inp["surfaceSet"] = args.surface_set
+        if isinstance(sets.get("all"), list):
+            inp["allSet"] = sets["all"]
+        guards = data.get("guards")
+        deflation = guards.get("deflation") if isinstance(guards, dict) else None
+        inp["sourceRead"] = isinstance(deflation, dict) and deflation.get("applicable") is True
+        picked = data.get("denominator") if isinstance(data.get("denominator"), dict) else {}
+        inp["setCounted"] = picked.get("setCounted") is True and picked.get("surfaceSet") == args.surface_set
     if args.coverage_inputs is not None:
         data = _read_json_file(args.coverage_inputs, "--coverage-inputs")
         if not isinstance(data, dict):
@@ -730,7 +883,7 @@ def _build_parser():
     files.add_argument("--inventory", metavar="PATH", help="the validated inventory file")
     files.add_argument("--surface", metavar="PATH", help="load-coverage-inputs.py surface output")
     files.add_argument("--surface-set", default="all", metavar="NAME",
-                       help="the name set of --surface to intersect against (default: all)")
+                       help="the name set of --surface the barrel or scalar branch counts (default: all)")
     files.add_argument("--coverage-inputs", metavar="PATH",
                        help="load-coverage-inputs.py metadata output (scalar and stack branches)")
     files.add_argument("--verified", metavar="PATH",

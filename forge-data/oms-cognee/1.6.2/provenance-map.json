@@ -788,10 +788,11 @@
       "params": [],
       "source_file": "cognee/run_migrations.py",
       "source_line": 18,
-      "confidence": "T1",
-      "extraction_method": "ast-grep",
-      "ast_node_type": "function_definition",
-      "signature_source": "T1"
+      "confidence": "T1-low",
+      "extraction_method": "source-read",
+      "ast_node_type": null,
+      "signature_source": "T1-low",
+      "notes": "cognee/run_migrations.py is in the brief's scope.exclude, so skf-extract-public-api.py writes no exports[] record for it (entry_point_diff.outside_scope only); `async def run_migrations():` read by eye."
     },
     {
       "export_name": "agents",

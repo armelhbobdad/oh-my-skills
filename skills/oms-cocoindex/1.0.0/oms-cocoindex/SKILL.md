@@ -5,7 +5,7 @@ description: Build data ingestion + transformation pipelines on top of cocoindex
 
 # Cocoindex v1.0.0 — Component-based Pipelines
 
-Cocoindex authors data pipelines as Python *components* mounted into an *Environment* and orchestrated by an *App*. State is reconciled into target connectors via a `TargetState` / `TargetHandler` declarative API. Functions are decorated with `@coco.fn` (memoized, batchable, optionally GPU-runner-isolated). Lifespan-scoped resources (DB pools, embedders) are provided via `@coco.lifespan` and retrieved with `coco.use_context(KEY)`. Persistent state lives in a local LMDB store at `Settings.db_path`.
+Cocoindex authors data pipelines as Python *components* mounted into an *Environment* and orchestrated by an *App*. State is reconciled into target connectors via a `TargetState` / `TargetHandler` declarative API. Functions are decorated with `@coco.fn` (optionally memoized), or with `@coco.fn.as_async` when they need batching or a runner such as the GPU. Lifespan-scoped resources (DB pools, embedders) are provided via `@coco.lifespan` and retrieved with `coco.use_context(KEY)`. Persistent state lives in a local LMDB store at `Settings.db_path`.
 
 **v0.3.37 → v1.0.0 paradigm shift:** the old API (`FlowBuilder`, `DataScope`, `DataSlice`, `flow_def`, `open_flow`, `transform_flow`, `cocoindex.sources.*`, `cocoindex.targets.*`, `cocoindex.functions.*`, `LlmSpec`, `LlmApiType`, `VectorSimilarityMetric`, `DatabaseConnectionSpec`, `Postgres`-backed state) is **entirely removed**. There is no `flow.py`, no `op.py`, no `index.py`, no `llm.py`, no `lib.py`, no `auth_registry.py`. Migration is a full rewrite, not a rename pass — see the [migration section](#migration-from-v0337) for the new vocabulary.
 
@@ -72,14 +72,14 @@ async def app_main(sourcedir: pathlib.Path) -> None:
         table_schema=await postgres.TableSchema.from_class(DocEmbedding, primary_key=["id"]),
     )
     target.declare_vector_index(column="embedding")
-    files = localfs.walk_dir(sourcedir, recursive=True,
+    files = localfs.walk_dir(sourcedir, live=True, recursive=True,
                              path_matcher=PatternFilePathMatcher(included_patterns=["**/*.md"]))
     await coco.mount_each(process_file, files.items(), target)
 
 app = coco.App(coco.AppConfig(name="MyApp"), app_main, sourcedir=pathlib.Path("./docs"))
 ```
 
-Run with: `cocoindex update main.py` (one-shot) or `cocoindex update main.py -L` (live). Set `COCOINDEX_DB=/path/to/state.lmdb` for the local state store. Source: [SRC:python/cocoindex/__init__.py:L13] · [SRC:examples/text_embedding/main.py:L1]
+Run with: `cocoindex update main.py` (one-shot) or `cocoindex update main.py -L` (live: `walk_dir(..., live=True)` makes `files.items()` a `LiveMapView`, which is what lets `-L` watch the files for changes; without it each file is mounted once). Set `COCOINDEX_DB=/path/to/state.lmdb` for the local state store. Source: [SRC:python/cocoindex/__init__.py:L13] · [SRC:examples/text_embedding/main.py:L1] · `live=True` [SRC:examples/files_transform/main.py:L23]
 
 <!-- [MANUAL:quick-start-notes] -->
 <!-- Add custom notes here. This section is preserved during skill updates. -->
@@ -91,11 +91,11 @@ Run with: `cocoindex update main.py` (one-shot) or `cocoindex update main.py -L`
 `coco.App(coco.AppConfig(name="..."), app_main, *args, **kwargs)` — `app_main` is a `@coco.fn`-decorated function. Run via `app.update()` (returns `UpdateHandle`) or `app.update_blocking()`. [AST:python/cocoindex/_internal/app.py:L208]
 
 **Lifespan-scoped resources:**
-`@coco.lifespan` decorates a function `(EnvironmentBuilder) -> Iterator[None] | AsyncIterator[None]`. Use `builder.provide(KEY, value)` (or `builder.provide_with(KEY, cm)`, or `await builder.provide_async_with(KEY, cm)` for an async context manager) to register resources. Retrieve with `coco.use_context(KEY)` from inside any `@coco.fn`. [AST:python/cocoindex/_internal/environment.py:L452] · [AST:python/cocoindex/_internal/component_ctx.py:L273]
+`@coco.lifespan` decorates a function `(EnvironmentBuilder) -> Iterator[None] | AsyncIterator[None]`. Use `builder.provide(KEY, value)` (or `builder.provide_with(KEY, cm)`, or `await builder.provide_async_with(KEY, cm)` for an async context manager) to register resources. Retrieve with `coco.use_context(KEY)` from inside any `@coco.fn`. [AST:python/cocoindex/_internal/environment.py:L449] · [AST:python/cocoindex/_internal/component_ctx.py:L273]
 
 **Mount a sub-component:**
-`await coco.mount([subpath,] process_fn, *args, **kwargs)` — runs in background, returns `ComponentMountHandle`.
-`await coco.mount_each([subpath,] process_fn, items, *args, **kwargs)` — one component per item; `items` is `Iterable[(key, value)]`, `AsyncIterable`, `LiveMapFeed`, or `LiveMapView`.
+`await coco.mount([subpath,] processor_fn, *args, **kwargs)` — runs in background, returns `ComponentMountHandle`.
+`await coco.mount_each([subpath,] fn, items, *args, **kwargs)` — one component per item; `items` is `Iterable[(key, value)]`, `AsyncIterable`, `LiveMapFeed`, or `LiveMapView`.
 `result = await coco.use_mount([subpath,] processor_fn, *args, **kwargs)` — mount and wait for the result; the child cannot refresh independently of the parent.
 The optional leading `subpath` is a `ComponentSubpath`; when omitted it is derived from `Symbol(fn.__name__)`.
 [AST:python/cocoindex/_internal/api.py:L333] · [:L427] · [:L194]
@@ -164,7 +164,7 @@ Provenance: [AST:python/cocoindex/_internal/api.py:L603] [:L608] [:L613] [:L618]
 - `coco.is_non_existence(obj)` — `TypeIs` guard for the `NON_EXISTENCE` sentinel when implementing memo-state branches. [AST:python/cocoindex/_internal/typing.py:L63]
 - `coco.memo_fingerprint(obj)` and `coco.register_memo_key_function(typ, key_fn, *, state_fn=None)` — customize which fields participate in memoization keys for a custom type. [AST:python/cocoindex/_internal/memo_fingerprint.py:L361] [:L155]
 - `coco.unpickle_safe(cls)` and `coco.serialize_by_pickle(cls)` — class decorators for pickle-safe round-trips of component state. [AST:python/cocoindex/_internal/serde.py:L128] [:L151]
-- `is_live_component_class(cls) -> bool` — **internal**, not exported on `coco` (`coco.is_live_component_class` raises `AttributeError`): `from cocoindex._internal.live_component import is_live_component_class`. Runtime test for `LiveComponent`-shaped classes. [AST:python/cocoindex/_internal/live_component.py:L35]
+- `is_live_component_class(cls) -> bool` — **internal**, not exported on `coco` (`coco.is_live_component_class` raises `AttributeError`): `from cocoindex._internal.live_component import is_live_component_class`. Runtime test for `LiveComponent`-shaped classes. [SRC:python/cocoindex/_internal/live_component.py:L35]
 - `await get_vector_schema(obj)` and `await get_multi_vector_schema(obj)` (both async; `from cocoindex.resources.schema import get_vector_schema, get_multi_vector_schema`) — introspect a vector-schema provider attached to an `Annotated[...]` type (used when wiring a custom `Embedder` to a target column). [AST:python/cocoindex/resources/schema.py:L33] [:L58]
 
 ## Key API Summary
@@ -176,8 +176,8 @@ Provenance: [AST:python/cocoindex/_internal/api.py:L603] [:L608] [:L613] [:L618]
 | `Environment` | class | CocoIndex runtime environment. Owns settings, context provider, event loop, and exception handler. `__init__(settings, *, name=None, context_provider=None, event_loop=None, exception_handler=None, info=None)`. | [AST:python/cocoindex/_internal/environment.py:L183] |
 | `EnvironmentBuilder` | class | Lifespan builder. `provide(key, value)`, `provide_with(key, cm)`, `provide_async_with(key, cm)` (async), `set_exception_handler(handler)`. | [AST:python/cocoindex/_internal/environment.py:L87] |
 | `LifespanFn` | type alias | `Callable[[EnvironmentBuilder], Iterator[None]] \| Callable[[EnvironmentBuilder], AsyncIterator[None]]`. | [SRC:python/cocoindex/_internal/environment.py:L118] |
-| `lifespan` | decorator | `@coco.lifespan` registers an environment lifespan. Optional parens. | [AST:python/cocoindex/_internal/environment.py:L452] |
-| `fn` | decorator namespace | `@coco.fn` (preserves sync/async), `@coco.fn(memo=True)`, `@coco.fn(batching=True, max_batch_size=N, runner=GPU)`, `@coco.fn(version=N, logic_tracking="full"\|"self"\|None, deps=...)`. `@coco.fn.as_async(...)` always yields async. | [SRC:python/cocoindex/_internal/function.py:L1578] [SRC:python/cocoindex/_internal/function.py:L1811] |
+| `lifespan` | decorator | `@coco.lifespan` registers an environment lifespan. Optional parens. | [AST:python/cocoindex/_internal/environment.py:L449] |
+| `fn` | decorator namespace | `@coco.fn` (preserves sync/async), `@coco.fn(memo=True)`, `@coco.fn(version=N, logic_tracking="full"\|"self"\|None, deps=...)`. Batching and runners go through `@coco.fn.as_async(batching=True, max_batch_size=N, runner=GPU)`, which always yields async and takes sync or async functions. `@coco.fn(...)` with `batching=True` or a `runner` raises `ValueError` when it decorates any function. | [SRC:python/cocoindex/_internal/function.py:L1578] [SRC:python/cocoindex/_internal/function.py:L1811] [SRC:python/cocoindex/_internal/function.py:L1700] |
 | `LogicTracking` | type alias | `Literal["full", "self"] \| None` — value type of the `logic_tracking=` kwarg on `@coco.fn`. `"full"` (default) tracks own code + transitive children, `"self"` tracks own code only, `None` disables tracking (incompatible with `deps`). | [SRC:python/cocoindex/_internal/function.py:L65] |
 | `mount` | async fn | `await coco.mount([subpath,] processor_fn, *args, **kwargs) -> ComponentMountHandle`. Optional leading `subpath: ComponentSubpath`. | [AST:python/cocoindex/_internal/api.py:L333] |
 | `mount_each` | async fn | `await coco.mount_each([subpath,] fn, items, *args, **kwargs) -> ComponentMountHandle`. Optional leading `subpath: ComponentSubpath`. | [AST:python/cocoindex/_internal/api.py:L427] |
@@ -187,7 +187,7 @@ Provenance: [AST:python/cocoindex/_internal/api.py:L603] [:L608] [:L613] [:L618]
 | `start` / `stop` | async fns | Start/stop the default environment. | [AST:python/cocoindex/_internal/api.py:L603] [:L608] |
 | `start_blocking` / `stop_blocking` | fns | Sync variants. | [AST:python/cocoindex/_internal/api.py:L613] [:L618] |
 | `runtime()` | dual-mode ctxmgr | `with coco.runtime(): ...` or `async with coco.runtime(): ...`. | [AST:python/cocoindex/_internal/api.py:L655] |
-| `Runner` / `GPU` | class / singleton | Abstract base for execution runners. `GPU` is a `GPURunner()` singleton — pass `runner=GPU` to `@coco.fn`. Enable subprocess isolation with `COCOINDEX_RUN_GPU_IN_SUBPROCESS=1`. | [AST:python/cocoindex/_internal/runner.py:L34] [SRC:python/cocoindex/_internal/runner.py:L282] |
+| `Runner` / `GPU` | class / singleton | Abstract base for execution runners. `GPU` is a `GPURunner()` singleton — pass `runner=GPU` to `@coco.fn.as_async` (`@coco.fn(runner=GPU)` raises `ValueError`). Enable subprocess isolation with `COCOINDEX_RUN_GPU_IN_SUBPROCESS=1`. | [AST:python/cocoindex/_internal/runner.py:L34] [SRC:python/cocoindex/_internal/runner.py:L282] |
 | `TargetState[OptChildHandlerT]` | class | Bundled (provider, key, value) triple. Built via `TargetStateProvider.target_state(key, value)`. | [AST:python/cocoindex/_internal/target_state.py:L248] |
 | `TargetStateProvider[ValueT, OptChildHandlerT, MaybePendingS]` | class | Provider for target states. `target_state(key, value)`, `attachment(att_type)`, `memo_key`. | [AST:python/cocoindex/_internal/target_state.py:L208] |
 | `TargetHandler[ValueT_contra, TrackingRecordT, OptChildHandlerT_co]` | Protocol | `reconcile(key, desired_target_state, prev_possible_records, prev_may_be_missing) -> TargetReconcileOutput \| None`. | [AST:python/cocoindex/_internal/target_state.py:L197] |
@@ -208,7 +208,7 @@ Provenance: [AST:python/cocoindex/_internal/api.py:L603] [:L608] [:L613] [:L618]
 | `exception_handler(handler)` | async ctxmgr | Push an exception handler for background-mounted components within scope. | [AST:python/cocoindex/_internal/component_ctx.py:L331] |
 | `ContextKey[T]` | class | Generic `ContextKey` parametrized by `T`; constructor takes `(key: str, *, detect_change: bool = False)`. Keys are globally unique per process. | [AST:python/cocoindex/_internal/context_keys.py:L99] |
 | `ContextProvider` | class | Internal — owned by `Environment`. `provide(key, value)`, `get(key, t=None)`, `provide_with(key, cm)`, `provide_async_with(key, cm)` (async), `aclose()` (async). | [AST:python/cocoindex/_internal/context_keys.py:L124] |
-| `Settings` | dataclass | `Settings(db_path=None, global_execution_options=None, lmdb_max_dbs=1024, lmdb_map_size=4 GiB)`. `Settings.from_env(db_path=None)` reads `COCOINDEX_*` env vars. `coco.Settings` is `cocoindex._internal.setting.Settings`; `cocoindex.setting.Settings` is a separate class object with the same fields. | [AST:python/cocoindex/_internal/setting.py:L56] |
+| `Settings` | dataclass | `Settings(db_path=None, global_execution_options=None, lmdb_max_dbs=1024, lmdb_map_size=4 GiB)`. `Settings.from_env(db_path=None)` reads the `COCOINDEX_SOURCE_MAX_INFLIGHT_*` and `COCOINDEX_LMDB_*` env vars, not `COCOINDEX_DB` (the default environment applies `COCOINDEX_DB` when `db_path` is unset). `coco.Settings` is `cocoindex._internal.setting.Settings`; `cocoindex.setting.Settings` is a separate class object with the same fields. | [AST:python/cocoindex/_internal/setting.py:L56] |
 | `ServerSettings` | dataclass | `ServerSettings(address="127.0.0.1:49344", cors_origins=None)`. `from_env()` and static `parse_cors_origins(s)`. | [AST:python/cocoindex/setting.py:L93] |
 | `GlobalExecutionOptions` | dataclass | `(source_max_inflight_rows=1024, source_max_inflight_bytes=None)`. | [AST:python/cocoindex/setting.py:L12] |
 | `QueryHandlerInfo` | dataclass | `(result_fields: QueryHandlerResultFields \| None = None)`. **NEW in v1.0.0.** | [AST:python/cocoindex/query_handler.py:L21] |
@@ -272,7 +272,7 @@ Provenance: [SRC:python/cocoindex/_internal/stable_path.py:L9] [AST:python/cocoi
 - **Public API entry point:** `python/cocoindex/__init__.py` does `from ._internal.api import *` and re-exports `_internal.api.__all__` (~74 symbols). Always import as `import cocoindex as coco`. [SRC:python/cocoindex/__init__.py:L13]
 - **API hub:** `python/cocoindex/_internal/api.py` is the canonical re-export module. It defines `mount`, `mount_each`, `mount_target`, `use_mount`, `map`, `start`, `stop`, `start_blocking`, `stop_blocking`, `default_env`, `runtime`, `ComponentMountHandle`, and re-exports the rest. [SRC:python/cocoindex/_internal/api.py:L669]
 - **Component runtime:** `_internal/app.py` (App, AppConfig, UpdateHandle, DropHandle, show_progress), `_internal/environment.py` (Environment, EnvironmentBuilder, lifespan, start/stop), `_internal/runner.py` (Runner, GPU singleton).
-- **Component model:** `_internal/function.py` (`@coco.fn` builder + SyncFunction/AsyncFunction Protocols), `_internal/component_ctx.py` (ComponentContext, ComponentSubpath, exception_handler, use_context).
+- **Component model:** `_internal/function.py` (the `@coco.fn` decorator, a `_FunctionDecorator` instance; the `Function` Protocol; `SyncFunction` / `AsyncFunction`, the concrete classes with `__slots__` that subclass it and that `@coco.fn` returns) [SRC:python/cocoindex/_internal/function.py:L138] [SRC:python/cocoindex/_internal/function.py:L491] [SRC:python/cocoindex/_internal/function.py:L903], `_internal/component_ctx.py` (ComponentContext, ComponentSubpath, exception_handler, use_context).
 - **Target reconciliation:** `_internal/target_state.py` — TargetState/TargetStateProvider/TargetHandler/TargetActionSink + declare_target_state / declare_target_state_with_child / register_root_target_states_provider.
 - **Live components:** `_internal/live_component.py` — LiveComponent, LiveComponentOperator, LiveMapFeed/View, LiveMapSubscriber.
 - **Plumbing:** `_internal/context_keys.py` (ContextKey, ContextProvider), `_internal/stable_path.py` (StablePath/StableKey/Symbol), `_internal/memo_fingerprint.py` (memo_fingerprint, NotMemoKeyable), `_internal/serde.py` (unpickle_safe, serialize_by_pickle).
@@ -287,7 +287,7 @@ Provenance: [SRC:python/cocoindex/_internal/stable_path.py:L9] [AST:python/cocoi
 The `cocoindex` CLI is a click group ([AST:python/cocoindex/cli.py:L505]) with five subcommands ([AST:python/cocoindex/cli.py:L530] [:L581] [:L692] [:L761] [:L819]):
 
 ```sh
-cocoindex -e .env -d app_dir <subcommand> ...
+cocoindex [-V] [-e ENV_FILE] [-d APP_DIR] <subcommand> ...
 
 cocoindex ls   [APP_TARGET] [--db PATH]                 # List apps (from the module, or from the LMDB store)
 cocoindex show [APP_TARGET] [--db PATH --app-name NAME] [--tree]  # Show the app's stable paths
@@ -296,7 +296,7 @@ cocoindex drop APP_TARGET [-f|--force] [-q|--quiet]     # Drop an app's target s
 cocoindex init [PROJECT_NAME] [--dir PATH]              # Scaffold a new project
 ```
 
-`show` takes either `APP_TARGET` or both `--db` and `--app-name`. `update --reset` drops the existing state first (asks for confirmation unless `-f`).
+`show` takes either `APP_TARGET` or both `--db` and `--app-name`. `update --reset` drops the existing state first (asks for confirmation unless `-f`). `-e` loads a `.env` file; without it the CLI loads the nearest `.env` from the current directory upward. `-d APP_DIR` only prepends `APP_DIR` to `sys.path` and does not change the working directory: it lets a module-name `APP_TARGET` be imported from `APP_DIR`, while a `.py` path is still resolved against the current directory. [SRC:python/cocoindex/cli.py:L507] [SRC:python/cocoindex/cli.py:L513] [SRC:python/cocoindex/user_app_loader.py:L54]
 
 `APP_TARGET` is a path to a `.py` file or a module name, optionally followed by `:app_name` or `:app_name@env_name` to pick one app by its `App` name (the `AppConfig.name`) when the module registers several. The CLI resolves it via `_load_app()` ([SRC:python/cocoindex/cli.py:L274]), which loads the module and selects among the `App` instances it registered. v0.3.37's `main.py:flow_name` meaning (selecting a flow) is gone: the suffix names an app, not a flow.
 
@@ -309,9 +309,9 @@ The 0.3.37 → 1.0.0 transition is **not a rename** — every public module from
 | `@cocoindex.flow_def(name="...")` over `(FlowBuilder, DataScope) -> None` | `coco.App(coco.AppConfig(name="..."), main_fn, *args)` where `main_fn` is `@coco.fn`-decorated |
 | `cocoindex.open_flow(name, fl_def)` | `coco.App(coco.AppConfig(name=name), main_fn, ...)` |
 | `cocoindex.transform_flow()` | `@coco.fn` decorator (component-level transform) |
-| `FlowBuilder.add_source(spec)` | `coco.mount_each(process_fn, source.items())` over `localfs.walk_dir`, `postgres.PgTableSource`, `kafka.topic_as_map`, etc. |
+| `FlowBuilder.add_source(spec)` | `coco.mount_each(process_fn, walker.items())` for a `walker = localfs.walk_dir(...)`; `coco.mount_each(process_fn, pg_source.fetch_rows().items(key_fn))` for a `postgres.PgTableSource` (`PgTableSource` has no `items`, and `key_fn`, which maps a row to its `StableKey`, is required); `coco.mount_each(process_fn, kafka.topic_as_map(consumer, topics))` for Kafka, which passes the feed itself (it has no `items`; live mode only). [SRC:python/cocoindex/connectors/localfs/_source.py:L147] · [SRC:python/cocoindex/connectors/postgres/_source.py:L215] [:L118] · [SRC:python/cocoindex/connectors/kafka/_source.py:L228] [:L361] |
 | `DataSlice.transform(fn_spec)` / `DataSlice.row()` | `await coco.map(fn, items)` for fan-out, or `await coco.mount(child_fn, *args)` for sub-components |
-| `DataCollector.collect(...)` / `.export(target_name, target_spec, ...)` | `await postgres.mount_table_target(...).declare_row(row)` (or per-connector equivalent) |
+| `DataCollector.collect(...)` / `.export(target_name, target_spec, ...)` | `target = await postgres.mount_table_target(...)`, then `target.declare_row(row=row)` (`row` is keyword-only) from the components that produce rows (or the per-connector equivalent) |
 | `Flow.update()` / `Flow.update_async()` | `app.update_blocking()` / `await app.update()` |
 | `Flow.setup()` / `Flow.drop()` | `app.update_blocking()` (setup is implicit on first run); `app.drop()` / `app.drop_blocking()` |
 | `FlowLiveUpdater(fl)` with `start()`/`wait()` | `app.update(live=True)` returns an `UpdateHandle`; iterate `handle.watch()` for `UpdateSnapshot`s |
@@ -338,13 +338,13 @@ The 0.3.37 → 1.0.0 transition is **not a rename** — every public module from
 
 - **Cocoindex v1.0.0 does NOT preserve API stability across minor versions** despite the 1.0 tag. The 0.3 → 1.0 jump itself was a wholesale rewrite; treat future minor versions cautiously and pin in your `requirements.txt` / `pyproject.toml`.
 - **All `mount*`, `App.update`, `App.drop`, `start`/`stop`, `coco.map` are async** — wrap in `asyncio.run()` or use `app.update_blocking()` / `app.drop_blocking()` / `start_blocking()` / `stop_blocking()` for sync entry points.
-- **`@coco.fn` preserves sync/async** — sync function → `SyncFunction`, async function → `AsyncFunction`. `@coco.fn(batching=True)` requires async; for sync underlying fns that need batching, use `@coco.fn.as_async(batching=True)`.
+- **`@coco.fn` preserves sync/async** — sync function → `SyncFunction`, async function → `AsyncFunction`. For batching or a runner use `@coco.fn.as_async(batching=True, runner=GPU)`, which always yields an `AsyncFunction` and takes sync or async functions. `@coco.fn(batching=True)` and `@coco.fn(runner=GPU)` raise `ValueError` when they decorate any function, sync or async, although `@coco.fn`'s docstring says async functions are accepted: with `batching`, `runner` or `max_batch_size` set, `@coco.fn` uses a builder that rejects async functions and then rejects batching and runners. [SRC:python/cocoindex/_internal/function.py:L1700] [SRC:python/cocoindex/_internal/function.py:L1519] [SRC:python/cocoindex/_internal/function.py:L1479]
 - **`logic_tracking` controls memoization invalidation:** `"full"` (default) tracks own code + transitive children; `"self"` tracks own code only; `None` disables tracking (incompatible with `deps`).
 - **`deps` is snapshotted at decoration time**, not per-call. For per-call values pass them as regular function arguments; reserve `deps` for module-level constants like prompts or model identifiers.
 - **`ContextKey` keys must be globally unique per process** — re-using a key string raises `ValueError`. Use module-qualified names (`"my_module.PG_DB"`) or namespaced strings.
 - **`use_mount` returns whatever the child returns** — half of its overloads take a plain `ReturnT`. `ResolvesTo[T]` is only an optional static-typing bridge: when the child returns a `ResolvesTo[T]` (a pending provider), the type checker sees the resolved `T`. If you build custom pending wrappers, inherit from `ResolvesTo` and parameterize over `MaybePendingS`.
-- **`LiveMapFeed` requires live mode** — passing a feed (no scannable snapshot, like `kafka.topic_as_map`) to `mount_each` without `app.update(live=True)` raises `TypeError`. `LiveMapView` (e.g. `localfs.walk_dir`) supports both modes.
-- **`COCOINDEX_RUN_GPU_IN_SUBPROCESS=1`** opts the `GPU` runner into subprocess isolation; default is in-process on a single-worker thread pool.
+- **`LiveMapFeed` requires live mode** — passing a feed (no scannable snapshot, like `kafka.topic_as_map`) to `mount_each` without `app.update(live=True)` raises `TypeError`. A `LiveMapView` supports both modes. `localfs.walk_dir` returns a `DirWalker`, not a view: its `items()` is a `LiveMapView` only when `walk_dir` gets `live=True`, and a plain `AsyncIterable` of `(relative_path, File)` pairs otherwise. [SRC:python/cocoindex/connectors/localfs/_source.py:L147] [SRC:python/cocoindex/_internal/live_component.py:L189]
+- **`COCOINDEX_RUN_GPU_IN_SUBPROCESS=1`** opts the `GPU` runner into subprocess isolation; default is in-process: sync functions run on a dedicated single-worker thread, async functions are awaited directly on the event loop. [SRC:python/cocoindex/_internal/runner.py:L252] [:L265]
 - **`cocoindex.resources.*` is first-class public API** — `Chunk`, `TextPosition`, `FileLike`, `FilePath`, `FileMetadata`, `PatternFilePathMatcher`, `IdGenerator`, `UuidGenerator`, `Embedder` Protocol, `VectorSchemaProvider`, `VectorSchema`. Always import from there, not from `connectors/*` internals.
 - **`cocoindex.connectorkits.*` and `cocoindex.inspect`** also exist and are referenced from connector implementations — these are not yet documented in this skill (added scope candidates for a follow-up).
 

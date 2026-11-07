@@ -1,44 +1,39 @@
 {
   "skill": "skf-test-skill",
-  "status": "success",
+  "status": "error",
   "skill_name": "oms-cognee",
-  "verdict": "PASS",
-  "score": 99,
-  "threshold": 80,
-  "report_path": "forge-data/oms-cognee/1.6.2/test-report-oms-cognee-20261103T134151Z-12e5ccdf.md",
-  "next_workflow": "export-skill",
-  "exit_code": 0,
-  "halt_reason": null,
+  "verdict": "FAIL",
+  "score": null,
+  "threshold": null,
+  "report_path": "forge-data/oms-cognee/1.6.2/test-report-oms-cognee-20261106T224257Z-45558de5.md",
+  "next_workflow": "update-skill",
+  "exit_code": 2,
+  "halt_reason": "hard-gate-blocked",
   "outputs": [
     {
       "type": "report",
-      "path": "forge-data/oms-cognee/1.6.2/test-report-oms-cognee-20261103T134151Z-12e5ccdf.md"
+      "path": "forge-data/oms-cognee/1.6.2/test-report-oms-cognee-20261106T224257Z-45558de5.md"
     }
   ],
   "summary": {
-    "score": 99,
-    "threshold": 80,
-    "result": "PASS",
+    "score": null,
+    "threshold": null,
+    "result": "FAIL",
     "testMode": "naive",
-    "activeCategories": [
-      "exportCoverage",
-      "signatureAccuracy",
-      "typeCoverage",
-      "externalValidation"
-    ],
+    "activeCategories": [],
     "gapCounts": {
-      "Critical": 0,
+      "Critical": 2,
       "High": 0,
-      "Medium": 5,
+      "Medium": 4,
       "Low": 1,
-      "Info": 54
+      "Info": 49
     },
-    "hardGate": "passed"
+    "hardGate": "blocked"
   },
-  "runId": "20261103T134151Z-12e5ccdf",
+  "runId": "20261106T224257Z-45558de5",
   "healthCheckDispatched": true,
-  "timestamp": "2026-11-03T13:58:29Z",
-  "run_id": "20261103T134151Z-12e5ccdf",
+  "timestamp": "2026-11-06T23:00:46Z",
+  "run_id": "20261106T224257Z-45558de5",
   "headless_decisions": [],
   "warnings": [
     "customization_resolver_unavailable: not found"

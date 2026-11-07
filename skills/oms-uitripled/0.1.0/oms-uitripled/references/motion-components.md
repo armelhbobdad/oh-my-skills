@@ -1,6 +1,6 @@
 # Motion Components Reference (react-shadcn `src/components/`)
 
-The motion-core components, the smaller interaction components grouped by category folder, and the Grid Generator panels of `@uitripled/react-shadcn`, with their install ids. Signatures are copied from the source at `a5ffb45`; the purpose is the entry's `description` in `packages/registry/registry.json`.
+The motion-core components, the smaller interaction components grouped by category folder, and the Grid Generator panels of `@uitripled/react-shadcn`, with their install ids. Signatures are copied from the source at `a5ffb45`, except the four the notes under the motion-core and Grid Generator blocks name, which follow the props type where the source's destructuring does not; the purpose is the entry's `description` in `packages/registry/registry.json`.
 
 ## Contents
 
@@ -30,7 +30,7 @@ export function Prompt() {
 
 ## Motion-core components
 
-`src/components/motion-core/`: configurable motion components; most take an optional props object whose defaults the signature shows.
+`src/components/motion-core/`: configurable motion components. Most take a props object whose members are all optional, with the defaults the signature shows; the three that require a member are named under the block.
 
 ```tsx
 // components/motion-core/ai-glow-input.tsx
@@ -44,7 +44,7 @@ export function AIUnlockAnimation({ autoPlay = true }: AIUnlockAnimationProps)
 // components/motion-core/animated-quote-block.tsx
 export function AnimatedQuoteBlock({ quote = "The only way to do great work is to love what you do.", author = "Steve Jobs", typingSpeed = 50 }: AnimatedQuoteBlockProps)
 // components/motion-core/auto-revealing-heading.tsx
-export function AutoRevealingHeading({ text = "Auto Revealing Heading", splitBy = "word", delay = 0.1, className = "" }: AutoRevealingHeadingProps)
+export function AutoRevealingHeading({ text, splitBy = "word", delay = 0.1, className = "" }: AutoRevealingHeadingProps)
 // components/motion-core/context-menu-bubble.tsx
 export function ContextMenuBubble({ items = [{ label: "Edit", icon: <Edit className="h-4 w-4" />, onClick: () => {} }, { label: "Copy", icon: <Copy className="h-4 w-4" />, onClick: () => {} }, { label: "Share", icon: <Share2 className="h-4 w-4" />, onClick: () => {} }, { label: "Delete", icon: <Trash2 className="h-4 w-4" />, onClick: () => {}, danger: true }] }: ContextMenuBubbleProps)
 // components/motion-core/drag-to-confirm-slider.tsx
@@ -66,7 +66,7 @@ export function InteractiveTimeline({ items = [{ id: "1", title: "Started", desc
 // components/motion-core/magnetic-avatar-group.tsx
 export function MagneticAvatarGroup({ avatars = [{ id: "1", name: "John Doe", initials: "JD", color: "bg-primary" }, { id: "2", name: "Jane Smith", initials: "JS", color: "bg-primary/80" }, { id: "3", name: "Bob Wilson", initials: "BW", color: "bg-primary/60" }, { id: "4", name: "Alice Brown", initials: "AB", color: "bg-primary/40" }], maxVisible = 4 }: MagneticAvatarGroupProps)
 // components/motion-core/mood-gradient-button.tsx
-export function MoodGradientButton({ children = "Hover Me", onClick, className = "" }: MoodGradientButtonProps)
+export function MoodGradientButton({ children, onClick, className = "" }: MoodGradientButtonProps)
 // components/motion-core/reactive-background-grid.tsx
 export function ReactiveBackgroundGrid({ dots = true, density = 20 }: ReactiveBackgroundGridProps)
 // components/motion-core/scroll-progress-tracker.tsx
@@ -74,12 +74,14 @@ export function ScrollProgressTracker({ sections = [], height = 4 }: ScrollProgr
 // components/motion-core/smart-hover-card.tsx
 export function SmartHoverCard({ title = "Smart Hover Card", description = "Hover from different directions to see content reveal", children }: SmartHoverCardProps)
 // components/motion-core/spotlight-section.tsx
-export function SpotlightSection({ children = (<div className="text-center"> <h3 className="text-xl font-semibold">Spotlight Section</h3> <p className="mt-2 text-sm text-muted-foreground"> Move your mouse around to see the spotlight effect </p> </div>), intensity = 0.6, size = 300 }: SpotlightSectionProps)
+export function SpotlightSection({ children, intensity = 0.6, size = 300 }: SpotlightSectionProps)
 // components/motion-core/stacked-card-carousel.tsx
 export function StackedCardCarousel({ cards = [{ id: "1", title: "Card One", description: "Description for card one", color: "bg-primary" }, { id: "2", title: "Card Two", description: "Description for card two", color: "bg-primary/80" }, { id: "3", title: "Card Three", description: "Description for card three", color: "bg-primary/60" }] }: StackedCardCarouselProps)
 // components/motion-core/synced-lyric-captions.tsx
 export function SyncedLyricCaptions({ script = DEFAULT_SCRIPT, audioSrc, title = "Enhanced Synced Captions" }: SyncedLyricCaptionsProps)
 ```
+
+`AutoRevealingHeading`'s `text`, `MoodGradientButton`'s `children` and `SpotlightSection`'s `children` are required: each props type declares the member with no `?`, so a caller must pass it. The source also destructures each of the three with a default value, which applies only when the value passed is `undefined`, so the signatures above leave that default out. `[SRC:packages/components/react-shadcn/src/components/motion-core/auto-revealing-heading.tsx:L7]` `[SRC:packages/components/react-shadcn/src/components/motion-core/mood-gradient-button.tsx:L7]` `[SRC:packages/components/react-shadcn/src/components/motion-core/spotlight-section.tsx:L7]`
 
 | Export | Install id | Purpose | Source |
 |--------|------------|---------|--------|
@@ -223,6 +225,8 @@ export function WebPerformancePage()
 ```tsx
 // components/grid/code-output.tsx
 export function CodeOutput({ code, copied, onCopyCode, options }: CodeOutputProps)
+// components/grid/grid-cell.tsx
+export function GridCell({ cell, cols, rows, isInSelection, onPointerDown, onPointerEnter }: GridCellProps)
 // components/grid/grid-preview.tsx
 export function GridPreview({ cells, cols, rows, gap, selectedCells, onPointerDown, onPointerEnter, onPointerUp, onPointerLeave, onAddCell, onResetGrid, onUndo, onRedo, canUndo, canRedo }: GridPreviewProps)
 // components/grid/presets-panel.tsx
@@ -231,9 +235,12 @@ export function PresetsPanel({ onApplyPreset }: PresetsPanelProps)
 export function SettingsPanel({ cols, maxCols = 12, maxGap = 12, gap, onColsChange, onGapChange }: SettingsPanelProps)
 ```
 
+The `GridCell` line lists the props of its props type, `GridCellProps`, which `grid-cell.tsx` declares but does not export: `cell`, `cols`, `rows`, `isInSelection`, `onPointerDown` and `onPointerEnter`, all six required. The function's own parameter destructures five of them and never reads `rows`, but a caller must still pass it, as `GridPreview` does. This component is a different export from the `GridCell` interface of react-shadcn's `src/lib/grid-utils.ts` (a byte-identical copy of `@uitripled/utils`' grid-utils; see `references/utils.md` → Grid helpers), which `grid-cell.tsx` imports as `GridCellType` for its `cell` prop. `[AST:packages/components/react-shadcn/src/lib/grid-utils.ts:L5]` `[SRC:packages/components/react-shadcn/src/components/grid/grid-cell.tsx:L5]` `[AST:packages/components/react-shadcn/src/components/grid/grid-cell.tsx:L14]` `[SRC:packages/components/react-shadcn/src/components/grid/grid-cell.tsx:L3]`
+
 | Export | Install id | Purpose | Source |
 |--------|------------|---------|--------|
 | `CodeOutput` | none | no `registry.json` entry ships this file; props `CodeOutputProps` | `[SRC:packages/components/react-shadcn/src/components/grid/code-output.tsx:L14]` |
+| `GridCell` | none | no `registry.json` entry ships this file; one cell of the grid `GridPreview` renders `[SRC:packages/components/react-shadcn/src/components/grid/grid-preview.tsx:L132]` | `[AST:packages/components/react-shadcn/src/components/grid/grid-cell.tsx:L14]` |
 | `GridPreview` | none | no `registry.json` entry ships this file; props `GridPreviewProps` | `[SRC:packages/components/react-shadcn/src/components/grid/grid-preview.tsx:L28]` |
 | `PresetsPanel` | none | no `registry.json` entry ships this file; props `PresetsPanelProps` | `[SRC:packages/components/react-shadcn/src/components/grid/presets-panel.tsx:L12]` |
 | `SettingsPanel` | none | no `registry.json` entry ships this file; props `SettingsPanelProps` | `[SRC:packages/components/react-shadcn/src/components/grid/settings-panel.tsx:L15]` |

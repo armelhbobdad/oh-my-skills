@@ -28,7 +28,7 @@ hashContentProbeOrder:
 
 ## STEP GOAL:
 
-Merge freshly extracted export data into the existing SKILL.md content while preserving all [MANUAL] sections. Detect and resolve conflicts where regenerated content overlaps developer-authored content.
+Merge freshly extracted export data into the existing SKILL.md and its references/*.md while preserving all [MANUAL] sections. Detect and resolve conflicts where regenerated content overlaps developer-authored content.
 
 ## Rules
 
@@ -67,9 +67,11 @@ From the [MANUAL] inventory captured in step 1:
 
 ### 3. Apply Merge by Priority Order
 
-Read this step's inputs from disk, never from memory: the change manifest from `{run_dir}/change-manifest.json` (step 2, or gap-driven.md §1 in gap-driven mode), the extraction or verification records from `{run_dir}/reextract-records.json` (step 3, or gap-driven.md §4), and the documents step 2 §1b promoted from `{run_dir}/promoted-docs.json` when it wrote that file. A compacted context still merges what those steps found.
+Read this step's inputs from disk, never from memory: the change manifest from `{run_dir}/change-manifest.json` (step 2, or gap-driven.md §1 in gap-driven mode), the extraction or verification records from `{run_dir}/reextract-records.json` (step 3, or gap-driven.md §4), and the documents step 2 §1b promoted from `{run_dir}/promoted-docs.json` when it wrote that file. A compacted context still merges what those steps found. A gap-driven record in `files` that carries a `local` name was matched by its public name (a renamed re-export): document it under that public name, its `name`, saying it re-exports the declared `local` name.
 
-Apply merge in the following priority order:
+Apply merge in the following priority order.
+
+**A split-body skill** (one whose `references/*.md` files document exports, the `## Full` sections a body split moved among them): Priorities 1 to 5 apply their change to every file that documents the export, SKILL.md and each `references/*.md` alike. Priority 1 removes the export's content from each file, and deletes a reference file it leaves documenting nothing and holding no `[MANUAL]` block, with SKILL.md's `> See` pointer to that file; Priority 2 moves its citations (`[AST:]` and `[SRC:]` alike) in each, Priority 3 renames it in each, Priority 4 replaces its content in each, and Priority 5 adds a new export where the skill documents that kind of export (a `references/*.md` file when the skill keeps that kind there) and corrects any statement, in SKILL.md or a `references/*.md` file, that calls the new export not covered. [MANUAL] blocks are inventoried and verified in SKILL.md only: nothing re-checks one in a `references/*.md` file yet, so the merge leaves such a block untouched, as it never edits inside one in SKILL.md without the user's §4 decision. §6b writes each `references/*.md` file this changes or adds, and deletes each one it removes.
 
 **Priority 1 — Process DELETED exports:**
 - Remove generated content for deleted exports
@@ -91,6 +93,8 @@ Apply merge in the following priority order:
 
 **Priority 4 — Process MODIFIED exports:**
 - Replace generated content for the export with fresh extraction
+- **Gap-driven `MODIFIED_EXPORT`:** its fresh extraction is its record in `files` of `{run_dir}/reextract-records.json`, which gap-driven.md §4 copied from §4a's extraction at the line its spot-check located (`verified` or `moved`): document it from that record, as a `re-extracted` one is, taking its signature, parameters and return type from the record, never from the old content or the gap's text, so SKILL.md names the signature step 5's `apply` writes to the provenance map. The record holds no docstring (§4 asks none for it), so keep the export's description. With no record there (its verification record's `extraction_method` is null), repair it from the source line its spot-check read.
+- **Gap-driven `MODIFIED_EXPORT` recorded `unknown` or `missing`** (gap-driven.md §4 located no line for it, and step 5's `apply` warns with the cause, `cited-elsewhere` or `outside-scope` among them): keep its documented content as it stands. Never rewrite it from the gap's text (its title, issue or remediation), which may describe another file's declaration.
 - Preserve [MANUAL] blocks adjacent to the export
 - Check for position conflicts (new content shifts [MANUAL] block)
 - If position conflict: flag as POSITION conflict
@@ -100,7 +104,8 @@ Apply merge in the following priority order:
 - Place before any [MANUAL] blocks at section boundary
 - No conflicts expected (new content, no existing [MANUAL])
 - **A `public-api` skill's public surface (normal mode only):** document no new export, and no export of an ADDED or MOVED file, whose record in `{run_dir}/reextract-records.json` is marked `public: false`, unless the provenance map holds the export (by name at its `old_path` for a MOVED file) or the old name it renames, or this update removes an entry of its name (a `DELETED_EXPORT`, a DELETED file's entry): `records` (re-extract.md §4) found it off the public surface, and step 5's `apply` adds no entry for it, so SKILL.md, the provenance map and metadata.json's `exports[]` name the same exports. A record with no `public` mark is documented as before, and an export the map already holds keeps its content (Priority 4) whatever its mark. In gap-driven and degraded mode document every record whatever its mark: `apply` maps them all.
-- **Gap-driven cited `NEW_EXPORT` whose spot-check pinned a line** (gap-driven.md §4 recorded `verified` or `moved` for an export the provenance map does not hold): cite it as `[SRC:{source_file}:L{line}]`, where `{line}` is the citation's line for `verified` and the `new_location` line for `moved`: the line write.md §3 records in its new `source-read` entry. The spot-check found that line by the verifier's text rules, not by an ast-grep recipe, so the prefix is `SRC`, never `AST`.
+- **Gap-driven cited `NEW_EXPORT` whose spot-check pinned a line** (gap-driven.md §4 recorded `verified` or `moved` for an export the provenance map does not hold): cite it as `[SRC:{source_file}:L{line}]`, where `{line}` is the citation's line for `verified` and the `new_location` line for `moved`: the line write.md §3 records in its new `source-read` entry. The spot-check found that line by the verifier's text rules, not by an ast-grep recipe, so the prefix is `SRC`, never `AST`. Document it from its record in `files` of `{run_dir}/reextract-records.json`, as a `re-extracted` one is, when §4 copied one there from §4a's extraction at that line (its verification record's `extraction_method` is set): its signature, parameters and return type come from that record, never from the gap's text, and the record holds no docstring (§4 asks none for it). It keeps its `[SRC:]` citation and its T1-low label whatever its record's tool.
+- **Gap-driven `NEW_EXPORT` recorded `unknown` with `cited-elsewhere` or `outside-scope`** (gap-driven.md §4: the provenance map already holds its name at another file than the gap cites, or the skill brief's scope leaves out the file the gap names): add nothing for it, and never document it from the gap's text (its title, issue or remediation), which may describe another file's declaration.
 
 **Priority 6 — Process script/asset file changes (from Category D in change manifest):**
 
@@ -139,7 +144,7 @@ For each entry of `promoted_docs_new[]`, read from `{run_dir}/promoted-docs.json
 For each `STRUCTURAL_FIX` entry gap-driven.md §4 forwarded:
 
 - Apply the surgical edit described in the entry's `remediation` text to the **generated output file only** (e.g., escape an unescaped `|` inside a code span, balance a fence, repair a broken intra-skill anchor in SKILL.md or a `references/*.md`).
-- **A split-body consistency finding** (rule R2: the SKILL.md body and a `references/*.md` file document one export differently): edit the `references/*.md` file so it documents the export as the SKILL.md body does, whichever of the two files the gap's `Source:` names. The body is authoritative (test-skill coverage-check §1b), so never change the body to match the reference file.
+- **A split-body consistency finding** (rule R2: two files of the skill, the SKILL.md body or a `references/*.md` file, document one export differently): edit the file the entry's `package_citation` names, the side the pinned source contradicts (test-skill coverage-check §5b), so it documents the export as the other file does: of two `references/*.md` files no source settled, that is the one whose path sorts last, matched to the other. Without a `package_citation`, edit the file the remediation names to change; when neither names one, edit the `references/*.md` file to match the SKILL.md body, or of two `references/*.md` files the one whose path sorts last to match the other. Several split-body entries that cite one file and line are one edit of it. Change only what the remediation names as contradicting (a parameter, a type, the return type), taking it from the other file, and nothing more when it says both forms agree with the source. Keep each file's level of detail: the body keeps its brief form, and a `|` the change puts inside a table cell is escaped (`\|`). Read no source. When the manifest also holds a `MODIFIED_EXPORT` for the same export, Priority 4's rewrite settles the body: skip this edit of SKILL.md for that export.
 - Do **not** add, modify, or remove any provenance `entries[]` row — STRUCTURAL_FIX never touches the provenance map.
 - Preserve any [MANUAL] blocks; if the fix location overlaps a [MANUAL] block, flag as a POSITION conflict instead of editing.
 - Record in the update report: `"Structural fix: {remediation summary} at {file}:{line}"`.
@@ -150,7 +155,7 @@ For each `STRUCTURAL_FIX` entry gap-driven.md §4 forwarded:
 
 For each `metadata update` entry gap-driven.md §4 forwarded:
 
-- Queue the surgical metadata patch described in the entry's `remediation` (e.g., reconcile a divergent `stats` count, add an explanatory stat) in workflow context as `metadata_patches[]` for write.md §2 to apply **before** its automatic stat recount.
+- Queue the surgical metadata patch described in the entry's `remediation` in workflow context as `metadata_patches[]` for write.md §2 to apply **before** its automatic stat recount.
 - Touch no provenance `entries[]` row and no generated markdown — this priority only stages the patch; write.md §2 applies it.
 - Record in the update report: `"Metadata patch queued: {remediation summary}"`.
 
@@ -214,7 +219,7 @@ Merge Results:
   manual_orphans_removed: [count]
 ```
 
-In gap-driven mode, write what step 5's `apply` reads from merge to `{run_dir}/merge-records.json`: for each `NEW_EXPORT` or `MODIFIED_EXPORT` the provenance map does not hold and no `re-extracted` record covers (a cited export whose spot-check pinned a line, and a `Medium`, `Low` or `Info` one recorded `unknown`), the `export_type`, `params` and `return_type` its merged documentation gives, leaving out each one it does not:
+In gap-driven mode, write what step 5's `apply` reads from merge to `{run_dir}/merge-records.json`: for each `NEW_EXPORT` or `MODIFIED_EXPORT` the provenance map does not hold and no `re-extracted` record covers (a cited export whose spot-check pinned a line, and a `Medium`, `Low` or `Info` one recorded `unknown`, but not one whose `unknown_reason` is `outside-scope`, for which `apply` adds no entry), the `export_type`, `params` and `return_type` its merged documentation gives, leaving out each one it does not. Leave out each part a record gives, and leave out an export whose record gives all three: when §4a found an export's record (its verification record in `{run_dir}/reextract-records.json` has an `extraction_method`), `apply` takes its whole signature from that record, a part the record gives as null included, and reads merge's only for an export with no record:
 
 ```bash
 cat > "{run_dir}/merge-records.json" <<'SKF_JSON'
@@ -279,7 +284,7 @@ uv run {runLockHelper} acquire \
 
    Bind `{version_staging}` ← `staging`: the empty folder `{skill_group}/{new_version}.skf-tmp` it created (it clears one an interrupted run left).
 3. **Copy the current package** `{skill_package}` to `{version_staging}/{skill_name}`, naming both without a trailing `/` — equivalent to `cp -a "{skill_package}" "{version_staging}/{skill_name}"`: SKILL.md, metadata.json, context-snippet.md, `references/`, `scripts/`, `assets/` and every other entry, each link copied as a link and never followed. The files this update does not rewrite carry over to the new version this way.
-4. **Write and verify the merged SKILL.md in the staged package**, before anything is published. Use the `Edit` or `Write` tool to write the merged SKILL.md content (UTF-8) to `{version_staging}/{skill_name}/SKILL.md`, and any `references/*.md` the merge changed into `{version_staging}/{skill_name}/references/`. Then, from `{project-root}`, check the [MANUAL] blocks against the inventory §4 amended:
+4. **Write and verify the merged SKILL.md in the staged package**, before anything is published. Use the `Edit` or `Write` tool to write the merged SKILL.md content (UTF-8) to `{version_staging}/{skill_name}/SKILL.md`, and each `references/*.md` the merge changed or added, at any priority, into `{version_staging}/{skill_name}/references/`, and delete from there each one the merge removed. Then, from `{project-root}`, check the [MANUAL] blocks against the inventory §4 amended:
 
    ```bash
    uv run {hashContentHelper} manual-verify "{version_staging}/{skill_name}/SKILL.md" \
@@ -302,7 +307,7 @@ If no `{atomicWriteProbeOrder}` candidate resolves, or the stage, copy, write, p
 **Write the merged files in place** (gap-driven mode only; every other mode wrote them in step 4 above):
 
 1. **The rescopes' brief amendments.** For each manifest entry with a `rescope` (rule R1), append its `scope.amendments[]` entry and add its path to `scope.exclude` in `{forge_data_folder}/{skill_name}/skill-brief.yaml`, preserving every other field; skip an amendment the brief already holds (same `action`, `category` and `path`) and a path `scope.exclude` already lists, so a re-run never adds them twice.
-2. **Stage and verify SKILL.md in the run folder.** Write the merged SKILL.md (UTF-8) to `{run_dir}/SKILL.md`, then, from `{project-root}`:
+2. **Stage and verify SKILL.md in the run folder.** Write the merged SKILL.md (UTF-8) to `{run_dir}/SKILL.md`, and each `references/*.md` the merge changed or added, at any priority, to `{run_dir}/references/`, and list each one it removed, one `references/<name>.md` path a line, in `{run_dir}/references-removed.txt`, then, from `{project-root}`:
 
    ```bash
    uv run {hashContentHelper} manual-verify "{run_dir}/SKILL.md" \
@@ -310,7 +315,7 @@ If no `{atomicWriteProbeOrder}` candidate resolves, or the stage, copy, write, p
    ```
 
    On `ok` false, or a failing command: HALT with status `halted-for-manual-mismatch` before the package changes (halt procedure: `phase: "merge:verify-manual-integrity"`, `path: "{run_dir}/SKILL.md"`, `reason: "[MANUAL] blocks differ from the approved inventory: modified {modified}; missing {missing}"`); its rollback restores the brief step 1 amended.
-3. **Copy it over the package.** Copy `{run_dir}/SKILL.md` to `{skill_package}/SKILL.md`, and write any `references/*.md` the merge changed (merge Priority 8) into `{skill_package}/references/`.
+3. **Copy it over the package.** Copy `{run_dir}/SKILL.md` to `{skill_package}/SKILL.md`, and each file in `{run_dir}/references/`, every `references/*.md` the merge changed or added at any priority, into `{skill_package}/references/`, and delete from the package each path `{run_dir}/references-removed.txt` lists.
 
 **Do NOT write here:**
 - `metadata.json`, `provenance-map.json`, `evidence-report.md`: derived from the merge output, written by step 5 sections 2–4 (the version folder above only copies the previous version's files, which step 5 then rewrites)
