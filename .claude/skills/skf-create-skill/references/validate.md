@@ -15,6 +15,13 @@ atomicWriteProbeOrder:
 descriptionGuardProbeOrder:
   - '{project-root}/_bmad/skf/shared/scripts/skf-description-guard.py'
   - '{project-root}/src/shared/scripts/skf-description-guard.py'
+# Resolve `{hashContentHelper}` by probing `{hashContentProbeOrder}` in order
+# (installed SKF module path first, src/ dev-checkout fallback); first existing
+# path wins. Advisory: if neither resolves, §2 hashes nothing and reports that
+# SKILL.md may have been rewritten (not hashed) by skill-check --fix.
+hashContentProbeOrder:
+  - '{project-root}/_bmad/skf/shared/scripts/skf-hash-content.py'
+  - '{project-root}/src/shared/scripts/skf-hash-content.py'
 # Resolve `{frontmatterValidator}` by probing `{frontmatterValidatorProbeOrder}`
 # in order (installed SKF module path first, src/ dev-checkout fallback); first
 # existing path wins.
@@ -90,7 +97,7 @@ To validate the compiled SKILL.md content against the agentskills.io specificati
 - Validation and auto-fix modify files in the staging directory
 - `<staging-skill-dir>` resolves to `_bmad-output/.skf-stage/{skill-name}/` as created by step 5. Its last folder name must match the skill's frontmatter `name` field exactly — `skill-check`'s `frontmatter.name_matches_directory` rule rejects any suffix.
 - If skill-check unavailable: skip validation, add warning to evidence report
-- Ignore non-zero exit codes from skill-check if JSON output shows 0 errors
+- For the validation verdict, ignore non-zero exit codes from skill-check if JSON output shows 0 errors; the security scan's row follows its exit code and stderr tail (§5)
 - Tessl Review (§6b) is optional and advisory: it never halts, never asks the user anything and never changes the staged files, and SKF applies none of its suggestions
 - A HARD HALT, once step 3 §2b has bound `{source_tree}`, first runs `uv run {sourceTreeHelper} close --tree "{source_tree}"` from `{project-root}` (resolved from `{sourceTreeProbeOrder}`) and goes on whatever it prints, and emits through `{emitEnvelopeHelper}`, resolved from `{emitEnvelopeProbeOrder}` when it is not bound. After its envelope, under `--batch` it ends only this brief: return to `references/batch-mode.md` §3, even when the halt reads as the end of the run.
 
@@ -104,9 +111,9 @@ To validate the compiled SKILL.md content against the agentskills.io specificati
 
 The deterministic phases are executed via `{descriptionGuardHelper}`: the calling sections (§2 and §4) invoke the helper at the capture and verify-restore points.
 
-**Guard outputs.** Bind `{guarded_description}` ← `description` from each `capture`, which reads the staged `<staging-skill-dir>/SKILL.md` just before the tool that may rewrite it. Bind `{guard_restored}` ← `restored` and `{guard_diff_kind}` ← `diff_kind` from each `verify-restore`. When `{guard_restored}` is true, set the in-context `description` to `{guarded_description}` so later sections do not work from the tool-mutated value, and record `description_guard_restored: true` with the tool name and `description_guard_diff_kind: {guard_diff_kind}` in workflow context for the evidence report (§8). A later `verify-restore` that exits 0 with `{guard_restored}` false leaves those records in place.
+**Guard outputs.** Each `capture` writes the description it reads from the staged `<staging-skill-dir>/SKILL.md`, just before the tool that may rewrite it, to `{run_dir}/description-guard.json`, and each `verify-restore` reads it there with `--captured-file`, so the description never passes through a shell string. Bind `{guarded_description}` ← that file's `description`. Bind `{guard_restored}` ← `restored` and `{guard_diff_kind}` ← `diff_kind` from each `verify-restore`. When `{guard_restored}` is true, set the in-context `description` to `{guarded_description}` so later sections do not work from the tool-mutated value, and record `description_guard_restored: true` with the tool name and `description_guard_diff_kind: {guard_diff_kind}` in workflow context for the evidence report (§8). A later `verify-restore` that exits 0 with `{guard_restored}` false leaves those records in place.
 
-**Empty-snapshot rule.** `verify-restore` refuses an empty or whitespace-only `--captured-description` (exit 1, file untouched). Never re-run it with the empty value: writing it back would blank the field the guard protects. If the description compile §2a sanitized is still in context (an in-context copy of the description, not of the file), re-run `verify-restore` with that value. Otherwise record `description_guard_restored: false` and `description_guard_refused: empty-capture` with the tool name; the evidence report (§8) renders that as a fired guard, not as a clean run.
+**Empty-snapshot rule.** `verify-restore` refuses an empty or whitespace-only description in `{run_dir}/description-guard.json`, and a file it cannot read (exit 1, file untouched). Never re-run it with the empty value: writing it back would blank the field the guard protects. If the description compile §2a sanitized is still in context (an in-context copy of the description, not of the file), re-run `verify-restore` with that value: write `{"description": <that value as a JSON string>}` to `{run_dir}/description-guard.json` with a file write, never `echo` (the value can hold quotes, `$` or backticks), and run the same `verify-restore` line again, once. Otherwise, or when that re-run exits 1 too, record `description_guard_restored: false` and `description_guard_refused: empty-capture` with the tool name; the evidence report (§8) renders that as a fired guard, not as a clean run.
 
 **This skill's post-restore re-validation hook:** after `{descriptionGuardHelper}` reports `restored: true`, resolve `{frontmatterValidator}` from `{frontmatterValidatorProbeOrder}` (first existing path wins), run `uv run {frontmatterValidator} <staging-skill-dir>/SKILL.md` and capture `schema_revalidation_result` in context. If the validator exits non-zero OR reports failure for the `description` field, flip the Schema result back to `FAIL` in the evidence report (overriding any prior PASS/WARN from §2), record `description_guard_revalidation: FAIL` with the validator's diagnostic message, and continue — do not halt (step 9 health-check and result contract still need to run so the failure is surfaced through the normal artifact path).
 
@@ -133,31 +140,38 @@ npx skill-check check --help 2>/dev/null | grep -- --no-security-scan
 - Else run a second probe — `npx skill-check check --help 2>/dev/null | grep -- --skip-security` — and if it matches, set `{security_scan_flag} = "--skip-security"`.
 - If neither flag exists: set `{security_scan_flag} = ""` (empty) AND set `{skill_check_flag_fallback} = true`. Skip §2 and §4 automated flows entirely — fall through to §3 manual frontmatter validation. Record in evidence-report: `skill_check_flag_probe: neither --no-security-scan nor --skip-security supported by installed skill-check; validation performed manually`.
 
-**If a security-scan-disable flag was resolved (probe succeeded):**
-
-```bash
-npx skill-check check <staging-skill-dir> --fix --format json {security_scan_flag}
-```
+**If a security-scan-disable flag was resolved (probe succeeded):** run the `skill-check check --fix` call where the Description Guard block below holds it (its Phase 2), never before that block's first `hash` and its `capture`.
 
 This performs frontmatter validation, description quality checks, body limit enforcement, local link resolution, file formatting, auto-fix of deterministic issues, and quality scoring (0-100) across five weighted categories.
 
-**Parse the JSON output** for: `scores[].score` (0-100 — match the entry by `relativePath`/`skillId`; falls back to a top-level `qualityScore` on older skill-check builds), `diagnostics[]` (remaining issues), `fixed[]` (auto-corrected issues).
+**Parse the JSON output** of the Phase 2 call below for: `scores[].score` (0-100; match the entry by `relativePath`/`skillId`; falls back to a top-level `qualityScore` on older skill-check builds) and `diagnostics[]` (remaining issues). skill-check's JSON lists no fix: the two `hash` calls below tell whether `--fix` changed SKILL.md.
 
-**Description Guard Protocol:** This invocation may modify SKILL.md (especially when `fixed[]` is non-empty). Wrap the `skill-check check --fix` call in the four-phase guard defined in §0 by invoking `{descriptionGuardHelper}` at the capture and verify-restore points:
+**Description Guard Protocol:** This invocation may modify SKILL.md. Wrap the `skill-check check --fix` call in the four-phase guard defined in §0 by invoking `{descriptionGuardHelper}` at the capture and verify-restore points, and hash SKILL.md with `{hashContentHelper}` (resolve it ← first existing path in `{hashContentProbeOrder}`) before the capture and after the verify-restore:
 
 ```bash
-# Phase 1 — capture before the tool call
-uv run {descriptionGuardHelper} capture <staging-skill-dir>/SKILL.md
-# stash the returned `description` as `guarded_description` in workflow context
+# Before the guard: hash SKILL.md
+uv run {hashContentHelper} hash <staging-skill-dir>/SKILL.md
+# stash the returned `content_hash` as `skill_md_hash_before`
 
-# Phase 2 — run skill-check (see command block above)
+# Phase 1: capture before the tool call
+uv run {descriptionGuardHelper} capture <staging-skill-dir>/SKILL.md > "{run_dir}/description-guard.json"
+# the snapshot lands in the run folder; read its `description` as `guarded_description`
 
-# Phases 3+4 — verify and restore after the tool call
+# Phase 2: run skill-check
+npx skill-check check <staging-skill-dir> --fix --format json {security_scan_flag}
+
+# Phases 3+4: verify and restore after the tool call
 uv run {descriptionGuardHelper} verify-restore <staging-skill-dir>/SKILL.md \
-    --captured-description "{guarded_description}"
+    --captured-file "{run_dir}/description-guard.json"
+
+# After the guard: hash SKILL.md again
+uv run {hashContentHelper} hash <staging-skill-dir>/SKILL.md
+# stash the returned `content_hash` as `skill_md_hash_after`
 ```
 
 If `restored: true` in the verify-restore output, apply §0's post-restore re-validation hook. Step 7 promotes the staged files as they are on disk, `--fix` changes included.
+
+Run the second `hash` call after the last `verify-restore`, a §0 re-run included. When `skill_md_hash_before` and `skill_md_hash_after` differ, record `skill_check_fix_changed: true` for §8. When no `{hashContentProbeOrder}` path exists (skip both `hash` calls) or a `hash` call prints no `content_hash`, record `skill_check_fix_changed: unchecked` whatever the other call printed, so §8 says SKILL.md may have been rewritten.
 
 **Note:** `skill-check` may return non-zero exit code even when `summary.errorCount` is 0. Always rely on parsed JSON, not the shell exit code.
 
@@ -186,15 +200,15 @@ If fails: auto-fix (deterministic), re-validate once, record result. If passes: 
 
 ```bash
 # Phase 1: capture before the split
-uv run {descriptionGuardHelper} capture <staging-skill-dir>/SKILL.md
-# stash returned `description` as `guarded_description`
+uv run {descriptionGuardHelper} capture <staging-skill-dir>/SKILL.md > "{run_dir}/description-guard.json"
+# the snapshot lands in the run folder; read its `description` as `guarded_description`
 
 # Phase 2: the split
 uv run {shardBodyHelper} <staging-skill-dir>/SKILL.md --budget 400
 
 # Phases 3 and 4: verify and restore after the split
 uv run {descriptionGuardHelper} verify-restore <staging-skill-dir>/SKILL.md \
-    --captured-description "{guarded_description}"
+    --captured-file "{run_dir}/description-guard.json"
 ```
 
 If `restored: true` in the verify-restore output, apply §0's post-restore re-validation hook.
@@ -214,20 +228,26 @@ Then re-validate: `npx skill-check check <staging-skill-dir> --format json {secu
 **If skill-check available:**
 
 ```bash
-npx skill-check check <staging-skill-dir> --format json
+npx skill-check check <staging-skill-dir> --format json > "{run_dir}/skill-check.json" 2> "{run_dir}/skill-check.stderr"; echo "skill-check exited $?"
 ```
 
-(Security scan enabled by default when `--no-security-scan` omitted. The scan uses [Snyk](https://docs.snyk.io/) to check for prompt injection risks, sensitive data exposure, and unsafe tool permissions.)
+(Security scan enabled by default when `--no-security-scan` omitted. The scan uses [Snyk](https://docs.snyk.io/) to check for prompt injection risks, sensitive data exposure, and unsafe tool permissions.) The call keeps stdout, stderr and the exit code apart. Give it the longest timeout your shell tool takes. When no "skill-check exited" line came back, the shell tool stopped the call before skill-check finished (a cold `uvx mcp-scan` install can outlast its timeout).
 
-Record any security warnings in evidence-report. Security findings are advisory — they do not block artifact generation. If the full validation re-run produces a different quality score than section 2, update the evidence-report with the newer score.
+**Score refresh.** stdout can go on after the JSON (a `Wrote <path>` line when the project config sets a report path), so read only the JSON object at the start of `{run_dir}/skill-check.json`. If its quality score differs from section 2's, update the evidence-report with the newer score. When the file does not start with a JSON object (exit 2 on a config, option or plugin error, or a stopped call), keep section 2's score.
 
-**If security scan fails due to missing SNYK_TOKEN** (skill-check exits non-zero and its stderr names `SNYK_TOKEN`):
+**Read the JSON, not the exit code.** skill-check prints its JSON before the security scan runs, then exits 1 when `summary.errorCount` is above 0, when `--strict` or `--fail-on-warning` is passed and `summary.warningCount` is above 0 (this call passes neither), or when the scan exits non-zero, and 2 when no scan runner starts, so a non-zero exit is not a security finding. skill-check 1.2.0 puts no security key in the JSON. The scan exited non-zero, which without `--ci` means it did not finish, when skill-check exits 1 although `summary.errorCount` is 0: stderr is then the scan's last lines (its tail), even when blank. On exit 0, stderr is never a scan tail (npm and Node warnings can be there); when exit 1 has another cause, stderr is a scan tail only when it holds the scanner's own lines, such as its token message or a finding code. A finding code is `[`, a capital letter, three digits and `]` (such as `[E001]`), the codes skill-check's own scan summary counts. Bind `{security_result}` from `{run_dir}/skill-check.stderr` and the exit code, the first that applies:
+
+- `skipped`: §1 found no skill-check (**If skill-check unavailable** below), skill-check exits 2, the call stopped before it exited, or the scan exited non-zero and its tail carries no finding code. Log under the evidence report's Remaining Warnings "security scan skipped: SNYK_TOKEN not configured" when the tail says to set the `SNYK_TOKEN` environment variable (the scanner prints "To use Agent Scan, set the SNYK_TOKEN environment variable."), otherwise "security scan skipped: scanner could not run ({the stderr line that names the cause, or its last line})", or "security scan skipped: scanner exited non-zero with no output" when stderr is blank.
+- `warn`: `security[]` holds findings, or the tail carries finding codes. Record each finding under the evidence report's Remaining Warnings as an advisory warning: security findings do not block artifact generation.
+- `pass`: otherwise. The scan exited 0 and skill-check reported no finding. Without `--ci`, agent-scan also exits 0 when its analysis fails (a 401 from a bad token, a 429, a network error), so this does not show that the scan found nothing (#892).
+
+**Security row.** §8 writes the `- Security:` row as `{security_result}`, then its note in parentheses: for `skipped` the note above less its "security scan skipped: " prefix, such as `skipped (SNYK_TOKEN not configured)`; for `warn` each finding; for `pass` the row reads `pass (scan exited 0; skill-check 1.2.0 does not pass the scan's findings on)`. Step 8 takes the row's first word as `security_result`.
+
+**If the tail says to set `SNYK_TOKEN`** (the first `skipped` note):
 
 Display: "Security scan requires a Snyk Enterprise API token ([docs](https://docs.snyk.io/snyk-api/authentication-for-api)). Set `SNYK_TOKEN=your-token` in environment or `.env`, then re-run [SF] Setup Forge. Without Enterprise, use `--no-security-scan` to skip. Security scanning is optional and does not block skill compilation."
 
-Record: "Security scan skipped — SNYK_TOKEN not configured"
-
-**If skill-check unavailable:** Skip with note: "Security scan skipped — skill-check tool unavailable"
+**If skill-check unavailable:** bind `{security_result}` ← `skipped`, keep the Security row §1 marked, and log "security scan skipped: skill-check unavailable" under the evidence report's Remaining Warnings.
 
 ### 6. Description Angle-Bracket Check
 
@@ -346,14 +366,14 @@ Record the result on the evidence report's `Provenance lines` line (§8): `pass`
 
 ### 8. Update Evidence Report
 
-Write the validation results into the staged `<staging-skill-dir>/evidence-report.md`, in place of the `[PENDING: populated by step 6]` placeholders compile left, with `python3 {atomicWriteHelper} write --target <staging-skill-dir>/evidence-report.md`: step 7 promotes that file as it is. In the same write, add under `## Remaining Warnings` the notes steps 5a to 5c kept for the evidence report (the doc-sources note, `{temporal_feeder_notice}` when step 5c set it, because the Deep-tier temporal feeder held no files) and, once each, the skipped authoritative-files scan when the inventory's `authoritative_files_scan` records `not_scanned` (a remote source that was never cloned; the `skipped` count of candidates the user skipped is not a warning). When no split ran and the staged `references/` holds no file, the Body line says `Tier-2 kept inline (references/ empty)`, so an audit can tell inline by design from a split that failed.
+Write the validation results into the staged `<staging-skill-dir>/evidence-report.md`, in place of the `[PENDING: populated by step 6]` placeholders compile left and of the line under `## Auto-Fixed Issues`, which compile wrote before §2 ran, with `python3 {atomicWriteHelper} write --target <staging-skill-dir>/evidence-report.md`: step 7 promotes that file as it is. In the same write, add under `## Remaining Warnings` the notes steps 5a to 5c kept for the evidence report (the doc-sources note, `{temporal_feeder_notice}` when step 5c set it, because the Deep-tier temporal feeder held no files) and, once each, the skipped authoritative-files scan when the inventory's `authoritative_files_scan` records `not_scanned` (a remote source that was never cloned; the `skipped` count of candidates the user skipped is not a warning). When no split ran and the staged `references/` holds no file, the Body line says `Tier-2 kept inline (references/ empty)`, so an audit can tell inline by design from a split that failed.
 
 ```markdown
 ## Validation Results
 - Schema: {pass/fail} (quality score: {score}/100)
 - Frontmatter: {pass/fail}
 - Body: {pass/fail} {body split applied if applicable}
-- Security: {pass/warn/skipped}
+- Security: {pass/warn/skipped} ({the note §5's Security row gives})
 - Description angle brackets: {none | re-sanitized ({count} substitutions) | not checked — no description}
 - Tessl Review: {tessl_summary}
 - Metadata: {pass/fail}
@@ -370,7 +390,7 @@ Write the validation results into the staged `<staging-skill-dir>/evidence-repor
 - Notes: {one-sentence detail or —}
 
 ## Auto-Fixed Issues
-- {list of issues automatically corrected by --fix}
+- {"skill-check --fix rewrote SKILL.md" when §2 recorded `skill_check_fix_changed: true`, "SKILL.md may have been rewritten (not hashed) by skill-check --fix" when it recorded `skill_check_fix_changed: unchecked`, otherwise "none"}
 
 ## Remaining Warnings
 - {warnings and security results, then each entry of {tessl_warnings} — or "none"}
