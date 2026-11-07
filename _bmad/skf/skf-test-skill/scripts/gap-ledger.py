@@ -115,25 +115,46 @@ cites (never read; default `metadata.json`):
             name it (outside the citations), or on the next non-blank line
             after one, cite exactly one of those files: the gap
             is at that file's `declared_in` item, and two cited or none
-            leave it Medium. The documented extra's issue names the line
-            that documents it (with --skill-dir) and its remediation asks no
+            leave it Medium. The documented extra's remediation asks no
             change (update-skill never routes it) and says whether signature
             scoring compared its documented signature (a name the
             --signatures result lists in `comparedNames`). `excluded` is
             read once a stale name that is not fabricated needs it, and a
             malformed one is then INVALID_INPUT. Any other is a Medium `stale-documentation` gap
-            `Stale documentation: {name}` at the first line of SKILL.md,
-            then of references/*.md in path order, that writes the name
-            (validate-inventory.py's match, with --skill-dir), else
-            `SKILL.md`. One whose `excluded.outsideScope` row says the brief
+            `Stale documentation: {name}` at the line that documents the
+            name (with --skill-dir), else `SKILL.md`. That line is the
+            first that writes it as an export, the first tier that holds
+            the name winning: (1) its first origin in the documented
+            inventory's floor (load-coverage-inputs.py floor); (2) a
+            column-0 declaration of it in a fenced block of a language
+            floor's `_declared_names` reads (JS/TS, Python, Rust, Go),
+            cited or not, outside an HTML comment and a data block (json, yaml...);
+            (3) a heading, or the first cell of a table whose header's
+            first cell names exports (floor's table headers), whose text is
+            the name or holds a code span floor reads as the name; (4) a
+            line whose inline code span is the name, or the name directly
+            followed by `(`. Tiers 2 to 4 read SKILL.md, then every .md file
+            under references/, subfolders included, in path order, outside
+            the frontmatter (3 and 4 outside fenced code and HTML comments
+            too); within a tier the first file, then its lowest line, wins.
+            A bare word, or a span that holds the name among other words
+            (`uitripled add`), documents nothing; with no such line, or
+            without --skill-dir, the Source is `SKILL.md`. Floor's
+            InputError (no SKILL.md, or a top-level file it cannot read or
+            decode) leaves tier 1 empty, and a skill file that cannot be
+            read leaves tiers 2 to 4 empty. One whose
+            `excluded.outsideScope` row says the brief
             scopes its file out (`excludeGlob`, the `scope.exclude` glob
             that matches it, or `outsideInclude`, no `scope.include` glob
             covering it) has its own issue, naming the entry point and the
             file and line, and remediation: to keep the documentation,
             narrow that exclude glob (a removal needs a `demoted-exclude`
             amendment) or widen `scope.include`, else remove it. A row the
-            brief does not explain keeps the wording above. Scalar and
-            stack branches: a
+            brief does not explain keeps the wording above. Every stale
+            name's issue (fabricated, documented extra, stale documentation
+            or scoped out) opens with the line that documents it, as
+            `file:line` (with --skill-dir), else with `the skill`, whatever
+            its Source. Scalar and stack branches: a
             `missingCount` above 0 is one Medium `missing-export` gap
             `{missingCount} of {denominator} exports not documented` at
             `{meta}`, except that a scalar count taken from the verified
@@ -194,15 +215,26 @@ cites (never read; default `metadata.json`):
             entries its counts differ by; a barrel one sends the fix to
             Create Skill, which rebuilds `exports[]` from the source.
   provenance-line
-            --input skf-verify-provenance-completeness.py verify's result.
+            --input skf-verify-provenance-completeness.py verify's result;
+            --stale.
             Each `stale[]` item, at its `{source_file}:{source_line}` with
             `export`, by `reason`: `line-not-definition` is a Low
             `provenance-line` gap `Provenance line is not the definition of
             {export_name}` when `definition_lines` holds a line, else an Info
             `provenance-unverified` gap `Provenance line not verified for
             {export_name}`, and its issue names the base of a `folded_to`
-            variant; `file-missing` is a Low `provenance-line` gap
-            `Provenance file is missing for {export_name}`;
+            variant. When the --stale result (classify-stale) marks
+            `{export_name}` `aliased` with a `file:line` `defined_at`, that
+            Info gap's issue and remediation name the alias at `defined_at`,
+            and the remediation asks first to record the rename if no other
+            entry already has its `export_name` (`export_name` the item's
+            `renames`, else "a name a cited file declares", `reexported_as`
+            the export), else to cite the alias, moving the citations either
+            way; when `renames` is `default`, which the map keys on
+            `export_name` and so holds once, it asks only to cite the alias.
+            A --stale result that is not a list is INVALID_INPUT.
+            `file-missing` is a Low `provenance-line`
+            gap `Provenance file is missing for {export_name}`;
             `line-out-of-bounds` a Low `provenance-line` gap `Provenance line
             is out of range for {export_name}`; `line-invalid` an Info
             `provenance-unverified` gap `Provenance line not verified for
@@ -747,7 +779,7 @@ ADAPTER_OPTIONS: dict[str, frozenset[str]] = {
     "guards": frozenset({"metadata"}),
     "numerator": frozenset({"metadata"}),
     "metadata-coherence": frozenset({"metadata"}),
-    "provenance-line": frozenset(),
+    "provenance-line": frozenset({"stale"}),
     "coherence": frozenset(),
     "structure": frozenset({"served"}),
 }
@@ -776,8 +808,10 @@ _SIBLINGS: dict[str, object] = {}
 
 def _sibling(filename: str):
     """A script beside this one, loaded once: validate-inventory.py (the
-    documented-name match the stale-documentation Source uses, and the
-    skill-citation scan the homonym pick reads)."""
+    skill-citation scan the homonym pick reads), load-coverage-inputs.py
+    (the documented inventory's floor, and its fence and table readers)
+    and locate-export-segments.py (the skill's files and line model), the
+    last two for the line that documents a stale name."""
     module = _SIBLINGS.get(filename)
     if module is None:
         path = Path(__file__).resolve().parent / filename
@@ -872,21 +906,90 @@ def _provenance_sources(provenance: dict | None) -> dict[str, str]:
     return sources
 
 
+def _documenting_lines(skill_dir: Path) -> dict[str, str]:
+    """name -> the `file:line` that documents it as an export, the first tier
+    that holds the name winning:
+
+      1. its first origin in the documented inventory's floor
+         (load-coverage-inputs.py `floor`: SKILL.md and the top-level
+         references/*.md);
+      2. a column-0 public declaration of it in a fenced code block (floor's
+         `_declared_names`), cited or not, outside an HTML comment and a data
+         block;
+      3. a heading, or the first cell of a table whose header's first cell is
+         one of floor's `FLOOR_TABLE_HEADERS`, whose stripped text is the name
+         or holds a code span floor's `_floor_name` reads as the name;
+      4. a line whose inline code span, stripped, is the name, or the name
+         directly followed by `(`.
+
+    Tiers 2 to 4 read SKILL.md, then every .md file under references/,
+    subfolders included, in path order (locate-export-segments.py
+    `skill_files`), never the frontmatter, tiers 3 and 4 outside fenced code
+    and HTML comments; within a tier the first file, then its lowest line,
+    wins. A bare word, or a span that holds the name among other words
+    (`uitripled add`), documents nothing. An input a tier cannot read is
+    skipped: floor's InputError (no SKILL.md, a file that is not UTF-8)
+    leaves tier 1 empty, an unreadable file tiers 2 to 4."""
+    coverage = _sibling("load-coverage-inputs.py")
+    segments = _sibling("locate-export-segments.py")
+    tiers: list[dict[str, str]] = [{}, {}, {}, {}]
+    try:
+        for entry in coverage.floor(str(skill_dir))["names"]:
+            origin = entry["origins"][0]
+            tiers[0].setdefault(entry["name"], f"{origin['file']}:{origin['line']}")
+    except coverage.InputError:
+        pass
+    try:
+        files = segments.skill_files(skill_dir)
+    except OSError:
+        files = []
+    # floor's fence filter: a fence in an HTML comment or a data block declares nothing, and a Svelte block's
+    # `export let` is a component prop. Unlike floor, an unheaded fence counts.
+    js_family = segments.JS_FAMILY - {"svelte"}
+    for rel, lines in files:
+        start = segments._frontmatter_end(lines)
+        blocks, code = segments._fenced_blocks(lines, start)
+        comments = coverage._html_comment_lines(lines, start, code)
+        for opening, closing, info in blocks:
+            language = segments._language(info)
+            if opening in comments or language in segments.DATA_LANGUAGES:
+                continue
+            masked = segments.mask_code("\n".join(lines[opening + 1:closing]), language).split("\n")
+            for offset, declared in coverage._declared_names(masked, language, js_family):
+                tiers[1].setdefault(declared, f"{rel}:{opening + offset + 2}")
+        headings, prose = segments._prose(lines, start, code)
+        shaped = [(index, text) for index, _level, text, _above in headings]
+        written = list(shaped)
+        for block in prose:
+            written += [(i, lines[i]) for i in range(block["start"], block["end"] + 1)]
+            if block["kind"] == "table-row" and block["header"] is not None:
+                if coverage._header_word(coverage._cells(block["header"])[0]) in coverage.FLOOR_TABLE_HEADERS:
+                    shaped.append((block["start"], coverage._cells(lines[block["start"]])[0]))
+        for index, text in sorted(shaped):
+            for key in [text.strip()] + [coverage._floor_name(span) for span in segments._inline_code(text)]:
+                if key:
+                    tiers[2].setdefault(key, f"{rel}:{index + 1}")
+        for index, text in sorted(written):
+            for span in map(str.strip, segments._inline_code(text)):
+                for key in (span, span.split("(", 1)[0] if "(" in span else None):
+                    if key:
+                        tiers[3].setdefault(key, f"{rel}:{index + 1}")
+    found: dict[str, str] = {}
+    for tier in tiers:
+        for key, line in tier.items():
+            found.setdefault(key, line)
+    return found
+
+
 def _documenting_line(skill_dir: Path, name: str) -> str | None:
-    """The first line of SKILL.md, then of references/*.md in path order,
-    that writes `name` (validate-inventory.py's match), as `file:line`."""
-    pattern = _sibling("validate-inventory.py").name_pattern(name)
-    refs = skill_dir / "references"
-    files = [skill_dir / "SKILL.md"] + (sorted(refs.glob("*.md")) if refs.is_dir() else [])
-    for path in files:
-        try:
-            text = path.read_bytes().decode("utf-8-sig", errors="replace")
-        except OSError:
-            continue
-        for number, line in enumerate(text.split("\n"), start=1):
-            if pattern.search(line):
-                return f"{path.relative_to(skill_dir).as_posix()}:{number}"
-    return None
+    """The `file:line` that documents `name` as an export in the skill at
+    `skill_dir` (`_documenting_lines`), else None."""
+    return _documenting_lines(skill_dir).get(name)
+
+
+def _documents(doc: str | None, name: str) -> str:
+    """The subject of a stale name's Issue: the line that documents it, else the skill."""
+    return f"{f'`{doc}`' if doc else 'the skill'} documents `{name}`"
 
 
 def _scoped_out_by(row: dict) -> bool:
@@ -1069,8 +1172,8 @@ def _scoped_out_gap(name: str, row: dict, doc: str | None, brief: str) -> dict:
         f"Decide whether `{name}` belongs on the surface: `{brief}` scopes out `{at}`, where it is defined, since "
         f"{' and '.join(causes)}. To keep its documentation, {' and '.join(fixes)}; else remove the documentation "
         f"of `{name}` at {doc or 'SKILL.md'}.",
-        issue=f"{f'`{doc}`' if doc else 'SKILL.md'} documents `{name}`, which {who} exports and `{at}` defines, a "
-              f"file `{brief}` scopes out (`excluded.outsideScope`)",
+        issue=f"{_documents(doc, name)}, which {who} exports and `{at}` defines, a file `{brief}` scopes out "
+              "(`excluded.outsideScope`)",
         export=name)
 
 
@@ -1113,9 +1216,13 @@ def _stale_gaps(cov: dict, surface: dict | None, stale: object, scored: set[str]
         if not isinstance(stale, list):
             raise AdapterError("--stale is not classify-stale JSON (a list)")
         classified = {i["name"]: i for i in stale if isinstance(i, dict) and isinstance(i.get("name"), str)}
-    for name in _names(cov, "stale", "--input"):
+    names = _names(cov, "stale", "--input")
+    # the lines that document each name, read once for every stale name
+    documenting = _documenting_lines(Path(skill_dir)) if skill_dir and names else {}
+    for name in names:
         item = classified.get(name) or {}
         cited = item.get("source")
+        doc = documenting.get(name)
         if item.get("fabricated") is True:
             if not isinstance(cited, str) or not cited:
                 # a Critical gap needs the line it cites: never downgrade it
@@ -1124,14 +1231,13 @@ def _stale_gaps(cov: dict, surface: dict | None, stale: object, scored: set[str]
                 "Critical", "fabricated-signature", f"Fabricated signature: {name}", cited,
                 f"Remove `{name}` from SKILL.md and references/, or correct it to the export the source "
                 f"defines: no file its provenance cites defines it (`{cited}`).",
-                issue=f"SKILL.md documents `{name}`, which the source API surface lacks and the cited "
-                      "file does not define",
+                issue=f"{_documents(doc, name)}, which the source API surface lacks and the cited file does "
+                      "not define",
                 export=name))
             continue
         if not outside_read:
             outside, outside_read = _outside_scope(surface), True
         extra = _documented_extra_at(name, item, outside, skill_dir)
-        doc = _documenting_line(Path(skill_dir), name) if skill_dir else None
         if extra:
             declared, among = extra
             # a homonym: the one declaring file the skill's own citations name
@@ -1146,8 +1252,8 @@ def _stale_gaps(cov: dict, surface: dict | None, stale: object, scored: set[str]
                 "Info", "observation", f"Documented extra: {name}", declared,
                 f"No change: `{name}` is a documented extra, a name the source still declares at "
                 f"`{declared}` outside the enumerated surface, and its documentation stays. {checked}",
-                issue=f"{f'`{doc}`' if doc else 'the skill'} documents `{name}`, which the enumerated source API "
-                      f"surface lacks and the source still declares{picked}",
+                issue=f"{_documents(doc, name)}, which the enumerated source API surface lacks and the source "
+                      f"still declares{picked}",
                 export=name))
             continue
         if outside is not None and name in outside and _scoped_out_by(outside[name]):
@@ -1158,7 +1264,7 @@ def _stale_gaps(cov: dict, surface: dict | None, stale: object, scored: set[str]
             "Medium", "stale-documentation", f"Stale documentation: {name}", doc or "SKILL.md",
             f"Check `{name}` against the source and update or remove its documentation at "
             f"{doc or 'SKILL.md'}: the enumerated source surface does not export it.",
-            issue=f"SKILL.md documents `{name}`, which the enumerated source API surface lacks",
+            issue=f"{_documents(doc, name)}, which the enumerated source API surface lacks",
             export=name))
     return records
 
@@ -1448,10 +1554,48 @@ def from_metadata_coherence(result: object, metadata: str | None = None) -> list
     return records
 
 
-def from_provenance_line(result: object) -> list[dict]:
+def _aliased_items(stale: object) -> dict[str, dict]:
+    """name -> its classify-stale item (`--stale`) when it is `aliased` with a `file:line` `defined_at`: a rename
+    elsewhere declares the name, so a provenance line gap of it names the alias. Raises AdapterError, as the
+    coverage adapter does, when the result is not a list."""
+    if stale is None:
+        return {}
+    if not isinstance(stale, list):
+        raise AdapterError("--stale is not classify-stale JSON (a list)")
+    return {i["name"]: i for i in stale
+            if isinstance(i, dict) and isinstance(i.get("name"), str) and i.get("reason") == "aliased"
+            and isinstance(i.get("defined_at"), str) and i["defined_at"].rpartition(":")[0]
+            and i["defined_at"].rpartition(":")[2].isdigit()}
+
+
+def _alias_fix(name: str, file: str, item: dict) -> str:
+    """The remediation of an unverified provenance line of a name classify-stale found `aliased` (`item`): record
+    the rename if no other entry already has its `export_name`, else cite the alias. The map keys on
+    `export_name`, so it holds one `default` entry at most (a barrel of `export { default as X }` lines renames
+    several): a rename of `default` takes the alias alone. It never says which cited file declares the renamed
+    name: any checked entry's may."""
+    alias, local = item["defined_at"], item.get("renames")
+    alias_file, _, alias_line = alias.rpartition(":")
+    named = isinstance(local, str) and bool(local)
+    renamed = f"`{local}`" if named else "a name a cited file declares"
+    head = f"`{name}` is an alias: `{alias}` renames {renamed} to it, and no line of `{file}` defines `{name}`. "
+    cite = (f"the alias: set `source_file` to `{alias_file}` and `source_line` to `{alias_line}`, and move the "
+            f"citations of `{name}` there.")
+    if local == "default":
+        return f"{head}Cite {cite}"
+    guard = f"`export_name` {renamed}" if named else "that name as its `export_name`"
+    return (f"{head}If no other entry already has {guard}, record the rename in this provenance entry: set "
+            f"`export_name` to {renamed}, add `reexported_as` `{name}`, cite the line that declares {renamed} and "
+            f"move the citations of `{name}` to that line. Or cite {cite}")
+
+
+def from_provenance_line(result: object, stale: object = None) -> list[dict]:
     """verify's `stale[]` items: provenance line gaps, one per citation that does not resolve or is not the
-    definition line."""
+    definition line. `stale` (classify-stale's result, `--stale`, or None) gives the names a rename declares: an
+    unverified line of one names the alias and, unless the name it renames is `default`, how to record the rename
+    (#911)."""
     result = _object(result, "--input (skf-verify-provenance-completeness.py verify)", "stale")
+    aliased = _aliased_items(stale)
     records: list[dict] = []
     for item in _list(result, "stale", "--input"):
         if not isinstance(item, dict):
@@ -1506,12 +1650,16 @@ def from_provenance_line(result: object) -> list[dict]:
                       f"it; the lines that define it are {lines}.{folded}",
                 export=name))
         else:
-            records.append(_gap(
-                "Info", "provenance-unverified", f"Provenance line not verified for {name}", where,
+            alias = aliased[name] if isinstance(name, str) and name in aliased else None
+            fix = _alias_fix(name, file, alias) if alias else (
                 f"Open `{file}` and confirm that line {line} defines `{base or name}`; if another line does, set "
-                "the provenance `source_line` to it.",
-                issue=f"the line-check rules found no definition line for `{name}` in `{file}`; check by hand"
-                      + (f".{folded}" if folded else ""),
+                "the provenance `source_line` to it.")
+            issue = (f"no line of `{file}` defines `{name}`: the source declares it only as the alias at "
+                     f"`{alias['defined_at']}`" if alias else
+                     f"the line-check rules found no definition line for `{name}` in `{file}`; check by hand")
+            records.append(_gap(
+                "Info", "provenance-unverified", f"Provenance line not verified for {name}", where, fix,
+                issue=issue + (f".{folded}" if folded else ""),
                 export=name))
     return records
 
@@ -1680,7 +1828,8 @@ def build_records(args: argparse.Namespace) -> list[dict]:
     if kind == "metadata-coherence":
         return from_metadata_coherence(data, args.metadata)
     if kind == "provenance-line":
-        return from_provenance_line(data)
+        stale = read_result(args.stale, "--stale") if args.stale is not None else None
+        return from_provenance_line(data, stale)
     return from_coherence(data)
 
 
@@ -1897,7 +2046,8 @@ def _build_parser() -> argparse.ArgumentParser:
                                      "the names outside scope)")
     p.add_argument("--signatures", help="coverage: score-signatures.py score's result (missingTypes)")
     p.add_argument("--numerator", help="coverage: verify-declared-numerator.py's result (absent names)")
-    p.add_argument("--stale", help="coverage: classify-stale's result (fabricated signatures, documented extras)")
+    p.add_argument("--stale", help="coverage: classify-stale's result (fabricated signatures, documented extras); "
+                                   "provenance-line: the same (the names a rename declares)")
     p.add_argument("--provenance", help="coverage: the provenance map (an absent name's Source)")
     p.add_argument("--skill-dir", help="coverage: the skill package (a stale name's documenting line)")
     p.add_argument("--metadata", help="the metadata.json path a record cites as its Source (not read)")

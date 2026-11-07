@@ -76,6 +76,11 @@
       "minimum": 0,
       "description": "The skill-check score step 8 recorded for the committed package; null when skill-check did not run and at every halt. It is not a test-skill score: [TS] grades the stack."
     },
+    "security_result": {
+      "type": "string",
+      "enum": ["pass", "warn", "skipped"],
+      "description": "The outcome of step 8's security scan. 'pass': the scan exited 0 and skill-check reported no finding, which does not show that the scan found nothing (without --ci, agent-scan also exits 0 when its analysis fails). 'warn': it reported findings. 'skipped': it did not run (skill-check unavailable or stopped before it validated, or the scan could not run, such as without SNYK_TOKEN). Absent at every halt."
+    },
     "exit_code": {
       "type": "integer",
       "enum": [0, 2, 3, 4, 5, 6],
@@ -130,7 +135,7 @@
     },
     "result_path": {
       "type": ["string", "null"],
-      "description": "The per-run create-stack-skill-result-<YYYYMMDD-HHmmss>.json the emitter wrote in {forge_version} on success, beside its -latest copy; null at a halt and when the write failed (warnings say why)."
+      "description": "The per-run create-stack-skill-result-<YYYYMMDD-HHmmss>.json the emitter wrote in {forge_version} on success, beside its -latest copy; null at a halt, when --result-dir names no folder (nothing is written, and no warning is added), and when the per-run record could not be written (a result_file_write_failed warning says why); a -latest copy that could not be written leaves it set, and a result_file_write_failed warning names the copy."
     },
     "headless_decisions": {
       "type": "array",

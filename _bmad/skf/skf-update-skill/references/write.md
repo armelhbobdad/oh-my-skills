@@ -37,7 +37,8 @@ atomicWriteProbeOrder:
 # candidate exists. §1 and §7 use its `manual-verify` subcommand to verify
 # SKILL.md against the byte-exact [MANUAL] inventory step 4 §4 amended; a
 # marker-count comparison would pass a block whose interior was truncated
-# without changing the marker count.
+# without changing the marker count. §7 also runs its `hash` subcommand
+# around `skill-check --fix` to tell whether the call changed SKILL.md.
 hashContentProbeOrder:
   - '{project-root}/_bmad/skf/shared/scripts/skf-hash-content.py'
   - '{project-root}/src/shared/scripts/skf-hash-content.py'
@@ -147,9 +148,9 @@ A `Write` or `Edit` call in §2 to §5 that errors (permission denied, disk full
 
 The deterministic phases are executed via `{descriptionGuardHelper}`: §7 invokes the helper at the capture and verify-restore points around every `skill-check` call.
 
-**Guard outputs.** Bind `{guarded_description}` ← `description` from each `capture`, run while the in-context SKILL.md copy matches the file on disk. Bind `{guard_restored}` ← `restored` and `{guard_diff_kind}` ← `diff_kind` from each `verify-restore`. When `{guard_restored}` is true, set the in-context `description` to `{guarded_description}` so later sections do not work from the tool-mutated value, and record `description_guard_restored: true` with the tool name and `description_guard_diff_kind: {guard_diff_kind}` in workflow context for the evidence report (§4). A later `verify-restore` that exits 0 with `{guard_restored}` false leaves those records in place.
+**Guard outputs.** Each `capture`, run while the in-context SKILL.md copy matches the file on disk, writes the description it reads from `{skill_package}/SKILL.md` to `{run_dir}/description-guard.json`, and each `verify-restore` reads it there with `--captured-file`, so the description never passes through a shell string. Bind `{guarded_description}` ← that file's `description`. Bind `{guard_restored}` ← `restored` and `{guard_diff_kind}` ← `diff_kind` from each `verify-restore`. When `{guard_restored}` is true, set the in-context `description` to `{guarded_description}` so later sections do not work from the tool-mutated value, and record `description_guard_restored: true` with the tool name and `description_guard_diff_kind: {guard_diff_kind}` in workflow context for the evidence report (§4). A later `verify-restore` that exits 0 with `{guard_restored}` false leaves those records in place.
 
-**Empty-snapshot rule.** `verify-restore` refuses an empty or whitespace-only `--captured-description` (exit 1, file untouched). Never re-run it with the empty value: writing it back would blank the field the guard protects. If the merged description is still in context (the in-context SKILL.md copy), re-run `verify-restore` with that value. Otherwise record `description_guard_restored: false` and `description_guard_refused: empty-capture` with the tool name; the evidence report (§4) renders that as a fired guard, not as a clean run.
+**Empty-snapshot rule.** `verify-restore` refuses an empty or whitespace-only description in `{run_dir}/description-guard.json`, and a file it cannot read (exit 1, file untouched). Never re-run it with the empty value: writing it back would blank the field the guard protects. If the merged description is still in context (the in-context SKILL.md copy), re-run `verify-restore` with that value: write `{"description": <that value as a JSON string>}` to `{run_dir}/description-guard.json` with a file write, never `echo` (the value can hold quotes, `$` or backticks), and run the same `verify-restore` line again, once. Otherwise, or when that re-run exits 1 too, record `description_guard_restored: false` and `description_guard_refused: empty-capture` with the tool name; the evidence report (§4) renders that as a fired guard, not as a clean run.
 
 ### 1. Verify SKILL.md Write
 
@@ -254,12 +255,18 @@ It sets the `content_hash` and `recorded_at` of each `doc_sources[]` entry whose
 
 ### 3. Write Updated provenance-map.json
 
-Write `{forge_version}/provenance-map.json` with `{buildChangeManifestHelper}` `apply` (resolve it ← first existing path in `{buildChangeManifestProbeOrder}`), never by hand: it reads the map the update started from and this run's records in `{run_dir}`, and writes the whole updated map through a temporary file and one rename. When step 4 §6b created a new version, `{forge_version}` is its forge folder, which holds a copy of the previous map when there was one: write the whole updated map there, and leave the previous version's map as it was. From `{project-root}`, run:
+Write `{forge_version}/provenance-map.json` with `{buildChangeManifestHelper}` `apply` (resolve it ← first existing path in `{buildChangeManifestProbeOrder}`), never by hand: it reads `{provenance_map_path}`, the map the update started from (init.md §4: the current version's map, else the flat one an older skill keeps in `{forge_data_folder}/{skill_name}/`), and this run's records in `{run_dir}`, and writes the whole updated map through a temporary file and one rename. When step 4 §6b created a new version, `{forge_version}` is its forge folder, which holds a copy of the previous map when there was one, the same bytes `apply` reads: write the whole updated map there, and leave the previous version's map as it was. In a repair `{provenance_map_path}` is the only map there is: `apply` writes the updated map to `{forge_version}`, and a flat map stays as it was. A repair of a skill whose forge data is flat (init.md §4 bound the flat map) may find no forge folder for its version, and `apply` writes only into a folder that exists. In gap-driven mode, first create it, as report.md §5b does. From `{project-root}`, run:
+
+```bash
+mkdir -p "{forge_version}"
+```
+
+On a non-zero exit, HALT with status `halted-for-write-failure` before `apply` runs: display "**The forge folder of this version of {skill_name} could not be created** at `{forge_version}`: {its stderr}. This repair already wrote SKILL.md in place; the halt restored the package and the skill brief from the snapshot step 4 took, so the skill is as it was. Make `{forge_data_folder}/{skill_name}/` writable, or move what is at `{forge_version}` out of the way, then re-run update-skill." The halt procedure takes `phase: "write:provenance-map"`, `path: "{forge_version}"`, `reason: "forge-folder-not-created: <its stderr>"`. Then, in a repair whose `{provenance_map_path}` is the flat map, copy into `{forge_version}` each of `evidence-report.md` and `extraction-rules.yaml` from `{forge_data_folder}/{skill_name}/` when it is there and `{forge_version}` does not hold it yet. Copy, never move: the flat files stay as they are, and a file `{forge_version}` already holds is never overwritten. §4 appends this update to the evidence report there; the extraction rules record how the skill was extracted. When a copy fails, HALT with the same status and phase, `path: "{forge_version}/<the file>"` and `reason: "forge-file-not-copied: <its error>"`. A later halt removes the map and evidence report this run writes or copies there, which `begin` found absent, and leaves the folder empty but for a copied `extraction-rules.yaml`, a copy of the flat file and harmless; every reader looks for a file in it and falls back to the flat one, so an empty folder reads as none. Then, from `{project-root}`, run:
 
 ```bash
 uv run {buildChangeManifestHelper} apply \
     --update-type "{update_type}" \
-    [--provenance-map "{forge_version}/provenance-map.json"] \
+    [--provenance-map "{provenance_map_path}"] \
     [--manifest "{run_dir}/change-manifest.json"] \
     [--category-c "{run_dir}/category-c.json"] \
     [--ccc-pairs "{run_dir}/ccc-pairs.json"] \
@@ -338,7 +345,7 @@ Append update operation section to `{forge_version}/evidence-report.md` (create 
 - Confidence tiers: {PASS/WARN}
 - Provenance: {PASS/WARN}
 - Diff: {new} new, {fixed} fixed issues, or SKIP
-- Security: {PASS/WARN/SKIP}
+- Security: {PASS/WARN/SKIP} ({note})
 
 ### Description Guard
 - Restored: {true/false}
@@ -447,22 +454,27 @@ skill-check runs once per update, here, against the written package, and once mo
 
 ```bash
 # Phase 1: capture before any frontmatter-touching tool call
-uv run {descriptionGuardHelper} capture "{skill_package}/SKILL.md"
-# stash returned `description` as `guarded_description`
+uv run {descriptionGuardHelper} capture "{skill_package}/SKILL.md" > "{run_dir}/description-guard.json"
+# the snapshot lands in the run folder; read its `description` as `guarded_description`
 
 # Phase 2: run the tool (skill-check --fix, the body split, split-body --write)
 
 # Phases 3+4: verify and restore after the tool call
 uv run {descriptionGuardHelper} verify-restore "{skill_package}/SKILL.md" \
-    --captured-description "{guarded_description}"
+    --captured-file "{run_dir}/description-guard.json"
 ```
 
 Do not rely on per-call ad-hoc preservation logic: use the helper.
 
 **If skill-check is available:**
 
-- Run `npx skill-check check "{skill_package}" --fix --format json` **inside the §0 guard**. One call validates the package against the spec, scores it, fixes what has one answer and runs the security scan (on unless `--no-security-scan` is passed). Read the JSON, not the exit code: the quality score (`scores[].score`, the entry matching the skill, or a top-level `qualityScore` on an older skill-check), the remaining `diagnostics[]`, `fixed[]` and the security findings. When the scan could not run (no `SNYK_TOKEN`: skill-check exits non-zero and its stderr names `SNYK_TOKEN`), record `Security: SKIP (SNYK_TOKEN not configured)`.
-- **Context sync after --fix:** if `fixed[]` is non-empty, re-read the SKILL.md `--fix` changed into the in-context copy, so the report does not work from a copy that differs from the file on disk. The §0 guard has already restored `description` if it diverged.
+- **Hash before --fix:** before the §0 guard's `capture` for the `--fix` call below, run `uv run {hashContentHelper} hash "{skill_package}/SKILL.md"` from `{project-root}` and keep the `content_hash` it prints.
+- Run `npx skill-check check "{skill_package}" --fix --format json` **inside the §0 guard**, with its output captured apart (`> "{run_dir}/skill-check.json" 2> "{run_dir}/skill-check.stderr"; echo "skill-check exited $?"` after it). One call validates the package against the spec, scores it, fixes what has one answer and runs the security scan (on unless `--no-security-scan` is passed). Read the JSON, not the exit code: the quality score (`scores[].score`, the entry matching the skill, or a top-level `qualityScore` on an older skill-check), the remaining `diagnostics[]` and the security findings, from the JSON object at the start of `{run_dir}/skill-check.json` (stdout can go on after it, a `Wrote <path>` line when the project config sets a report path). Give the call the longest timeout your shell tool takes. When no "skill-check exited" line came back, the shell tool stopped the call before skill-check finished (a cold `uvx mcp-scan` install can outlast its timeout): still run the guard's `verify-restore` and the second `hash` call below before reading `{run_dir}/skill-check.json`.
+- **Security scan:** skill-check prints its JSON before the security scan runs, then exits 1 when `summary.errorCount` is above 0, when `--strict` or `--fail-on-warning` is passed and `summary.warningCount` is above 0 (this call passes neither), or when the scan exits non-zero, and 2 when no scan runner starts, so a non-zero exit is not a security finding. skill-check 1.2.0 puts no security key in the JSON. The scan exited non-zero, which without `--ci` means it did not finish, when skill-check exits 1 although `summary.errorCount` is 0: stderr is then the scan's last lines (its tail), even when blank. On exit 0, stderr is never a scan tail (npm and Node warnings can be there); when exit 1 has another cause, stderr is a scan tail only when it holds the scanner's own lines, such as its token message or a finding code. A finding code is `[`, a capital letter, three digits and `]` (such as `[E001]`), the codes skill-check's own scan summary counts. Record the Validation Summary's `Security` row from `{run_dir}/skill-check.stderr` and the exit code, the first that applies:
+  - **SKIP:** skill-check exits 2, the call stopped before it exited, or the scan exited non-zero and its tail carries no finding code. Record `Security: SKIP (SNYK_TOKEN not configured)` when the tail says to set the `SNYK_TOKEN` environment variable (the scanner prints "To use Agent Scan, set the SNYK_TOKEN environment variable."), otherwise `Security: SKIP (scanner could not run ({the stderr line that names the cause, or its last line}))`, or `Security: SKIP (scanner exited non-zero with no output)` when stderr is blank.
+  - **WARN:** `security[]` holds findings, or the tail carries finding codes. Record `Security: WARN ({each finding})`, each finding an advisory warning.
+  - **PASS:** otherwise. The scan exited 0 and skill-check reported no finding. Record `Security: PASS (scan exited 0; skill-check 1.2.0 does not pass the scan's findings on)`. Without `--ci`, agent-scan also exits 0 when its analysis fails (a 401 from a bad token, a 429, a network error), so this does not show that the scan found nothing (#892).
+- **Context sync after --fix:** after that call's `verify-restore`, run `uv run {hashContentHelper} hash "{skill_package}/SKILL.md"` again. When the `content_hash` it prints differs from the one kept before the call, or either `hash` call printed no `content_hash`, re-read SKILL.md into the in-context copy, so the report does not work from a copy that differs from the file on disk. The §0 guard has already restored `description` if it diverged.
 - If `body.max_lines` or `body.max_tokens` is reported, split the body selectively with `{shardBodyHelper}` (resolve it ← first existing path in `{shardBodyProbeOrder}`), **inside the §0 guard**: from `{project-root}`, run `uv run {shardBodyHelper} "{skill_package}/SKILL.md" --budget 400 --word-budget 4500 --skip-manual`, with `--budget 500` in place of `--budget 400` when only `body.max_tokens` is reported. It moves the largest Tier 2 (`## Full`) sections to `references/`, each replaced by a `> See` pointer to a file it never overwrites, until the body is within that many lines and 4,500 words, the same headroom under skill-check's 5,000 that 400 lines leave under its 500, and keeps Tier 1 inline (inline passive context achieves 100% task accuracy vs 79% for on-demand retrieval). **Never move a section that holds a `[MANUAL]` block:** init.md §5 inventories SKILL.md only, so a block moved to `references/` would leave the next update's inventory; `--skip-manual` keeps the helper off every section a block reaches into. No Tier 1 content is trimmed, and `split-body` never runs after the helper. Add each WARN below to `warnings[]` as well. Act on its report:
   - **Exit 1 or 2, or no JSON:** HALT with status `blocked` (halt procedure: `phase: "write:body-split"`, `path: "{skill_package}/SKILL.md"`, `reason: "body split failed: {its stderr line}"`). On exit 2 that line ends `already written: {each references/*.md file it wrote before the failure, or none}`: name each of those files in the halt message.
   - **`tier1_preserved` false (it then wrote nothing) or `xref_ok` false:** HALT with status `blocked` (halt procedure: `phase: "write:body-split"`, `path: "{skill_package}/SKILL.md"`, `reason: "body split: tier1_missing {tier1_missing}; xref_ok {xref_ok}"`).
@@ -484,7 +496,7 @@ On `ok` false, HALT with status `halted-for-manual-mismatch`, as §1 does. The h
 
 **If skill-check is unavailable:** record `Diff: SKIP` and `Security: SKIP (skill-check unavailable)`, and check the structure by script instead: resolve `{validateOutputHelper}` ← first existing path in `{validateOutputProbeOrder}` and, from `{project-root}`, run `uv run {validateOutputHelper} "{skill_package}"`. Record `Spec compliance: PASS (skf-validate-output.py)` when it reports no issue, and `Spec compliance: WARN (skf-validate-output.py)` with each issue it reports otherwise; when no candidate resolves, record `Spec compliance: SKIP (skill-check unavailable, no validator)`. Nothing here changes SKILL.md, so the [MANUAL] re-check above does not run.
 
-Record the results in the evidence report's Validation Summary (§4): `Spec compliance` from the score and the remaining `diagnostics[]`, `Diff` and `Security`, with any `description_guard_restored` event the §0 protocol recorded. They are advisory: do not block on warnings.
+Record the results in the evidence report's Validation Summary (§4): `Spec compliance` from the score and the remaining `diagnostics[]`, `Diff`, and `Security` as the security scan rule above reads it (its first word `PASS`, `WARN` or `SKIP`, its note in parentheses after it), with any `description_guard_restored` event the §0 protocol recorded. They are advisory: do not block on warnings.
 
 ### 8. Update the Active Symlink
 
