@@ -216,6 +216,8 @@ async def run_pipeline(
 ) -> list
 ```
 
+`[AST:cognee/modules/pipelines/operations/run_pipeline.py:L37]`
+
 ```python
 from cognee.pipelines import task, run_pipeline   # lightweight runner, not the orchestrator
 
