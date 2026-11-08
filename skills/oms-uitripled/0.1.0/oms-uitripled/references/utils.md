@@ -50,7 +50,7 @@ export function countSavedProjectComponents(project: SavedProject): number;   //
 ```
 
 - `sanitizeSlug`: lowercases, replaces non-alphanumerics with `-`, trims leading/trailing `-`, caps length at 48 chars.
-- `generateUniqueSlug`: produces `{sanitizeSlug(baseName)}` (or `page` when that sanitizes to an empty string) if unique, else `{slug}-2`, `-3`, ... until it finds a free slot.
+- `generateUniqueSlug`: computes `const baseSlug = sanitizeSlug(baseName) || "page"` and returns `baseSlug` when `existingSlugs` does not include it, else `{baseSlug}-2`, `-3`, ... until it finds a free slot.
 - `createPage`: builds a fresh `BuilderProjectPage` with `crypto.randomUUID()` (falls back to `page-{timestamp}-{random}`) and a unique slug derived from `name` via `generateUniqueSlug`. Empty `components` array.
 - `extractSavedPages`: normalizes a `SavedProject` into `SavedProjectPage[]`. If the project already has `pages[]`, returns it as-is. Otherwise synthesizes a single `"Landing"` page using `project.entryPageId` (or a slugified project name) as the id, `project.components ?? []` as content, and `project.code` if present — this handles the legacy single-page project shape.
 - `countSavedProjectComponents`: totals the `components.length` across all pages (via `extractSavedPages`) for display in project lists.
