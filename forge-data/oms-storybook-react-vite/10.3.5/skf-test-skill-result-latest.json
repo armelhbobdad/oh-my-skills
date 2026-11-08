@@ -1,46 +1,41 @@
 {
   "skill": "skf-test-skill",
-  "status": "success",
+  "status": "error",
   "skill_name": "oms-storybook-react-vite",
-  "verdict": "PASS",
-  "score": 100,
-  "threshold": 80,
-  "report_path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261108T024630Z-ff52d336.md",
-  "next_workflow": "export-skill",
-  "exit_code": 0,
-  "halt_reason": null,
+  "verdict": "FAIL",
+  "score": null,
+  "threshold": null,
+  "report_path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261108T124732Z-7349a3c4.md",
+  "next_workflow": "update-skill",
+  "exit_code": 2,
+  "halt_reason": "hard-gate-blocked",
   "outputs": [
     {
       "type": "report",
-      "path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261108T024630Z-ff52d336.md"
+      "path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261108T124732Z-7349a3c4.md"
     }
   ],
   "summary": {
-    "score": 100,
-    "threshold": 80,
-    "result": "PASS",
+    "score": null,
+    "threshold": null,
+    "result": "FAIL",
     "testMode": "naive",
-    "activeCategories": [
-      "exportCoverage",
-      "signatureAccuracy",
-      "typeCoverage",
-      "externalValidation"
-    ],
+    "activeCategories": [],
     "gapCounts": {
-      "Critical": 0,
+      "Critical": 1,
       "High": 0,
-      "Medium": 84,
+      "Medium": 82,
       "Low": 0,
-      "Info": 27
+      "Info": 10
     },
-    "hardGate": "passed"
+    "hardGate": "blocked"
   },
-  "runId": "20261108T024630Z-ff52d336",
+  "runId": "20261108T124732Z-7349a3c4",
   "healthCheckDispatched": true,
-  "timestamp": "2026-11-08T03:12:50Z",
-  "run_id": "20261108T024630Z-ff52d336",
+  "timestamp": "2026-11-08T13:46:28Z",
+  "run_id": "20261108T124732Z-7349a3c4",
   "headless_decisions": [],
   "warnings": [
-    "customization_resolver_unavailable: BMAD core's customization resolver is not at /home/armel/Projects/OSS/oh-my-skills/_bmad/scripts/resolve_customization.py: the BMAD Method installer adds it."
+    "customization_resolver_unavailable: not found"
   ]
 }
