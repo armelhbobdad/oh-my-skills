@@ -1,0 +1,46 @@
+{
+  "skill": "skf-test-skill",
+  "status": "success",
+  "skill_name": "oms-cocoindex",
+  "verdict": "PASS",
+  "score": 100,
+  "threshold": 80,
+  "report_path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261108T135352Z-27b92a60.md",
+  "next_workflow": "export-skill",
+  "exit_code": 0,
+  "halt_reason": null,
+  "outputs": [
+    {
+      "type": "report",
+      "path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261108T135352Z-27b92a60.md"
+    }
+  ],
+  "summary": {
+    "score": 100,
+    "threshold": 80,
+    "result": "PASS",
+    "testMode": "naive",
+    "activeCategories": [
+      "exportCoverage",
+      "signatureAccuracy",
+      "typeCoverage",
+      "externalValidation"
+    ],
+    "gapCounts": {
+      "Critical": 0,
+      "High": 0,
+      "Medium": 1,
+      "Low": 0,
+      "Info": 51
+    },
+    "hardGate": "passed"
+  },
+  "runId": "20261108T135352Z-27b92a60",
+  "healthCheckDispatched": true,
+  "timestamp": "2026-11-08T14:41:08Z",
+  "run_id": "20261108T135352Z-27b92a60",
+  "headless_decisions": [],
+  "warnings": [
+    "customization_resolver_unavailable: not found"
+  ]
+}
