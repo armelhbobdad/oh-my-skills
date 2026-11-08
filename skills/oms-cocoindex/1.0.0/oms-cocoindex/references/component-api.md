@@ -33,7 +33,7 @@ class App(Generic[P, R]):
 ```
 [AST:python/cocoindex/_internal/app.py:L208] [SRC:python/cocoindex/_internal/app.py:L299] [:L335] [:L368] [:L380]
 
-- A `str` for `name_or_config` is shorthand for `AppConfig(name=name_or_config)`.
+- A `str` for `name_or_config` becomes `config = AppConfig(name=name_or_config)` [SRC:python/cocoindex/_internal/app.py:L247].
 - `update()` returns an `UpdateHandle[R]` that is also `Awaitable[R]` — `result = await app.update()` works as a one-liner. Use `handle.stats()` for a snapshot or `async for snap in handle.watch():` to follow progress.
 - `live=True` keeps live components processing after `mark_ready` (see `live-components.md`).
 - `full_reprocess=True` invalidates memoized state and reprocesses everything.
@@ -218,7 +218,7 @@ async def mount(subpath: ComponentSubpath, processor_fn: AnyCallable[P, Any], *a
 ```
 [AST:python/cocoindex/_internal/api.py:L333] [SRC:python/cocoindex/_internal/api.py:L342] (implementation `mount(*pos_args: Any, **kwargs: Any)` at [SRC:python/cocoindex/_internal/api.py:L349])
 
-Mounts a processing unit in the background. Subpath defaults to `Symbol(processor_fn.__name__)` when omitted. Pass a `LiveComponent` class to mount a live component; for regular functions a normal processing unit is created.
+Mounts a processing unit in the background. Subpath defaults to `coco.Symbol(processor_fn.__name__)` when omitted. Pass a `LiveComponent` class to mount a live component; for regular functions a normal processing unit is created.
 
 ### mount_each
 

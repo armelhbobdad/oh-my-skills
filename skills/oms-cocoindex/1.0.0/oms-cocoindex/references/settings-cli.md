@@ -40,7 +40,7 @@ The default db_path env var is read by `cocoindex._internal.setting.get_default_
 
 ```python
 @coco.lifespan
-async def lifespan(builder: coco.EnvironmentBuilder):
+async def env_lifespan(builder: coco.EnvironmentBuilder):
     # builder.settings already populated from Settings.from_env() in __init__
     builder.settings.db_path = pathlib.Path("./cocoindex.db")   # else COCOINDEX_DB is used
     yield

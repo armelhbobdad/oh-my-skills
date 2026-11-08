@@ -97,7 +97,7 @@ Run with: `cocoindex update main.py` (one-shot) or `cocoindex update main.py -L`
 `await coco.mount([subpath,] processor_fn, *args, **kwargs)` — runs in background, returns `ComponentMountHandle`.
 `await coco.mount_each([subpath,] fn, items, *args, **kwargs)` — one component per item; `items` is `Iterable[(key, value)]`, `AsyncIterable`, `LiveMapFeed`, or `LiveMapView`.
 `result = await coco.use_mount([subpath,] processor_fn, *args, **kwargs)` — mount and wait for the result; the child cannot refresh independently of the parent.
-The optional leading `subpath` is a `ComponentSubpath`; when omitted it is derived from `Symbol(fn.__name__)`.
+The optional leading `subpath` is a `ComponentSubpath`; when omitted it is derived from `coco.Symbol(fn.__name__)`.
 [AST:python/cocoindex/_internal/api.py:L333] · [:L427] · [:L194]
 
 **Mount a target (declarative state reconciliation):**
