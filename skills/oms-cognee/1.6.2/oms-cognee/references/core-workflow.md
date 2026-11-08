@@ -52,7 +52,7 @@ Provenance: `[AST:cognee/api/v1/add/add.py:L39]`
 
 | Param | Type | Default | Required | Description |
 |---|---|---|---|---|
-| `data` | Union (many) | — | yes | Content to ingest. See "Accepted data types" below. |
+| `data` | BinaryIO \| list[BinaryIO] \| str \| list[str] \| DataItem \| list[DataItem] \| Any | — | yes | Content to ingest. See "Accepted data types" below. |
 | `dataset_name` | str | `DEFAULT_DATASET_NAME` (`"main_dataset"`) | no | Logical dataset for organization. `[SRC:cognee/modules/data/constants.py:L8]` |
 | `user` | User | None | no | Auth context. Uses default user if None. |
 | `node_set` | list[str] \| None | None | no | Tags that become first-class graph nodes after cognify — scope memory by customer/workflow/topic. |
@@ -153,9 +153,9 @@ Provenance: `[AST:cognee/api/v1/cognify/cognify.py:L110]`
 
 | Param | Type | Default | Description |
 |---|---|---|---|
-| `datasets` | str / list[str] / list[UUID] / None | None | Datasets to process. `None` → all datasets the user can access. |
+| `datasets` | str \| list[str] \| list[UUID] \| None | None | Datasets to process. `None` → all datasets the user can access. |
 | `user` | User | None | Auth context. Uses default user if None. |
-| `graph_model` | Pydantic BaseModel | `KnowledgeGraph` | Custom graph schema (domain-specific models, e.g., `ScientificPaper`). |
+| `graph_model` | BaseModel | `KnowledgeGraph` | Custom graph schema (domain-specific models, e.g., `ScientificPaper`). |
 | `chunker` | Class | `TextChunker` | Chunking strategy. `TextChunker` is paragraph-based (default). `LangchainChunker` is recursive character splitter. |
 | `chunk_size` | int \| None | None | Max tokens per chunk. Auto-calculated if None (roughly `min(embedding max tokens, llm_max_completion_tokens // 2)`). An explicit value above the embedding model's input limit (or `EMBEDDING_MAX_COMPLETION_TOKENS` when lower) is lowered to that limit with a warning; a negative value raises `ValueError`. `[SRC:cognee/infrastructure/llm/utils.py:L55-L58]` `[SRC:cognee/infrastructure/llm/utils.py:L68-L91]` |
 | `chunks_per_batch` | int \| None | None (→ configured `chunks_per_batch`, else 2000 on the standard route; 100 on the DLT route, 10 on the temporal route) | Chunks per processing batch. `[SRC:cognee/api/v1/cognify/cognify.py:L582-L585]` `[SRC:cognee/api/v1/cognify/cognify.py:L663-L666]` `[SRC:cognee/api/v1/cognify/cognify.py:L720-L722]` `[SRC:cognee/tasks/graph/gliner_demo/tasks.py:L320-L322]` |
@@ -173,8 +173,8 @@ Provenance: `[AST:cognee/api/v1/cognify/cognify.py:L110]`
 | `data_cache` | bool | True | Incremental (cached) per-item processing; either this or `incremental_loading` enables it. `[SRC:cognee/modules/pipelines/operations/run_tasks_data_item.py:L377]` |
 | `dry_run` | bool | False | Return a `DryRunEstimate` (stage-level LLM token and rough cost estimate over all data in the selected datasets) without LLM calls or graph writes. Not supported with `temporal_cognify`, the `gliner_demo` extractor, or a remote instance. `[SRC:cognee/api/v1/cognify/cognify.py:L210-L212]` `[SRC:cognee/api/v1/cognify/cognify.py:L328-L332]` `[SRC:cognee/api/v1/cognify/cognify.py:L362-L366]` `[SRC:cognee/api/v1/cognify/cognify.py:L413-L425]` |
 | `raise_on_error` | bool | True | Raise `CognifyFailedError` when a foreground run errors (see "Return value"). |
-| `chunk_attachment` | `"direct"` / `"all"` / None | None (same as `"direct"`) | How widely each chunk links into the graph extracted from it; `"all"` links the chunk to every stored node reachable from the extracted root. Requires a custom `DataPoint` `graph_model`; raises `ValueError` with `KnowledgeGraph`, with `temporal_cognify=True`, or on a remote instance. `[SRC:cognee/api/v1/cognify/cognify.py:L213-L228]` `[SRC:cognee/api/v1/cognify/cognify.py:L334-L350]` |
-| `extractor` | `"llm"` / `"gliner_demo"` / `"gliner"` / None | None (→ `GRAPH_EXTRACTOR`, default `"auto"`) | Which implementation fills the extract-and-summarize step. `"auto"` picks `"llm"` with a usable LLM key and `"gliner_demo"` without; `"gliner"` is an alias of `"gliner_demo"`. `gliner_demo` builds the generic `KnowledgeGraph` with the local GLiNER demo model (no LLM call for extraction or summaries) and raises `ValueError` with a custom `graph_model`, `temporal_cognify=True`, `dry_run=True` or extra `**kwargs`; any explicit `extractor` raises on a remote instance. `[SRC:cognee/api/v1/cognify/cognify.py:L229-L239]` `[SRC:cognee/api/v1/cognify/cognify.py:L367-L373]` `[SRC:cognee/modules/cognify/config.py:L62-L64]` `[SRC:cognee/api/v1/cognify/cognify.py:L323-L332]` `[SRC:cognee/api/v1/cognify/cognify.py:L434-L446]` |
+| `chunk_attachment` | Literal["direct", "all"] \| None | None (same as `"direct"`) | How widely each chunk links into the graph extracted from it; `"all"` links the chunk to every stored node reachable from the extracted root. Requires a custom `DataPoint` `graph_model`; raises `ValueError` with `KnowledgeGraph`, with `temporal_cognify=True`, or on a remote instance. `[SRC:cognee/api/v1/cognify/cognify.py:L213-L228]` `[SRC:cognee/api/v1/cognify/cognify.py:L334-L350]` |
+| `extractor` | Literal["llm", "gliner_demo", "gliner"] \| None | None (→ `GRAPH_EXTRACTOR`, default `"auto"`) | Which implementation fills the extract-and-summarize step. `"auto"` picks `"llm"` with a usable LLM key and `"gliner_demo"` without; `"gliner"` is an alias of `"gliner_demo"`. `gliner_demo` builds the generic `KnowledgeGraph` with the local GLiNER demo model (no LLM call for extraction or summaries) and raises `ValueError` with a custom `graph_model`, `temporal_cognify=True`, `dry_run=True` or extra `**kwargs`; any explicit `extractor` raises on a remote instance. `[SRC:cognee/api/v1/cognify/cognify.py:L229-L239]` `[SRC:cognee/api/v1/cognify/cognify.py:L367-L373]` `[SRC:cognee/modules/cognify/config.py:L62-L64]` `[SRC:cognee/api/v1/cognify/cognify.py:L323-L332]` `[SRC:cognee/api/v1/cognify/cognify.py:L434-L446]` |
 | `ontology_file_path` | str \| None | None | Path, or comma-separated paths, to the ontology used for extraction schema planning and graph integration. Wins over `config` and the environment. `[SRC:cognee/api/v1/cognify/cognify.py:L186-L187]` `[SRC:cognee/modules/ontology/get_default_ontology_resolver.py:L23-L28]` |
 | `**kwargs` | — | — | Forwarded to the `extract_graph_and_summarize` task on the LLM route. `[SRC:cognee/api/v1/cognify/cognify.py:L461-L473]` `[SRC:cognee/api/v1/cognify/cognify.py:L603-L611]` |
 
@@ -267,8 +267,8 @@ Provenance: `[AST:cognee/api/v1/search/search.py:L41]`
 | `query_text` | str | — | The natural-language question or query. Required. |
 | `query_type` | SearchType | `HYBRID_COMPLETION` | See Key Types in SKILL.md for full list. Hybrid (document passages plus entity neighbourhoods, then LLM completion) silently defers to `GRAPH_COMPLETION` for a custom `node_type`, `node_name` with `node_type=None`, `neighborhood_depth`, `feedback_influence > 0`, or a missing `DocumentChunk_text` collection. Results do not name the type that ran, so pin `query_type` when the result shape matters. `[SRC:cognee/api/v1/search/search.py:L89-L93]` `[SRC:cognee/modules/search/methods/hybrid_deferral.py:L28-L74]` `[SRC:cognee/api/v1/search/search.py:L53-L55]` |
 | `user` | User \| None | None | Auth context. Uses the default user if None. `[SRC:cognee/api/v1/search/search.py:L319-L321]` |
-| `datasets` | list[str] / str | None | Dataset names to search. |
-| `dataset_ids` | list[UUID] / UUID | None | Same but with UUIDs. Takes precedence over `datasets`. |
+| `datasets` | list[str] \| str \| None | None | Dataset names to search. |
+| `dataset_ids` | list[UUID] \| UUID \| None | None | Same but with UUIDs. Takes precedence over `datasets`. |
 | `system_prompt_path` | str | `"answer_simple_question.txt"` | Prompt template file for completion types. |
 | `system_prompt` | str \| None | None | Inline system prompt; overrides `system_prompt_path`. `[SRC:cognee/modules/search/methods/search.py:L104-L105]` |
 | `top_k` | int | 15 | Max results, applied per dataset. `HYBRID_COMPLETION` gives each lane `min(top_k, 10)`; raise a lane with the `chunks_top_k`, `entities_top_k` or `facts_top_k` keys in `retriever_specific_config` (not capped). `top_k <= 0` raises `QueryValidationError`. `[SRC:cognee/api/v1/search/search.py:L215-L218]` `[SRC:cognee/modules/search/methods/get_search_type_retriever_instance.py:L41-L51]` `[SRC:cognee/modules/search/methods/get_search_type_retriever_instance.py:L77-L79]` |
@@ -362,7 +362,7 @@ async def update(
 | Param | Type | Default | Description |
 |---|---|---|---|
 | `data_id` | UUID | — | Document to replace (its current id or recorded pre-fork id). `[SRC:cognee/api/v1/update/update.py:L77]` |
-| `data` | BinaryIO / str (or a one-item list) | — | Exactly one replacement document; a list of any other length raises `IngestionError`. `[SRC:cognee/api/v1/update/update.py:L179-L184]` |
+| `data` | BinaryIO \| list[BinaryIO] \| str \| list[str] | — | Exactly one replacement document (a list must hold one item); a list of any other length raises `IngestionError`. `[SRC:cognee/api/v1/update/update.py:L179-L184]` |
 | `dataset_id` | UUID | — | Dataset holding the document. Required. `[SRC:cognee/api/v1/update/update.py:L87]` |
 | `user` | User | None | Auth context. Uses the default user if None. `[SRC:cognee/api/v1/update/update.py:L171-L172]` |
 | `node_set` | list[str] \| None | None | Tags forwarded to the rebuild's `add`; a non-empty value forces the full rebuild. `[SRC:cognee/api/v1/update/update.py:L301]` `[SRC:cognee/api/v1/update/update.py:L367-L371]` |
