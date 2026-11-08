@@ -269,7 +269,7 @@ Provenance: [SRC:python/cocoindex/_internal/stable_path.py:L9] [AST:python/cocoi
 
 ## Architecture at a Glance
 
-- **Public API entry point:** `python/cocoindex/__init__.py` does `from ._internal.api import *` and re-exports `_internal.api.__all__` (~74 symbols). Always import as `import cocoindex as coco`. [SRC:python/cocoindex/__init__.py:L13]
+- **Public API entry point:** `python/cocoindex/__init__.py` does `from ._internal.api import *` and re-exports `_internal.api.__all__` (72 names). Always import as `import cocoindex as coco`. [SRC:python/cocoindex/__init__.py:L13]
 - **API hub:** `python/cocoindex/_internal/api.py` is the canonical re-export module. It defines `mount`, `mount_each`, `mount_target`, `use_mount`, `map`, `start`, `stop`, `start_blocking`, `stop_blocking`, `default_env`, `runtime`, `ComponentMountHandle`, and re-exports the rest. [SRC:python/cocoindex/_internal/api.py:L669]
 - **Component runtime:** `_internal/app.py` (App, AppConfig, UpdateHandle, DropHandle, show_progress), `_internal/environment.py` (Environment, EnvironmentBuilder, lifespan, start/stop), `_internal/runner.py` (Runner, GPU singleton).
 - **Component model:** `_internal/function.py` (the `@coco.fn` decorator, a `_FunctionDecorator` instance; the `Function` Protocol; `SyncFunction` / `AsyncFunction`, the concrete classes with `__slots__` that subclass it and that `@coco.fn` returns) [SRC:python/cocoindex/_internal/function.py:L138] [SRC:python/cocoindex/_internal/function.py:L491] [SRC:python/cocoindex/_internal/function.py:L903], `_internal/component_ctx.py` (ComponentContext, ComponentSubpath, exception_handler, use_context).
