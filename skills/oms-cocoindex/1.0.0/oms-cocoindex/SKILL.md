@@ -324,7 +324,7 @@ The 0.3.37 → 1.0.0 transition is **not a rename** — every public module from
 | `cocoindex.targets.Postgres` / `Qdrant` / `Pinecone` / `Neo4j` / `FalkorDB` / `Ladybug` / `LanceDB` / `ChromaDB` / `DorisTarget` / `Turbopuffer` | `cocoindex.connectors.{postgres,qdrant,lancedb,doris,sqlite,surrealdb,kafka}` (no built-in Pinecone, Neo4j, FalkorDB, ChromaDB, Turbopuffer in v1.0.0 — write a connector or upstream a request) |
 | `LlmSpec` / `LlmApiType` / `VertexAiConfig` / `OpenAiConfig` / `AzureOpenAiConfig` | LiteLLM model strings (`"vertex_ai/textembedding-gecko"`, `"azure/<deployment>"`, etc.) passed to `LiteLLMEmbedder` for embeddings (or to your own LiteLLM completion calls). Provider config flows through `**kwargs` (e.g., `api_key`, `api_base`). |
 | `VectorSimilarityMetric` / `VectorIndexDef` / `FtsIndexDef` / `IndexOptions` | per-connector. E.g., `postgres.TableTarget.declare_vector_index(column="embedding")` lives on the target itself, not as a top-level type. |
-| `Settings(database=DatabaseConnectionSpec(url=...))` | `Settings(db_path=os.PathLike)` — state moved from Postgres to local LMDB. `COCOINDEX_DB` env var. |
+| `Settings(database=DatabaseConnectionSpec(url=...))` | `coco.Settings(db_path=pathlib.Path("state.lmdb"))` — state moved from Postgres to local LMDB. `COCOINDEX_DB` env var. |
 | `cocoindex.auth_registry.add_auth_entry / ref_auth_entry` | gone; pass credentials directly via `EnvironmentBuilder.provide(KEY, …)` and `coco.use_context(KEY)` |
 | `cocoindex.utils.get_target_default_name` / `get_target_storage_default_name` | gone; connectors expose names via their target-spec helpers |
 | `add_flow_def(name, fl_def)` (deprecated in v0.3.37) | gone; no replacement needed |
