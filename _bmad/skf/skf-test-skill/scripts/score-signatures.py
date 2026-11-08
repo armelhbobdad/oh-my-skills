@@ -27,25 +27,74 @@ ratios and the gap records of the wrong signatures.
          partial one, then, of two full or two partial forms, one that lists
          parameters before one that gives only a usage form, else the first)
          and, as `alternatives`, the name's other distinct forms that list
-         parameters or give a usage form, in that order: the judge compares
-         the declaration with each, by its own reading rules, and reports a
+         parameters or give a usage form, then those that list neither but
+         state a return type (a `return_type` neither blank nor a list of
+         value names, #914), in that order: the judge compares the
+         declaration with each, by its own reading rules, and reports a
          mismatch for each form that does not match, naming it as `form`. A
-         form that lists no member is never an alternative, and two entries
-         that say the same thing are one form (a `full` label and none, a
-         list and its items joined with `, `, whitespace runs; of two that
-         differ only by the partial label, the full one). The signature universe is the
+         form that lists no member and states no return type is never an
+         alternative, and two entries that say the same thing are one form
+         (a `full` label and none, a list and its items joined with `, `,
+         whitespace runs; of two that differ only by the partial label, the
+         full one). The signature universe is the
          surface's `all` set plus every name on its export records, so the
          names of a Python sub-package load-coverage-inputs.py keeps out of
          `all` (excluded.nestedEntries) keep their checks. A check sits at the
          name's first surface record (one with a file before one with none
-         or a blank one). For a name the surface records in more than one
-         file, --skill-dir (the skill package) picks the record whose file
-         the skill cites on a line that names it
+         or a blank one and, in one file, one with a line before one with
+         none). A line-less record of a file another of the name's records
+         gives a line, as _path reads both, is skipped (_lined_records), a
+         `./src/a.py` one that sorts first by raw path beside `src/a.py` at a
+         line included: it is never the check's record, never a candidate
+         and never a declaration. For a name the surface records in more
+         than one file, --skill-dir (the skill package) picks the record
+         whose file the skill cites on a line that names it
          (validate-inventory.py's _skill_cited_files) when exactly one of
          those files is cited; otherwise the check stays at the first record
-         and lists every record with a file as `candidates` for the judge to
-         read. Also the whole documented-signature map, and each name's
-         alternatives, for the fallback scan that has no surface lines yet.
+         and lists every record with a file, a skipped one aside, as
+         `candidates` for the judge to read. With --skill-dir a form is also
+         bound (#918) to the one
+         declaration of its name its own citations name: the citations of
+         the places the inventory's `at` gives its entries
+         (validate-inventory.py's form_citations): on that line; on the
+         next non-blank line, unless that line writes the name (another
+         place of it, such as the next table row) or, in a fenced block, is
+         a comment (it heads the next declaration); in a fenced block, on
+         the comment lines just above it; and, when the block holds no other
+         place the inventory gives the name, on the block's first non-blank
+         line when it is a comment and on the first non-blank line after its
+         closing fence unless that line writes the name. A place where the
+         inventory gives the name two forms that differ (a table row that
+         documents one declaration's form and quotes another's as a
+         contrast) gives none of them a citation: each is bound only by its
+         other places, and a form written only there is compared as one with
+         no own citation (_shared_places); two entries that say the same
+         thing at one place are one form, as everywhere. A citation names a
+         declaration when it cites its file with no line, or at a line or in
+         an `L` range that holds a line of its span (cites_declaration):
+         from its line to the line before the next declaration the surface
+         records in its file, of any name, an other declaration included, or
+         to the end of the file when none follows (_span_end). So a citation
+         of a function's body names it, and a range over two declarations
+         names both. The extraction records no declaration's last line, so a
+         span runs past its body, over any helper the surface does not
+         record, to the next declaration it does.
+         The declarations are the name's surface records with a file, a
+         skipped line-less one aside, and its `otherDeclarations` (one the
+         extraction records in a file no record of the name names, such as a
+         same-named function a lazy re-export passes on, which no entry point
+         exports), each once per file and line. A form whose citations name
+         exactly one is listed in the
+         check's `bound` with its index and that declaration, and the judge
+         compares it with that declaration alone, whatever the check's
+         location and candidates; a form whose citations name none or two,
+         and a form that writes only a `return_type` (it gives no `at`), is
+         compared as before. An other declaration is never the planned
+         record and never a candidate: it reaches the judge only as a bound
+         form's declaration. With no form bound the plan is the one a
+         surface without `otherDeclarations` gives. Also the whole
+         documented-signature map, and each name's alternatives, for the
+         fallback scan that has no surface lines yet.
   score  the categories. Reads every subagent result, checks its schema,
          and computes:
            Signature Accuracy = matching / compared * 100, where compared is
@@ -58,7 +107,10 @@ ratios and the gap records of the wrong signatures.
              denominator set coverage-check section 2b picked) whose kind is
              a type kind (TYPE_KINDS: interface, type alias, enum and class,
              with a Rust struct counted as a class and a trait as an
-             interface) and documented types those the inventory documents
+             interface) and documented types those the inventory documents;
+             a name the stale-scope guard restored whose kind the provenance
+             map does not give (#913) is left out and named in `warnings`,
+             in place of the warning that the surface has no type
          A category with nothing to compare scores 100 (nothing documented
          is wrong) and says so in `warnings`. Each signature mismatch of a
          compared name is graded (grade()) against the documented form its
@@ -84,14 +136,17 @@ ratios and the gap records of the wrong signatures.
              `difference` "annotation-contradicted" (the documented return
              type is the one the body returns, the declared annotation says
              otherwise) whose facts check: the documented entry states a
-             return type (a non-blank `return_type`, or a `documented_sig`
-             that writes one); `documented_sig` and `source_sig` write the
+             return type (a `return_type`, or the return a `documented_sig`
+             writes, that is neither blank nor a list of value names:
+             _states_return); `documented_sig` and `source_sig` write the
              same parameters as signature-comparison-rules.md reads them
              (_parameter_difference, below); `evidence_line` comes after the
              declaration line (of the name's surface records at the
              mismatch's file, the closest at or before the mismatch's
              `line`, else the first; with none, the mismatch's `line`) and
-             before the next surface record in that file; and, with
+             before the next surface record in that file (a bound form's
+             declaration line is its bound declaration's, and each bound
+             declaration counts as a surface record there); and, with
              --source-root, that line of the file under it starts with
              `return`, or is the declaration line itself with its
              expression body after its parameters (an arrow function's
@@ -138,29 +193,42 @@ ratios and the gap records of the wrong signatures.
          offered that file for the name: the file of its check or one of the
          check's candidates, read from --plan, else every file the surface
          records for the name. Any other `file` is listed in `warnings`, and
-         the result's `file` stands, as it does when there is none. Results
+         the result's `file` stands, as it does when there is none. A
+         mismatch of a form the plan bound (`bound`, #918) is taken at its
+         bound declaration's file and line instead, whatever file the judge
+         names, and a judge that names another one (or none, from a group in
+         another file) is listed in `warnings`; the declaration joins no
+         name, set or count, and the gap's title and form index are the
+         form's as for any other mismatch. Results
          that report one declaration (name, file and line) more than once
          keep its most severe grade: Critical, then Low, then Info. Of the
-         mismatches of one form of a check that offered several files, the
-         least severe stands (the closest candidate), the first by file and
-         line on a tie: one documented form, one gap. Each form's mismatch
+         mismatches of one unbound form of a check that offered several
+         files, the least severe stands (the closest candidate), the first by
+         file and line on a tie: one documented form, one gap. Each form's mismatch
          stands on its own (each usage of a `usage_signature` list too: the
          mismatch's `documented_sig` is part of the declaration's key), and
          a gap of a name with several forms names its form, counted from 1,
          in its title (`Signature mismatch: {name} (form n of m)`) and its
          Issue. For such a name the form's own label lowers a grade only when
          the mismatch's `documented_sig` is that form's text (whitespace runs
-         as one, outer parentheses off, a list joined): otherwise `warnings`
-         says so and the mismatch is graded against the form it quotes, or
-         `documented` when it quotes none. A Low or an Info mismatch still
-         counts as matching. A mismatch a result reports for any
+         as one, outer parentheses off, a list joined, a name or a dotted
+         receiver before the parameters left off, and a blank or absent
+         `params` read as `()` for a form with no usage form): otherwise the
+         mismatch is graded against the form it quotes, which `warnings`
+         names, or, when it quotes none, stays at the form its `form` names
+         (that form's title, Issue and bound declaration, #919) and is graded
+         as a full form, which `warnings` says when that form is not
+         `documented` or is partial. A Low or an Info mismatch still counts
+         as matching. A mismatch a result reports for any
          other name (one the skill does not document, or the surface lacks)
          is listed in `warnings` instead, and no gap.
 
 Inputs, all files in the run folder:
   --inventory  the validated inventory validate-inventory.py wrote (--output)
   --surface    load-coverage-inputs.py surface output: `exports[]` (name,
-               kind, file, line, signatureLine) and the name `sets`;
+               kind, file, line, signatureLine), the name `sets` and
+               `otherDeclarations` (the same fields; a declaration plan may
+               bind a form to, never a name it compares or counts);
                --surface-set picks the set (default "all") score's Type
                Coverage counts, while plan and Signature Accuracy compare
                the signature universe whichever set it picks
@@ -191,9 +259,11 @@ Inputs, all files in the run folder:
                                        for 0)
   --skill-dir  plan only: the skill package under test (the folder that
                holds SKILL.md), whose citations pick the declaration of a
-               name the surface records in several files
+               name the surface records in several files, and bind each form
+               whose own citations name one declaration of its name to it
   --plan       score only: the plan's output, whose checks name the files a
-               mismatch of each name may be recorded at
+               mismatch of each name may be recorded at, and the declaration
+               each bound form's mismatch is taken at
   --source-root  score only: the local source tree the judges read (a
                drifted workspace included), where an annotation-contradicted
                mismatch's `evidence_line` is checked in its file
@@ -208,9 +278,12 @@ Usage:
 Output (stdout; --output also writes it, --gaps-output writes the records):
   plan:  {"compared": N, "files": [{"file", "checks": [{"name", "line",
           "signatureLine", "documented": {...}, "alternatives": [{...}]
-          (only when the name has another form that lists members),
+          (only when the name has another form that lists members or
+          states a return type),
           "candidates": [{"file", "line", "signatureLine"}] (only when the
-          citation does not settle the declaration)}]}],
+          citation does not settle the declaration), "bound": [{"form",
+          "file", "line", "signatureLine"}] (only when a form's own
+          citations name one declaration of the name)}]}],
           "documentedSignatures": {...}, "documentedAlternatives": {name:
           [{...}], for each name with alternatives}}
   score: {"valid": true, "signatureAccuracy", "matchingSignatures",
@@ -267,6 +340,12 @@ PYTHON_BODY_RE = re.compile(r"\s*(?:->[^:]*)?:\s*return(?![\w$])")
 TYPE_DECLARATION_RE = re.compile(r"(?:export\s+)?(?:declare\s+)?type\s")
 # Where a signature's return type starts, with no parenthesized parameters.
 RETURN_ARROW_RE = re.compile(r"->|=>|→")
+# A name, or a dotted receiver and name, before a signature's parameter group (`run_pipeline(`, `coco.default_env(`):
+# a mismatch's `documented_sig` may write it where the form writes only the parameters (_quotes).
+LEADING_NAME_RE = re.compile(r"^[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*\s*(?=\()")
+# The dotted receiver before a usage's called name (`coco.` in `coco.default_env()`): a mismatch's `documented_sig`
+# may write the call without it (_quotes).
+CALL_RECEIVER_RE = re.compile(r"^(?:[A-Za-z_$][\w$]*\s*\.\s*)+(?=[A-Za-z_$][\w$]*\s*\()")
 # The prefixes a type is compared without, as signature-comparison-rules.md's Equivalent spellings reads a name
 # with or without one: `typing.List[int]` is `List[int]`, `React.ReactNode` is `ReactNode`.
 TYPE_PREFIX_RE = re.compile(r"(?<![\w.$])(?:typing|collections\.abc|React)\.")
@@ -311,6 +390,33 @@ LITERAL_TYPES = (
 # documented parameters are props callers set by name.
 POSITIONAL_EXTENSIONS = frozenset({".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".go", ".rs",
                                    ".java", ".c", ".h", ".cc", ".cpp", ".cxx", ".hpp"})
+# The builtin type names that start lowercase, by the source files of their language: Python, TS/JS (and the
+# script of a .vue, .svelte or .astro file), Go, Rust, the C family (Java, C, C++) and C#. A parenthesized,
+# bracketed or braced list of lowercase names writes a return type when one of them is a type name of the file's
+# language (`(str, int)`, Go's `(int, error)`, `[string, number]`), else names of values, which state none
+# (signature-comparison-rules.md, Annotations; _states_return). A file of a language with no table, or none,
+# checks the names of every table (ALL_LOWERCASE_TYPES).
+LOWERCASE_TYPES = {extension: names for extensions, names in (
+    ((".py", ".pyi"), frozenset({"str", "int", "float", "complex", "bool", "bytes", "bytearray", "memoryview", "list",
+                                 "dict", "set", "frozenset", "tuple", "object", "type", "range", "slice"})),
+    ((*TS_JS_EXTENSIONS, ".vue", ".svelte", ".astro"),
+     frozenset({"string", "number", "boolean", "bigint", "symbol", "object", "any", "unknown", "never", "void",
+                "undefined", "null"})),
+    ((".go",), frozenset({"bool", "byte", "rune", "string", "error", "any", "comparable", "int", "int8", "int16",
+                          "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "uintptr", "float32",
+                          "float64", "complex64", "complex128"})),
+    ((".rs",), frozenset({"bool", "char", "str", "i8", "i16", "i32", "i64", "i128", "isize", "u8", "u16", "u32",
+                          "u64", "u128", "usize", "f32", "f64"})),
+    ((".java", ".c", ".h", ".cc", ".cpp", ".cxx", ".hpp"),
+     frozenset({"int", "long", "short", "char", "float", "double", "void", "bool", "boolean", "byte", "string",
+                "object"})),
+    ((".cs",), frozenset({"bool", "byte", "sbyte", "char", "decimal", "double", "float", "int", "uint", "nint",
+                          "nuint", "long", "ulong", "short", "ushort", "object", "string", "dynamic", "void"})),
+) for extension in extensions}
+ALL_LOWERCASE_TYPES = frozenset().union(*LOWERCASE_TYPES.values())
+# A list of value names (_states_return): its brackets, and a bare name that starts lowercase.
+VALUE_LIST_BRACKETS = {"(": ")", "[": "]", "{": "}"}
+VALUE_NAME_RE = re.compile(r"[a-z][\w$]*", re.ASCII)
 # The grades of a mismatch, most severe first: one declaration reported
 # twice keeps the most severe.
 GRADES = ("Critical", "Low", "Info")
@@ -384,6 +490,18 @@ def load_surface(path: str, surface_set: str) -> tuple[list[str], list[dict], li
     return name_set(surface_set), [e for e in exports if isinstance(e, dict)], name_set("all")
 
 
+def load_other_declarations(path: str) -> list[dict]:
+    """The surface's `otherDeclarations` (#918): each declaration of a
+    surface name, in a file none of its records names, that the extraction
+    records and no entry point exports, which plan may bind a form to. Each
+    one with a name and a file; [] when the surface has none (an older
+    surface included)."""
+    data = _read_json(path, "--surface")
+    items = data.get("otherDeclarations") if isinstance(data, dict) else None
+    return [d for d in (items if isinstance(items, list) else [])
+            if isinstance(d, dict) and isinstance(d.get("name"), str) and d["name"] and _record_file(d)]
+
+
 def load_plan(path: str) -> dict[str, list[str]]:
     """{name: the files plan offered its check at, the planned one first,
     then its candidates'} from plan's output."""
@@ -425,6 +543,24 @@ def load_plan_forms(path: str) -> dict[str, list[dict]]:
         if isinstance(name, str) and isinstance(documented, dict):
             forms[name] = [documented, *(f for f in (others if isinstance(others, list) else []) if isinstance(f, dict))]
     return forms
+
+
+def load_plan_bound(path: str) -> dict[str, dict[int, dict]]:
+    """{name: {form index: the declaration plan bound that form to, {"file",
+    "line"}}} from each check's `bound` (#918); a name with none is left
+    out, and so is an item with no form index or no file."""
+    data = _read_json(path, "--plan")
+    groups = data.get("files") if isinstance(data, dict) else None
+    bound: dict[str, dict[int, dict]] = {}
+    for group in groups if isinstance(groups, list) else []:
+        checks = group.get("checks") if isinstance(group, dict) else None
+        for check in checks if isinstance(checks, list) else []:
+            items = check.get("bound") if isinstance(check, dict) and isinstance(check.get("name"), str) else None
+            for item in items if isinstance(items, list) else []:
+                form = item.get("form") if isinstance(item, dict) else None
+                if isinstance(form, int) and not isinstance(form, bool) and form >= 0 and _record_file(item):
+                    bound.setdefault(check["name"], {})[form] = {"file": _record_file(item), "line": item.get("line")}
+    return bound
 
 
 def check_result(item: object, where: str) -> list[str]:
@@ -544,6 +680,14 @@ def _lists_members(fields: dict) -> bool:
     return _lists_params(fields) or _gives_usage(fields)
 
 
+def _gives_return(fields: dict) -> bool:
+    """A `return_type` that states a return type (_states_return, in every
+    language's reading: a list of value names such as `(nodes, edges)`, and
+    a blank one, state none): an entry that says what the name gives back,
+    even when it lists no member (#914)."""
+    return _states_return(_field_text(fields.get("return_type")))
+
+
 def _rank(fields: dict) -> tuple[bool, bool, bool]:
     """How one of several entries of a name ranks, lowest compared first."""
     return not _lists_members(fields), _partial(fields), not _lists_params(fields)
@@ -570,6 +714,72 @@ def _form_key(fields: dict) -> tuple:
     return _inventory().form_key(fields)
 
 
+def _forms_and_places(inventory: list[dict]) -> dict[str, list[tuple[dict, list[tuple[str, int]]]]]:
+    """{name: [(each of documented_forms' forms, the places the entries
+    that give it write it, from their `at`: (its path, its line))]}, in
+    documented_forms' order. An entry with no good `at` adds no place."""
+    entries: dict[str, list[tuple[dict, list[tuple[str, int]]]]] = {}
+    for entry in inventory:
+        name = entry.get("name")
+        if entry.get("kind") == "method" or not (isinstance(name, str) and name) or not _has_signature(entry):
+            continue
+        forms, fields = entries.setdefault(name, []), _form(entry)
+        place = _inventory().parse_at(entry.get("at"))
+        places = [place] if place is not None else []
+        same = next((i for i, (f, _) in enumerate(forms) if _form_key(f) == _form_key(fields)), None)
+        if same is None:
+            forms.append((fields, places))
+        elif _partial(forms[same][0]) and not _partial(fields):
+            # in the inventory order the full entry has, as the rank would have ordered it
+            places = forms[same][1] + places
+            del forms[same]
+            forms.append((fields, places))
+        else:
+            forms[same][1].extend(places)
+    out: dict[str, list[tuple[dict, list[tuple[str, int]]]]] = {}
+    for name, forms in entries.items():
+        # stable: of forms that rank alike, inventory order
+        first, *others = sorted(forms, key=lambda form: _rank(form[0]))
+        out[name] = [first, *(f for f in others if _lists_members(f[0]) or _gives_return(f[0]))]
+    return out
+
+
+def _shared_places(inventory: list[dict]) -> dict[str, set[tuple[str, int]]]:
+    """{name: each place (parse_at's (path, line)) where the inventory's
+    entries give the name two or more forms that differ (_form_key), such as a
+    table row that documents one declaration's form and quotes another's as a
+    contrast}. For a name declared more than once, the citations of such a
+    place bind none of its forms (#918): they cannot say which form they are
+    for (_bindings). Entries that say the same thing
+    at one place are one form, so their place is not shared; a `method`, and
+    an entry with no form, write no form of the name."""
+    keys: dict[tuple[str, tuple[str, int]], set[tuple]] = {}
+    for entry in inventory:
+        name, place = entry.get("name"), _inventory().parse_at(entry.get("at"))
+        if (entry.get("kind") == "method" or not (isinstance(name, str) and name) or place is None
+                or not _has_signature(entry)):
+            continue
+        keys.setdefault((name, place), set()).add(_form_key(_form(entry)))
+    shared: dict[str, set[tuple[str, int]]] = {}
+    for (name, place), forms in keys.items():
+        if len(forms) > 1:
+            shared.setdefault(name, set()).add(place)
+    return shared
+
+
+def _places_by_name(inventory: list[dict]) -> dict[str, set[tuple[str, int]]]:
+    """{name: every place the inventory gives it, (its path, its line) from
+    an entry's good `at`}, a form plan drops (one that lists no member and
+    states no return type, after another) and an entry with no form
+    included; a `method` is no place of its name."""
+    spots: dict[str, set[tuple[str, int]]] = {}
+    for entry in inventory:
+        name, place = entry.get("name"), _inventory().parse_at(entry.get("at"))
+        if entry.get("kind") != "method" and isinstance(name, str) and name and place is not None:
+            spots.setdefault(name, set()).add(place)
+    return spots
+
+
 def documented_forms(inventory: list[dict]) -> dict[str, list[dict]]:
     """{name: [its documented signature, *its alternatives]} for each
     documented export with a signature: its distinct forms (_form), ranked.
@@ -580,30 +790,17 @@ def documented_forms(inventory: list[dict]) -> dict[str, list[dict]]:
     before a partial one (a form the skill also gives in full is held to
     it), then, of two full or two partial forms, one that lists parameters
     is compared before one that gives only a usage form, else the first.
-    The first is the documented signature; the others that list members
-    follow it, in that order, as the alternatives the judge compares too (a
-    skill that documents a name briefly in one place and in full in
-    another). A form that lists no member is never an alternative. Two
-    entries that say the same thing (_form_key) are one form; of two that
-    differ only by the partial label, the full one (the stricter) stands."""
-    entries: dict[str, list[dict]] = {}
-    for entry in inventory:
-        name = entry.get("name")
-        if entry.get("kind") == "method" or not (isinstance(name, str) and name) or not _has_signature(entry):
-            continue
-        forms, fields = entries.setdefault(name, []), _form(entry)
-        same = next((i for i, f in enumerate(forms) if _form_key(f) == _form_key(fields)), None)
-        if same is None:
-            forms.append(fields)
-        elif _partial(forms[same]) and not _partial(fields):
-            # in the inventory order the full entry has, as the rank would have ordered it
-            del forms[same]
-            forms.append(fields)
-    out: dict[str, list[dict]] = {}
-    for name, forms in entries.items():
-        first, *others = sorted(forms, key=_rank)  # stable: of forms that rank alike, inventory order
-        out[name] = [first, *(f for f in others if _lists_members(f))]
-    return out
+    The first is the documented signature; the others that list members or
+    state a return type (_gives_return) follow it, in that order, as the
+    alternatives the judge compares too (a skill that documents a name
+    briefly in one place and in full in another, or a call example beside a
+    form that states only what it returns, #914): one that lists no member
+    ranks after every one that does, so it never changes the documented
+    signature. A form that lists no member and states no return type is
+    never an alternative. Two entries that say the same thing (_form_key)
+    are one form; of two that differ only by the partial label, the full one
+    (the stricter) stands."""
+    return {name: [fields for fields, _ in forms] for name, forms in _forms_and_places(inventory).items()}
 
 
 def documented_signatures(inventory: list[dict]) -> dict[str, dict]:
@@ -624,14 +821,31 @@ def _record_file(record: dict) -> str:
 
 
 def _records_by_name(exports: list[dict]) -> dict[str, list[dict]]:
-    """{name: its surface records}, by file then line, a record with no file
-    last: a by-eye record never stands in for the file an extraction names."""
+    """{name: its surface records}, by file then line: a record with no file
+    last and, in one file, a record with a line before one with none, so a
+    by-eye record stands in neither for the file an extraction names nor for
+    the line it records there (#921; a file the two write differently, such
+    as `./src/a.py` and `src/a.py`, is _lined_records's to settle)."""
     by_name: dict[str, list[dict]] = {}
-    for record in sorted(exports, key=lambda r: (not _record_file(r), _record_file(r), r.get("line") or 0)):
+    for record in sorted(exports, key=lambda r: (not _record_file(r), _record_file(r), not _is_line(r.get("line")),
+                                                 r.get("line") if _is_line(r.get("line")) else 0)):
         name = record.get("name")
         if isinstance(name, str) and name:
             by_name.setdefault(name, []).append(record)
     return by_name
+
+
+def _lined_records(records: list[dict]) -> list[dict]:
+    """`records` (a name's surface records, never its `otherDeclarations`)
+    less each one with a file and no line whose file, as _path reads both,
+    holds another of them with a line (#921): after a `readByEye` rerun of
+    `surface`, the extraction's record and a by-eye one with no line share
+    a file, and the extraction's line wins there. A record with no file is
+    kept (it sorts last), and so is a line-less record of a file none of
+    `records` gives a line, which still stands in for that file."""
+    lined = {_path(_record_file(r)) for r in records if _record_file(r) and _is_line(r.get("line"))}
+    return [r for r in records
+            if not _record_file(r) or _is_line(r.get("line")) or _path(_record_file(r)) not in lined]
 
 
 def signature_universe(names: list[str], exports: list[dict]) -> set[str]:
@@ -647,14 +861,23 @@ def _path(file: str) -> str:
     return _inventory()._cited_path(file)
 
 
+def _candidate(record: dict) -> dict:
+    """A surface record or an other declaration as a check names it: its file, line and signature line."""
+    return {"file": _record_file(record), "line": record.get("line"), "signatureLine": record.get("signatureLine")}
+
+
 def _check_at(name: str, records: list[dict], skill_dir: str | None,
               texts: list[list[str]] | None) -> tuple[dict, list[dict] | None]:
     """(the surface record the check of `name` is planned at, the candidates
-    the judge reads, or None). One file among `records`: the first record.
-    Several: the record whose file the skill cites on a line that names
-    `name` when exactly one of them is cited (the first such record), else
-    the first record, with every record that names a file as a candidate.
-    `texts` is the skill's Markdown, read once (skill_markdown_lines)."""
+    the judge reads, or None), of `records` less a line-less one of a file
+    another of them gives a line (_lined_records, before the first record is
+    picked: a `./` spelling of the file sorts first). One file among them:
+    the first record. Several: the record whose file the skill cites on a
+    line that names `name` when exactly one of them is cited (the first
+    such record), else the first record, with every record that names a
+    file as a candidate. `texts` is the skill's Markdown, read once
+    (skill_markdown_lines)."""
+    records = _lined_records(records)
     first = records[0] if records else {}
     filed = [r for r in records if _record_file(r)]
     if len(filed) < 2 or len({_path(_record_file(r)) for r in filed}) < 2:
@@ -663,43 +886,126 @@ def _check_at(name: str, records: list[dict], skill_dir: str | None,
         cited = {_path(_record_file(r)) for r in filed} & _inventory()._skill_cited_files(Path(skill_dir), name, texts)
         if len(cited) == 1:
             return next(r for r in filed if _path(_record_file(r)) in cited), None
-    return first, [{"file": _record_file(r), "line": r.get("line"), "signatureLine": r.get("signatureLine")}
-                   for r in filed]
+    return first, [_candidate(r) for r in filed]
 
 
-def plan(inventory: list[dict], names: list[str] | None, exports: list[dict], skill_dir: str | None = None) -> dict:
+def _span_end(located: list[dict], file: str, line: object) -> int | None:
+    """The last line of the declaration at `file` and `line`, for a citation
+    of its body: the line before the next declaration `located` (the
+    surface's records and its `otherDeclarations`, of every name) records in
+    that file, or sys.maxsize when none follows it (it runs to the end of the
+    file). The extraction records no declaration's last line, so the next
+    declaration it records bounds it, as it bounds an annotation-contradicted
+    `evidence_line` in score. None for a declaration with no line."""
+    if not _is_line(line):
+        return None
+    following = _next_declaration(located, file, line)
+    return sys.maxsize if following is None else max(line, following - 1)
+
+
+def _bindings(name: str, records: list[dict], others: list[dict], places: list[list[tuple[str, int]]],
+              every: set[tuple[str, int]], texts: dict[str, list[str]], shared: set[tuple[str, int]],
+              located: list[dict]) -> list[dict]:
+    """The forms of `name` bound to a declaration (#918): {"form": its index
+    (0 `documented`, n the nth alternative), "file", "line",
+    "signatureLine"} for each form whose own citations name exactly one of
+    the name's declarations, its surface `records` with a file (less a
+    line-less one of a file another of them gives a line, _lined_records)
+    and its `others` (the surface's `otherDeclarations`), each once per file
+    and line. A form's own citations are those of the places its entries write
+    it (`places`, from their `at`), in the skill's Markdown `texts` by path,
+    as validate-inventory.py's form_citations reads them, with the name's
+    other places in that file (of `every` place the inventory gives it,
+    _places_by_name) as those a fenced block's own citations must not be
+    shared with; a place in `shared` (_shared_places: one that writes two
+    forms of the name that differ) gives none when the name is declared more
+    than once (in two files, or at two lines of one), so a form written only
+    there is compared as one with no own citation. A name declared once
+    keeps them: they can bind a form to no other declaration, and give the
+    judge the line of the one there is. One names a declaration as
+    cites_declaration says: its file, with no line, or at a line or in a
+    range that holds a line of its span, from its line to the line before
+    the next declaration `located` records in that file (_span_end). A form
+    whose citations name none, or two, is bound to nothing."""
+    inventory = _inventory()
+    declarations, seen = [], set()
+    for declaration in [r for r in _lined_records(records) if _record_file(r)] + others:
+        key = (_path(_record_file(declaration)), declaration.get("line"))
+        if key not in seen:
+            seen.add(key)
+            declarations.append(declaration)
+    ends = [_span_end(located, _record_file(d), d.get("line")) for d in declarations]
+    # declared once (one file, at most one line in it, a per-file record with no line beside it, one kept only when
+    # no surface record there has a line): no other declaration a shared place's citation could bind a form to, so
+    # its shared places still bind
+    homonyms = (len({_path(_record_file(d)) for d in declarations}) > 1
+                or sum(_is_line(d.get("line")) for d in declarations) > 1)
+    bound = []
+    for index, at in enumerate(places):
+        citations = set()
+        for path, line in at:
+            if homonyms and (path, line) in shared:
+                continue
+            others_there = {other for where, other in every if where == path and other != line}
+            citations |= inventory.form_citations(texts.get(path) or [], line, name, others_there)
+        named = [d for d, end in zip(declarations, ends)
+                 if inventory.cites_declaration(citations, _record_file(d), d.get("line"), end)]
+        if len(named) == 1:
+            bound.append({"form": index, **_candidate(named[0])})
+    return bound
+
+
+def plan(inventory: list[dict], names: list[str] | None, exports: list[dict], skill_dir: str | None = None,
+         others: list[dict] | None = None) -> dict:
     """The comparisons over the signature universe of `names` (the `all`
     set) and `exports`; none without a surface (`names` None). `skill_dir`,
     the skill package, settles which declaration a name the surface records
-    in several files is compared with (_check_at). A name documented in
-    several forms carries the others that list members as `alternatives`
-    (documented_forms)."""
-    forms = documented_forms(inventory)
+    in several files is compared with (_check_at), and binds each form whose
+    own citations name one declaration of the name, a surface record or one
+    of `others` (the surface's `otherDeclarations`), to it (_bindings), a
+    place that writes two of its forms that differ giving none of them a
+    citation (_shared_places) when the name is declared more than once, and
+    the next declaration `exports` or `others` records in a file ending the
+    span of the one before it (_span_end). A
+    name documented in several forms carries the others that list members
+    or state a return type as `alternatives` (documented_forms)."""
+    forms = _forms_and_places(inventory)
+    spots = _places_by_name(inventory)
+    shared = _shared_places(inventory)
     files: dict[str, list[dict]] = {}
     compared = 0
     if names is not None:
         by_name = _records_by_name(exports)
-        texts = _inventory().skill_markdown_lines(Path(skill_dir)) if skill_dir is not None else None
+        others_by_name = _records_by_name(others or [])
+        texts = _inventory().skill_markdown_by_path(Path(skill_dir)) if skill_dir is not None else None
+        lines = list(texts.values()) if texts is not None else None
         for name in sorted(signature_universe(names, exports) & set(forms)):
-            record, candidates = _check_at(name, by_name.get(name) or [], skill_dir, texts)
+            record, candidates = _check_at(name, by_name.get(name) or [], skill_dir, lines)
             compared += 1
             check = {
                 "name": name,
                 "line": record.get("line"),
                 "signatureLine": record.get("signatureLine"),
-                "documented": forms[name][0],
+                "documented": forms[name][0][0],
             }
             if len(forms[name]) > 1:
-                check["alternatives"] = forms[name][1:]
+                check["alternatives"] = [fields for fields, _ in forms[name][1:]]
             if candidates:
                 check["candidates"] = candidates
+            bound = (_bindings(name, by_name.get(name) or [], others_by_name.get(name) or [],
+                               [at for _, at in forms[name]], spots.get(name, set()), texts,
+                               shared.get(name, set()), exports + (others or []))
+                     if texts is not None else [])
+            if bound:
+                check["bound"] = bound
             files.setdefault(_record_file(record), []).append(check)
+    named_forms = {name: [fields for fields, _ in fs] for name, fs in forms.items()}
     return {
         "compared": compared,
         "files": [{"file": f, "checks": checks} for f, checks in sorted(files.items())],
-        "documentedSignatures": documented_signatures(inventory),
+        "documentedSignatures": {name: fs[0] for name, fs in named_forms.items()},
         # The fallback scan's alternatives: a name's form n is its nth entry here, as in a check's `alternatives`.
-        "documentedAlternatives": {name: fs[1:] for name, fs in forms.items() if len(fs) > 1},
+        "documentedAlternatives": {name: fs[1:] for name, fs in named_forms.items() if len(fs) > 1},
     }
 
 
@@ -749,7 +1055,8 @@ def _declaration_line(by_name: dict[str, list[dict]], name: str, file: str, line
 
 
 def _next_declaration(exports: list[dict], file: str, line: int) -> int | None:
-    """The line of the first surface record in `file` after `line`, None when there is none."""
+    """The line of the first surface record in `file` after `line` (a bound declaration included), None when there
+    is none."""
     return min((at for at in _lines_in(exports, file) if at > line), default=None)
 
 
@@ -1206,11 +1513,33 @@ def _returns(lines: list[str], number: int, declaration_line: int) -> bool:
     return False
 
 
+def _states_return(text: object, extension: str = "") -> bool:
+    """Whether `text`, a `return_type` or the return a documented signature
+    writes (_signature_parts), states a return type in a file of
+    `extension`, as signature-comparison-rules.md (Annotations) reads it:
+    not when it is blank or no text, nor when it is a parenthesized,
+    bracketed or braced list of value names (`(nodes, edges)`,
+    `[state, setState]`, `{ data, error }`), each item a bare name that
+    starts lowercase and is no type name of the file's language
+    (LOWERCASE_TYPES; every table for another language or ""). A single
+    name (`result`), a list of types (`(str, int)`), a list that writes a
+    type among its names and any other text state one."""
+    if not isinstance(text, str) or not text.strip():
+        return False
+    text = text.strip()
+    if VALUE_LIST_BRACKETS.get(text[0]) != text[-1]:
+        return True
+    types = LOWERCASE_TYPES.get(extension, ALL_LOWERCASE_TYPES)
+    names = [item.strip() for item in text[1:-1].split(",")]
+    return not all(VALUE_NAME_RE.fullmatch(name) and name not in types for name in names)
+
+
 def contradiction_fact(entry: dict, documented: dict, file: str, declaration_line: int,
                        next_line: int | None = None, source_root: str | None = None) -> str | None:
     """The first fact an annotation-contradicted mismatch rests on that does
     not check, None when each does: the documented entry states a return
-    type (a non-blank `return_type`, or a `documented_sig` that writes one);
+    type (a `return_type`, or the return a `documented_sig` writes, that is
+    neither blank nor a list of value names: _states_return);
     `documented_sig` and `source_sig` write the same parameters, as the
     comparison rules read them in a file of `file`'s language
     (_parameter_difference, which compares the texts before the return when
@@ -1225,7 +1554,7 @@ def contradiction_fact(entry: dict, documented: dict, file: str, declaration_lin
     documented_params, documented_return = _signature_parts(entry["documented_sig"], extension)
     source_params, _ = _signature_parts(entry["source_sig"], extension)
     return_type = documented.get("return_type")
-    if not (isinstance(return_type, str) and return_type.strip()) and not documented_return:
+    if not _states_return(return_type, extension) and not _states_return(documented_return, extension):
         return "the documented signature states no return type"
     difference = _parameter_difference(entry["documented_sig"], entry["source_sig"], extension)
     if difference is not None:
@@ -1315,14 +1644,18 @@ def _gap_record(m: dict) -> dict:
 
 
 def _form_text(form: dict) -> str:
-    """A documented form on one line: its usage form, else its parameters and return type."""
+    """A documented form on one line: its usage form, else its parameters and return type (`-> R` alone for a form
+    with no `params` that writes a return type)."""
     def text(value: object, sep: str = ", ") -> str:
         return sep.join(str(v) for v in value) if isinstance(value, list) else str(value)
     if _gives_usage(form):
         return text(form["usage_signature"], "; ")
     return_type = form.get("return_type")
     tail = f" -> {text(return_type)}" if isinstance(return_type, (str, list)) and text(return_type).strip() else ""
-    return f"({text(form.get('params', ''))}){tail}"
+    params = form.get("params")
+    if params is None and tail:
+        return tail.lstrip()
+    return f"({text('' if params is None else params)}){tail}"
 
 
 def _sig_text(text: str) -> str:
@@ -1334,13 +1667,20 @@ def _sig_text(text: str) -> str:
 
 
 def _quotes(documented_sig: str, form: dict) -> bool:
-    """Whether `documented_sig` is the text of `form`: its parameters (a list joined), or one of its usages, whole
-    or before the return type it writes."""
+    """Whether `documented_sig` is the text of `form`: its parameters (a list joined; blank or absent, `()`, for a
+    form with no usage form, so `()` never quotes a usage-only form), or one of its usages, whole or before the
+    return type it writes, with or without a name or a dotted receiver before its parameter group
+    (`run_pipeline(tasks, data)`, `coco.default_env()`: #919); a usage also reads without its dotted receiver, its
+    name kept (`default_env()` quotes `coco.default_env()`)."""
     usage = form.get("usage_signature")
-    texts = {_sig_text(_field_text(form.get("params")))} | {
-        _sig_text(u) for u in (usage if isinstance(usage, list) else [usage]) if isinstance(u, str)}
-    texts.discard("")
-    return bool({_sig_text(documented_sig), _sig_text(_signature_parts(documented_sig)[0])} & texts)
+    usages = [" ".join(u.split()) for u in (usage if isinstance(usage, list) else [usage]) if isinstance(u, str)]
+    texts = {_sig_text(t) for u in usages for t in (u, CALL_RECEIVER_RE.sub("", u, count=1))} - {""}
+    params = _sig_text(_field_text(form.get("params")))
+    if params or not _gives_usage(form):
+        texts.add(params)
+    head = _signature_parts(documented_sig)[0]
+    named = LEADING_NAME_RE.sub("", head, count=1)
+    return bool({_sig_text(documented_sig), _sig_text(head), _sig_text(named)} & texts)
 
 
 def _form_gap_record(m: dict, index: int, forms: list[dict]) -> dict:
@@ -1353,9 +1693,39 @@ def _form_gap_record(m: dict, index: int, forms: list[dict]) -> dict:
     return record
 
 
+def _form_index(name: str, entry: dict, forms: list[dict]) -> tuple[int, bool, list[str]]:
+    """(the index of the documented form `entry`, a mismatch of `name`, is
+    graded against, whether its label may lower the grade, the notes that
+    say why the form or its grading is not the one its `form` names): an
+    index past `forms` is `documented`; for a name with several forms, one
+    whose text its `documented_sig` is not (_quotes) gives way to the form
+    it quotes, else it stays (its title, Issue and bound declaration are
+    that form's, #919) and its label lowers nothing: it is graded as a full
+    form, with a note when it is not `documented` or is partial."""
+    notes = []
+    # the judge's own `form`, which a note names even when it is past `forms`
+    index = named = entry.get("form") or 0
+    if index >= len(forms):
+        notes.append(f"a signature mismatch for `{name}` names `form` {index}, no form its check offered "
+                     f"(0 to {len(forms) - 1}): graded against `documented`")
+        index = 0
+    if len(forms) > 1 and not _quotes(entry["documented_sig"], forms[index]):
+        quoted = next((j for j, f in enumerate(forms) if _quotes(entry["documented_sig"], f)), None)
+        if quoted is not None:
+            notes.append(f"a signature mismatch for `{name}` names `form` {named}, whose text its "
+                         f"`documented_sig` is not: graded against form {quoted}, the one it quotes")
+            return quoted, True, notes
+        if index != 0 or _partial(forms[index]):
+            notes.append(f"a signature mismatch for `{name}` names `form` {named}, whose text its "
+                         f"`documented_sig` is not, nor any other form's: graded against form {index} as a full form")
+        return index, False, notes
+    return index, True, notes
+
+
 def score(inventory: list[dict], names: list[str], exports: list[dict], results: list[dict],
           type_names: list[str] | None = None, offered: dict[str, list[str]] | None = None,
-          source_root: str | None = None, planned: dict[str, list[dict]] | None = None) -> dict:
+          source_root: str | None = None, planned: dict[str, list[dict]] | None = None,
+          bound: dict[str, dict[int, dict]] | None = None) -> dict:
     """The two categories: Signature Accuracy over the signature universe of
     `names` (the `all` set) and `exports`, Type Coverage over `type_names`
     when given, else over `names`. A fallback scan's exports_found join the
@@ -1365,8 +1735,17 @@ def score(inventory: list[dict], names: list[str], exports: list[dict], results:
     annotation-contradicted mismatch's `evidence_line` is checked in. A
     mismatch is graded against the documented form its `form` names: of
     documented_forms, or of `planned` (read from --plan) for a name it
-    holds, with a warning where the two differ."""
+    holds, with a warning where the two differ. `bound` (read from --plan,
+    #918) gives the declaration each bound form of a name is compared with:
+    that form's mismatch is taken at its file and line, with a warning when
+    the judge names another file, and its line bounds the next declaration
+    in that file as a surface record's does. A bound declaration joins no
+    name, set or count."""
+    bound = bound or {}
     by_name = _records_by_name(exports)
+    # The declarations a line is located among: the surface's records, and each one a form is bound to (an other
+    # declaration only through a binding).
+    located = exports + [{"name": name, **at} for name, forms in bound.items() for at in forms.values()]
     # A fallback scan reports its own names and types.
     fallback_types = {n for r in results for n in r.get("types_found") or []}
     surface = set(names) | {n for r in results for n in r.get("exports_found") or []}
@@ -1388,52 +1767,54 @@ def score(inventory: list[dict], names: list[str], exports: list[dict], results:
             name = entry["name"]
             files = _offered_files(offered, by_name, name)
             # A mismatch found at one of a check's candidates names that file; any other file is not taken.
-            file = result["file"]
-            if entry.get("file") is not None:
-                if _is_offered_file(files, entry["file"]):
-                    file = entry["file"]
-                elif name in compared:
-                    warnings.append(f"{result['file']}:{entry['line']}: a signature mismatch for `{name}` names "
-                                    f"`{entry['file']}`, no file the plan offered its check at: recorded at "
-                                    "the result's file")
-            file = _path(file)
+            named = entry.get("file")
+            file = _path(named if named is not None and _is_offered_file(files, named) else result["file"])
+            line = entry["line"]
             if name not in compared:
-                if (name, file, entry["line"]) not in seen:
-                    warnings.append(f"{file}:{entry['line']}: a signature mismatch for "
+                if (name, file, line) not in seen:
+                    warnings.append(f"{file}:{line}: a signature mismatch for "
                                     f"`{name}`, which is no documented signature on the source surface: "
                                     "not scored, no gap")
-                seen.add((name, file, entry["line"]))
+                seen.add((name, file, line))
                 continue
             # The documented form the mismatch is reported for: 0 is `documented`, n the check's nth alternative.
-            index = entry.get("form") or 0
-            if index >= len(forms[name]):
-                warning = (f"{file}:{entry['line']}: a signature mismatch for `{name}` names `form` {index}, no "
-                           f"form its check offered (0 to {len(forms[name]) - 1}): graded against `documented`")
-                if warning not in warnings:
-                    warnings.append(warning)
-                index = 0
             # A form's own label lowers a grade only for the form the mismatch quotes as `documented_sig`.
-            if len(forms[name]) > 1 and not _quotes(entry["documented_sig"], forms[name][index]):
-                quoted = next((j for j, f in enumerate(forms[name]) if _quotes(entry["documented_sig"], f)), None)
-                if quoted is not None or index != 0:
-                    target = "documented" if quoted is None else f"form {quoted}, the one it quotes"
-                    warning = (f"{file}:{entry['line']}: a signature mismatch for `{name}` names `form` {index}, whose "
-                               f"text its `documented_sig` is not: graded against {target}")
-                    if warning not in warnings:
-                        warnings.append(warning)
-                    index = quoted or 0
+            index, quoted, notes = _form_index(name, entry, forms[name])
+            # A bound form is compared with its bound declaration alone: its mismatch is taken there (#918).
+            at = bound.get(name, {}).get(index)
+            if at is not None:
+                judged = _path(named if named is not None else result["file"])
+                file, line = _path(at["file"]), at["line"] if _is_line(at["line"]) else line
+                if judged != file:
+                    warnings.append(f"{result['file']}:{entry['line']}: a signature mismatch for `{name}` names "
+                                    f"`{judged}`, but its form {index} is bound to the declaration at "
+                                    f"{file}:{line}: recorded there")
+            elif named is not None and not _is_offered_file(files, named):
+                warnings.append(f"{result['file']}:{entry['line']}: a signature mismatch for `{name}` names "
+                                f"`{named}`, no file the plan offered its check at: recorded at "
+                                "the result's file")
+            for note in notes:
+                if f"{file}:{line}: {note}" not in warnings:
+                    warnings.append(f"{file}:{line}: {note}")
             form = forms[name][index]
+            if not quoted:
+                # A text that quotes no form never earns that form's partial label (#919).
+                form = {f: v for f, v in form.items() if f != "signature_form"}
             # Each usage of a list is a form of its own: one key per documented text.
-            key = (name, file, entry["line"], index, _sig_text(entry["documented_sig"]))
+            key = (name, file, line, index, _sig_text(entry["documented_sig"]))
             difference = entry.get("difference")
-            # Graded at the file only when the plan offered it: never Low at a namesake it did not offer.
-            declared = (file if _is_offered_file(files, file) else files[0]) if files else None
+            # Graded at the file only when the plan offered it (a bound form its declaration's): never Low at a
+            # namesake it did not offer.
+            if at is not None:
+                declared = file
+            else:
+                declared = (file if _is_offered_file(files, file) else files[0]) if files else None
             # The facts of an annotation-contradicted mismatch, checked once and handed to grade().
             fact = None
             if difference == CONTRADICTED:
-                at_line = _declaration_line(by_name, name, file, entry["line"])
+                at_line = line if at is not None else _declaration_line(by_name, name, file, line)
                 fact = contradiction_fact(entry, form, file, at_line,
-                                          _next_declaration(exports, file, at_line), source_root)
+                                          _next_declaration(located, file, at_line), source_root)
                 warning = (f"{file}:{at_line}: the mismatch for `{name}` is tagged {CONTRADICTED}, but {fact}: "
                            "graded as an untagged mismatch (Critical)")
                 if fact is not None and warning not in warnings:
@@ -1442,13 +1823,13 @@ def score(inventory: list[dict], names: list[str], exports: list[dict], results:
             # Every entry is graded: one declaration reported twice against one form keeps its most severe grade.
             if key in graded and GRADES.index(graded[key]["severity"]) <= GRADES.index(severity):
                 continue
-            graded[key] = {"name": name, "file": file, "line": entry["line"],
+            graded[key] = {"name": name, "file": file, "line": line,
                            "source_sig": entry["source_sig"], "documented_sig": entry["documented_sig"],
                            "issue": entry["issue"], "difference": difference, "severity": severity}
             if difference == CONTRADICTED:
                 graded[key]["evidence_line"] = entry.get("evidence_line")
-    # A check that offered several files keeps one mismatch per form, its least severe (the closest candidate).
-    # Each form's mismatch stands on its own.
+    # A check that offered several files keeps one mismatch per form, its least severe (the closest candidate);
+    # a bound form was offered its one declaration. Each form's mismatch stands on its own.
     def order(item: tuple) -> tuple:
         (_, _, _, index, text), m = item
         return m["file"], m["line"], m["name"], index, text
@@ -1456,7 +1837,9 @@ def score(inventory: list[dict], names: list[str], exports: list[dict], results:
     kept, closest = [], {}
     for key, m in sorted(graded.items(), key=order):
         bucket = (m["name"], key[3], key[4])
-        if len({_path(f) for f in _offered_files(offered, by_name, m["name"])}) < 2:
+        single = key[3] in bound.get(m["name"], {}) or len(
+            {_path(f) for f in _offered_files(offered, by_name, m["name"])}) < 2
+        if single:
             kept.append((key, m))
         elif bucket not in closest or GRADES.index(m["severity"]) > GRADES.index(closest[bucket][1]["severity"]):
             closest[bucket] = (key, m)
@@ -1477,12 +1860,22 @@ def score(inventory: list[dict], names: list[str], exports: list[dict], results:
             return "type"
         return next((r.get("kind") for r in by_name.get(name, []) if r.get("kind")), None)
 
-    types = {n for n in (surface if type_names is None else set(type_names)) if kind_of(n) in TYPE_KINDS}
+    pool = surface if type_names is None else set(type_names)
+    types = {n for n in pool if kind_of(n) in TYPE_KINDS}
+    # A name the stale-scope guard restored with no kind (#913: the provenance map gives it none at its file) may be
+    # a type: Type Coverage leaves it out and names it, never lowering the score.
+    kindless = sorted(n for n in pool - fallback_types if kind_of(n) is None
+                      and any(r.get("origin") == "restored" for r in by_name.get(n, [])))
     documented_types = types & documented
     if types:
         type_coverage = round2(len(documented_types) / len(types) * 100)
     else:
         type_coverage = 100.0
+    if kindless:
+        warnings.append("Type Coverage leaves out each name the stale-scope guard restored with no kind (the "
+                        "provenance map, when one is given, gives it no kind Type Coverage reads at its file): "
+                        + ", ".join(f"`{n}`" for n in kindless))
+    elif not types:
         warnings.append("the source surface has no interface, type alias, enum or class: Type "
                         "Coverage has nothing to cover and scores 100")
 
@@ -1515,14 +1908,15 @@ def _write_json(path: str, payload) -> None:
 
 def _cmd_plan(args: argparse.Namespace) -> tuple[dict, int]:
     inventory = load_inventory(args.inventory)
-    names, exports = (None, [])
+    names, exports, others = (None, [], [])
     if args.surface is not None:
         _, exports, names = load_surface(args.surface, args.surface_set)
+        others = load_other_declarations(args.surface)
     if args.skill_dir is not None:
         if not args.skill_dir.strip():
             raise InputError("--skill-dir is empty: pass the skill package (the folder that holds SKILL.md)")
         _read_text(str(Path(args.skill_dir) / "SKILL.md"), "--skill-dir")
-    out = plan(inventory, names, exports, args.skill_dir)
+    out = plan(inventory, names, exports, args.skill_dir, others)
     if args.output:
         _write_json(args.output, out)
     return out, 0
@@ -1541,8 +1935,9 @@ def _cmd_score(args: argparse.Namespace) -> tuple[dict, int]:
         return {"valid": False, "violations": violations}, 2
     offered = load_plan(args.plan) if args.plan is not None else None
     planned = load_plan_forms(args.plan) if args.plan is not None else None
+    bound = load_plan_bound(args.plan) if args.plan is not None else None
     out = score(inventory, names, exports, results, None if args.surface_set == "all" else chosen, offered,
-                args.source_root, planned)
+                args.source_root, planned, bound)
     if args.output:
         _write_json(args.output, out)
     if args.gaps_output:
@@ -1564,7 +1959,8 @@ def _build_parser() -> argparse.ArgumentParser:
                    help="a surface name set, which must exist (default: all); the plan compares the signature "
                         "universe whichever set it names")
     p.add_argument("--skill-dir", help="the skill package under test: its citations pick the declaration of a name "
-                                       "the surface records in several files")
+                                       "the surface records in several files, and bind each form whose own "
+                                       "citations name one declaration of its name to it")
     p.add_argument("--output", help="also write the plan to this file")
     p.set_defaults(func=_cmd_plan)
 
@@ -1573,7 +1969,8 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--surface", required=True, help="load-coverage-inputs.py surface output")
     p.add_argument("--surface-set", default="all",
                    help="the surface name set Type Coverage counts (default: all)")
-    p.add_argument("--plan", help="the plan's output: the files each check offered a mismatch at")
+    p.add_argument("--plan", help="the plan's output: the files each check offered a mismatch at, and the "
+                                  "declaration each bound form's mismatch is taken at")
     p.add_argument("--source-root", help="the local source tree the judges read: an annotation-contradicted "
                                          "mismatch's evidence_line must start with `return` there, or be the "
                                          "declaration line with its expression body")

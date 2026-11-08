@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "run_id": "20261108T050838Z-a216f9e1",
+  "stages": [
+    "coverage-check",
+    "coherence-check",
+    "external-validators",
+    "report"
+  ],
+  "records": [
+    {
+      "id": "GAP-001",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: AIGlowInputProps",
+      "source": "packages/components/react-shadcn/src/components/motion-core/ai-glow-input.tsx:13",
+      "remediation": "No change: `AIGlowInputProps` is a documented extra, a name the source still declares at `packages/components/react-shadcn/src/components/motion-core/ai-glow-input.tsx:13` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`references/motion-components.md:29` documents `AIGlowInputProps`, which the enumerated source API surface lacks and the source still declares",
+      "export": "AIGlowInputProps",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-002",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: CodeOutputProps",
+      "source": "packages/components/react-shadcn/src/components/grid/code-output.tsx:7",
+      "remediation": "No change: `CodeOutputProps` is a documented extra, a name the source still declares at `packages/components/react-shadcn/src/components/grid/code-output.tsx:7` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`references/motion-components.md:242` documents `CodeOutputProps`, which the enumerated source API surface lacks and the source still declares",
+      "export": "CodeOutputProps",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-003",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: GridCellProps",
+      "source": "packages/components/react-shadcn/src/components/grid/grid-cell.tsx:5",
+      "remediation": "No change: `GridCellProps` is a documented extra, a name the source still declares at `packages/components/react-shadcn/src/components/grid/grid-cell.tsx:5` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`references/motion-components.md:238` documents `GridCellProps`, which the enumerated source API surface lacks and the source still declares",
+      "export": "GridCellProps",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-004",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: NativeFlipTextProps",
+      "source": "packages/components/react-shadcn/src/components/native/native-flip-text-shadcnui.tsx:7",
+      "remediation": "No change: `NativeFlipTextProps` is a documented extra, a name the source still declares at `packages/components/react-shadcn/src/components/native/native-flip-text-shadcnui.tsx:7` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`references/native-components.md:113` documents `NativeFlipTextProps`, which the enumerated source API surface lacks and the source still declares; of the 5 files that declare it, the skill cites only `packages/components/react-shadcn/src/components/native/native-flip-text-shadcnui.tsx`",
+      "export": "NativeFlipTextProps",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-005",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: NativeTypewriterProps",
+      "source": "packages/components/react-shadcn/src/components/native/native-typewriter-shadcnui.tsx:7",
+      "remediation": "No change: `NativeTypewriterProps` is a documented extra, a name the source still declares at `packages/components/react-shadcn/src/components/native/native-typewriter-shadcnui.tsx:7` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`references/native-components.md:130` documents `NativeTypewriterProps`, which the enumerated source API surface lacks and the source still declares; of the 5 files that declare it, the skill cites only `packages/components/react-shadcn/src/components/native/native-typewriter-shadcnui.tsx`",
+      "export": "NativeTypewriterProps",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-006",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: PresetsPanelProps",
+      "source": "packages/components/react-shadcn/src/components/grid/presets-panel.tsx:8",
+      "remediation": "No change: `PresetsPanelProps` is a documented extra, a name the source still declares at `packages/components/react-shadcn/src/components/grid/presets-panel.tsx:8` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`references/motion-components.md:245` documents `PresetsPanelProps`, which the enumerated source API surface lacks and the source still declares",
+      "export": "PresetsPanelProps",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-007",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: SettingsPanelProps",
+      "source": "packages/components/react-shadcn/src/components/grid/settings-panel.tsx:6",
+      "remediation": "No change: `SettingsPanelProps` is a documented extra, a name the source still declares at `packages/components/react-shadcn/src/components/grid/settings-panel.tsx:6` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`references/motion-components.md:246` documents `SettingsPanelProps`, which the enumerated source API surface lacks and the source still declares",
+      "export": "SettingsPanelProps",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-008",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: TweetCardProps",
+      "source": "packages/components/react-shadcn/src/components/components/cards/tweet-card.tsx:5",
+      "remediation": "No change: `TweetCardProps` is a documented extra, a name the source still declares at `packages/components/react-shadcn/src/components/components/cards/tweet-card.tsx:5` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`references/blocks-and-sections.md:303` documents `TweetCardProps`, which the enumerated source API surface lacks and the source still declares; of the 2 files that declare it, the skill cites only `packages/components/react-shadcn/src/components/components/cards/tweet-card.tsx`",
+      "export": "TweetCardProps",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-009",
+      "severity": "Medium",
+      "category": "stale-documentation",
+      "group": "Coverage",
+      "title": "Stale documentation: UILibraryContextValue",
+      "source": "SKILL.md",
+      "remediation": "Check `UILibraryContextValue` against the source and update or remove its documentation at SKILL.md: the enumerated source surface does not export it.",
+      "issue": "the skill documents `UILibraryContextValue`, which the enumerated source API surface lacks",
+      "export": "UILibraryContextValue",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-010",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: add",
+      "source": "packages/uitripled/src/commands/add.ts:8",
+      "remediation": "No change: `add` is a documented extra, a name the source still declares at `packages/uitripled/src/commands/add.ts:8` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`references/catalog.md:115` documents `add`, which the enumerated source API surface lacks and the source still declares",
+      "export": "add",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-011",
+      "severity": "Info",
+      "category": "observation",
+      "group": "Structural",
+      "title": "Documented extra: fetchComponent",
+      "source": "packages/uitripled/src/utils/registry.ts:5",
+      "remediation": "No change: `fetchComponent` is a documented extra, a name the source still declares at `packages/uitripled/src/utils/registry.ts:5` outside the enumerated surface, and its documentation stays. Its documented signature was not checked against that declaration.",
+      "issue": "`SKILL.md:187` documents `fetchComponent`, which the enumerated source API surface lacks and the source still declares",
+      "export": "fetchComponent",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-012",
+      "severity": "Medium",
+      "category": "brief-scope-stale",
+      "group": "Coverage",
+      "title": "stale brief scope: scope.include globs match no source file",
+      "source": "forge-data/oms-uitripled/skill-brief.yaml",
+      "remediation": "Edit `scope.include` in `forge-data/oms-uitripled/skill-brief.yaml` by hand so each glob matches the files it meant in this version of the source (update-skill does not rewrite an include glob), and add to `scope.exclude` any restored file the brief meant to leave out.",
+      "issue": "the `scope.include` globs `apps/docs/app/**/page.mdx`, `apps/docs/components/demos/**` match no file in the source tested; no root export was restored",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-013",
+      "severity": "Medium",
+      "category": "metadata-drift",
+      "group": "Coverage",
+      "title": "metadata drift — barrel export counts diverge",
+      "source": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json",
+      "remediation": "Re-run Create Skill, which rebuilds `exports[]` and `stats.exports_public_api` in `skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json` from the source. Update Skill does not repair this drift: each time it writes the skill it recounts `stats.exports_public_api` from the source and keeps `exports[]`, adding or dropping only the names its provenance map changes, so a metadata patch does not hold.",
+      "issue": "stats.exports_public_api=445, exports[].length=297 → 33% drift",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-014",
+      "severity": "Info",
+      "category": "multi-denominator",
+      "group": "Coverage",
+      "title": "multi-denominator reporting — barrel vs documented surface",
+      "source": "skills/oms-uitripled/0.1.0/oms-uitripled/metadata.json",
+      "remediation": "No action required: the barrel and the documented surface measure different sets by design, and the report records both counts.",
+      "issue": "barrel=445, documented=315",
+      "stage": "coverage-check"
+    },
+    {
+      "id": "GAP-015",
+      "severity": "Info",
+      "category": "discovery",
+      "group": "Discovery",
+      "title": "Discovery testing not performed: subagents unavailable, routing test requires isolated context",
+      "source": "SKILL.md:3",
+      "remediation": "Re-run skf-test-skill on oms-uitripled in an environment that can spawn subagents, so report.md section 4b.2 routes three realistic prompts drawn from the SKILL.md frontmatter description (SKILL.md:3) against the catalog; no change to the skill files is needed.",
+      "issue": "The discovery routing test needs isolated subagents that do not know which skill is under test; this session could not spawn any, so the three realistic prompts were not routed against the 4-skill catalog (oms-cocoindex, oms-cognee, oms-storybook-react-vite, oms-uitripled).",
+      "stage": "report"
+    }
+  ]
+}

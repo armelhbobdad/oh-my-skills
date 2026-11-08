@@ -106,9 +106,12 @@ cites (never read; default `metadata.json`):
             `extraction` object, not `no-ast-grep`, `truncated` or
             `fallback.needed`: only such an extraction fills
             `excluded.outsideScope`, the names a brief scoped out) and its
-            `excluded.outsideScope` list does not list
-            it: an Info `observation` gap `Documented extra: {name}` at
-            `defined_at`. With no `defined_at`, a homonym (its `declared_in`
+            `excluded.outsideScope` list does not list it (a row of a
+            namespace's member named like its namespace, whose `namespace`
+            is its `name`, #969, does not count unless its `file` is the
+            one the gap would be at): an Info `observation` gap
+            `Documented extra: {name}` at `defined_at`. With no
+            `defined_at`, a homonym (its `declared_in`
             lists several declaring files) is one too, with --skill-dir,
             when the skill's `[AST:path:L<n>]` and `[SRC:path:L<n>]`
             citations on the lines of SKILL.md and references/**/*.md that
@@ -126,30 +129,38 @@ cites (never read; default `metadata.json`):
             first that writes it as an export, the first tier that holds
             the name winning: (1) its first origin in the documented
             inventory's floor (load-coverage-inputs.py floor); (2) a
-            column-0 declaration of it in a fenced block of a language
-            floor's `_declared_names` reads (JS/TS, Python, Rust, Go),
-            cited or not, outside an HTML comment and a data block (json, yaml...);
-            (3) a heading, or the first cell of a table whose header's
-            first cell names exports (floor's table headers), whose text is
-            the name or holds a code span floor reads as the name; (4) a
-            line whose inline code span is the name, or the name directly
-            followed by `(`. Tiers 2 to 4 read SKILL.md, then every .md file
-            under references/, subfolders included, in path order, outside
-            the frontmatter (3 and 4 outside fenced code and HTML comments
-            too); within a tier the first file, then its lowest line, wins.
-            A bare word, or a span that holds the name among other words
-            (`uitripled add`), documents nothing; with no such line, or
-            without --skill-dir, the Source is `SKILL.md`. Floor's
-            InputError (no SKILL.md, or a top-level file it cannot read or
-            decode) leaves tier 1 empty, and a skill file that cannot be
-            read leaves tiers 2 to 4 empty. One whose
-            `excluded.outsideScope` row says the brief
-            scopes its file out (`excludeGlob`, the `scope.exclude` glob
-            that matches it, or `outsideInclude`, no `scope.include` glob
-            covering it) has its own issue, naming the entry point and the
-            file and line, and remediation: to keep the documentation,
-            narrow that exclude glob (a removal needs a `demoted-exclude`
-            amendment) or widen `scope.include`, else remove it. A row the
+            heading, or the first cell of a table whose header's first
+            cell names exports (floor's table headers), whose text is the
+            name or holds a code span floor reads as the name; (3) a line
+            whose inline code span is the name, or the name directly
+            followed by `(`; (4) a column-0 declaration of it in a fenced
+            block of a language floor's `_declared_names` reads (JS/TS,
+            Python, Rust, Go), cited or not, so a def an example writes
+            under the name is cited only when nothing above documents it;
+            (5) a line of a fenced block that holds the name as a whole
+            quoted string (`"name"` or `'name'`), such as an `__all__` item.
+            Tiers 2 to 5 read SKILL.md, then every .md file under
+            references/, subfolders included, in path order, outside the
+            frontmatter (2 and 3 outside fenced code and HTML comments, 4
+            and 5 inside a fence outside an HTML comment and a data block
+            (json, yaml...)); within a tier the first file, then its lowest
+            line, wins. A bare word, a span that holds the name among other
+            words (`uitripled add`), or a quoted string outside a fence or
+            holding other words too (`"add x"`) documents nothing; with no
+            such line, or without --skill-dir, the Source is `SKILL.md`.
+            Floor's InputError (no SKILL.md, or a top-level file it cannot
+            read or decode) leaves tier 1 empty, and a skill file that
+            cannot be read leaves tiers 2 to 5 empty. One whose
+            `excluded.outsideScope` row says the brief scopes its file out
+            (`excludeGlob`, the `scope.exclude` glob that matches it, or
+            `outsideInclude`, no `scope.include` glob covering it), unless
+            that row is a namespace's member named like its namespace (its
+            `namespace` is its `name`, #969) whose `file` is not the one a
+            documented extra's gap would be at, has its own issue, naming the
+            entry point and the file and line, and remediation: to keep the
+            documentation, narrow that exclude glob (a removal needs a
+            `demoted-exclude` amendment) or widen `scope.include`, else
+            remove it. A row the
             brief does not explain keeps the wording above. Every stale
             name's issue (fabricated, documented extra, stale documentation
             or scoped out) opens with the line that documents it, as
@@ -406,6 +417,9 @@ EFFORT = {
 _ID_RE = re.compile(r"^GAP-(\d{3,})$")
 _STAGE_RE = re.compile(r"^[a-z][a-z0-9-]*$")
 _RUN_ID_FROM_NAME = re.compile(r"^test-findings-(.+)\.json$")
+# A whole quoted string, `"name"` or `'name'`. The lookahead lets matches overlap, so an apostrophe earlier on the
+# line (`don't 'add'`) does not swallow the next string; the text between two strings is a harmless extra key.
+_QUOTED_RE = re.compile(r"""(?=(["'])([^"'\n]+)\1)""")
 
 
 class LedgerError(Exception):
@@ -913,26 +927,33 @@ def _documenting_lines(skill_dir: Path) -> dict[str, str]:
       1. its first origin in the documented inventory's floor
          (load-coverage-inputs.py `floor`: SKILL.md and the top-level
          references/*.md);
-      2. a column-0 public declaration of it in a fenced code block (floor's
-         `_declared_names`), cited or not, outside an HTML comment and a data
-         block;
-      3. a heading, or the first cell of a table whose header's first cell is
+      2. a heading, or the first cell of a table whose header's first cell is
          one of floor's `FLOOR_TABLE_HEADERS`, whose stripped text is the name
          or holds a code span floor's `_floor_name` reads as the name;
-      4. a line whose inline code span, stripped, is the name, or the name
-         directly followed by `(`.
+      3. a line whose inline code span, stripped, is the name, or the name
+         directly followed by `(`;
+      4. a column-0 public declaration of it in a fenced code block (floor's
+         `_declared_names`), cited or not, so a def an example writes under
+         the name (a connector author's own `mount_table_target`) is cited
+         only when nothing above documents it;
+      5. a raw (unmasked) line of a fenced code block that holds the name as a
+         whole quoted string (`"name"` or `'name'`), such as an `__all__`
+         item; it only replaces the bare `SKILL.md` fallback.
 
-    Tiers 2 to 4 read SKILL.md, then every .md file under references/,
+    Tiers 2 to 5 read SKILL.md, then every .md file under references/,
     subfolders included, in path order (locate-export-segments.py
-    `skill_files`), never the frontmatter, tiers 3 and 4 outside fenced code
-    and HTML comments; within a tier the first file, then its lowest line,
-    wins. A bare word, or a span that holds the name among other words
-    (`uitripled add`), documents nothing. An input a tier cannot read is
-    skipped: floor's InputError (no SKILL.md, a file that is not UTF-8)
-    leaves tier 1 empty, an unreadable file tiers 2 to 4."""
+    `skill_files`), never the frontmatter: tiers 2 and 3 outside fenced code
+    and HTML comments, tiers 4 and 5 inside a fence outside an HTML comment
+    and a data block (json, yaml...). Within a tier the first file, then its
+    lowest line, wins. A bare word, a span that holds the name among other
+    words (`uitripled add`), or a quoted string outside a fence or holding
+    other words too (`"add x"`) documents nothing. An input a tier cannot
+    read is skipped: floor's InputError (no SKILL.md, a file that is not
+    UTF-8) leaves tier 1 empty, an unreadable file tiers 2 to 5."""
     coverage = _sibling("load-coverage-inputs.py")
     segments = _sibling("locate-export-segments.py")
-    tiers: list[dict[str, str]] = [{}, {}, {}, {}]
+    # In merge order: floor, heading or export-table cell, code span, fenced declaration, quoted string.
+    tiers: list[dict[str, str]] = [{}, {}, {}, {}, {}]
     try:
         for entry in coverage.floor(str(skill_dir))["names"]:
             origin = entry["origins"][0]
@@ -943,8 +964,9 @@ def _documenting_lines(skill_dir: Path) -> dict[str, str]:
         files = segments.skill_files(skill_dir)
     except OSError:
         files = []
-    # floor's fence filter: a fence in an HTML comment or a data block declares nothing, and a Svelte block's
-    # `export let` is a component prop. Unlike floor, an unheaded fence counts.
+    # floor's fence filter: a fence in an HTML comment or a data block declares and quotes nothing, and a Svelte
+    # block's `export let` is a component prop. Unlike floor, an unheaded fence counts; a Svelte, shell or untagged
+    # fence's quoted strings count too.
     js_family = segments.JS_FAMILY - {"svelte"}
     for rel, lines in files:
         start = segments._frontmatter_end(lines)
@@ -954,9 +976,13 @@ def _documenting_lines(skill_dir: Path) -> dict[str, str]:
             language = segments._language(info)
             if opening in comments or language in segments.DATA_LANGUAGES:
                 continue
-            masked = segments.mask_code("\n".join(lines[opening + 1:closing]), language).split("\n")
+            raw = lines[opening + 1:closing]
+            masked = segments.mask_code("\n".join(raw), language).split("\n")
             for offset, declared in coverage._declared_names(masked, language, js_family):
-                tiers[1].setdefault(declared, f"{rel}:{opening + offset + 2}")
+                tiers[3].setdefault(declared, f"{rel}:{opening + offset + 2}")
+            for offset, line in enumerate(raw):
+                for match in _QUOTED_RE.finditer(line):
+                    tiers[4].setdefault(match.group(2), f"{rel}:{opening + offset + 2}")
         headings, prose = segments._prose(lines, start, code)
         shaped = [(index, text) for index, _level, text, _above in headings]
         written = list(shaped)
@@ -968,12 +994,12 @@ def _documenting_lines(skill_dir: Path) -> dict[str, str]:
         for index, text in sorted(shaped):
             for key in [text.strip()] + [coverage._floor_name(span) for span in segments._inline_code(text)]:
                 if key:
-                    tiers[2].setdefault(key, f"{rel}:{index + 1}")
+                    tiers[1].setdefault(key, f"{rel}:{index + 1}")
         for index, text in sorted(written):
             for span in map(str.strip, segments._inline_code(text)):
                 for key in (span, span.split("(", 1)[0] if "(" in span else None):
                     if key:
-                        tiers[3].setdefault(key, f"{rel}:{index + 1}")
+                        tiers[2].setdefault(key, f"{rel}:{index + 1}")
     found: dict[str, str] = {}
     for tier in tiers:
         for key, line in tier.items():
@@ -1002,7 +1028,8 @@ def _scoped_out_by(row: dict) -> bool:
                  or row.get("outsideInclude") is True))
 
 
-def _outside_scope(surface: dict | None) -> dict[str, dict] | None:
+def _outside_scope(surface: dict | None, stale: dict[str, dict] | None = None,
+                   skill_dir: str | None = None) -> dict[str, dict] | None:
     """The names a surface result's `excluded.outsideScope` lists (defined in
     a file out of scope), each with its row: the first the brief explains
     (`_scoped_out_by`), else the first with a file, else its first. None
@@ -1010,7 +1037,13 @@ def _outside_scope(surface: dict | None) -> dict[str, dict] | None:
     (no `extraction` object) or from one that did not read the whole scope
     (a `no-ast-grep` status, a `truncated` run, or `fallback.needed`): only
     an extraction fills that list, so the names a brief scoped out are then
-    unknown."""
+    unknown. A namespace's member that has the namespace's own name (its
+    `namespace` is its `name`, #969), such as a function a submodule
+    imports from a file out of scope, is no row here: the documented name
+    is the submodule, which no brief scoped out, while another row of the
+    name still lists it. It stays when its `file` is the one the classified
+    stale item of its name (`stale`) says the source declares it in, where
+    `_documented_extra_at` would put the gap: that name is the member."""
     excluded = (surface or {}).get("excluded")
     if excluded is None:
         return None
@@ -1034,10 +1067,25 @@ def _outside_scope(surface: dict | None) -> dict[str, dict] | None:
     outside: dict[str, dict] = {}
     for row in rows:
         if isinstance(row, dict) and isinstance(row.get("name"), str):
+            if (isinstance(row.get("namespace"), str) and row["namespace"] and row["namespace"] == row["name"]
+                    and not _declared_in_file(row, (stale or {}).get(row["name"]) or {}, skill_dir)):
+                continue  # the member, not the module the skill documents by that name
             known = outside.get(row["name"])
             if known is None or rank(row) > rank(known):
                 outside[row["name"]] = row
     return outside
+
+
+def _declared_in_file(row: dict, item: dict, skill_dir: str | None) -> bool:
+    """Whether a stale item says the source declares its name in an
+    `excluded.outsideScope` row's file: its `defined_at`, or its one cited
+    `declared_in` item, the place `_documented_extra_at` reads whatever the
+    brief scopes out (an empty `outside`)."""
+    at = _documented_extra_at(row["name"], item, {}, skill_dir)
+    if not at or not isinstance(row.get("file"), str) or not row["file"]:
+        return False
+    cited_path = _sibling("validate-inventory.py")._cited_path
+    return cited_path(at[0].rsplit(":", 1)[0]) == cited_path(row["file"])
 
 
 # The extensions classify-stale reads a `defined_at` in.
@@ -1059,7 +1107,9 @@ def _documented_extra_at(name: str, item: dict, outside: dict[str, dict] | None,
     single cited declaring file (two or more cited, none, or no --skill-dir),
     a `defined_at` or `declared_in` item not a Python or TS/JS `file:line`, a
     dotted name, no surface or one without an extraction, or a name a brief
-    scoped out."""
+    scoped out (a namespace's member named like its namespace scopes out
+    nothing: `_outside_scope` drops its row, #969, unless its file is the
+    one this returns)."""
     if outside is None or name in outside or "." in name:
         return None
     defined_at = item.get("defined_at")
@@ -1236,7 +1286,7 @@ def _stale_gaps(cov: dict, surface: dict | None, stale: object, scored: set[str]
                 export=name))
             continue
         if not outside_read:
-            outside, outside_read = _outside_scope(surface), True
+            outside, outside_read = _outside_scope(surface, classified, skill_dir), True
         extra = _documented_extra_at(name, item, outside, skill_dir)
         if extra:
             declared, among = extra
@@ -1578,7 +1628,9 @@ def _alias_fix(name: str, file: str, item: dict) -> str:
     alias_file, _, alias_line = alias.rpartition(":")
     named = isinstance(local, str) and bool(local)
     renamed = f"`{local}`" if named else "a name a cited file declares"
-    head = f"`{name}` is an alias: `{alias}` renames {renamed} to it, and no line of `{file}` defines `{name}`. "
+    of = f"{renamed}, which a cited file declares" if named else renamed
+    head = (f"`{name}` is an alias of {of}; the source declares the alias at `{alias}`, and no line of `{file}` "
+            f"defines `{name}`. ")
     cite = (f"the alias: set `source_file` to `{alias_file}` and `source_line` to `{alias_line}`, and move the "
             f"citations of `{name}` there.")
     if local == "default":

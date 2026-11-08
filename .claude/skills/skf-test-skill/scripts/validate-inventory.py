@@ -54,14 +54,29 @@ the reader's. Each checked name not
 kept is a violation naming its first checked origin, and the inventory is
 invalid, as for a fabricated name, so the prompt re-dispatches the subagent
 with the names it left out. A checked origin that carries a `signature`
-(#888: the `params` and `return_type` the skill writes there in a fixed
+(#888: the `params`, or for a usage form such as `new Client(opts)` the
+`usage_signature`, and the `return_type` the skill writes there in a fixed
 form) is carried when an entry of that name, whatever its kind, reads as it
-does: each of `params` and `return_type` the signature pins non-blank gives
-the same field_text (whitespace runs as one space, a list's items joined
-with `, `, a null field as blank), and a `params` that opens with the shared
-text the contract has several names' entries carry, then `; `, carries the
-pinned one after it. A field the signature leaves blank, and the entry's
-other fields, a `usage_signature` among them, are not read.
+does: each of those fields the signature pins non-blank gives the same
+field_text (whitespace runs as one space, a list's items joined with `, `,
+a null field as blank), and a `params` or `usage_signature` that opens with
+the shared text the contract has several names' entries carry, then `; `,
+carries the pinned one after it. A field the signature leaves blank, and
+the entry's other fields (its `usage_signature` beside a pinned `params`,
+its `params` beside a pinned `usage_signature`), are not read, but for one:
+a signature read from a column under a partial label (`Signature
+(simplified)`, `Props (simplified)`, load-coverage-inputs.py's
+FLOOR_PARTIAL_LABELS) also gives `signature_form` "partial", and an entry
+carries it only with that `signature_form` too. Such an origin is carried
+only at its own place: by the entries of that name whose `at` is that
+origin and that give its form, at least one, each with the label, while
+each entry of that name with no `at` (none given, or a bad one dropped, as
+below) that gives that form gives the label too: score-signatures.py would
+keep an unlabelled twin at the origin, or an unlabelled copy that shows
+no place, over the label. An unlabelled copy whose kept `at` is another
+place (with --skill-package, a line that writes the name) stays valid. A
+dropped label, such an unlabelled twin or copy, and a carrier elsewhere
+or with no `at`, is then a violation, never the warning below.
 Each checked origin no entry carries is a violation naming the origin and
 its signature, for a name left out too, and the inventory is invalid: the
 form is never overwritten, so the re-dispatched subagent copies it as
@@ -76,18 +91,56 @@ is a violation naming the entry. score-signatures.py reads it: an optional
 member a partial form leaves out is an Info observation, not a wrong
 signature.
 
+An entry's `at` (#918) is the place the skill writes its form,
+"<path>:<line>": the file as the package names it, SKILL.md or a file the
+inventory's `references` lists (normalized as a pair's file is, and left in
+the entry that way), and the line the form starts on. Each entry whose
+`params` or `usage_signature` score-signatures.py plan compares
+(compared_form: no `method`, with a `params` or `usage_signature` list or
+non-blank string, or a function's `params` string, `""` included) is asked
+for one. A missing or bad `at` never makes the inventory invalid: a bad one
+is dropped from its entry, so the inventory --output writes carries none,
+and each is listed in `warnings`, naming the entry. Its form is then
+compared as one whose citations name no declaration, as before #918. An
+`at` (on any entry) is bad when it is no "<path>:<line>" with a line from
+1 or names another file. With --skill-package it is bad too when its file
+cannot be read, when its line is past the end, and when that line does not
+write the entry's name outside its citations (the documented-name match)
+and, for a line inside a fenced block (the fences load-coverage-inputs.py
+floor reads, locate-export-segments.py's), neither does the block. With
+--floor, a checked origin with a `signature` (one with no partial label;
+a labelled one is placed as above) is placed when an entry that
+carries it gives that origin as its `at`; when none does, the `at` of each
+entry that carries it is bad unless it is a checked origin whose signature
+that entry carries, and the origin is a warning of its own when each entry
+that carries it keeps its `at` at another such origin (the citations there
+are not read). A warning says its form is left unbound (UNBOUND) only when
+it is, and at most once for an entry: a method's dropped `at` and an
+origin's own warning do not. score-signatures.py plan reads the citations
+of each form's place (form_citations) to compare it with the declaration
+they name. A form that writes only a `return_type` gives no `at`, so it is
+never bound: plan compares it as it compares a form whose citations name no
+declaration.
+
 Distinct from reconcile-coverage.py (coverage numerator arithmetic) and
 compute-score.py (weight tables): this script only validates the *shape* of the
 subagent inventory and, on success, echoes the fence-stripped parsed inventory
-back so the prompt consumes it directly instead of re-parsing the raw response.
+back, with the `crossChecked` count added once the spot-check ran, so the
+prompt consumes it directly instead of re-parsing the raw response.
+`crossChecked` (#920) is `{"count": <int>, "names": [<name>, ...]}`: each
+inventory name, once, that two or more of the spot-check's files write
+(cross_checked), the Exports Cross-Checked count coherence-check reports.
+Only the validator writes it: one the response carries is replaced with
+--skill-package and dropped without it.
 
 It also reports each documented item's completeness, the docs-only Export
 Coverage rule: an item (one name and kind) is complete when it has a
 non-empty `description` and, for a function or a method, `params` (a string
-or a list, empty when the function takes none) and a non-empty
-`return_type`. A missing description makes an item incomplete; it never
-makes the inventory invalid. reconcile-coverage.py's docsOnly branch scores
-with the same rule.
+or a list, empty when the function takes none) or a non-blank
+`usage_signature` (#916: the contract records a call there whole; a list
+with a non-blank usage), and a non-empty `return_type`. A missing
+description makes an item incomplete; it never makes the inventory
+invalid. reconcile-coverage.py's docsOnly branch scores with the same rule.
 
 Shared helpers. The other coverage scripts load these from this file rather
 than keep copies: `strip_fences` (score-signatures.py), `completeness`
@@ -109,7 +162,27 @@ files the skill's `[AST:]` and `[SRC:]` citations name on a line of SKILL.md
 or references/**/*.md that writes a name with the match above, or on the
 next non-blank line. gap-ledger.py reads it to pick the declaration of a
 stale homonym, score-signatures.py to plan a signature check at the
-declaration the skill cites.
+declaration the skill cites. A form's own citations are shared the same way
+(#918): `form_citations` gives the citations of the form an `at` places, on
+its line; on the next non-blank line, unless that line writes the name (it
+is another place of the name, such as the next table row) or, inside a
+fenced block, is a comment (it heads the next declaration); for a line
+inside a fenced block, on the comment lines just above it in the block;
+and, when the block holds no other place the inventory gives the name, on
+the block's first non-blank line when it is a comment and on the first
+non-blank line after its closing fence unless that line writes the name.
+Each comes with the lines it covers (a citation with no `:L<n>` covers its
+whole file), and `cites_declaration` says whether they name a declaration:
+its file, at a line or in a range that holds a line of its span, from its
+line to its last one (a citation of a function's body names it as one of
+its `def` line does; score-signatures.py ends a span before the next
+declaration the surface records in its file). score-signatures.py plan
+binds a form to the one declaration of its name they name (with
+`parse_at`, `compared_form` and `skill_markdown_by_path`), but, for a
+name declared more than once, never by the citations of a place where the
+inventory gives the name two forms that differ (a row that quotes another
+declaration's form as a contrast): there each form is bound only by its
+other places, if any.
 
 CLI usage (mirrors reconcile-coverage.py):
   uv run validate-inventory.py --input <response file> [--output <inventory file>]
@@ -127,8 +200,8 @@ path, so a quote or an apostrophe in a description never meets a shell.
 JSON) when it is valid, for the steps that read it by path; an invalid
 inventory removes a file left there by an earlier attempt. --skill-package
 names the skill package under test (the folder that holds SKILL.md) and
-adds the spot-check. --floor names the floor file (UTF-8 JSON) and adds the
-floor check.
+adds the spot-check and the inventory's `crossChecked` count. --floor names
+the floor file (UTF-8 JSON) and adds the floor check.
 
 Input: the subagent's RAW response text (JSON, optionally wrapped in a markdown
 code fence — a leading line of three backticks with an optional language tag and
@@ -138,9 +211,12 @@ Output (stdout, one object):
   {
     "valid": <bool>,             # true only when parse + every schema check pass
     "violations": [<str>, ...],  # human-readable failures; empty when valid
+    "warnings": [<str>, ...],    # each missing or bad `at` (dropped), never a failure
     "rejectedCount": <int>,      # exports[] entries with no valid name or kind
     "exportsCount": <int>,       # len(exports) when parsed; 0 otherwise
-    "inventory": {...} | null,   # fence-stripped parsed inventory when valid; null otherwise
+    "inventory": {...} | null,   # fence-stripped parsed inventory when valid; null otherwise;
+                                 # with --skill-package it carries
+                                 # "crossChecked": {"count": <int>, "names": [<name>, ...]}
     "completeness": {            # present when valid
       "total": <int>,            # documented items, one per name and kind
       "complete": <int>,
@@ -161,24 +237,30 @@ Output (stdout, one object):
 
 Exit codes:
   0  inventory valid (every sampled name found, every checked floor name
-     kept and every checked floor signature carried)
+     kept and every checked floor signature carried; a missing or bad `at`
+     is only a warning, but a labelled floor signature is carried only at
+     its own place, and never unlabelled there or with no `at`)
   1  no input provided, the --input file cannot be read, the
      --skill-package folder holds no readable SKILL.md, or the --floor file
      cannot be read or is not a floor, a malformed `signature` among them
      (usage error)
   2  inventory invalid (parse failure, schema violation, a sampled name
-     absent, a floor name left out or a floor signature no entry carries;
+     absent, a floor name left out or a floor signature no entry carries,
+     or a labelled one no entry at its place carries with its label, or
+     that an entry there or with no `at` gives without it;
      result JSON emitted)
 """
 
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import posixpath
 import re
 import sys
+from collections.abc import Iterable
 from pathlib import Path
 
 # Fixed enum for exports[].kind — the constructs SKF documents across languages
@@ -229,8 +311,15 @@ SIGNATURE_KINDS = ("function", "method")
 SIGNATURE_FIELDS = ("params", "return_type", "usage_signature")
 
 # The fields of a floor origin's `signature` (#888), each a string, and the
-# ones the floor check compares with an entry's.
-FLOOR_SIGNATURE_FIELDS = ("params", "return_type")
+# ones the floor check compares with an entry's: `return_type` and either
+# `params` (a complete form or a props or parameter cell) or `usage_signature`
+# (a usage form, such as `new Client(opts)`).
+FLOOR_SIGNATURE_FIELDS = ("params", "usage_signature", "return_type")
+
+# The label a floor origin's `signature` may also give (#888), its key and its
+# one value: the partial label of the Signature, Props, Params or Parameters
+# column it was read from, which the entry at that origin copies.
+FLOOR_LABEL_FIELD, FLOOR_LABEL = "signature_form", "partial"
 
 # Characters that continue an identifier in the languages SKF documents
 # (`$` for JS/TS names such as `$state`).
@@ -335,16 +424,24 @@ def skill_markdown_files(skill_dir: Path) -> list[Path]:
     return files
 
 
-def skill_markdown_lines(skill_dir: Path) -> list[list[str]]:
-    """The lines of each file skill_markdown_files lists (an unreadable one is
-    left out), read once for every name _skill_cited_files looks up."""
-    texts: list[list[str]] = []
+def skill_markdown_by_path(skill_dir: Path) -> dict[str, list[str]]:
+    """{the path of each file skill_markdown_files lists, relative to
+    `skill_dir` with forward slashes: its lines} (an unreadable one is left
+    out), read once for every name or form the citation scan looks up."""
+    texts: dict[str, list[str]] = {}
     for path in skill_markdown_files(skill_dir):
         try:
-            texts.append(path.read_bytes().decode("utf-8-sig", errors="replace").split("\n"))
+            texts[path.relative_to(skill_dir).as_posix()] = (
+                path.read_bytes().decode("utf-8-sig", errors="replace").split("\n"))
         except OSError:
             continue
     return texts
+
+
+def skill_markdown_lines(skill_dir: Path) -> list[list[str]]:
+    """The lines of each file skill_markdown_files lists (an unreadable one is
+    left out), read once for every name _skill_cited_files looks up."""
+    return list(skill_markdown_by_path(skill_dir).values())
 
 
 def _skill_cited_files(skill_dir: Path, name: str, texts: list[list[str]] | None = None) -> set[str]:
@@ -363,6 +460,151 @@ def _skill_cited_files(skill_dir: Path, name: str, texts: list[list[str]] | None
             for cited_line in (line, following):
                 cited.update(_cited_path(m.group(2)) for m in _SKILL_CITATION_RE.finditer(cited_line))
     return cited
+
+
+# --- A form's place and its own citations (#918) -------------------------------
+
+# An entry's `at`: the place the skill writes its form, "<path>:<line>", the line from 1.
+_AT_RE = re.compile(r"(.+):([1-9][0-9]*)")
+# A source citation as a form's own citation reads it: one with no `:L<n>` part too, which names every declaration
+# in its file. Groups as _SKILL_CITATION_RE's, the line ones absent for no line.
+_FORM_CITATION_RE = re.compile(r"\[(AST|SRC):([^\[\]\n]+?)(?::L(\d+)(?:-(L?)(\d+))?)?\]")
+# A comment's opening marker: `//`, `#`, `/*`, `--`, `<!--` or `;`. Keep identical to COMMENT_MARKER_RE in
+# load-coverage-inputs.py, which reads a fenced block the same way (the floor's `declaration` form).
+_COMMENT_MARKER_RE = re.compile(r"[ \t]*(?://+|#+|/\*+|--|<!--|;+)")
+
+_SEGMENTS_MODULE = None
+
+
+def _segments():
+    """locate-export-segments.py beside this script: the fence model the floor reads a skill with."""
+    global _SEGMENTS_MODULE
+    if _SEGMENTS_MODULE is None:
+        sibling = Path(__file__).resolve().parent / "locate-export-segments.py"
+        spec = importlib.util.spec_from_file_location("skf_validate_inventory_segments", sibling)
+        if spec is None or spec.loader is None or not sibling.is_file():
+            raise ImportError(f"locate-export-segments.py not found beside {Path(__file__).name}")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _SEGMENTS_MODULE = module
+    return _SEGMENTS_MODULE
+
+
+def compared_form(entry: dict) -> bool:
+    """Whether score-signatures.py plan compares a form the entry's `params`
+    or `usage_signature` writes, so the entry carries `at`: an entry that is
+    no `method` whose `params` or `usage_signature` is a list or a non-blank
+    string, or, for a function, whose `params` is a string (`""`, the form
+    of one that takes none). plan also compares a form that writes only a
+    `return_type`; that one carries no `at`, so it is never bound."""
+    if entry.get("kind") == "method":
+        return False
+    if entry.get("kind") in SIGNATURE_KINDS and isinstance(entry.get("params"), str):
+        return True
+    return any(isinstance(entry.get(f), list) or (isinstance(entry.get(f), str) and bool(entry[f].strip()))
+               for f in ("params", "usage_signature"))
+
+
+def parse_at(value: object) -> tuple[str, int] | None:
+    """An entry's `at` as (its path, _cited_path, its line), None when it is
+    no "<path>:<line>" with a line from 1."""
+    m = _AT_RE.fullmatch(value.strip()) if isinstance(value, str) else None
+    if m is None or not m.group(1).strip():
+        return None
+    return _cited_path(m.group(1)), int(m.group(2))
+
+
+def _fence_holding(lines: list[str], index: int) -> tuple[int, int] | None:
+    """(its opening fence, its closing fence) of the fenced block whose body
+    holds line `index` (from 0), as the floor reads fences
+    (locate-export-segments.py's _fenced_blocks past the frontmatter, an
+    unclosed block running to the end); None for a line outside every body,
+    a fence included."""
+    segments = _segments()
+    blocks, _ = segments._fenced_blocks(lines, segments._frontmatter_end(lines))
+    return next(((opening, closing) for opening, closing, _ in blocks if opening < index < closing), None)
+
+
+def _first_filled(lines: list[str], start: int) -> str:
+    return next((ln for ln in lines[start:] if ln.strip()), "")
+
+
+def _writes(pattern, line):
+    """Whether `line` writes the name `pattern` matches outside its citations (the documented-name match)."""
+    return bool(pattern.search(_ANY_CITATION_RE.sub(" ", line)))
+
+
+def form_citations(lines: list[str], line: int, name: str,
+                   others: Iterable[int] = ()) -> set[tuple[str, int | None, int | None]]:
+    """The own citations of the form of `name` a skill file writes at `line`
+    (from 1, its `at`), from that file's `lines`; `others` are the lines of
+    the other places the inventory gives `name` in that file. They are the
+    `[AST:]` and `[SRC:]` citations:
+
+    - on that line;
+    - on the next non-blank line, unless that line writes `name` outside
+      its citations (another place of the name, such as the next table
+      row, whose citations are its own) or, inside a fenced block, is a
+      comment (it heads the next declaration);
+    - for a line inside a fenced block (_fence_holding), on the comment
+      lines just above it in the block, its own heading;
+    - and, when no line of `others` is in that block's body (a block that
+      holds two places of the name gives neither its block-wide
+      citations), on the block's first non-blank line when it is a comment,
+      and on the first non-blank line after its closing fence unless that
+      line writes `name`.
+
+    Each is (its file, _cited_path; the first line it covers; the last):
+    `:L12` covers line 12, `:L12-34` and `:L12-L34` lines 12 to 34, and a
+    citation with no `:L<n>` part gives (its file, None, None), every
+    declaration in its file."""
+    index = line - 1
+    if not 0 <= index < len(lines):
+        return set()
+    pattern = name_pattern(name)
+    fence = _fence_holding(lines, index)
+    places = [lines[index]]
+    following = _first_filled(lines, index + 1)
+    if not _writes(pattern, following) and not (fence is not None and _COMMENT_MARKER_RE.match(following)):
+        places.append(following)
+    if fence is not None:
+        opening, closing = fence
+        above = index - 1
+        while above > opening and _COMMENT_MARKER_RE.match(lines[above]):
+            places.append(lines[above])
+            above -= 1
+        if not any(opening < other - 1 < closing for other in others if other != line):
+            heading = _first_filled(lines[opening + 1:closing], 0)
+            if _COMMENT_MARKER_RE.match(heading):
+                places.append(heading)
+            after = _first_filled(lines, closing + 1)
+            if not _writes(pattern, after):
+                places.append(after)
+    cited: set[tuple[str, int | None, int | None]] = set()
+    for text in places:
+        for m in _FORM_CITATION_RE.finditer(text):
+            if m.group(3) is None:
+                cited.add((_cited_path(m.group(2)), None, None))
+            else:
+                first, last = int(m.group(3)), int(m.group(5) or m.group(3))
+                cited.add((_cited_path(m.group(2)), min(first, last), max(first, last)))
+    return cited
+
+
+def cites_declaration(citations: set[tuple[str, int | None, int | None]], file: str, line: object,
+                      end: int | None = None) -> bool:
+    """Whether one of `citations` (form_citations) names the declaration at
+    `file` and `line`: it cites that file (both read by _cited_path) with no
+    line, or at a line or in a range that holds a line of its span, from
+    `line` to `end` (its last line; None for `line` alone). A citation of
+    the body names the function as its `def` line does, and a range over
+    two declarations names each one it holds a line of."""
+    path = _cited_path(file)
+    if not _is_line(line):
+        return any(cited == path and first is None for cited, first, _ in citations)
+    last_line = line if end is None or end < line else end
+    return any(cited == path and (first is None or (first <= last_line and line <= last))
+               for cited, first, last in citations)
 
 
 # --- Spot-check -------------------------------------------------------------
@@ -396,42 +638,78 @@ def _inside(path, root):
     return path == root or path.startswith(root.rstrip(os.sep) + os.sep)
 
 
-def spot_check(inventory, skill_package_path):
-    """Look the sampled export names up in SKILL.md and the inventory's references.
+def _package_texts(inventory, skill_package_path):
+    """Read the files the inventory reads, for spot_check and cross_checked.
 
     The file set is the package's SKILL.md plus each `references` entry,
     resolved against the package (a split-body skill documents some exports
-    only in a reference file). A listed file that is missing, unreadable or
-    resolves outside the package is not read and is named in `unread`.
+    only in a reference file), a listed spelling read once. A listed file
+    that is missing, unreadable or resolves outside the package is not read
+    and is named in `unread`. Returns `(read, unread)`: `read` holds
+    `(spelling, resolved path, text)` for each file read, SKILL.md first.
+    Raises PackageError when SKILL.md cannot be read.
     """
     root = Path(skill_package_path)
     real_root = os.path.realpath(root)
+    skill_md = root / "SKILL.md"
     try:
-        texts = [(root / "SKILL.md").read_bytes().decode("utf-8-sig")]
+        read = [("SKILL.md", os.path.realpath(skill_md), skill_md.read_bytes().decode("utf-8-sig"))]
     except (OSError, UnicodeDecodeError) as exc:
-        raise PackageError(f"cannot read {(root / 'SKILL.md').as_posix()}: {exc}") from exc
-    files, unread = ["SKILL.md"], []
+        raise PackageError(f"cannot read {skill_md.as_posix()}: {exc}") from exc
+    unread = []
     listed = inventory.get("references")
     for ref in listed if isinstance(listed, list) else []:
-        if not isinstance(ref, str) or not ref.strip() or ref in files or ref in unread:
+        if not isinstance(ref, str) or not ref.strip() or ref in unread or any(ref == r[0] for r in read):
             continue
         target = os.path.realpath(root / ref)
         try:
             if not _inside(target, real_root):
                 raise OSError("outside the package")
-            texts.append(Path(target).read_bytes().decode("utf-8-sig"))
-            files.append(ref)
+            read.append((ref, target, Path(target).read_bytes().decode("utf-8-sig")))
         except (OSError, UnicodeDecodeError):
             unread.append(ref)
-    doc_text = "\n".join(texts)
+    return read, unread
+
+
+def spot_check(inventory, skill_package_path):
+    """Look the sampled export names up in SKILL.md and the inventory's references.
+
+    The files are _package_texts's: `files` names each one read as the
+    inventory spells it, `unread` each listed one that is missing,
+    unreadable or resolves outside the package.
+    """
+    read, unread = _package_texts(inventory, skill_package_path)
+    doc_text = "\n".join(text for _, _, text in read)
     sampled = sample_names(inventory.get("exports"))
     found = set(names_present(sampled, doc_text))
     return {
         "sampled": sampled,
         "absent": [name for name in sampled if name not in found],
-        "files": files,
+        "files": [spelling for spelling, _, _ in read],
         "unread": unread,
     }
+
+
+def cross_checked(exports, texts):
+    """The inventory's names that two or more of the files it reads write (#920).
+
+    `texts` is _package_texts's `read`, the spot-check's files. A file
+    counts once, by its resolved path, so a reference listed under two
+    spellings (`references/a.md`, `./references/a.md`), or SKILL.md listed
+    again, is one file. A file writes a name when names_present finds it
+    outside its citations, so a mention in prose counts, and a name counts
+    once however many entries give it (a homonym). Returns `{"count": <int>,
+    "names": [<name>, ...]}`, the names sorted; coherence-check reports the
+    count as Exports Cross-Checked.
+    """
+    names = {entry["name"] for entry in exports
+             if isinstance(entry, dict) and isinstance(entry.get("name"), str) and entry["name"]}
+    by_path = {}
+    for _, path, text in texts:
+        by_path.setdefault(os.path.normcase(path), text)
+    found = [set(names_present(names, _ANY_CITATION_RE.sub(" ", text))) for text in by_path.values()]
+    crossed = sorted(name for name in names if sum(name in written for written in found) >= 2)
+    return {"count": len(crossed), "names": crossed}
 
 
 # --- Signature forms ----------------------------------------------------------
@@ -461,9 +739,16 @@ class FloorError(Exception):
 
 
 def _is_signature(value):
-    """A floor origin's `signature`: an object of exactly the strings `params` and `return_type`."""
-    return (isinstance(value, dict) and sorted(value) == sorted(FLOOR_SIGNATURE_FIELDS)
-            and all(isinstance(value[f], str) for f in FLOOR_SIGNATURE_FIELDS))
+    """A floor origin's `signature`: an object of the string `return_type` and exactly one of the string `params` and
+    a non-blank string `usage_signature` (a usage form, #888), and optionally `signature_form` "partial" (a column's
+    partial label, #888); any other key or value is not one."""
+    if not isinstance(value, dict):
+        return False
+    form = set(value) - {FLOOR_LABEL_FIELD, "return_type"}
+    return ("return_type" in value and len(form) == 1 and form <= set(FLOOR_SIGNATURE_FIELDS)
+            and all(isinstance(value[f], str) for f in form | {"return_type"})
+            and (form != {"usage_signature"} or bool(value["usage_signature"].strip()))
+            and value.get(FLOOR_LABEL_FIELD, FLOOR_LABEL) == FLOOR_LABEL)
 
 
 def _is_origin(origin):
@@ -487,8 +772,9 @@ def read_floor(path):
             and isinstance(item.get("origins"), list) and all(_is_origin(o) for o in item["origins"])
             for item in names):
         raise FloorError(f"{path} is not a floor: `names` must give each name's `name` and `origins` "
-                         "(each a file, a line and a form, and an optional `signature` of the strings "
-                         "`params` and `return_type`)")
+                         "(each a file, a line and a form, and an optional `signature` of the string "
+                         "`return_type` and either the string `params` or a non-blank string `usage_signature`, "
+                         "and an optional `signature_form` \"partial\")")
     return data
 
 
@@ -503,18 +789,31 @@ def _listed_path(ref, skill_package_path):
 
 
 def _carries(entry, signature):
-    """Whether an entry carries a floor origin's signature: each field it pins non-blank has the same field_text
-    there, a `params` that opens with members the skill states once for several names (the contract's shared
-    text, then `; `) included."""
+    """Whether an entry carries a floor origin's signature: each field the signature gives (`params` or
+    `usage_signature`, and `return_type`) and pins non-blank has the same field_text there, a `params` or
+    `usage_signature` that opens with members the skill states once for several names (the contract's shared text,
+    then `; `) included; and, when it gives the partial label (#888), the entry's `signature_form` is that label
+    too."""
+    if FLOOR_LABEL_FIELD in signature and entry.get(FLOOR_LABEL_FIELD) != signature[FLOOR_LABEL_FIELD]:
+        return False
     for field in FLOOR_SIGNATURE_FIELDS:
+        if field not in signature:
+            continue
         wanted, given = field_text(signature[field]), field_text(entry.get(field))
-        if wanted and given != wanted and not (field == "params" and given.endswith("; " + wanted)):
+        if wanted and given != wanted and not (field != "return_type" and given.endswith("; " + wanted)):
             return False
     return True
 
 
+def _origin_signature(origin):
+    """A floor origin's signature, the fields it gives (#888: `params` or `usage_signature`, and `return_type`) and
+    its label only when it gives one."""
+    return {f: origin["signature"][f] for f in FLOOR_SIGNATURE_FIELDS + (FLOOR_LABEL_FIELD,)
+            if f in origin["signature"]}
+
+
 def floor_check(inventory, floor, skill_package_path=None):
-    """The floor names and signatures the inventory leaves out: (the `floor` result, its violations).
+    """The floor names and signatures the inventory leaves out: (the `floor` result, its violations, its warnings).
 
     A floor name is checked when one of its origins is SKILL.md or a file
     the inventory's `references` lists (the spot-check's files, an absolute
@@ -523,19 +822,37 @@ def floor_check(inventory, floor, skill_package_path=None):
     name left out is a violation naming its first checked origin. Then each
     checked origin with a `signature` is carried when an entry of that name,
     whatever its kind, gives the same field_text to each field the
-    signature pins non-blank (a blank pinned `return_type` leaves the
-    entry's free; a `params` may open with shared text and `; `, _carries);
-    one no entry carries is a violation naming the origin and the
-    signature, for a name left out too.
+    signature pins non-blank (its `params` or, for a usage form, its
+    `usage_signature`, and its `return_type`; a blank pinned `return_type`
+    leaves the entry's free; a `params` or `usage_signature` may open with
+    shared text and `; `, _carries); one no entry carries is a violation
+    naming the origin and the signature, for a name left out too. A carried
+    origin is placed when an entry that carries it gives that origin as its
+    `at` (parse_at; #918). When none does, the `at` of each entry that
+    carries it is dropped with a warning (_drop), unless it is a checked
+    origin whose signature that entry carries. When none is dropped and each
+    still has an `at`, a place at another such origin, the origin is a
+    warning of its own: the citations there are not read. An entry left with
+    no `at` has a warning already when its form is compared, so the origin
+    adds none. A misplaced form never makes the inventory invalid, except
+    one whose signature gives the partial label (#888): it is placed only by
+    the entries of that name whose `at` is that origin and that give its
+    form, at least one and each with its `signature_form`, while each entry
+    of that name with no `at` (none given, or a bad one at_warnings or
+    place_warnings dropped first) that gives that form gives the label too.
+    It is otherwise one violation, a carrier elsewhere or with no `at`, an
+    unlabelled twin there and an unlabelled copy with no `at` included; an
+    unlabelled copy whose `at` is another place (with the package, a line
+    that writes the name) stays valid.
     """
     listed = inventory.get("references")
     files = {"SKILL.md"} | {_listed_path(ref, skill_package_path)
                             for ref in (listed if isinstance(listed, list) else [])
                             if isinstance(ref, str) and ref.strip()}
-    entries = [e for e in inventory.get("exports") or [] if isinstance(e, dict)]
-    kept = {e.get("name") for e in entries}
+    entries = [(idx, e) for idx, e in enumerate(inventory.get("exports") or []) if isinstance(e, dict)]
+    kept = {e.get("name") for _, e in entries}
     names = floor.get("names") or []
-    checked, absent, violations, signed = 0, [], [], []
+    checked, absent, violations, warnings, signed = 0, [], [], [], []
     for item in names:
         origins = [o for o in item["origins"] if _cited_path(o["file"]) in files]
         if not origins:
@@ -548,15 +865,48 @@ def floor_check(inventory, floor, skill_package_path=None):
         absent.append(name)
         where = f"{origins[0]['file']}:{origins[0]['line']} ({origins[0]['form']})"
         violations.append(f"floor: `{name}` is documented at {where}, but no inventory entry lists it")
+
+    def carried(entry):
+        """The checked origins of the entry's name whose signature it carries, (path, line) as parse_at gives."""
+        return {(_cited_path(o["file"]), o["line"]) for n, o in signed
+                if n == entry.get("name") and _carries(entry, _origin_signature(o))}
+
     for name, origin in signed:
-        signature = {f: origin["signature"][f] for f in FLOOR_SIGNATURE_FIELDS}
-        if any(_carries(e, signature) for e in entries if e.get("name") == name):
+        signature = _origin_signature(origin)
+        place = (_cited_path(origin["file"]), origin["line"])
+        pinned = (f"floor: `{name}` is documented at {origin['file']}:{origin['line']} ({origin['form']}) with the "
+                  f"signature {json.dumps(signature, ensure_ascii=False)}")
+        at = json.dumps(f"{place[0]}:{place[1]}")
+        if FLOOR_LABEL_FIELD in signature:
+            # A labelled pin (#888) is placed only at its own `at`: the entries of the name there that give its form
+            # are at least one, and each of them and each one with no `at` (a bad one is dropped by now) gives its
+            # label, so no unlabelled twin, nor a copy that shows no place, is the form score-signatures.py keeps. A
+            # copy whose `at` is another place is compared there.
+            form = {f: signature[f] for f in FLOOR_SIGNATURE_FIELDS if f in signature}
+            copies = [e for _, e in entries if e.get("name") == name and _carries(e, form)]
+            here = [e for e in copies if parse_at(e.get("at")) == place]
+            if not here or not all(_carries(e, signature) for e in copies
+                                   if e.get("at") is None or parse_at(e["at"]) == place):
+                violations.append(f"{pinned}, but no inventory entry of that name at that place carries it, or one "
+                                  f"gives its form without its `signature_form` there or with no `at`; copy it as "
+                                  f"given, with `at` {at}")
             continue
-        where = f"{origin['file']}:{origin['line']} ({origin['form']})"
-        violations.append(f"floor: `{name}` is documented at {where} with the signature "
-                          f"{json.dumps(signature, ensure_ascii=False)}, but no inventory entry of that name "
-                          "carries it; copy it as given")
-    return {"names": len(names), "checked": checked, "absent": absent}, violations
+        carriers = [(idx, e) for idx, e in entries if e.get("name") == name and _carries(e, signature)]
+        if any(parse_at(e.get("at")) == place for _, e in carriers):
+            continue
+        if not carriers:
+            violations.append(f"{pinned}, but no inventory entry of that name carries it; copy it as given, "
+                              f"with `at` {at}")
+            continue
+        dropped = [_drop(e, f"{pinned}, but exports[{idx}], which carries it, gives `at` {json.dumps(e['at'])}")
+                   for idx, e in carriers
+                   if parse_at(e.get("at")) is not None and parse_at(e["at"]) not in carried(e)]
+        if dropped:
+            warnings += dropped
+        elif all(e.get("at") is not None for _, e in carriers):
+            warnings.append(f"{pinned}, but no inventory entry that carries it gives `at` {at}, so the citations "
+                            "there are not read")
+    return {"names": len(names), "checked": checked, "absent": absent}, violations, warnings
 
 
 # --- Completeness -------------------------------------------------------------
@@ -572,7 +922,9 @@ def missing_fields(entry):
     if not _filled(entry.get("description")):
         missing.append("description")
     if entry.get("kind") in SIGNATURE_KINDS:
-        if not isinstance(entry.get("params"), (str, list)):
+        usage = entry.get("usage_signature")
+        if not isinstance(entry.get("params"), (str, list)) and not any(
+                map(_filled, usage if isinstance(usage, list) else [usage])):
             missing.append("params")
         if not _filled(entry.get("return_type")):
             missing.append("return_type")
@@ -694,16 +1046,107 @@ def mismatch_violations(idx, entry, skill_package_path=None):
     return violations
 
 
+def _read_files(inventory, skill_package_path=None):
+    """The files the inventory reads, as an `at` names them: `SKILL.md` and
+    each `references` entry, _listed_path (relative to the package, forward
+    slashes)."""
+    listed = inventory.get("references")
+    return {"SKILL.md"} | {_listed_path(ref, skill_package_path)
+                           for ref in (listed if isinstance(listed, list) else [])
+                           if isinstance(ref, str) and ref.strip()}
+
+
+# What a missing or dropped `at` leaves its entry's form (#918): plan binds it to no declaration, as before #918.
+UNBOUND = "the form is compared as one whose citations name no declaration"
+
+
+def _drop(entry, why):
+    """Drop the entry's bad `at` (#918) and return its warning: `why`, then what the drop leaves (UNBOUND, for an
+    entry that carries a compared form)."""
+    del entry["at"]
+    return f"{why}; it is dropped and {UNBOUND}" if compared_form(entry) else f"{why}; it is dropped"
+
+
+def at_warnings(idx, entry, files, skill_package_path=None):
+    """The warnings of one named entry's `at` (#918), never a violation: an
+    entry that carries a compared form (compared_form) and no `at` (a JSON
+    null removed), or an `at` (on any entry) that is no "<path>:<line>" with
+    a line from 1, or whose path is no file of `files` (_read_files), which
+    is dropped (_drop). A good `at` is left in the entry as the package
+    names it, "<path>:<line>" (_listed_path)."""
+    where = f"exports[{idx}] (`{entry['name']}`)"
+    value = entry.get("at")
+    if value is None:
+        entry.pop("at", None)
+        return [f"{where} carries a form but no `at`, so {UNBOUND}"] if compared_form(entry) else []
+    m = _AT_RE.fullmatch(value.strip()) if isinstance(value, str) else None
+    if m is None or not m.group(1).strip():
+        return [_drop(entry, f"{where}: `at` must be \"<path>:<line>\", a file of the package and a line from 1 "
+                             f"(\"SKILL.md:42\"), not {json.dumps(value)}")]
+    path = _listed_path(m.group(1).strip(), skill_package_path)
+    if path not in files:
+        return [_drop(entry, f"{where}: `at` names {json.dumps(path)}, no file the inventory reads: SKILL.md or a "
+                             "file `references` lists")]
+    entry["at"] = f"{path}:{int(m.group(2))}"
+    return []
+
+
+def place_warnings(inventory, skill_package_path):
+    """With the package: each entry's `at` (one at_warnings kept) is a line
+    of its file that writes the entry's name outside its citations, or, for
+    a line inside a fenced block (_fence_holding), one of a block that
+    writes it. A file that cannot be read (missing, unreadable or outside
+    the package), a line past its end and a line that does not write the
+    name each drop the `at` with a warning naming the entry (_drop)."""
+    root = Path(skill_package_path)
+    real_root = os.path.realpath(root)
+    read: dict[str, list[str] | None] = {}
+    warnings = []
+    for idx, entry in enumerate(inventory.get("exports") or []):
+        if not isinstance(entry, dict) or entry.get("at") is None:
+            continue
+        path, line = parse_at(entry["at"])
+        if path not in read:
+            target = os.path.realpath(root / path)
+            try:
+                if not _inside(target, real_root):
+                    raise OSError("outside the package")
+                read[path] = _segments()._split_lines(Path(target).read_bytes().decode("utf-8-sig"))
+            except (OSError, UnicodeDecodeError):
+                read[path] = None
+        lines, name = read[path], entry["name"]
+        where = f"exports[{idx}] (`{name}`): `at` {json.dumps(entry['at'])}"
+        if lines is None:
+            warnings.append(_drop(entry, f"{where} names a file that cannot be read"))
+            continue
+        if line > len(lines):
+            warnings.append(_drop(entry, f"{where} is past the end of {path} ({len(lines)} lines)"))
+            continue
+        pattern = name_pattern(name)
+        if _writes(pattern, lines[line - 1]):
+            continue
+        fence = _fence_holding(lines, line - 1)
+        if fence is not None and any(_writes(pattern, ln) for ln in lines[fence[0] + 1:fence[1]]):
+            continue
+        held = ", nor does the fenced block that holds it" if fence is not None else ""
+        warnings.append(_drop(entry, f"{where} is a line that does not write `{name}`{held}"))
+    return warnings
+
+
 def validate_inventory(raw, skill_package_path=None, floor=None):
     """Structural validation of the subagent inventory response, then the spot-check and the floor check.
 
     `raw` is the raw response text. Returns the result dict documented in the
     module docstring. With `skill_package_path`, an inventory that passed the
-    schema is spot-checked against the package (spot_check); with `floor`
-    (read_floor's object), it is checked against the floor (floor_check).
+    schema is spot-checked against the package (spot_check), given its
+    `crossChecked` count (cross_checked) and each `at` is looked up there
+    (place_warnings); a `crossChecked` the response carries never survives.
+    With `floor` (read_floor's object),
+    it is checked against the floor (floor_check). A missing or bad `at` is
+    a warning, the bad one dropped, never a violation (#918).
     Deterministic: identical input yields an identical verdict.
     """
-    violations = []
+    violations, warnings = [], []
     inner = strip_fences(raw)
     try:
         data = json.loads(inner)
@@ -711,6 +1154,7 @@ def validate_inventory(raw, skill_package_path=None, floor=None):
         return {
             "valid": False,
             "violations": [f"subagent response not valid JSON: {exc.msg}"],
+            "warnings": [],
             "rejectedCount": 0,
             "exportsCount": 0,
             "inventory": None,
@@ -720,10 +1164,13 @@ def validate_inventory(raw, skill_package_path=None, floor=None):
         return {
             "valid": False,
             "violations": ["subagent response is not a JSON object"],
+            "warnings": [],
             "rejectedCount": 0,
             "exportsCount": 0,
             "inventory": None,
         }
+    # The validator alone writes `crossChecked` (#920): a reader's never survives.
+    data.pop("crossChecked", None)
 
     exports = data.get("exports")
     if not isinstance(exports, list):
@@ -771,6 +1218,13 @@ def validate_inventory(raw, skill_package_path=None, floor=None):
                 f"not {json.dumps(entry['signature_form'])}"
             )
 
+    # Each entry that carries a compared form is asked for its place, `at`, in a file the inventory reads (#918):
+    # one missing or bad is a warning, the bad one dropped.
+    files = _read_files(data, skill_package_path)
+    for idx, entry in enumerate(exports):
+        if isinstance(entry, dict) and isinstance(entry.get("name"), str) and entry["name"]:
+            warnings.extend(at_warnings(idx, entry, files, skill_package_path))
+
     # Each cross-check mismatch carries its fields and one other side of its
     # pair, a pair of references in order.
     for idx, entry in enumerate(cross):
@@ -788,15 +1242,20 @@ def validate_inventory(raw, skill_package_path=None, floor=None):
                 f"spot-check: `{name}` is listed as an export, but SKILL.md and the "
                 f"listed reference files never write it"
             )
+        # In the inventory object, so --output writes it and stdout's `inventory` equals the file.
+        data["crossChecked"] = cross_checked(exports, _package_texts(data, skill_package_path)[0])
+        warnings.extend(place_warnings(data, skill_package_path))
     floor_result = None
     if schema_valid and floor is not None:
-        floor_result, floor_violations = floor_check(data, floor, skill_package_path)
+        floor_result, floor_violations, floor_warnings = floor_check(data, floor, skill_package_path)
         violations.extend(floor_violations)
+        warnings.extend(floor_warnings)
 
     valid = not violations
     result = {
         "valid": valid,
         "violations": violations,
+        "warnings": warnings,
         "rejectedCount": rejected,
         "exportsCount": len(exports),
         "inventory": data if valid else None,
@@ -822,7 +1281,7 @@ def _build_parser():
             "the required-keys/types/enum/mismatch-field contract, then with "
             "--skill-package spot-checks sampled names against the package and --floor checks it "
             "keeps the floor's names, returning "
-            "{valid, violations, rejectedCount, exportsCount, inventory, completeness, spotCheck, floor}."
+            "{valid, violations, warnings, rejectedCount, exportsCount, inventory, completeness, spotCheck, floor}."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -856,7 +1315,8 @@ def _build_parser():
     parser.add_argument(
         "--skill-package",
         metavar="DIR",
-        help="Spot-check sampled names against this package's SKILL.md and listed references.",
+        help="Spot-check sampled names against this package's SKILL.md and listed references, "
+        "and add their crossChecked count to the inventory.",
     )
     parser.add_argument(
         "--floor",

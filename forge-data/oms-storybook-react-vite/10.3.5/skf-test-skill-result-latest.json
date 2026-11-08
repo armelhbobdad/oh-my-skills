@@ -5,14 +5,14 @@
   "verdict": "PASS",
   "score": 100,
   "threshold": 80,
-  "report_path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261107T112449Z-0cc4693c.md",
+  "report_path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261108T143553Z-31d5d0c1.md",
   "next_workflow": "export-skill",
   "exit_code": 0,
   "halt_reason": null,
   "outputs": [
     {
       "type": "report",
-      "path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261107T112449Z-0cc4693c.md"
+      "path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261108T143553Z-31d5d0c1.md"
     }
   ],
   "summary": {
@@ -29,16 +29,16 @@
     "gapCounts": {
       "Critical": 0,
       "High": 0,
-      "Medium": 86,
+      "Medium": 82,
       "Low": 0,
-      "Info": 9
+      "Info": 10
     },
     "hardGate": "passed"
   },
-  "runId": "20261107T112449Z-0cc4693c",
+  "runId": "20261108T143553Z-31d5d0c1",
   "healthCheckDispatched": true,
-  "timestamp": "2026-11-07T11:47:12Z",
-  "run_id": "20261107T112449Z-0cc4693c",
+  "timestamp": "2026-11-08T15:28:19Z",
+  "run_id": "20261108T143553Z-31d5d0c1",
   "headless_decisions": [],
   "warnings": [
     "customization_resolver_unavailable: not found"

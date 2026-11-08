@@ -33,7 +33,7 @@ class App(Generic[P, R]):
 ```
 [AST:python/cocoindex/_internal/app.py:L208] [SRC:python/cocoindex/_internal/app.py:L299] [:L335] [:L368] [:L380]
 
-- A `str` for `name_or_config` is shorthand for `AppConfig(name=name_or_config)`.
+- A `str` for `name_or_config` becomes `config = AppConfig(name=name_or_config)` [SRC:python/cocoindex/_internal/app.py:L247].
 - `update()` returns an `UpdateHandle[R]` that is also `Awaitable[R]` — `result = await app.update()` works as a one-liner. Use `handle.stats()` for a snapshot or `async for snap in handle.watch():` to follow progress.
 - `live=True` keeps live components processing after `mark_ready` (see `live-components.md`).
 - `full_reprocess=True` invalidates memoized state and reprocesses everything.
@@ -79,7 +79,7 @@ class Environment:
 ```
 [SRC:python/cocoindex/_internal/environment.py:L212] [:L248–:L272]
 
-`Settings.db_path` is **required** — `Environment.__init__` raises `ValueError("Settings.db_path must be provided")` when it is unset [SRC:python/cocoindex/_internal/environment.py:L222]. `Settings.from_env()` does **not** read `COCOINDEX_DB` (it reads only the `COCOINDEX_SOURCE_MAX_INFLIGHT_*` and `COCOINDEX_LMDB_*` variables, [SRC:python/cocoindex/_internal/setting.py:L65]). The default environment fills an unset `db_path` from `COCOINDEX_DB` through `get_default_db_path()` when it starts ([SRC:python/cocoindex/_internal/setting.py:L12], [SRC:python/cocoindex/_internal/environment.py:L390]). So with the default environment, set `COCOINDEX_DB=/path/to/state.lmdb` or `builder.settings.db_path` in your lifespan; when you construct an `Environment` yourself, pass `Settings(db_path=...)` or `Settings.from_env(db_path=...)`.
+`Settings.db_path` is **required** — `Environment.__init__` raises `ValueError("Settings.db_path must be provided")` when it is unset [SRC:python/cocoindex/_internal/environment.py:L222]. `Settings.from_env()` does **not** read `COCOINDEX_DB` (it reads only the `COCOINDEX_SOURCE_MAX_INFLIGHT_*` and `COCOINDEX_LMDB_*` variables, [SRC:python/cocoindex/_internal/setting.py:L65]). The default environment fills an unset `db_path` from `COCOINDEX_DB` through `get_default_db_path()` when it starts ([SRC:python/cocoindex/_internal/setting.py:L12], [SRC:python/cocoindex/_internal/environment.py:L390]). So with the default environment, set `COCOINDEX_DB=/path/to/state.lmdb` or `builder.settings.db_path` in your lifespan; when you construct an `Environment` yourself, pass `coco.Settings(db_path=pathlib.Path("state.lmdb"))` or `coco.Settings.from_env(db_path=pathlib.Path("state.lmdb"))`.
 
 ## EnvironmentBuilder + lifespan
 
@@ -218,7 +218,7 @@ async def mount(subpath: ComponentSubpath, processor_fn: AnyCallable[P, Any], *a
 ```
 [AST:python/cocoindex/_internal/api.py:L333] [SRC:python/cocoindex/_internal/api.py:L342] (implementation `mount(*pos_args: Any, **kwargs: Any)` at [SRC:python/cocoindex/_internal/api.py:L349])
 
-Mounts a processing unit in the background. Subpath defaults to `Symbol(processor_fn.__name__)` when omitted. Pass a `LiveComponent` class to mount a live component; for regular functions a normal processing unit is created.
+Mounts a processing unit in the background. Subpath defaults to `coco.Symbol(processor_fn.__name__)` when omitted. Pass a `LiveComponent` class to mount a live component; for regular functions a normal processing unit is created.
 
 ### mount_each
 
@@ -321,4 +321,4 @@ with ThreadPoolExecutor() as executor:
 ```
 [SRC:python/cocoindex/_internal/component_ctx.py:L104]
 
-`exception_handler` pushes a handler for background-mounted components within a dynamic scope. The handler signature is `Callable[[BaseException, ExceptionContext], None | Awaitable[None]]`. `ExceptionContext` (exported as `coco.ExceptionContext`) is a frozen, slotted dataclass, `ExceptionContext(env_name: str, stable_path: str, processor_name: str | None, mount_kind: MountKind, parent_stable_path: str | None, is_background: bool, source: Literal["component", "handler"], original_exception: BaseException | None)`, where `MountKind = Literal["mount", "mount_each", "delete_background"]` [AST:python/cocoindex/_internal/component_ctx.py:L43]. The first handler gets `source="component"` and `original_exception=None`; when a handler raises, the next outer one gets the handler's exception, `source="handler"` and the component's original error (a `RuntimeError` of its message) as `original_exception` [SRC:python/cocoindex/_internal/api.py:L55-L78]. Multiple handlers form a chain — innermost runs first; if a handler raises, the next outer handler runs with the new exception.
+`exception_handler` pushes a handler for background-mounted components within a dynamic scope. The handler type is `ExceptionHandler` (exported as `coco.ExceptionHandler`), a type alias: `ExceptionHandler: TypeAlias = Callable[[BaseException, "ExceptionContext"], None | Awaitable[None]]` [AST:python/cocoindex/_internal/component_ctx.py:L25]. `ExceptionContext` (exported as `coco.ExceptionContext`) is a frozen, slotted dataclass, `ExceptionContext(env_name: str, stable_path: str, processor_name: str | None, mount_kind: MountKind, parent_stable_path: str | None, is_background: bool, source: Literal["component", "handler"], original_exception: BaseException | None)`, where `MountKind = Literal["mount", "mount_each", "delete_background"]` [AST:python/cocoindex/_internal/component_ctx.py:L43]. The first handler gets `source="component"` and `original_exception=None`; when a handler raises, the next outer one gets the handler's exception, `source="handler"` and the component's original error (a `RuntimeError` of its message) as `original_exception` [SRC:python/cocoindex/_internal/api.py:L55-L78]. Multiple handlers form a chain — innermost runs first; if a handler raises, the next outer handler runs with the new exception.
