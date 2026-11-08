@@ -5,14 +5,14 @@
   "verdict": "PASS",
   "score": 100,
   "threshold": 80,
-  "report_path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261107T112449Z-0cc4693c.md",
+  "report_path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261108T024630Z-ff52d336.md",
   "next_workflow": "export-skill",
   "exit_code": 0,
   "halt_reason": null,
   "outputs": [
     {
       "type": "report",
-      "path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261107T112449Z-0cc4693c.md"
+      "path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261108T024630Z-ff52d336.md"
     }
   ],
   "summary": {
@@ -29,18 +29,18 @@
     "gapCounts": {
       "Critical": 0,
       "High": 0,
-      "Medium": 86,
+      "Medium": 84,
       "Low": 0,
-      "Info": 9
+      "Info": 27
     },
     "hardGate": "passed"
   },
-  "runId": "20261107T112449Z-0cc4693c",
+  "runId": "20261108T024630Z-ff52d336",
   "healthCheckDispatched": true,
-  "timestamp": "2026-11-07T11:47:12Z",
-  "run_id": "20261107T112449Z-0cc4693c",
+  "timestamp": "2026-11-08T03:12:50Z",
+  "run_id": "20261108T024630Z-ff52d336",
   "headless_decisions": [],
   "warnings": [
-    "customization_resolver_unavailable: not found"
+    "customization_resolver_unavailable: BMAD core's customization resolver is not at /home/armel/Projects/OSS/oh-my-skills/_bmad/scripts/resolve_customization.py: the BMAD Method installer adds it."
   ]
 }
