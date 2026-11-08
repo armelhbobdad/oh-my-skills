@@ -82,7 +82,7 @@ Because this is hydration-gated, the provider returns `null` on first render unt
 const { selectedLibrary, setSelectedLibrary } = useUILibrary();
 ```
 
-Must be called inside `<UILibraryProvider>`. Throws `Error("useUILibrary must be used within a UILibraryProvider")` if the context is missing. `setSelectedLibrary(lib)` persists to localStorage.
+Must be called inside `<UILibraryProvider>`. Throws `Error("useUILibrary must be used within a UILibraryProvider")` if the context is missing. `setSelectedLibrary(library)` persists to localStorage.
 
 **Return type**
 

@@ -113,7 +113,7 @@ export async function fetchComponent(componentName: string)
 
 - `fetchComponent(componentName)` requests `https://ui.tripled.work/r/{componentName}.json` and resolves to the parsed JSON, or to `null` on a 404; any other failed status throws `Failed to fetch component: {statusText}`. `[SRC:packages/uitripled/src/utils/registry.ts:L5]`
 - `add(componentName, options)` prompts for a name when none is given, fetches the item with `fetchComponent`, and stops when it has no `files`. It installs under the first of `src/components`, `app/components` and `components` that exists (`components` when none does), asks for confirmation, then writes each file at its `target` (else `path`) less the first segment; an existing file is skipped unless `options.overwrite` is true. It ends with an `npm install` hint for the item's `dependencies`. `[SRC:packages/uitripled/src/commands/add.ts:L8]` `[SRC:packages/uitripled/src/commands/add.ts:L45]`
-- `npx uitripled add [component] [-o, --overwrite]` calls `add(component, options)`. `[SRC:packages/uitripled/src/index.ts:L15]`
+- `npx uitripled add [component] [-o, --overwrite]` calls `await add(component, options)`. `[SRC:packages/uitripled/src/index.ts:L15]`
 
 The `uitripled` package publishes only its `dist` bin, so `fetchComponent` is called from inside `packages/uitripled/src/`, as `add` does:
 
