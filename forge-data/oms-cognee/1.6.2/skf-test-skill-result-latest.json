@@ -5,14 +5,14 @@
   "verdict": "PASS",
   "score": 99,
   "threshold": 80,
-  "report_path": "forge-data/oms-cognee/1.6.2/test-report-oms-cognee-20261108T134802Z-3fac4d0e.md",
+  "report_path": "forge-data/oms-cognee/1.6.2/test-report-oms-cognee-20261108T144709Z-e7157ac9.md",
   "next_workflow": "export-skill",
   "exit_code": 0,
   "halt_reason": null,
   "outputs": [
     {
       "type": "report",
-      "path": "forge-data/oms-cognee/1.6.2/test-report-oms-cognee-20261108T134802Z-3fac4d0e.md"
+      "path": "forge-data/oms-cognee/1.6.2/test-report-oms-cognee-20261108T144709Z-e7157ac9.md"
     }
   ],
   "summary": {
@@ -29,16 +29,16 @@
     "gapCounts": {
       "Critical": 0,
       "High": 0,
-      "Medium": 5,
+      "Medium": 4,
       "Low": 1,
       "Info": 65
     },
     "hardGate": "passed"
   },
-  "runId": "20261108T134802Z-3fac4d0e",
+  "runId": "20261108T144709Z-e7157ac9",
   "healthCheckDispatched": true,
-  "timestamp": "2026-11-08T14:29:46Z",
-  "run_id": "20261108T134802Z-3fac4d0e",
+  "timestamp": "2026-11-08T15:18:38Z",
+  "run_id": "20261108T144709Z-e7157ac9",
   "headless_decisions": [],
   "warnings": [
     "customization_resolver_unavailable: not found"
