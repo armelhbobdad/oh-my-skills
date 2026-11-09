@@ -158,7 +158,7 @@ async with coco.runtime():
 @coco.fn                                                # bare
 @coco.fn(memo=True)                                     # memoize results
 @coco.fn(version=2)                                     # explicit version for change tracking
-@coco.fn(logic_tracking="full"|"self"|None)             # tracking granularity (default "full")
+@coco.fn(logic_tracking="self")                         # tracking granularity: "full" (default), "self" or None
 @coco.fn(deps={"prompt": SYSTEM_PROMPT, "model": MODEL_NAME})  # external dependency snapshot at decoration time
 
 # @coco.fn.as_async — always yields an AsyncFunction, for a sync or an async function;
@@ -190,7 +190,7 @@ LogicTracking: TypeAlias = Literal["full", "self"] | None
 
 - `"full"` (default) — fingerprint includes the function's own code AND the code of every transitively-mounted child. A change anywhere under the component invalidates its memoized output.
 - `"self"` — fingerprint includes only the function's own code; children invalidate independently. Use when child components have their own stable memo identity (e.g., a `@coco.fn(memo=True)` chunk processor) and you want their re-runs not to invalidate the parent.
-- `None` — disable logic tracking entirely. **Incompatible with `deps`** — `@coco.fn(logic_tracking=None, deps=...)` raises at decoration time. Use when the function body's behavior is fully captured by its arguments (e.g., a pure stateless transform) and you want no version-derived invalidation.
+- `None` — disable logic tracking entirely. **Incompatible with `deps`** — `@coco.fn(memo=True, version=2, logic_tracking=None, deps=SYSTEM_PROMPT)` raises at decoration time, whatever `memo` and `version` are. Use when the function body's behavior is fully captured by its arguments (e.g., a pure stateless transform) and you want no version-derived invalidation.
 
 Type the kwarg explicitly when defining custom decorator wrappers:
 
@@ -234,15 +234,15 @@ One independent component per item. When `items` is a `LiveMapFeed`/`LiveMapView
 ### use_mount
 
 ```python
-async def use_mount(
-    processor_fn: AsyncCallable[P, ResolvesTo[ReturnT]] | Callable[P, ResolvesTo[ReturnT]] | AsyncCallable[P, ReturnT] | Callable[P, ReturnT],
-    *args, **kwargs,
-) -> ReturnT: ...
+async def use_mount(processor_fn: AsyncCallable[P, ResolvesTo[ReturnT]], *args, **kwargs) -> ReturnT: ...
+async def use_mount(processor_fn: Callable[P, ResolvesTo[ReturnT]], *args, **kwargs) -> ReturnT: ...
+async def use_mount(processor_fn: AsyncCallable[P, ReturnT], *args, **kwargs) -> ReturnT: ...
+async def use_mount(processor_fn: Callable[P, ReturnT], *args, **kwargs) -> ReturnT: ...
 async def use_mount(subpath: ComponentSubpath, processor_fn, *args, **kwargs) -> ReturnT: ...
 ```
 [AST:python/cocoindex/_internal/api.py:L194] (8 overloads at [:L194]–[SRC:python/cocoindex/_internal/api.py:L240]; implementation `use_mount(*pos_args: Any, **kwargs: Any)` at [SRC:python/cocoindex/_internal/api.py:L245])
 
-`processor_fn`'s type is the union of the four types the overloads give it (each overload exists with and without the leading `subpath`). `AsyncCallable[P, R]` is `Callable[P, Coroutine[Any, Any, R]]` [SRC:python/cocoindex/_internal/function.py:L62].
+The first four stubs are the four overloads without `subpath`, one per `processor_fn` type ([SRC:python/cocoindex/_internal/api.py:L222] [:L228] [:L234] [:L240]). The fifth stands for the four that lead with `subpath: ComponentSubpath` ([SRC:python/cocoindex/_internal/api.py:L194] [:L201] [:L208] [:L215]), which give `processor_fn` the same four types. Taken together, `processor_fn`'s type is the union of those four types (each overload exists with and without the leading `subpath`). `AsyncCallable[P, R]` is `Callable[P, Coroutine[Any, Any, R]]` [SRC:python/cocoindex/_internal/function.py:L62].
 
 Mount a dependent unit and return its result. The child cannot refresh independently — re-executing the child requires re-executing the parent. The return-type bridge `ResolvesTo[T]` lets a child return a `Pending`-state provider while `use_mount` returns the resolved variant.
 
@@ -304,7 +304,7 @@ def get_component_context() -> ComponentContext: ...
 def use_context(key: ContextKey[T]) -> T: ...
 
 @asynccontextmanager
-async def exception_handler(handler: ExceptionHandler) -> AsyncIterator[None]: ...
+async def exception_handler(handler: ExceptionHandler): ...
 ```
 [AST:python/cocoindex/_internal/component_ctx.py:L305] [:L273] [:L331]
 
@@ -321,4 +321,4 @@ with ThreadPoolExecutor() as executor:
 ```
 [SRC:python/cocoindex/_internal/component_ctx.py:L104]
 
-`exception_handler` pushes a handler for background-mounted components within a dynamic scope. The handler type is `ExceptionHandler` (exported as `coco.ExceptionHandler`), a type alias: `ExceptionHandler: TypeAlias = Callable[[BaseException, "ExceptionContext"], None | Awaitable[None]]` [AST:python/cocoindex/_internal/component_ctx.py:L25]. `ExceptionContext` (exported as `coco.ExceptionContext`) is a frozen, slotted dataclass, `ExceptionContext(env_name: str, stable_path: str, processor_name: str | None, mount_kind: MountKind, parent_stable_path: str | None, is_background: bool, source: Literal["component", "handler"], original_exception: BaseException | None)`, where `MountKind = Literal["mount", "mount_each", "delete_background"]` [AST:python/cocoindex/_internal/component_ctx.py:L43]. The first handler gets `source="component"` and `original_exception=None`; when a handler raises, the next outer one gets the handler's exception, `source="handler"` and the component's original error (a `RuntimeError` of its message) as `original_exception` [SRC:python/cocoindex/_internal/api.py:L55-L78]. Multiple handlers form a chain — innermost runs first; if a handler raises, the next outer handler runs with the new exception.
+`exception_handler` pushes a handler for background-mounted components within a dynamic scope. `@contextlib.asynccontextmanager` decorates its async generator, so enter it with `async with coco.exception_handler(handler): ...` [AST:python/cocoindex/_internal/component_ctx.py:L331]. The handler type is `ExceptionHandler` (exported as `coco.ExceptionHandler`), a type alias: `ExceptionHandler: TypeAlias = Callable[[BaseException, "ExceptionContext"], None | Awaitable[None]]` [AST:python/cocoindex/_internal/component_ctx.py:L25]. `ExceptionContext` (exported as `coco.ExceptionContext`) is a frozen, slotted dataclass, `ExceptionContext(env_name: str, stable_path: str, processor_name: str | None, mount_kind: MountKind, parent_stable_path: str | None, is_background: bool, source: Literal["component", "handler"], original_exception: BaseException | None)`, where `MountKind = Literal["mount", "mount_each", "delete_background"]` [AST:python/cocoindex/_internal/component_ctx.py:L43]. The first handler gets `source="component"` and `original_exception=None`; when a handler raises, the next outer one gets the handler's exception, `source="handler"` and the component's original error (a `RuntimeError` of its message) as `original_exception` [SRC:python/cocoindex/_internal/api.py:L55-L78]. Multiple handlers form a chain — innermost runs first; if a handler raises, the next outer handler runs with the new exception.
