@@ -53,9 +53,9 @@ export function countSavedProjectComponents(project: SavedProject): number;   //
 - `generateUniqueSlug`: computes `const baseSlug = sanitizeSlug(baseName) || "page"` and returns `baseSlug` when `existingSlugs` does not include it, else `{baseSlug}-2`, `-3`, ... until it finds a free slot.
 - `createPage`: builds a fresh `BuilderProjectPage` with `crypto.randomUUID()` (falls back to `page-{timestamp}-{random}`) and a unique slug derived from `name` via `generateUniqueSlug`. Empty `components` array.
 - `extractSavedPages`: normalizes a `SavedProject` into `SavedProjectPage[]`. If the project already has `pages[]`, returns it as-is. Otherwise synthesizes a single `"Landing"` page using `project.entryPageId` (or a slugified project name) as the id, `project.components ?? []` as content, and `project.code` if present — this handles the legacy single-page project shape.
-- `countSavedProjectComponents`: totals the `components.length` across all pages (via `extractSavedPages`) for display in project lists.
+- `countSavedProjectComponents`: totals the `components.length` across all pages (via `extractSavedPages`). Nothing in the repo calls it: the Landing Builder's Load Project dialog computes the same total inline.
 
-Used by the Landing Builder (`apps/docs/app/builder/`) to name and manage saved pages. `[SRC:packages/utils/src/builder-utils.ts:L7]` `[SRC:packages/utils/src/builder-utils.ts:L33]` `[SRC:packages/utils/src/builder-utils.ts:L52]` `[SRC:packages/utils/src/builder-utils.ts:L70]`
+The Landing Builder (`apps/docs/app/builder/`) runs the docs app's own copy of this file, `apps/docs/lib/builder-utils.ts`, which differs only in importing its types from `@/types/builder`, and calls `createPage`, `extractSavedPages` and `generateUniqueSlug` from it to name and manage saved pages. Nothing imports these helpers from `@uitripled/utils`. `[SRC:packages/utils/src/builder-utils.ts:L7]` `[SRC:packages/utils/src/builder-utils.ts:L33]` `[SRC:packages/utils/src/builder-utils.ts:L52]` `[SRC:packages/utils/src/builder-utils.ts:L70]`
 
 ## Grid helpers
 
@@ -83,7 +83,7 @@ export const isCellInSelection: (row: number, col: number, selectedCells: string
 
 `getGapSliderIndex(gapValue)` returns the index of `gapValue` in `GAP_VALUES`, or `0` when it is not one of them. `packages/components/react-shadcn/src/lib/grid-utils.ts` is a byte-identical copy of this file, so the react-shadcn subpath `@uitripled/react-shadcn/lib/grid-utils` exports the same helpers. `[SRC:packages/utils/src/grid-utils.ts:L32]` `[SRC:packages/components/react-shadcn/src/lib/grid-utils.ts:L32]`
 
-Used by the Grid Generator (`apps/docs/app/grid-generator/`) and Background Builder.
+Nothing outside `packages/utils/` imports this file. The Grid Generator (`apps/docs/app/grid-generator/page.tsx`) imports `generateGridCode`, `getCellKey` and `initializeCells` from the react-shadcn copy (`@uitripled/react-shadcn/lib/grid-utils`), and the Grid Generator panels in `packages/components/react-shadcn/src/components/grid/` import the same copy: `SettingsPanel` uses `getGapSliderIndex` and `getGapValueFromIndex`, and `GridPreview` uses `isCellInSelection`.
 
 ## Bento presets
 
@@ -118,6 +118,8 @@ Takes a concatenated blob of multiple React component files (what the Landing Bu
 3. A single `"use client"` directive at the top if any source file had one
 
 `[SRC:packages/utils/src/merge-imports.ts:L6]`
+
+The Landing Builder's code view (`apps/docs/components/builder-code-view.tsx`) calls a byte-identical copy, `apps/docs/lib/merge-imports.ts`; nothing imports this function from `@uitripled/utils`.
 
 ## Types re-exported from utils
 
@@ -174,7 +176,7 @@ type SavedProject = {
 
 **Note — two `Component` definitions exist:**
 
-1. The one above from `@uitripled/utils`, the type of the Landing Builder's `BuilderComponent.animation` `[SRC:packages/utils/src/types.ts:L60]`.
+1. The one above from `@uitripled/utils`, the type of this package's `BuilderComponent.animation` `[SRC:packages/utils/src/types.ts:L60]`. The docs app's Landing Builder uses its own `BuilderComponent` (`apps/docs/types/builder.ts`), whose `animation` is the docs app's own `Component` (`apps/docs/types/index.ts`).
 2. A different one in `packages/registry/src/types.ts` (the type of the `@uitripled/registry` arrays). It adds `componentName`, `baseuiVariants` and `baseuiCodePath`, has no `carbonComponent`, `code` or `isFree`, and types `variants` as `any[]`; both types declare `baseuiComponent`, `duration` and `easing`. Its full shape is in `references/types.md` → Component (registry). `[AST:packages/registry/src/types.ts:L4]` `[AST:packages/utils/src/types.ts:L24]`
 
 Both are distinct from the **shadcn-compatible schema in `registry.json`** — that uses `type` / `registryDependencies` / `dependencies` / `files` fields and is what the `shadcn` and `uitripled` CLIs consume. Don't confuse them.

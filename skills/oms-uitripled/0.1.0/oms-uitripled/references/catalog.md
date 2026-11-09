@@ -30,16 +30,16 @@ Source: `category` + `subcategory` fields in `registry.json`. `[SRC:packages/reg
 
 | category | Count | Example subcategories |
 |----------|-------|------------------------|
-| components | 57 | chat(4), forms(10), inputs(3), modal(3), lists(2), tabs(1), buttons |
-| sections | 38 | (mostly null — large hero/footer/pricing/blog blocks) |
-| native | 21 | (mostly null — avatars, counters, notches, buttons, badges) |
-| cards | 16 | (mostly null — ticket/credit/glass/project cards) |
+| components | 57 | chat(4), forms(10), inputs(3), modal(3), lists(2), tabs(1), notifications(1), dropdown(1) |
+| sections | 38 | (all null — large hero/footer/pricing/blog blocks) |
+| native | 21 | (all null — avatars, counters, notches, buttons, badges) |
+| cards | 16 | (all null — ticket/credit/glass/project cards) |
 | page | 15 | (mostly null — some are actually section-level templates) |
 | decorative | 9 | background(3), other |
 | micro | 8 | buttons(3), toggles(1), icons(1), links(1) |
 | resumes | 4 | — |
 | data | 2 | progress(1), charts(1) |
-| forms | 1 | forms(1) (the wizard-form) |
+| forms | 1 | — (null; the one entry is `wizard-form-shadcnui`) |
 
 ## Install each component
 
