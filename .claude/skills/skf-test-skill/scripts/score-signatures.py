@@ -35,8 +35,10 @@ ratios and the gap records of the wrong signatures.
          form that lists no member and states no return type is never an
          alternative, and two entries that say the same thing are one form
          (a `full` label and none, a list and its items joined with `, `,
-         whitespace runs; of two that differ only by the partial label, the
-         full one). The signature universe is the
+         whitespace runs, a blank `params` and none; of a blank `params` and
+         none, the blank one, which claims the export takes none, whatever
+         either's label, and of two that differ only by the partial label,
+         the full one). The signature universe is the
          surface's `all` set plus every name on its export records, so the
          names of a Python sub-package load-coverage-inputs.py keeps out of
          `all` (excluded.nestedEntries) keep their checks. A check sits at the
@@ -58,8 +60,10 @@ ratios and the gap records of the wrong signatures.
          the places the inventory's `at` gives its entries
          (validate-inventory.py's form_citations): on that line; on the
          next non-blank line, unless that line writes the name (another
-         place of it, such as the next table row) or, in a fenced block, is
-         a comment (it heads the next declaration); in a fenced block, on
+         place of it) or, in a fenced block, is a comment (it heads the next
+         declaration), and never after a table row, whose own citations are
+         in its cells (the next row documents another export); in a fenced
+         block, on
          the comment lines just above it; and, when the block holds no other
          place the inventory gives the name, on the block's first non-blank
          line when it is a comment and on the first non-blank line after its
@@ -108,9 +112,10 @@ ratios and the gap records of the wrong signatures.
              a type kind (TYPE_KINDS: interface, type alias, enum and class,
              with a Rust struct counted as a class and a trait as an
              interface) and documented types those the inventory documents;
-             a name the stale-scope guard restored whose kind the provenance
-             map does not give (#913) is left out and named in `warnings`,
-             in place of the warning that the surface has no type
+             a name the stale-scope guard restored (#913) or the extraction
+             recorded with no kind, such as an extraction gap (#1020), whose
+             kind the provenance map does not give is left out and named in
+             `warnings`, in place of the warning that the surface has no type
          A category with nothing to compare scores 100 (nothing documented
          is wrong) and says so in `warnings`. Each signature mismatch of a
          compared name is graded (grade()) against the documented form its
@@ -140,7 +145,12 @@ ratios and the gap records of the wrong signatures.
              writes, that is neither blank nor a list of value names:
              _states_return); `documented_sig` and `source_sig` write the
              same parameters as signature-comparison-rules.md reads them
-             (_parameter_difference, below); `evidence_line` comes after the
+             (_parameter_difference, below), read from the form when it
+             gives no usage form and lists no parameter (#1025): one with
+             no `params` writes no parameter list and claims nothing about
+             parameters, so this fact holds, and a blank `params` (`""` or
+             `[]`) claims the export takes none, so `()` is compared with
+             `source_sig`; `evidence_line` comes after the
              declaration line (of the name's surface records at the
              mismatch's file, the closest at or before the mismatch's
              `line`, else the first; with none, the mismatch's `line`) and
@@ -156,7 +166,10 @@ ratios and the gap records of the wrong signatures.
              `noexcept(...)` after a group leaves it the parameter group),
              and compared by name and in order, by name alone after a `*`
              marker; by type wherever both write one, with the common
-             Equivalent spellings (_type_key), a documented type that names
+             Equivalent spellings (_type_key, which reads a type through a
+             module or namespace path on one side only as the bare name it
+             ends in, though it cannot see that both name one declaration),
+             a documented type that names
              some members of the source's union included, and, in a TS/JS
              file, with a literal default's type for a source parameter
              that writes none; by optionality when the documented list
@@ -167,18 +180,28 @@ ratios and the gap records of the wrong signatures.
              ellipsis claims nothing about what it stands for. A keyword or
              name before the group, a default's value, a `*` or `/` marker,
              the names of `*args` and `**kwargs`, and a leading receiver the
-             source writes (`self`, `cls`, `&self`, `this: T`) are never
-             compared; the documented list's own receiver is dropped only
-             when the source's list leads with one too, so a module-level
+             source writes (`self`, `cls`, `&self`, `&'a self`, `&mut self`,
+             `mut self`, `this: T`) are never compared; the documented
+             list's own receiver is dropped only when the source's list
+             leads with one too, so a module-level
              function whose first parameter is named `self` or `cls` is read
              as a method. A signature with no group, on either side, is
              compared by the text before its return. Still refused, on the
              strict side, where the rules would read the two as one: type
              variables renamed consistently, a type alias against the type
-             it names, an overload set, a union of callables against one
-             callable returning the union, a call example's `name=value`
+             it names, a parameter type written as a description
+             (`Pydantic BaseModel`, `Union (many)`, compared as its text),
+             an overload set, a union of callables against one
+             callable returning the union, a module path inside a type
+             read as one text (a callable's arrow), a `typing.`,
+             `collections.abc.` or `React.` prefix aside, or written with
+             `::` (Rust's `std::path::PathBuf`), a call example's `name=value`
              (read as a default, so its list claims to be complete) or
              positional literal (`RecursiveSplitter(512)`, read as a name),
+             a call's `*items` or `**mapping` argument (read as a `*args`
+             or `**kwargs` the source must declare, so `Settings(**config)`
+             against `__init__(self, host, port)` differs),
+             two module paths to one declaration (`a.Foo` against `b.Foo`),
              a destructured parameter (compared as one name, so the order of
              its properties and the ones it leaves out count), a parameter
              in another language's order (Go's `id string`, C's `int n`,
@@ -222,6 +245,12 @@ ratios and the gap records of the wrong signatures.
          as matching. A mismatch a result reports for any
          other name (one the skill does not document, or the surface lacks)
          is listed in `warnings` instead, and no gap.
+         Each result's `undecided` items (#1021: a reading
+         signature-comparison-rules.md leaves open that the result rests
+         on) go into the output's `undecided`, once each, in result order,
+         for reconcile-coverage.py render's Borderline Calls; they grade
+         nothing, so a malformed one is dropped and listed in `warnings`,
+         never a schema breach.
 
 Inputs, all files in the run folder:
   --inventory  the validated inventory validate-inventory.py wrote (--output)
@@ -240,7 +269,9 @@ Inputs, all files in the run folder:
                   "types_found": ["..."],       (fallback scan only)
                   "signature_mismatches": [
                     {"name", "line", "source_sig", "documented_sig", "issue",
-                     "difference", "file", "evidence_line", "form"}]}
+                     "difference", "file", "evidence_line", "form"}],
+                  "undecided": [{"export", "at", "rule", "reading",
+                                 "other_gap"}]}
                                       (difference optional: one of
                                        DIFFERENCES, absent or null for none;
                                        file optional: the candidate the
@@ -257,6 +288,13 @@ Inputs, all files in the run folder:
                                        (`documented`; n the check's nth
                                        `alternatives` entry), absent or null
                                        for 0)
+                                      (undecided optional, #1021: each
+                                       reading the rules leave open that
+                                       the result rests on, checked as
+                                       validate-inventory.py checks an
+                                       inventory's, a malformed item
+                                       dropped with a warning: absent or
+                                       null for none)
   --skill-dir  plan only: the skill package under test (the folder that
                holds SKILL.md), whose citations pick the declaration of a
                name the surface records in several files, and bind each form
@@ -275,7 +313,8 @@ Usage:
   uv run score-signatures.py score --inventory <file> --surface <file> [--surface-set <set>] [--plan <file>] \\
       [--source-root <dir>] --results <file> [--results <file> ...] [--output <file>] [--gaps-output <file>]
 
-Output (stdout; --output also writes it, --gaps-output writes the records):
+Output (stdout; --output also writes it, --gaps-output writes the records;
+plan with --output writes the plan and prints only its summary):
   plan:  {"compared": N, "files": [{"file", "checks": [{"name", "line",
           "signatureLine", "documented": {...}, "alternatives": [{...}]
           (only when the name has another form that lists members or
@@ -286,6 +325,18 @@ Output (stdout; --output also writes it, --gaps-output writes the records):
           citations name one declaration of the name)}]}],
           "documentedSignatures": {...}, "documentedAlternatives": {name:
           [{...}], for each name with alternatives}}
+         or, with --output, the summary {"compared": N, "files": the
+         number of files[] entries, "checks": the number of checks,
+         "documented": the number of documentedSignatures entries,
+         "output": the --output path}
+         `line` and `signatureLine` are null on a check, a candidate or a
+         `bound` entry whose surface record has no line: a name read by eye
+         alone in its file, whose per-file result lists names only, or a
+         record with no file. The judge finds a declaration that has a file
+         in that `file` and gives its mismatch the line it found there
+         (#1022). A check whose record has no file sits under the `files[]`
+         entry "", which names no file to read: a judge reads only its
+         `bound` forms, each at its bound declaration.
   score: {"valid": true, "signatureAccuracy", "matchingSignatures",
           "totalDocumented", "comparedNames": [the names compared],
           "typeCoverage", "documentedTypes", "totalTypes",
@@ -293,7 +344,8 @@ Output (stdout; --output also writes it, --gaps-output writes the records):
           "source_sig", "documented_sig", "issue", "difference" (null for
           none), "evidence_line" (with "annotation-contradicted" alone),
           "severity" (Critical, Low or Info)}], "gapRecords": [...],
-          "warnings": [...]}
+          "warnings": [...], "undecided": [each result's items, once each,
+          in result order]}
          or {"valid": false, "violations": [...]} when a result breaks the schema
 
 Exit codes:
@@ -347,7 +399,9 @@ LEADING_NAME_RE = re.compile(r"^[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*\s*
 # may write the call without it (_quotes).
 CALL_RECEIVER_RE = re.compile(r"^(?:[A-Za-z_$][\w$]*\s*\.\s*)+(?=[A-Za-z_$][\w$]*\s*\()")
 # The prefixes a type is compared without, as signature-comparison-rules.md's Equivalent spellings reads a name
-# with or without one: `typing.List[int]` is `List[int]`, `React.ReactNode` is `ReactNode`.
+# with or without one: `typing.List[int]` is `List[int]`, `React.ReactNode` is `ReactNode`. They are dropped
+# wherever they stand, in a type read as one text (a callable's arrow) too; any other module path is read only on
+# a type's own name, against the bare name it ends in (_names_match).
 TYPE_PREFIX_RE = re.compile(r"(?<![\w.$])(?:typing|collections\.abc|React)\.")
 # The `typing` names Equivalent spellings reads as the builtins they alias.
 TYPING_ALIASES = {"List": "list", "Dict": "dict", "Tuple": "tuple", "Set": "set", "FrozenSet": "frozenset",
@@ -356,6 +410,11 @@ TYPING_ALIASES = {"List": "list", "Dict": "dict", "Tuple": "tuple", "Set": "set"
 FORWARD_REFERENCE_RE = re.compile(r"(['\"])([A-Za-z_][^'\"]*)\1")
 # The name a type starts with, before its type arguments (`dict[str, Any]`, `Promise<T>`).
 TYPE_NAME_RE = re.compile(r"[A-Za-z_$][\w.$]*")
+# A type's name written through a module or namespace path (`environment.Environment`, `z.ZodType`), its final
+# name the group: Equivalent spellings reads the name with or without the path (_final_name).
+DOTTED_NAME_RE = re.compile(r"(?:[A-Za-z_$][\w$]*\.)+([A-Za-z_$][\w$]*)")
+# A string written in single or double quotes, its text the second group (_value).
+STRING_VALUE_RE = re.compile(r"(['\"])([^'\"]*)\1")
 # A Rust lifetime's `'a`, followed by whitespace, `,`, `>`, `+`, `)` or the end (_lifetime says where it stands).
 LIFETIME_RE = re.compile(r"'[A-Za-z_]\w*(?=[\s,>+)]|$)")
 # Each closing bracket and the opening one it closes (_levels: a `>` closes only a `<`).
@@ -495,7 +554,8 @@ def load_other_declarations(path: str) -> list[dict]:
     surface name, in a file none of its records names, that the extraction
     records and no entry point exports, which plan may bind a form to. Each
     one with a name and a file; [] when the surface has none (an older
-    surface included)."""
+    surface included) or writes null, which it does when no runner
+    extraction looked for them (#1026)."""
     data = _read_json(path, "--surface")
     items = data.get("otherDeclarations") if isinstance(data, dict) else None
     return [d for d in (items if isinstance(items, list) else [])
@@ -666,6 +726,12 @@ def _lists_params(fields: dict) -> bool:
     return (isinstance(params, str) and bool(params.strip())) or (isinstance(params, list) and bool(params))
 
 
+def _claims_none(fields: dict) -> bool:
+    """A blank `params` (`""` or `[]`): the form claims the export takes none (#1025), where one with no `params`
+    (absent or null) claims nothing about parameters."""
+    return isinstance(fields.get("params"), (str, list)) and not _lists_params(fields)
+
+
 def _gives_usage(fields: dict) -> bool:
     """A non-blank `usage_signature` string, or a list holding one."""
     usage = fields.get("usage_signature")
@@ -714,6 +780,13 @@ def _form_key(fields: dict) -> tuple:
     return _inventory().form_key(fields)
 
 
+def _strictness(fields: dict) -> tuple[bool, bool]:
+    """How strict one of two entries that say the same thing (_form_key) is, the stricter standing for both: a
+    blank `params` claims the export takes none (#1025), which one with no `params` never claims, so it comes
+    first, whatever either's label, and then a full form before a partial one."""
+    return _claims_none(fields), not _partial(fields)
+
+
 def _forms_and_places(inventory: list[dict]) -> dict[str, list[tuple[dict, list[tuple[str, int]]]]]:
     """{name: [(each of documented_forms' forms, the places the entries
     that give it write it, from their `at`: (its path, its line))]}, in
@@ -729,8 +802,8 @@ def _forms_and_places(inventory: list[dict]) -> dict[str, list[tuple[dict, list[
         same = next((i for i, (f, _) in enumerate(forms) if _form_key(f) == _form_key(fields)), None)
         if same is None:
             forms.append((fields, places))
-        elif _partial(forms[same][0]) and not _partial(fields):
-            # in the inventory order the full entry has, as the rank would have ordered it
+        elif _strictness(fields) > _strictness(forms[same][0]):
+            # the stricter entry, in the inventory order it has, as the rank would have ordered it
             places = forms[same][1] + places
             del forms[same]
             forms.append((fields, places))
@@ -798,8 +871,11 @@ def documented_forms(inventory: list[dict]) -> dict[str, list[dict]]:
     ranks after every one that does, so it never changes the documented
     signature. A form that lists no member and states no return type is
     never an alternative. Two entries that say the same thing (_form_key)
-    are one form; of two that differ only by the partial label, the full one
-    (the stricter) stands."""
+    are one form, and the stricter stands (_strictness): of a blank `params`
+    against none, the blank one, which claims the export takes none (#1025),
+    whatever either's label, and of two that differ only by the partial
+    label, the full one, so the grade never rests on which entry comes
+    first."""
     return {name: [fields for fields, _ in forms] for name, forms in _forms_and_places(inventory).items()}
 
 
@@ -1249,7 +1325,8 @@ def _parameter(text: str, extension: str = "") -> dict:
     """One parameter as _parameters reads it, but for its "by_name" and "receiver": its name is the text before
     the `:` of its type and the `=` of its default (each outside every bracket pair and string; the `=` of `==`,
     `=>`, `<=`, `>=` or `!=` is no default), the whole text when it writes neither, so a parameter in another
-    language's order (Go's `id string`) or a destructured one (`{ a, b }`) is read as one name."""
+    language's order (Go's `id string`) or a destructured one (`{ a, b }`) is read as one name. A Kotlin `vararg`
+    keeps its modifier in its name (`vararg args`) and is variadic, as signature-comparison-rules.md reads it."""
     levels = _levels(text, extension)
     at = next((i for i, ch in enumerate(text) if ch == "=" and levels[i] == 0
                and text[i + 1:i + 2] not in ("=", ">") and text[i - 1:i] not in ("=", "!", "<", ">")), None)
@@ -1261,7 +1338,8 @@ def _parameter(text: str, extension: str = "") -> dict:
     key = "**" if name.startswith("**") else "*" if name.startswith("*") else name
     return {"key": key, "name": name, "type": "" if colon is None else _compact(head[colon + 1:]),
             "default": None if at is None else text[at + 1:].strip(), "optional": optional,
-            "variadic": key in ("*", "**") or (name.startswith("...") and name not in ELLIPSES),
+            "variadic": key in ("*", "**") or (name.startswith("...") and name not in ELLIPSES)
+            or name.startswith("vararg "),
             "ellipsis": name in ELLIPSES and colon is None and at is None}
 
 
@@ -1272,8 +1350,9 @@ def _parameters(sig: str, extension: str = "") -> list[dict] | None:
     {"key": its name (_parameter), `*` for any `*args` and `**` for any `**kwargs`, whose names are never
     compared; "name": its name as written; "type": the type it writes, compacted, "" for none; "default": the text
     of its default, None for none; "optional": whether a default or a `?` on its name marks it optional;
-    "variadic": whether it is a `*args`, a `**kwargs` or a TS/JS rest `...name`; "ellipsis": whether it is an
-    ellipsis item (`...`, `…`) standing for members it does not show; "by_name": whether it comes after a `*`
+    "variadic": whether it is a `*args`, a `**kwargs`, a TS/JS rest `...name` or a Kotlin `vararg`; "ellipsis":
+    whether it is an ellipsis item (`...`, `…`), which in a documented list stands for members it does not show and
+    in a source's is a C or C++ variadic; "by_name": whether it comes after a `*`
     marker, a bare `*` or a `*args`; "receiver": whether it is the group's first item and a receiver
     (RECEIVER_RE: `self`, `cls`, `&self`, `&mut self`, `mut self`, `this: T`), which _parameter_difference
     drops}. A `sig` that holds a `;` outside every bracket pair and string (shared text before a name's own
@@ -1299,57 +1378,99 @@ def _parameters(sig: str, extension: str = "") -> list[dict] | None:
     return params
 
 
-def _type_key(text: str, extension: str = "") -> frozenset:
+def _type_key(text: str, extension: str = "", in_string: bool = False) -> frozenset:
     """A written type, in a file of `extension`, as signature-comparison-rules.md's Equivalent spellings commonly
-    reads it: the set of its union's members (cut at each `|` outside every bracket pair and string), each (its
+    reads it: the set of its union's members (cut at each `|` outside every bracket pair and string, and at each
+    `/` there, which a table's Type cell writes between types for a `|`: `str / None` is `str | None`; a `/` alone
+    in a parameter list is the positional-only marker _parameters skips, and one in a quoted forward reference
+    (`in_string`, at any depth) is part of its string), each (its
     base name, the keys of its type arguments, None when it writes none), so `Optional[X]`, `Union[X, None]` and
     `X | None` are one key, and so are `Union[A, B]`, `A | B` and `B | A`. A `typing.`, `collections.abc.` or
-    `React.` prefix is dropped, `typing`'s `List`, `Dict`, `Tuple`, `Set`, `FrozenSet` and `Type` are the
+    `React.` prefix is dropped, a type's own name written through a module or namespace path matches the bare name
+    it ends in (_names_match: `environment.Environment` and `Environment`, while two paths stay two names),
+    `typing`'s `List`, `Dict`, `Tuple`, `Set`, `FrozenSet` and `Type` are the
     builtins they alias, a quoted forward reference is the type it quotes outside a TS/JS file (where a quoted
     type is a string literal type), `Array<T>` is `T[]`, `ReadonlyArray<T>` is `readonly T[]`, and a
     parenthesized type is the type inside. A type it reads no other way (a callable's arrow, a literal) is one
-    member, its compacted text. Type variables renamed consistently, a type alias against the type it names and a
-    union of callables against one callable returning the union are different keys: the script cannot see them
-    as one."""
+    member, its compacted text, and a Python `Literal[...]`'s arguments are values, each its text (_value). Type
+    variables renamed consistently, a type alias against the type it names and a union of callables against one
+    callable returning the union are different keys: the script cannot see them as one. It cannot see the imports
+    either, so a path and the bare name it ends in match even when they name two declarations."""
     members: set = set()
     for part in _split(TYPE_PREFIX_RE.sub("", _compact(text)), "|", extension):
-        members |= _member_keys(part.strip(), extension)
+        for member in [part] if in_string else _split(part, "/", extension):
+            members |= _member_keys(member.strip(), extension, in_string)
     return frozenset(members)
 
 
-def _member_keys(text: str, extension: str = "") -> frozenset:
+def _member_keys(text: str, extension: str = "", in_string: bool = False) -> frozenset:
     """The union members (_type_key) one part of a type with no `|` outside brackets stands for."""
     quoted = FORWARD_REFERENCE_RE.fullmatch(text) if extension not in TS_JS_EXTENSIONS else None
     if quoted:
-        return _type_key(quoted.group(2), extension)
+        return _type_key(quoted.group(2), extension, True)
     if text.startswith("(") and _encloses(text, 0, extension):
-        return _type_key(text[1:-1], extension)
+        return _type_key(text[1:-1], extension, in_string)
     if text.endswith("[]") and len(text) > 2:
         inner = text[:-2].strip()
         if inner.startswith("readonly "):
-            return frozenset({("ReadonlyArray", (_type_key(inner[len("readonly "):], extension),))})
-        return frozenset({("Array", (_type_key(inner, extension),))})
+            return frozenset({("ReadonlyArray", (_type_key(inner[len("readonly "):], extension, in_string),))})
+        return frozenset({("Array", (_type_key(inner, extension, in_string),))})
     name = TYPE_NAME_RE.match(text)
     if name and name.end() == len(text):
-        return frozenset({(TYPING_ALIASES.get(text, text), None)})
+        return frozenset({(_written_name(text), None)})
     if name and text[name.end()] in "[<" and _encloses(text, name.end(), extension):
-        args = tuple(_type_key(arg, extension) for arg in _split(text[name.end() + 1:-1], ",", extension)
-                     if arg.strip())
-        base = TYPING_ALIASES.get(name.group(), name.group())
-        if base == "Optional" and len(args) == 1:
+        base = _written_name(name.group())
+        # a `Literal[...]`'s arguments are values, never types: no path or forward reference is read in them
+        values = _final_name(base) == "Literal" and extension not in TS_JS_EXTENSIONS
+        args = tuple(frozenset({(_value(arg.strip()), None)}) if values else _type_key(arg, extension, in_string)
+                     for arg in _split(text[name.end() + 1:-1], ",", extension) if arg.strip())
+        if _final_name(base) == "Optional" and len(args) == 1:
             return args[0] | {("None", None)}
-        if base == "Union" and args:
+        if _final_name(base) == "Union" and args:
             return frozenset().union(*args)
         return frozenset({(base, args)})
     return frozenset({(text, None)})
 
 
+def _written_name(name: str) -> str:
+    """A type's name (TYPE_NAME_RE) as its key holds it: as written when a module or namespace path leads it, for
+    _names_match to read, else with a `typing` alias read as the builtin it aliases (`List` is `list`)."""
+    return name if "." in name else TYPING_ALIASES.get(name, name)
+
+
+def _final_name(name: str) -> str:
+    """A type's name (TYPE_NAME_RE) as Equivalent spellings reads it: by its final name when it is written
+    through a module or namespace path (DOTTED_NAME_RE), so `environment.Environment` is `Environment` and
+    `np.ndarray` is `ndarray`, then a `typing` alias read as the builtin it aliases (`t.List` is `list`)."""
+    dotted = DOTTED_NAME_RE.fullmatch(name)
+    final = dotted.group(1) if dotted else name
+    return TYPING_ALIASES.get(final, final)
+
+
+def _names_match(name: str, other: str) -> bool:
+    """Whether two base names (_member_keys) are one type's, as Equivalent spellings reads a name with or without
+    the module or namespace path it is written through: the same name, or a path on one side only and the bare
+    name it ends in (_final_name: `environment.Environment` and `Environment`, `t.List` and `list`). Two different
+    paths (`a.Foo` against `b.Foo`) are two names, on the strict side, since the script cannot see the imports
+    that would say both name one declaration."""
+    if name == other:
+        return True
+    return ("." in name) != ("." in other) and _final_name(name) == _final_name(other)
+
+
+def _value(text: str) -> str:
+    """A `Literal[...]` argument as a value: its text, a string written in either quote read as one (`'a'` and
+    `"a"`), so a `.`, `/` or `|` inside a string is part of the value it writes."""
+    string = STRING_VALUE_RE.fullmatch(text)
+    return f"'{string.group(2)}'" if string else text
+
+
 def _members_match(documented: tuple, source: tuple) -> bool:
-    """Whether two union members (_type_key) are one type: one base name and, unless either side leaves its type
-    arguments out (`dict` against `dict[str, Any]`, which compares the base alone), as many arguments, each pair
-    one type (_types_match)."""
+    """Whether two union members (_type_key) are one type: one base name (_names_match) and, unless either side
+    leaves its type arguments out (`dict` against `dict[str, Any]`, which compares the base alone), as many
+    arguments, each pair one type (_types_match)."""
     (base, args), (other_base, other_args) = documented, source
-    if base != other_base:
+    if not _names_match(base, other_base):
         return False
     if args is None or other_args is None:
         return True
@@ -1424,7 +1545,8 @@ def _partial_difference(documented: list[dict], source: list[dict], stated: bool
     """Why a documented list that does not claim to be complete differs from the source's, None when it does
     not: each member it writes must be a source parameter (`*args` and `**kwargs` by kind), in the source's order
     (a member after a `*` marker on either side by name alone), with no _pair_difference. A list of bare names
-    (`bare`) must also leave out only optional source parameters (a default, a `?`, `*args`, `**kwargs`, a rest),
+    (`bare`) must also leave out only optional source parameters (a default, a `?`, `*args`, `**kwargs`, a rest, a
+    Kotlin `vararg`, a C or C++ `...`),
     and, in a file of a language without keyword arguments (POSITIONAL_EXTENSIONS), none before one it writes,
     which shifts a caller's positions. A list holding an ellipsis claims nothing about what it stands for."""
     used: list[int] = []
@@ -1447,7 +1569,8 @@ def _partial_difference(documented: list[dict], source: list[dict], stated: bool
     for i, s in enumerate(source):
         if i in used:
             continue
-        if not (s["optional"] or s["variadic"]):
+        # a source's own `...` item is a C or C++ variadic, optional as signature-comparison-rules.md reads it
+        if not (s["optional"] or s["variadic"] or s["ellipsis"]):
             return f"the required source parameter `{s['name']}` is left out"
         later = min((j for j in used if j > i), default=None)
         if extension in POSITIONAL_EXTENSIONS and later is not None:
@@ -1543,7 +1666,12 @@ def contradiction_fact(entry: dict, documented: dict, file: str, declaration_lin
     `documented_sig` and `source_sig` write the same parameters, as the
     comparison rules read them in a file of `file`'s language
     (_parameter_difference, which compares the texts before the return when
-    either has no parameter group); `evidence_line` comes
+    either has no parameter group), read from the form when it gives no
+    usage form and lists no parameter (#1025): with no `params` (absent or
+    null) it writes no parameter list and claims nothing about parameters,
+    so the fact holds whatever `documented_sig` writes before its return,
+    and a blank `params` (`""` or `[]`) claims the export takes none, so
+    `()` is compared with `source_sig`; `evidence_line` comes
     after the declaration line and before `next_line`, the next surface
     record in the file; and, with `source_root`, that line of `file` under it
     returns (_returns), which alone lets the declaration line itself stand.
@@ -1556,7 +1684,15 @@ def contradiction_fact(entry: dict, documented: dict, file: str, declaration_lin
     return_type = documented.get("return_type")
     if not _states_return(return_type, extension) and not _states_return(documented_return, extension):
         return "the documented signature states no return type"
-    difference = _parameter_difference(entry["documented_sig"], entry["source_sig"], extension)
+    # A form that gives no usage form and lists no parameter says itself what it claims about parameters (#1025).
+    params, usage = documented.get("params"), _gives_usage(documented)
+    if params is None and not usage:
+        difference = None
+    elif _claims_none(documented) and not usage:
+        documented_params = "()"
+        difference = _parameter_difference(documented_params, entry["source_sig"], extension)
+    else:
+        difference = _parameter_difference(entry["documented_sig"], entry["source_sig"], extension)
     if difference is not None:
         return f"its parameters differ: documented `{documented_params}`, source `{source_params}`: {difference}"
     if not _is_line(evidence) or evidence < declaration_line:
@@ -1862,22 +1998,35 @@ def score(inventory: list[dict], names: list[str], exports: list[dict], results:
 
     pool = surface if type_names is None else set(type_names)
     types = {n for n in pool if kind_of(n) in TYPE_KINDS}
-    # A name the stale-scope guard restored with no kind (#913: the provenance map gives it none at its file) may be
-    # a type: Type Coverage leaves it out and names it, never lowering the score.
+    # A name the stale-scope guard restored (#913) or the extraction recorded with no kind, such as an extraction gap
+    # (#1020), may be a type when the provenance map gives it none at its file: Type Coverage leaves it out and names
+    # it, never lowering the score. A per-file name outside its result's types_found is no type.
     kindless = sorted(n for n in pool - fallback_types if kind_of(n) is None
-                      and any(r.get("origin") == "restored" for r in by_name.get(n, [])))
+                      and any(r.get("origin") in ("restored", "extraction") for r in by_name.get(n, [])))
     documented_types = types & documented
     if types:
         type_coverage = round2(len(documented_types) / len(types) * 100)
     else:
         type_coverage = 100.0
     if kindless:
-        warnings.append("Type Coverage leaves out each name the stale-scope guard restored with no kind (the "
-                        "provenance map, when one is given, gives it no kind Type Coverage reads at its file): "
+        warnings.append("Type Coverage leaves out each name the stale-scope guard restored or the extraction "
+                        "recorded with no kind, such as an extraction gap (the provenance map, when one is given, "
+                        "gives it no kind Type Coverage reads at its file): "
                         + ", ".join(f"`{n}`" for n in kindless))
     elif not types:
         warnings.append("the source surface has no interface, type alias, enum or class: Type "
                         "Coverage has nothing to cover and scores 100")
+
+    # Each reading the rules leave open that a judge's result rests on (#1021), once, in result order: it grades
+    # nothing, so a malformed item is dropped with a warning (validate-inventory.py's drop_undecided), and render
+    # lists the rest under Borderline Calls.
+    undecided = []
+    for result in results:
+        warnings.extend(f"the result for `{result.get('file')}`: {problem}"
+                        for problem in _inventory().drop_undecided(result))
+        for item in result.get("undecided") or []:
+            if item not in undecided:
+                undecided.append(item)
 
     return {
         "valid": True,
@@ -1892,6 +2041,7 @@ def score(inventory: list[dict], names: list[str], exports: list[dict], results:
         "mismatches": mismatches,
         "gapRecords": [_form_gap_record(m, key[3], forms[m["name"]]) for key, m in kept],
         "warnings": warnings,
+        "undecided": undecided,
     }
 
 
@@ -1919,6 +2069,10 @@ def _cmd_plan(args: argparse.Namespace) -> tuple[dict, int]:
     out = plan(inventory, names, exports, args.skill_dir, others)
     if args.output:
         _write_json(args.output, out)
+        # The step reads the plan from the file, so stdout gives only its counts and the path (#1018).
+        return {"compared": out["compared"], "files": len(out["files"]),
+                "checks": sum(len(group["checks"]) for group in out["files"]),
+                "documented": len(out["documentedSignatures"]), "output": args.output}, 0
     return out, 0
 
 
@@ -1961,7 +2115,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--skill-dir", help="the skill package under test: its citations pick the declaration of a name "
                                        "the surface records in several files, and bind each form whose own "
                                        "citations name one declaration of its name to it")
-    p.add_argument("--output", help="also write the plan to this file")
+    p.add_argument("--output", help="write the plan to this file and print only its summary")
     p.set_defaults(func=_cmd_plan)
 
     p = sub.add_parser("score", help="the two category scores and the mismatch gap records")

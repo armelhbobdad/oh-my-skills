@@ -39,8 +39,14 @@ reading files and writing one JSON object:
                            singular or plural and bare or wrapped in `**`
                            or `__`, Export, Symbol, Function, Class,
                            Interface, Type, Hook, Component, Helper,
-                           Constant, Enum or API (a Name, Method, Prop,
-                           Param, Import or Subpath table gives none). The
+                           Constant, Enum, API or Query, or is parts split
+                           at `/`, each read the same way, whose first is
+                           one of those words and each other one of them
+                           or Props, Params or Parameters
+                           (`Component / Props`, `Function/Type`; #1004).
+                           A Name, Method, Prop, Param, Import or Subpath
+                           table gives none, and so does a `Prop / Type`
+                           or `Symbol / keyword` one. The
                            row's Kind cell, as written, is the name's
                            `kindLabel`: the skill's own label, never mapped
                            to a kind (the first in origin order when two
@@ -83,7 +89,9 @@ reading files and writing one JSON object:
             {"params", "return_type"} for a complete form or a Props cell
             (below) and {"usage_signature", "return_type"} for a usage form
             (and `signature_form` "partial" under a header's partial
-            label, below). `params` is the text inside the parameter group
+            label, for an ellipsis item or from a Key params cell, below).
+            `params` is the text
+            inside the parameter group
             (score-signatures.py's _group: the first pair of parentheses
             outside every bracket pair and string), and `return_type` the
             type written after it (score-signatures.py's _signature_parts),
@@ -110,7 +118,10 @@ reading files and writing one JSON object:
               table-row    a row whose first cell names one name (a row
                            naming several gives none), each cell's `\\|`
                            read as `|`: the leading code span of its
-                           Signature or Signatures cell, else, when that
+                           Signature or Signatures cell, a header split
+                           at `/` with a part that is one included
+                           (`Signature / Purpose`, `Props / Signature`;
+                           #1030), else, when that
                            span writes no parameter group (`Typed<X>`),
                            the one span of its first cell that gives the
                            name (another export's span there, as in
@@ -132,7 +143,24 @@ reading files and writing one JSON object:
                            `None`, `-`), else the span whole
                            as `params` with `return_type` ""
                            (`TitleProps = { of?: Of }`, `key: string`),
-                           kept as written. A Signature, Props, Params
+                           kept as written. With no such span, last a Key
+                           params or Key parameters cell (#997), on a row
+                           whose Kind cell names a callable as a whole
+                           word, any case (function, fn, func, method,
+                           class, constructor, generator or hook, singular
+                           or plural: `sync fn`, `abstract class`): its
+                           leading code span when that is the name's
+                           complete form with the name written
+                           (`Mem0Source(data, mode="re-derive")`), prose
+                           after it left out, with `signature_form`
+                           "partial", as the header labels each row. A
+                           table with no Kind column, a row of another
+                           kind (`tuple`, `type alias`), a span with no
+                           name or another (`("json", None)`, an import)
+                           or no complete form (`A | B`, `{}`), a cell
+                           that writes a second form of the name and a
+                           compound `Key params / shape` header pin
+                           nothing. A Signature, Props, Params
                            or Parameters header may give one partial
                            label in parentheses after its word, any case:
                            `Signature (simplified)`, `Props (simplified)`,
@@ -141,9 +169,15 @@ reading files and writing one JSON object:
                            also carries `signature_form` "partial", so the
                            label is the script's, not the reader's; the
                            first-cell form never does, as the label heads
-                           that column only. Any other text after the word
-                           (`Signature (TypeScript)`, `Props / Usage`)
-                           leaves the column unread.
+                           that column only; a compound Signature header
+                           reads its Signature part's label
+                           (`Signature (simplified) / Purpose`). Any other
+                           text after the word (`Signature (TypeScript)`),
+                           a compound header with no Signature part
+                           (`Props / Usage`, `Props / Type`) and an
+                           Arguments, Args, Usage, Syntax or Example
+                           header leave the column unread: its form stays
+                           the reader's.
               heading      its code span, a complete form, else a usage
                            form (`new Client(opts)`: a name is cut as
                            above, so no other usage names one there)
@@ -169,9 +203,21 @@ reading files and writing one JSON object:
                            x is {...}`, `() => {...}` or conditional type,
                            `): Promise<A> |`), or one whose brackets or
                            strings do not all close.
-            A form written only in prose is never read: it stays the
-            reader's. Each origin keeps the first signature its place
-            writes.
+            Whatever its form, a signature whose parameter group (its
+            `params`, or the group its `usage_signature` writes) holds an
+            ellipsis item, a member that is `...` or `…` alone as
+            score-signatures.py's _parameter reads one (a rest `...args`,
+            a `*args` and a default `x=...` are none), also carries
+            `signature_form` "partial" (#1029): the contract counts that
+            `...` as the skill's partial label, so it is the script's too,
+            and validate-inventory.py --floor refuses the label an entry
+            adds where the signature gives none. A form written only in
+            prose is never read: it stays the
+            reader's. So does a cell's span that prose qualifies or that
+            sits among other spans (`GraphSnapshot`'s `nodes=[]` then
+            "(DataPoint instances)"), beyond what the table-row form above
+            reads (#997): a rule there would guess at the skill's meaning.
+            Each origin keeps the first signature its place writes.
             Output: {"files": [...], "names": [{"name", "kindLabel",
             "origins": [{"file", "line", "form", "signature"?}]}],
             "summary": {"names", "byForm"}}, names sorted, each one's
@@ -223,7 +269,9 @@ reading files and writing one JSON object:
                             records them), looked up by the
                             name its defining file gives it (an aliased
                             re-export's `local`) and that file.
-                            extraction_gaps are listed to read by eye, and
+                            extraction_gaps are listed with their file and
+                            line in `extractionGaps`, which
+                            reconcile-coverage.py's render lists (#1048), and
                             the runner's warnings join `warnings`. A Python
                             top __init__.py inside the folder of another top
                             that exports a public name (a sub-package
@@ -245,7 +293,9 @@ reading files and writing one JSON object:
                             --brief) matches its file; no recipe reads its
                             file, so its kind is the one --provenance gives
                             the name at that file (PROVENANCE_KINDS), else
-                            none. A tier_a_include glob
+                            none, as is the kind of a name exports[] gives
+                            none at its file, such as an extraction_gaps
+                            name (#1020). A tier_a_include glob
                             the runner lists as matching no file
                             (scope.unmatched_tier_a_include, [] when the key
                             is absent) counts no name. An extraction the
@@ -267,12 +317,14 @@ reading files and writing one JSON object:
                             tier_a_include set is no tier A list
               --name        a name read by eye whose file is not known
               --provenance  the provenance entries' named exports (State 2),
-                            and the kinds of restored names
+                            and the kinds of restored names and of names
+                            exports[] gives no kind at their file
               --metadata    the metadata.json exports[] names (States 2, 3)
             A surface read from the source (--extraction, --quick or
             --per-file) takes no name from --provenance and --metadata:
             they are the baselines of the candidates and guards, and the
-            map gives only a restored name its kind. Without
+            map gives a kind only to a restored name or one exports[] gives
+            none at its file, such as an extraction gap. Without
             one, with --provenance and --metadata both, `state2` gives the
             provenance count, the metadata count and their union count,
             which compute-score.py turns into the State 2 divergence. --fold
@@ -319,14 +371,31 @@ reads it; a re-export row declares nothing) in a file none of the name's
 records names and no scope.exclude glob matches, as {name, kind, file,
 line, signatureLine}, its file with forward slashes and no leading `./`,
 its line and signature line taken as a record's are; sorted, each
-declaration once however its path is written, and [] with none, with no
-extraction or with one the per-file scan replaces. Such a declaration is a
+declaration once however its path is written, and [] with none; null
+with no extraction or with one the per-file scan replaces, which looks for
+none, so null means never looked for (#1026). Such a declaration is a
 same-named function no entry point exports, as cognee's lightweight
 `run_pipeline`, which a lazy `__getattr__` passes on beside the
 orchestrator a namespace exports. They are no records: they join no set,
-no count and no guard, and only score-signatures.py reads them, plan
-binding a documented form to one when the form's own citations name it and
-no other declaration of the name.
+no count and no guard. score-signatures.py plan reads them, binding a
+documented form to one when the form's own citations name it and no other
+declaration of the name, and so does test-skill's Split-Body Sources
+(coverage-check-branches.md), which lets one declaration settle a
+split-body pair only on a list.
+
+Unresolved stars (surface `unresolvedStars`, #1005): each `export *` or
+`export type *` from another package (a specifier with no leading `.` or
+`/`) that a read of the source met and no script resolves, as {file, line,
+statement}: from a complete extraction, each entry_points.unresolved item
+named `*` in a JavaScript-family file (statement `export * from '<from>'`,
+line null); from each --quick output, each `unlisted` record whose
+statement is such an `export * from`; from each --per-file result, each
+`unresolved_stars` string, `<line>: <statement>` (line null when it opens
+with no number), at the result's file, a non-string skipped. Sorted, each
+once (one statement two inputs list, with or without its `;`, is one star:
+a star is its file and specifier, kept with its line), and [] with none.
+They join no record, set, count or guard: gap-ledger.py reads them, so a stale name the skill cites at such a file
+is an Info observation, not a Medium gap.
 
 Candidates and guards (with an extraction, --brief or --metadata): each
 set's count, the metadata `stats.effective_denominator` (--metadata), and
@@ -456,8 +525,20 @@ Usage:
       [--keep <name>]... [--monorepo] [--pattern-reference-intent] [--curated-subset] \\
       [--barrel barrel|empty|none] [--output <file>]
 
+Stdout: the result. With --output the file holds it, and stdout is a
+summary that gives each field under the file's key and names the file
+(#1040):
+  census    {"docsOnly", "localCitations", "output"}
+  floor     {"summary", "output"}
+  metadata  {"skillType", "inflationSignature", "stack": {"basis",
+            "denominator"} or null, "output"}
+  surface   {"exports": the number of records, "denominator",
+            "extraction": {"readByEye", "unread", "fallback"} or null,
+            "extractionGaps": the gaps, whose files and lines the step
+            reads by eye, "output"}
+
 Exit codes:
-  0  the result was printed (and written to --output)
+  0  the result was printed, or written to --output and its summary printed
   1  an input file is missing, unreadable or not the JSON (or the YAML
      brief) it should be, or the --skill-dir holds no SKILL.md or a skill
      file that is not UTF-8 (one line on stderr)
@@ -492,22 +573,38 @@ CITATION_FORMS = {
 LOCAL_FORMS = ("AST", "SRC", "from skill")
 # floor: the forms a documented name takes, in the order an origin on one line sorts by.
 FLOOR_FORMS = ("table-row", "heading", "declaration")
-# The first header cells (lower case, singular or plural) of a table whose first column names exports.
+# The header words (lower case, singular or plural) of a table whose first column names exports: its first header
+# cell is one, or parts split at `/` whose first is one and each other one or a FLOOR_PROPS_HEADERS word, as
+# `Component / Props` is and `Prop / Type` and `Symbol / keyword` are not (_floor_table_header, #1004).
 FLOOR_TABLE_HEADERS = frozenset({
     "export", "exports", "symbol", "symbols", "function", "functions", "class", "classes", "interface", "interfaces",
     "type", "types", "hook", "hooks", "component", "components", "helper", "helpers", "constant", "constants",
-    "enum", "enums", "api", "apis"})
+    "enum", "enums", "api", "apis", "query", "queries"})
 # The header words (as _header_label reads them, a partial label cut) of a floor table's column that writes the row's
-# signature (#888); a header with any other text after the word, such as `Signature (TypeScript)`, is not one.
+# signature (#888): its header is one, or has a part split at `/` that is one, as `Signature / Purpose` and
+# `Props / Signature` do (_signature_column, #1030); a header with any other text after the word, such as
+# `Signature (TypeScript)`, is not one, and neither is an Arguments, Args, Usage, Syntax or Example header.
 FLOOR_SIGNATURE_HEADERS = frozenset({"signature", "signatures"})
 # The header words (as _header_label reads them, a partial label cut) of a floor table's column that writes the row's
 # props or parameters (#888): its cell is read only when it is exactly one code span, and only after the Signature
-# and first-cell forms; a `Props / Usage` or `Key params` header is not one.
+# and first-cell forms; the whole header is the word, so a `Props / Usage`, `Props / Type` or `Key params` header
+# is not one (#1030: the whole-span read would pin a type alias or a constant's value there).
 FLOOR_PROPS_HEADERS = frozenset({"props", "params", "parameters"})
+# The header words (as _header_label reads them, whitespace runs as one space) of a floor table's column that writes
+# a row's key parameters, as Create Skill's Key API Summary does (#997): its cell is read only after the Props step,
+# on a row whose Kind cell names a callable (FLOOR_CALLABLE_KIND_RE), and only when it opens with the row name's
+# complete form, which is then partial; a compound `Key params / shape` header is not one.
+FLOOR_KEY_PARAMS_HEADERS = frozenset({"key params", "key parameters"})
+# A Kind cell that names a callable, matched as a whole word in any case (#997): `function`, `sync fn`,
+# `async fn`, `abstract class`, `sync generator`, `method`, `hook`. A `tuple`, `type alias`, `str` or
+# `pydantic model` row's Key params cell writes a value or fields, not a call, so it is never read.
+FLOOR_CALLABLE_KIND_RE = re.compile(
+    r"\b(?:functions?|fns?|funcs?|methods?|class(?:es)?|constructors?|generators?|hooks?)\b", re.IGNORECASE)
 # The partial labels (lower case, whitespace runs as one space) a header may give in parentheses after its word, as
 # `Signature (simplified)` and `Props (simplified)` do (#888): each form read from that Signature, Props, Params or
 # Parameters column is partial, so an optional parameter it leaves out is Info, not Critical, and the floor pins the
-# label with the form.
+# label with the form, as it does for a form whose parameter group holds an ellipsis item (_ellipsis_labelled, #1029)
+# and for each form a Key params column gives (#997), whose header is that label.
 FLOOR_PARTIAL_LABELS = frozenset({"simplified", "partial", "key parameters", "key params"})
 # What a usage form writes before its name's complete form (#888), each part optional, in this order: an assignment
 # (`x =`, `a, b =`, `const { data } =`, `let [a, b] =`), `await`, `new`, and a receiver or module path (`cognee.`,
@@ -584,6 +681,13 @@ NOT_PATTERN_REFERENCE = frozenset({"specific-modules", "component-library", "doc
 # The languages skf-extract-public-api.py's recipes read (its LANGUAGE_FAMILIES).
 RECIPE_LANGUAGES = frozenset({"python", "rust", "go", "golang", "typescript", "ts", "tsx", "javascript", "js",
                               "jsx", "vue"})
+# The extensions of skf-extract-public-api.py's JavaScript family (its EXTENSION_LANGUAGES), whose `export *` from
+# another package the runner leaves unresolved (#1005).
+JS_FAMILY_EXTENSIONS = frozenset({".ts", ".mts", ".cts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".vue"})
+# A per-file result's `unresolved_stars` item: `<line>: <statement>` (groups: the line, the statement).
+STAR_ITEM_RE = re.compile(r"\s*(\d+)\s*:\s*(.*\S)\s*")
+# The module specifier of an `unresolvedStars` statement (group 2), which tells two listings of one star apart.
+STAR_SPECIFIER_RE = re.compile(r"""\bfrom\s*(['"])(.+?)\1""")
 
 
 class InputError(Exception):
@@ -716,6 +820,22 @@ def _header_word(cell: str) -> str:
     """A header cell's word, lower case, unwrapped from `**` or `__`."""
     m = EMPHASIS_RE.fullmatch(cell)
     return (m.group(2) if m else cell).strip().lower()
+
+
+def _header_parts(cell: str) -> list[str]:
+    """A header cell's word (_header_word) split at each `/`, each part stripped and read as _header_word reads a
+    cell: `Component / Props`, `**Function/Type**` and `**Component** / Props` give two parts, a cell with no `/`
+    its one word."""
+    return [_header_word(part.strip()) for part in _header_word(cell).split("/")]
+
+
+def _floor_table_header(cell: str) -> bool:
+    """Whether a table's first header cell names exports, so the floor reads that table's first column (#1004): its
+    first part (_header_parts) is one of FLOOR_TABLE_HEADERS and each other part one of them or of
+    FLOOR_PROPS_HEADERS. `Functions`, `Queries`, `Component / Props` and `Function/Type` do; `Name`, `Prop / Type`,
+    `Props / Component` and `Symbol / keyword` do not."""
+    first, *rest = _header_parts(cell)
+    return first in FLOOR_TABLE_HEADERS and all(part in FLOOR_TABLE_HEADERS | FLOOR_PROPS_HEADERS for part in rest)
 
 
 def _header_label(cell: str) -> tuple[str, bool]:
@@ -938,10 +1058,36 @@ def _labelled(form: dict | None, partial: bool) -> dict | None:
     return {**form, "signature_form": "partial"} if form and partial else form
 
 
+def _ellipsis_labelled(signature: dict | None, extension: str = "") -> dict | None:
+    """`signature`, with `signature_form` "partial" when its parameter group holds an ellipsis item (#1029): a member,
+    cut at the commas outside every bracket pair and string (score-signatures.py's _split), that score-signatures.py's
+    _parameter reads as one, `...` or `…` alone, so a rest `...args`, a `*args` and a default `x=...` are none. The
+    group is the whole `params`, or the one a `usage_signature` writes (score-signatures.py's _group). The contract
+    counts such a `...` as the skill's partial label, so the floor pins it with the form, at every origin."""
+    if not signature:
+        return signature
+    scorer = _sibling("score-signatures.py")
+    text = signature.get("params")
+    if text is None:
+        group = scorer._group(signature["usage_signature"], extension)
+        text = signature["usage_signature"][group[0] + 1:group[1]] if group else ""
+    items = scorer._split(text, ",", extension)
+    return _labelled(signature, any(scorer._parameter(item.strip(), extension)["ellipsis"] for item in items))
+
+
 def _column(labels: list[tuple[str, bool]], words: frozenset) -> tuple[int | None, bool]:
     """The first header cell whose word (_header_label) is one of `words`, and its partial label; (None, False) for
     none."""
     return next(((i, labelled) for i, (word, labelled) in enumerate(labels) if word in words), (None, False))
+
+
+def _signature_column(header: list[str]) -> tuple[int | None, bool]:
+    """The first header cell with a part (_header_parts) whose word, as _header_label reads that part, is one of
+    FLOOR_SIGNATURE_HEADERS, and that part's partial label (#1030): `Signature`, `Signature / Purpose`,
+    `Props / Signature` and `Signature (simplified) / Purpose`, labelled, are one; `Signature (TypeScript)`,
+    `Props / Usage` and `Usage` are not. (None, False) for none."""
+    parts = ((i, _header_label(part)) for i, cell in enumerate(header) for part in _header_parts(cell))
+    return next(((i, labelled) for i, (word, labelled) in parts if word in FLOOR_SIGNATURE_HEADERS), (None, False))
 
 
 def _leading_span(cell: str) -> str | None:
@@ -951,18 +1097,46 @@ def _leading_span(cell: str) -> str | None:
     return spans[0] if spans and cell.startswith("`" * run + spans[0] + "`" * run) else None
 
 
+def _key_params_form(header: list[str], cells: list[str], name: str) -> dict | None:
+    """The signature a floor table row's Key params or Key parameters cell writes for `name` (#997), with
+    `signature_form` "partial", as that header labels each of its rows: the cell's leading code span, when the row's
+    Kind cell names a callable (FLOOR_CALLABLE_KIND_RE) and the span is `name`'s complete form with the name written
+    (_call_form: `Mem0Source(data, mode="re-derive")`, `read_manifest(directory) -> COGXManifest | None`), prose
+    after it left out. None for a table with no Kind column, a row of any other kind (`tuple`, `type alias`,
+    `pydantic model`), a span with no name or another one (`("json", None)`, `import { z } from "zod"`), one that is
+    no complete form (`A | B`, `{}`, a usage), and a cell that writes another form of `name` in a later span, so a
+    cell of alternatives stays the reader's. A compound `Key params / shape` header is never read."""
+    segments = _sibling("locate-export-segments.py")
+    words = [_header_label(cell)[0] for cell in header]
+    at = next((i for i, word in enumerate(words) if " ".join(word.split()) in FLOOR_KEY_PARAMS_HEADERS), None)
+    kind = next((i for i, word in enumerate(words) if word == "kind"), None)
+    if at is None or kind is None or max(at, kind) >= len(cells) or not FLOOR_CALLABLE_KIND_RE.search(cells[kind]):
+        return None
+    span = _leading_span(cells[at])
+    if span is None or SPAN_NAME_RE.match(span.strip()).group(1) != name or not (form := _call_form(span, name)):
+        return None
+    scorer = _sibling("score-signatures.py")
+    later = segments._inline_code(cells[at])[1:]
+    if any(_floor_name(other) == name and scorer._group(other.strip()) is not None for other in later):
+        return None  # the cell writes two forms of the name: which one the skill means is the reader's
+    return _labelled(form, True)
+
+
 def _row_form(header: list[str], row: list[str]) -> dict | None:
     """The signature a floor table's row writes for the one name its first cell names (a row naming several gives
-    none), each cell's `\\|` read as `|`: the leading code span of its Signature or Signatures cell, else, when that
-    span writes no parameter group, the one span of its first cell that gives that name (another export's span there
-    gives nothing), each a complete form (_call_form), else a usage form (_usage_form, #888). A Signature span with a
-    group that is neither gives none, and so does such a first-cell span. Only then its Props, Params or Parameters
-    cell, when the whole cell is one code span (trailing prose or several spans leave it the reader's): a complete
+    none), each cell's `\\|` read as `|`: the leading code span of its Signature or Signatures cell, a header with a
+    part split at `/` that is one included (`Signature / Purpose`, `Props / Signature`; _signature_column, #1030),
+    else, when that span writes no parameter group, the one span of its first cell that gives that name (another
+    export's span there gives nothing), each a complete form (_call_form), else a usage form (_usage_form, #888). A
+    Signature span with a group that is neither gives none, and so does such a first-cell span. Only then its Props,
+    Params or Parameters cell, its whole header the word (`Props / Usage` and `Props / Type` are none), when the
+    whole cell is one code span (trailing prose or several spans leave it the reader's): a complete
     form, else a usage form, else none when it writes a parameter group or opens a JSX element, or when it only names
     a type or writes a placeholder (`ButtonProps`, `ComponentProps<typeof Link>`, `None`, `-`), else the span whole as
     `params`, `return_type` "", kept as written. A Signature, Props, Params or Parameters header may carry a partial
     label (_header_label, #888): the form its cell gives then also gives `signature_form` "partial", the first-cell
-    form never."""
+    form never. With no Props, Params or Parameters span, last its Key params cell (_key_params_form, #997). An
+    Arguments, Args, Usage, Syntax or Example cell is never read: its form stays the reader's."""
     segments = _sibling("locate-export-segments.py")
     scorer = _sibling("score-signatures.py")
     names = {name for name in map(_floor_name, segments._inline_code(row[0])) if name}
@@ -971,7 +1145,7 @@ def _row_form(header: list[str], row: list[str]) -> dict | None:
     [name] = names
     cells = [cell.replace("\\|", "|") for cell in row]
     labels = [_header_label(cell) for cell in header]
-    at, partial = _column(labels, FLOOR_SIGNATURE_HEADERS)
+    at, partial = _signature_column(header)
     span = _leading_span(cells[at]) if at is not None and at < len(cells) else None
     if span is not None and (form := _span_form(span, name)):
         return _labelled(form, partial)
@@ -985,7 +1159,7 @@ def _row_form(header: list[str], row: list[str]) -> dict | None:
     at, partial = _column(labels, FLOOR_PROPS_HEADERS)
     span = _whole_span(cells[at], segments) if at is not None and at < len(cells) else None
     if span is None:
-        return None
+        return _key_params_form(header, cells, name)
     if form := _span_form(span, name):
         return _labelled(form, partial)
     if scorer._group(span.strip()) is not None or ELEMENT_OPEN_RE.match(span.strip()) or not span.strip():
@@ -1074,11 +1248,11 @@ def floor(skill_dir: str) -> dict:
     signatures: dict[tuple[str, int, int, str], dict] = {}  # the first per (name, file, line, form), in span order
 
     def add(name: str | None, file_index: int, index: int, form: str, label: str | None = None,
-            signature: dict | None = None) -> None:
+            signature: dict | None = None, extension: str = "") -> None:
         if name:
             found.setdefault(name, set()).add((file_index, index + 1, form, label))
             if signature is not None:
-                signatures.setdefault((name, file_index, index + 1, form), signature)
+                signatures.setdefault((name, file_index, index + 1, form), _ellipsis_labelled(signature, extension))
 
     js_family = segments.JS_FAMILY - {"svelte"}  # a Svelte block's `export let` is a component prop
     for file_index, lines in enumerate(texts):
@@ -1089,7 +1263,7 @@ def floor(skill_dir: str) -> dict:
             if block["kind"] != "table-row" or block["header"] is None:
                 continue
             header = _cells(block["header"])
-            if _header_word(header[0]) not in FLOOR_TABLE_HEADERS:
+            if not _floor_table_header(header[0]):
                 continue
             row = _cells(lines[block["start"]])
             kind_at = next((i for i, cell in enumerate(header) if _header_word(cell) == "kind"), None)
@@ -1112,7 +1286,8 @@ def floor(skill_dir: str) -> dict:
                 name_end = _function_declaration(masked[offset], language, js_family)
                 signature = (_declaration_form(lines[opening + 1:closing], offset, language, name_end)
                              if name_end is not None else None)
-                add(name, file_index, opening + 1 + offset, "declaration", None, signature)
+                add(name, file_index, opening + 1 + offset, "declaration", None, signature,
+                    ".rs" if language in RUST_LANGUAGES else "")
 
     names = []
     by_form = dict.fromkeys(FLOOR_FORMS, 0)
@@ -1242,9 +1417,12 @@ def _record(name, kind, file, line, signature_line, origin) -> dict:
             "origin": origin}
 
 
-# A provenance map's export_type, read case-insensitively, as the kind of a restored name (#913): the type kinds
+# A provenance map's export_type, read case-insensitively, as the kind of a restored name (#913) or a name exports[]
+# gives no kind at its file, such as an extraction gap (#1020): the type kinds
 # score-signatures.py's Type Coverage counts (a dataclass, NamedTuple or TypedDict is a class, a Protocol an
-# interface, a type alias a type), and `function` and `const`, which are no type (a TypeVar is no type). Any
+# interface, a type alias a type), and `function` and `const`, which are no type (a TypeVar is no type). The
+# function kinds a map records by eye, `async_function`, `decorator` and a React `component`, are `function`
+# (#1032): no recipe gives such a name a kind, so a class component a map labels `component` reads as one too. Any
 # other export_type (`re-export`, `module`, `decorator_namespace`, ...) gives no kind.
 PROVENANCE_KINDS = {
     **dict.fromkeys(("class", "dataclass", "namedtuple", "typeddict"), "class"),
@@ -1253,18 +1431,22 @@ PROVENANCE_KINDS = {
     **dict.fromkeys(("type", "type_alias"), "type"),
     "struct": "struct",
     "trait": "trait",
-    **dict.fromkeys(("function", "method", "staticmethod", "classmethod"), "function"),
+    **dict.fromkeys(("function", "method", "staticmethod", "classmethod", "async_function", "decorator",
+                     "component"), "function"),
     **dict.fromkeys(("const", "constant", "variable", "sentinel", "typevar"), "const"),
 }
 
 
-def _restored_kinds(records: list[dict], provenance: dict | None) -> None:
-    """Give each restored record with no kind the kind PROVENANCE_KINDS reads
-    from the first provenance entry, in map order, with its name and its
-    file (both paths `_norm`ed) and a known kind; no other record changes."""
+def _provenance_kinds(records: list[dict], provenance: dict | None) -> None:
+    """Give each restored or extraction record with no kind and a file (a
+    name the stale-scope guard restored, or one exports[] gives no kind at
+    its file, such as an extraction gap, #1020) the kind PROVENANCE_KINDS
+    reads from the first provenance entry, in map order, with its name and
+    its file (both paths `_norm`ed) and a known kind; no other record
+    changes."""
     entries = _entries(provenance)
     for record in records:
-        if record["origin"] != "restored" or record["kind"] or not record["file"]:
+        if record["origin"] not in ("restored", "extraction") or record["kind"] or not record["file"]:
             continue
         file = _norm(record["file"])
         record["kind"] = next(
@@ -1416,7 +1598,7 @@ def other_declarations(records: list[dict], declarations: list[dict], aliases: d
     record of the name names and no exclude glob matches, as {name, kind,
     file, line, signatureLine}, the file normalised (_norm), sorted, each
     declaration once however its path is written. They are no records:
-    only score-signatures.py reads them."""
+    score-signatures.py plan and test-skill's Split-Body Sources read them."""
     files: dict[str, set[str]] = {}
     for record in records:
         files.setdefault(record["name"], set()).update([_norm(record["file"])] if record.get("file") else [])
@@ -1654,6 +1836,54 @@ def from_extraction(data: dict, language: str | None = None, brief: dict | None 
     }
 
 
+def _bare(specifier: object) -> bool:
+    """Whether a module specifier names another package: a non-empty string with no leading `.` or `/`."""
+    return isinstance(specifier, str) and bool(specifier.strip()) and not specifier.strip().startswith((".", "/"))
+
+
+def _star(file: object, line: object, statement: object) -> dict | None:
+    """An `unresolvedStars` item, or None for one with no file or statement."""
+    if not (isinstance(file, str) and file.strip() and isinstance(statement, str) and statement.strip()):
+        return None
+    return {"file": _norm(file), "line": _count(line) or None, "statement": statement.strip()}
+
+
+def extraction_stars(data: dict) -> list[dict]:
+    """The runner's `export *` from another package (#1005): each
+    entry_points.unresolved item named `*` whose `from` is bare, in a
+    JavaScript-family file. The runner records no line for it."""
+    points = data.get("entry_points") if isinstance(data.get("entry_points"), dict) else {}
+    stars = []
+    for item in points.get("unresolved") or []:
+        if (isinstance(item, dict) and item.get("name") == "*" and _bare(item.get("from"))
+                and isinstance(item.get("file"), str)
+                and posixpath.splitext(item["file"])[1].lower() in JS_FAMILY_EXTENSIONS):
+            stars.append(_star(item["file"], None, f"export * from '{item['from'].strip()}'"))
+    return [s for s in stars if s]
+
+
+def quick_stars(data: dict) -> list[dict]:
+    """A --quick output's `export * from` another package (#1005): each
+    `unlisted` record whose statement is one and whose specifier is bare."""
+    stars = [_star(u.get("file"), u.get("line"), u.get("statement")) for u in data.get("unlisted") or []
+             if isinstance(u, dict) and isinstance(u.get("statement"), str)
+             and u["statement"].startswith("export * from") and _bare(u.get("specifier"))]
+    return [s for s in stars if s]
+
+
+def _unique_stars(stars: list[dict]) -> list[dict]:
+    """Each star once, sorted by file, line and statement (#1005): a --quick record and a per-file result can list
+    one statement, as `export * from 'x'` and as the source writes it (`export * from 'x';`), so a star is its file
+    and the specifier its statement names (its line and statement when it names none), kept with a line when one of
+    its listings has one, else its first statement in order."""
+    kept: dict[tuple, dict] = {}
+    for star in sorted(stars, key=lambda s: (s["line"] is None, s["file"], s["line"] or 0, s["statement"])):
+        specifier = STAR_SPECIFIER_RE.search(star["statement"])
+        key = (star["file"], specifier.group(2)) if specifier else (star["file"], star["line"], star["statement"])
+        kept.setdefault(key, star)
+    return sorted(kept.values(), key=lambda s: (s["file"], s["line"] or 0, s["statement"]))
+
+
 def from_quick(data: dict) -> list[dict]:
     exports = data.get("exports")
     if not isinstance(exports, list):
@@ -1662,8 +1892,9 @@ def from_quick(data: dict) -> list[dict]:
             for e in exports if isinstance(e, dict) and isinstance(e.get("name"), str) and e["name"]]
 
 
-def from_per_file(path: str) -> tuple[list[dict], list[str]]:
-    """(the records of one per-file result, its schema breaches)."""
+def from_per_file(path: str) -> tuple[list[dict], list[str], list[dict]]:
+    """(the records of one per-file result, its schema breaches, its
+    `unresolved_stars` as `unresolvedStars` items, #1005)."""
     scorer = _sibling("score-signatures.py")
     try:
         text = Path(path).read_bytes().decode("utf-8-sig")
@@ -1671,15 +1902,21 @@ def from_per_file(path: str) -> tuple[list[dict], list[str]]:
         raise InputError(f"cannot read --per-file {path}: {exc}") from exc
     results, errors = scorer.parse_result_text(text, Path(path).name)
     if errors:
-        return [], errors
-    records = []
+        return [], errors, []
+    records, stars = [], []
     for result in results:
         types = set(result.get("types_found") or [])
         for name in sorted(set(result.get("exports_found") or []) | types):
             if name:
                 records.append(_record(name, "type" if name in types else None, result["file"], None, None,
                                        "per-file"))
-    return records, []
+        listed = result.get("unresolved_stars")
+        # Not schema-checked: an item that is no string is skipped, never a breach.
+        for item in listed if isinstance(listed, list) else []:
+            if isinstance(item, str):
+                m = STAR_ITEM_RE.fullmatch(item)
+                stars.append(_star(result["file"], int(m.group(1)) if m else None, m.group(2) if m else item))
+    return records, [], [s for s in stars if s]
 
 
 def fold_names(names: list[str], prefixes: list[str], keep: set[str],
@@ -1778,6 +2015,8 @@ def surface(args: argparse.Namespace) -> dict:
     warnings: list[str] = []
     out: dict = {"candidates": None, "guards": None, "denominator": None, "state2": None, "canonical": None,
                  "extraction": None, "extractionGaps": [], "excluded": {"outsideScope": [], "nestedEntries": []}}
+    # Each `export *` from another package a read of the source met (#1005): no record, set or count.
+    stars: list[dict] = []
 
     meta = _object(args.metadata, "--metadata") if args.metadata else None
     provenance = _object(args.provenance, "--provenance") if args.provenance else None
@@ -1798,16 +2037,20 @@ def surface(args: argparse.Namespace) -> dict:
         out["extractionGaps"] = extracted["gaps"]
         out["excluded"] = {"outsideScope": extracted["outside"], "nestedEntries": extracted["nested"]}
         warnings += [f"{Path(args.extraction).name}: {w}" for w in data.get("warnings") or [] if isinstance(w, str)]
+        # one the per-file scan replaces gives no star: the scan's results list theirs
+        stars += [] if extracted["extraction"]["fallback"]["needed"] else extraction_stars(data)
     quick_outputs = []
     for path in args.quick or []:
         data = _object(path, "--quick")
         quick_outputs.append(data)
         records += from_quick(data)
+        stars += quick_stars(data)
         warnings += [f"{Path(path).name}: {w}" for w in data.get("warnings") or [] if isinstance(w, str)]
     violations: list[str] = []
     for path in args.per_file or []:
-        found, errors = from_per_file(path)
+        found, errors, starred = from_per_file(path)
         records += found
+        stars += starred
         violations += errors
     if violations:
         raise SchemaError(violations)
@@ -1870,18 +2113,21 @@ def surface(args: argparse.Namespace) -> dict:
     sets["all"] = sorted({r["name"] for r in records})
     # A nested Python top's records count in the scope sets, never in `all`.
     records += extracted["nestedRecords"] if extracted is not None else []
-    # A restored name takes its kind from the provenance map at its file (#913): no set, count or guard changes.
+    # A restored name, or one exports[] gives no kind at its file such as an extraction gap, takes its kind from the
+    # provenance map at its file (#913, #1020): no set, count or guard changes.
     if provenance is not None:
-        _restored_kinds(records, provenance)
+        _provenance_kinds(records, provenance)
     records.sort(key=lambda r: (r["name"], str(r["file"] or ""), r["origin"]))
 
     # The scope: the one the extractor recorded, else the brief's.
     scope = extracted["scope"] if extracted is not None and any(extracted["scope"].values()) else None
     if scope is None:
         scope = brief["scope"] if brief is not None else _scope(None, None, None)
-    # Each other declaration of a surface name (#918), for the signature plan alone: no record, set or count.
+    # Each other declaration of a surface name (#918), for the signature plan alone: no record, set or count. Only
+    # a runner extraction looks for them, so with no extraction, or one the per-file scan replaces, the list is
+    # null (never looked for), not [] (none found), and the split-body Source settles no pair on it (#1026).
     others = (other_declarations(records, extracted["declarations"], extracted["aliases"], scope["exclude"])
-              if extracted is not None else [])
+              if extracted is not None and not extracted["extraction"]["fallback"]["needed"] else None)
     # A tier A glob the runner lists as matching no file counts no name, and
     # so does one whose folder or file differs from every scope.include
     # glob's before any `*` or `?` (`gen/**` beside `src/**`) or one a
@@ -2026,6 +2272,7 @@ def surface(args: argparse.Namespace) -> dict:
         },
         "exports": records,
         "otherDeclarations": others,
+        "unresolvedStars": _unique_stars(stars),
         "sets": sets,
         **out,
         "warnings": warnings,
@@ -2060,18 +2307,18 @@ def _build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("census", help="count the citation forms: is the skill docs-only?")
     p.add_argument("--skill-dir", required=True, help="the skill package: SKILL.md and references/")
-    p.add_argument("--output", help="also write the result to this file")
+    p.add_argument("--output", help="write the result to this file and print only its summary")
     p.set_defaults(func=_cmd_census)
 
     p = sub.add_parser("floor", help="the names the skill documents in a fixed form, which the inventory keeps")
     p.add_argument("--skill-dir", required=True, help="the skill package: SKILL.md and references/")
-    p.add_argument("--output", help="also write the result to this file")
+    p.add_argument("--output", help="write the result to this file and print only its summary")
     p.set_defaults(func=_cmd_floor)
 
     p = sub.add_parser("metadata", help="the metadata.json and provenance-map counts")
     p.add_argument("--metadata", required=True, help="the skill's metadata.json")
     p.add_argument("--provenance", help="the provenance map, when there is one")
-    p.add_argument("--output", help="also write the result to this file")
+    p.add_argument("--output", help="write the result to this file and print only its summary")
     p.set_defaults(func=_cmd_metadata)
 
     p = sub.add_parser("surface", help="the enumerated source surface, its name sets and candidates")
@@ -2103,9 +2350,30 @@ def _build_parser() -> argparse.ArgumentParser:
                    help="the entry points as you read them, where no extraction or quick output tells: none (no "
                         "barrel file at any recognized entry-point path), empty (the primary one exports nothing) "
                         "or barrel")
-    p.add_argument("--output", help="also write the result to this file")
+    p.add_argument("--output", help="write the result to this file and print only its summary")
     p.set_defaults(func=surface)
     return parser
+
+
+def _summary(cmd: str, result: dict, output: str) -> dict:
+    """What a subcommand prints when --output holds its result: the fields the step decides on, under the keys the
+    file gives them (a list as its length, a stack without its names), and the file's path as `output`. The surface's
+    extractionGaps stay a list: coverage-check §2 reads each gap's file and line from the JSON it has in hand."""
+    if cmd == "census":
+        summary = {"docsOnly": result["docsOnly"], "localCitations": result["localCitations"]}
+    elif cmd == "floor":
+        summary = {"summary": result["summary"]}
+    elif cmd == "metadata":
+        stack = result["stack"]
+        summary = {"skillType": result["skillType"], "inflationSignature": result["inflationSignature"],
+                   "stack": {"basis": stack["basis"], "denominator": stack["denominator"]} if stack else None}
+    else:
+        extraction = result["extraction"]
+        summary = {"exports": len(result["exports"]), "denominator": result["denominator"],
+                   "extraction": ({key: extraction[key] for key in ("readByEye", "unread", "fallback")}
+                                  if extraction else None),
+                   "extractionGaps": result["extractionGaps"]}
+    return {**summary, "output": output}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -2124,6 +2392,8 @@ def main(argv: list[str] | None = None) -> int:
         target = Path(args.output)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes((json.dumps(result, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
+        # The step reads the result from the file, so stdout gives only its summary and the path (#1040).
+        result = _summary(args.cmd, result, args.output)
     print(json.dumps(result, indent=2))
     return 0
 
