@@ -396,12 +396,12 @@ await add_data_points([alice, bob, charlie])
 
 ```python
 async def add_data_points(
-    data_points: list[DataPoint],
+    data_points: list[cognee.infrastructure.engine.DataPoint],
     custom_edges: list | None = None,
     embed_triplets: bool = False,
     ctx: Optional["PipelineContext"] = None,
     graph_only: bool = False,
-) -> list[DataPoint]
+) -> list[cognee.infrastructure.engine.DataPoint]
 ```
 
 `[SRC:cognee/tasks/storage/add_data_points.py:L70-L76]`
