@@ -5,14 +5,14 @@
   "verdict": "PASS",
   "score": 100,
   "threshold": 80,
-  "report_path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261108T135352Z-27b92a60.md",
+  "report_path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261109T215742Z-6af66467.md",
   "next_workflow": "export-skill",
   "exit_code": 0,
   "halt_reason": null,
   "outputs": [
     {
       "type": "report",
-      "path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261108T135352Z-27b92a60.md"
+      "path": "forge-data/oms-cocoindex/1.0.0/test-report-oms-cocoindex-20261109T215742Z-6af66467.md"
     }
   ],
   "summary": {
@@ -29,16 +29,16 @@
     "gapCounts": {
       "Critical": 0,
       "High": 0,
-      "Medium": 1,
+      "Medium": 2,
       "Low": 0,
-      "Info": 51
+      "Info": 46
     },
     "hardGate": "passed"
   },
-  "runId": "20261108T135352Z-27b92a60",
+  "runId": "20261109T215742Z-6af66467",
   "healthCheckDispatched": true,
-  "timestamp": "2026-11-08T14:41:08Z",
-  "run_id": "20261108T135352Z-27b92a60",
+  "timestamp": "2026-11-09T22:50:20Z",
+  "run_id": "20261109T215742Z-6af66467",
   "headless_decisions": [],
   "warnings": [
     "customization_resolver_unavailable: not found"

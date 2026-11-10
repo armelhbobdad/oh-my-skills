@@ -317,12 +317,23 @@ export interface ReactPreview<T extends AddonTypes> extends Preview<ReactTypes &
   meta<TArgs extends Args, Decorators extends DecoratorFunction<ReactTypes & T, any>, TMetaArgs extends Partial<TArgs & T['args']>>(
     meta: { render?; component?: ComponentType<TArgs>; decorators?: Decorators | Decorators[]; args?: TMetaArgs }
       & Omit<ComponentAnnotations<ReactTypes & T, TArgs>, 'decorators' | 'component' | 'args' | 'render'>
-  ): ReactMeta<InferReactTypes<T, TArgs, Decorators>, /* component annotations with the meta's args */>;
+  ): ReactMeta<InferReactTypes<T, TArgs, Decorators>, Omit<ComponentAnnotations<InferReactTypes<T, TArgs, Decorators>>, 'args'> & { args: Partial<TArgs> extends TMetaArgs ? {} : TMetaArgs }>;
 }
 
 export interface ReactMeta<T extends ReactTypes, MetaInput extends ComponentAnnotations<T>>  // :147
   extends Meta<T, MetaInput> {
-  story(/* a story object or a render function */): ReactStory<T, /* the story input */>;  // several overloads
+  // :169, a render function, or annotations whose render takes no args
+  story<TInput extends (() => ReactTypes['storyResult']) | (StoryAnnotations<T, T['args']> & { render: () => ReactTypes['storyResult'] })>(
+    story: TInput
+  ): ReactStory<T, TInput extends () => ReactTypes['storyResult'] ? { render: TInput } : TInput>;
+  // :200, the primary overload: args the meta already sets become optional, any other required arg must be given here
+  story<TInput extends Simplify<StoryAnnotations<T, AddMocks<T['args'], MetaInput['args']>, SetOptional<T['args'], keyof T['args'] & keyof MetaInput['args']>>>>(
+    story: TInput
+  ): ReactStory<T, TInput>;
+  // :231, no argument: it matches only once the meta sets every required arg, else its rest type is [never]
+  story(
+    ..._args: Partial<T['args']> extends SetOptional<T['args'], keyof T['args'] & keyof MetaInput['args']> ? [] : [never]
+  ): ReactStory<T, {}>;
 }
 
 export interface ReactStory<T extends ReactTypes, TInput extends StoryAnnotations<T, T['args']>>  // :249

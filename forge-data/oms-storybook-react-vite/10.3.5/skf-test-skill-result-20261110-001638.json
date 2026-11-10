@@ -1,0 +1,46 @@
+{
+  "skill": "skf-test-skill",
+  "status": "success",
+  "skill_name": "oms-storybook-react-vite",
+  "verdict": "PASS",
+  "score": 100,
+  "threshold": 80,
+  "report_path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261109T231529Z-b6787f7b.md",
+  "next_workflow": "export-skill",
+  "exit_code": 0,
+  "halt_reason": null,
+  "outputs": [
+    {
+      "type": "report",
+      "path": "forge-data/oms-storybook-react-vite/10.3.5/test-report-oms-storybook-react-vite-20261109T231529Z-b6787f7b.md"
+    }
+  ],
+  "summary": {
+    "score": 100,
+    "threshold": 80,
+    "result": "PASS",
+    "testMode": "naive",
+    "activeCategories": [
+      "exportCoverage",
+      "signatureAccuracy",
+      "typeCoverage",
+      "externalValidation"
+    ],
+    "gapCounts": {
+      "Critical": 0,
+      "High": 0,
+      "Medium": 76,
+      "Low": 0,
+      "Info": 16
+    },
+    "hardGate": "passed"
+  },
+  "runId": "20261109T231529Z-b6787f7b",
+  "healthCheckDispatched": true,
+  "timestamp": "2026-11-10T00:16:38Z",
+  "run_id": "20261109T231529Z-b6787f7b",
+  "headless_decisions": [],
+  "warnings": [
+    "customization_resolver_unavailable: not found"
+  ]
+}

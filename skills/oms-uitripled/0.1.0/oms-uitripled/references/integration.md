@@ -69,7 +69,7 @@ export {};
 
 `[SRC:packages/components/react-shadcn/src/index.ts:L2]`
 
-This is deliberate. If the barrel re-exported everything, `import { Button } from "@uitripled/react-shadcn"` would pull in tree-shake-hostile code (all 232 source files share module-level imports of `framer-motion`, and most are `"use client"` components). The empty barrel forces consumers to either:
+This is deliberate. If the barrel re-exported everything, `import { Button } from "@uitripled/react-shadcn"` would pull in tree-shake-hostile code (175 of the 232 source files import `framer-motion` at module level, and 218 are `"use client"` components). The empty barrel forces consumers to either:
 
 1. Use the CLI (`npx shadcn@latest add @uitripled/<name>`) — files land in your project, so there is nothing to tree-shake.
 2. Use subpath imports (`@uitripled/react-shadcn/ui/button`) — only the requested file is loaded.

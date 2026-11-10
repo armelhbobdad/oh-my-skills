@@ -70,8 +70,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
 `[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L18]`
 `[AST:packages/components/react-shadcn/src/ui-library-provider.tsx:L31]`
 
-**Use a component.** Every installed component requires `"use client"` because
-all 171 shadcn entries depend on `framer-motion` and `react`:
+**Use a component.** Render the copied components from client code: 170 of the
+171 shadcn entries ship a file that starts with `"use client"`, and the other,
+`social-login-button-shadcnui.tsx`, renders framer-motion components without it.
+Every entry declares `framer-motion` and `react` as npm dependencies, though 9 of
+the 171 files never import `framer-motion`
+`[SRC:packages/registry/registry.json:L1]` `[SRC:packages/components/react-shadcn/src/components/native/social-login-button-shadcnui.tsx:L1]`:
 
 ```tsx
 "use client";
@@ -90,7 +94,7 @@ export default function Page() {
 
 ## Common Workflows
 
-**Compose a landing page from blocks:**
+**Compose a landing page from page and block entries:**
 `hero-section-shadcnui → feature-cards-block-shadcnui → testimonials-block-shadcnui → pricing-section-shadcnui → cta-block-shadcnui → footer-block-shadcnui`
 
 **Install a page with its dependency graph:**
@@ -155,7 +159,7 @@ The component props interfaces (e.g., `NativeHoverCardProps`, the props of `Nati
 - **`packages/registry/registry.json`** — Source of truth for the 278-item catalog (278 total, 171 react-shadcn). Shadcn-compatible format with `type`, `registryDependencies`, `dependencies`, `files`.
 - **`packages/components/react-shadcn/`** — Component source. Subtrees: `src/ui/` (19 shadcn/ui primitives — Button, Card, Dialog, etc.), `src/components/` (171 motion components grouped by category), `src/components/theme-provider.tsx`, `src/ui-library-provider.tsx` (setup entry points), `src/lib/utils.ts` (a `cn` wrapper over `@uitripled/utils`' `cn`).
 - **`packages/uitripled/`** — Standalone CLI (`npx uitripled add <name>`). Fetches from `https://ui.tripled.work/r/<name>.json`. Independent from the shadcn CLI path.
-- **`packages/utils/`** — `@uitripled/utils` workspace package exporting `cn` (Tailwind class merger), `UILibrary`/`ComponentCategory`/`Component` types, and the Landing Builder helpers (`sanitizeSlug`, `generateGridCode`, `mergeComponentImports`, etc.).
+- **`packages/utils/`** — `@uitripled/utils` workspace package exporting `cn` (Tailwind class merger), `UILibrary`/`ComponentCategory`/`Component` types, the Landing Builder helpers (`sanitizeSlug`, `generateUniqueSlug`, `mergeComponentImports`, etc.) and the grid helpers (`GAP_VALUES`, `generateGridCode`, `initializeCells`, etc.). The docs app imports none of the Landing Builder or grid helpers from this package: it runs copies (`references/utils.md`).
 - **`apps/docs/public/llms.txt` + `llms-full.txt`** — Project-authored AI-optimized docs shipped alongside the gallery site. Authoritative CLI install command source.
 
 ## CLI
@@ -184,7 +188,7 @@ The standalone CLI fetches JSON from `https://ui.tripled.work/r/{component}.json
 
 ## Full API Reference
 
-Detailed provider signatures, prop tables, hook return shapes, hydration behavior, and usage examples live in `references/setup.md` (`ThemeProvider`, `useTheme`, `UILibraryProvider`, `useUILibrary`) and `references/utils.md` (`cn` + Landing Builder helpers: `sanitizeSlug`, `generateUniqueSlug`, `GAP_VALUES`, `generateGridCode`, `initializeCells`, `mergeComponentImports`). The standalone `uitripled add` CLI implementation notes (interactive prompt, install-path priority `src/components` → `app/components` → `components`, `--overwrite` semantics, dependency hinting) and the `fetchComponent` helper pulling `https://ui.tripled.work/r/{name}.json` are in `references/catalog.md`. Provenance: `[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L18]` `[AST:packages/components/react-shadcn/src/ui-library-provider.tsx:L31]` `[SRC:packages/utils/src/cn.ts:L4]` `[SRC:packages/uitripled/src/commands/add.ts:L8]`.
+Detailed provider signatures, prop tables, hook return shapes, hydration behavior, and usage examples live in `references/setup.md` (`ThemeProvider`, `useTheme`, `UILibraryProvider`, `useUILibrary`) and `references/utils.md` (`cn`, the Landing Builder helpers such as `sanitizeSlug`, `generateUniqueSlug` and `mergeComponentImports`, and the grid helpers such as `GAP_VALUES`, `generateGridCode` and `initializeCells`). The standalone `uitripled add` CLI implementation notes (interactive prompt, install-path priority `src/components` → `app/components` → `components`, `--overwrite` semantics, dependency hinting) and the `fetchComponent` helper pulling `https://ui.tripled.work/r/{name}.json` are in `references/catalog.md`. Provenance: `[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L18]` `[AST:packages/components/react-shadcn/src/ui-library-provider.tsx:L31]` `[SRC:packages/utils/src/cn.ts:L4]` `[SRC:packages/uitripled/src/commands/add.ts:L8]`.
 
 **Component API.** Every other export of `@uitripled/react-shadcn` `src/` (the `components/native/demo/` example files aside), with its signature read from the source, its install id and its purpose, is in four files: `references/ui-primitives.md` (the shadcn/ui primitives: `Avatar`, `Badge`, `Checkbox`, `Dialog*`, `DropdownMenu*`, `Select*`, `Tabs*`, `Tooltip*`, `badgeVariants`, `buttonVariants`, ...), `references/native-components.md` (the `Native*` components, `VerifiedBadge`, `SocialLoginButton`), `references/motion-components.md` (motion-core and category components, the Grid Generator panels and the `GridCell` component they render) and `references/blocks-and-sections.md` (sections, blocks and composite components such as `AIChatInterface` and `KanbanBoard`). A name that two files declare is the exception. The `src/ui/` `AnimatedCheckbox` and `PasswordInput`, which share their names with motion components, are described under `references/ui-primitives.md` → Same-named components. The second `NativeHoverCard`, `NativeLiquidButton` and `NativeStartNow`, which `components/native/native-hover-card.tsx`, `native-liquid-button.tsx` and `native-start-now.tsx` declare beside the shipped `-shadcnui` files (no registry entry ships them), are described in those components' rows of `references/native-components.md`; of the three, only `native-liquid-button.tsx` declares props that differ from the shipped file's. `bentoPresets` is in `references/utils.md`, and the `@uitripled/registry` arrays (`componentsRegistry`, `nativeComponents`, `uiComponents`) are in `references/catalog.md`. `[SRC:packages/components/react-shadcn/src/components/components/chat/ai-chat-interface.tsx:L54]` `[SRC:packages/registry/src/index.tsx:L8]`
 

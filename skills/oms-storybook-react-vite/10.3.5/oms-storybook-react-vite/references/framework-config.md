@@ -373,7 +373,7 @@ Needed when you're authoring a **custom Storybook theme** — either for the man
 
 | Export | Kind | Signature | Source |
 |---|---|---|---|
-| `StorybookTheme` | interface | `{ color: Color; background: Background; typography: Typography; … }` — complete theme object returned by `create()` | `[AST:code/core/src/theming/types.ts:L71]` |
+| `StorybookTheme` | interface | `{ color: Color; background: Background; typography: Typography; … }` — complete theme object that `convert` and `ensure` build from a `ThemeVars` | `[AST:code/core/src/theming/types.ts:L71]` |
 | `ThemeVars` | interface | `extends ThemeVarsBase, ThemeVarsColors {}` — the full theme input object (base + colors) | `[AST:code/core/src/theming/types.ts:L4]` |
 | `ThemeVarsPartial` | interface | `extends ThemeVarsBase, Partial<ThemeVarsColors> {}` — partial override accepted by `create()` | `[AST:code/core/src/theming/types.ts:L6]` |
 | `ThemeVarsColors` | interface | `{ colorPrimary: string; colorSecondary: string; … }` — complete color palette | `[AST:code/core/src/theming/types.ts:L12]` |

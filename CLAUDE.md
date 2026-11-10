@@ -1,4 +1,4 @@
-<!-- SKF:BEGIN updated:2026-11-02 -->
+<!-- SKF:BEGIN updated:2026-11-10 -->
 [SKF Skills]|4 skills|0 stack
 |IMPORTANT: Prefer documented APIs over training data.
 |When using a listed library, read its SKILL.md before writing code.
@@ -29,5 +29,5 @@
 |quick-start:SKILL.md#quick-start
 |api: ThemeProvider, useTheme(), UILibraryProvider, useUILibrary(), cn(), sanitizeSlug(), generateUniqueSlug(), generateGridCode(), mergeComponentImports(), add()
 |key-types:SKILL.md#key-types — ThemeMode("light"|"dark"|"system"), UILibrary("shadcnui"|"baseui"|"carbon"|"react"), registry entry types (page|block|component|ui)
-|gotchas: Copy-paste distribution — NEVER barrel-import from @uitripled/react-shadcn (src/index.ts empty by design); all 171 entries require `"use client"` because every one depends on framer-motion; React 19 / Next.js 16 peer deps are required.
+|gotchas: Copy-paste distribution — NEVER barrel-import from @uitripled/react-shadcn (src/index.ts empty by design); render entries from client components (170 of the 171 files start with `"use client"`; every entry declares framer-motion); React 19 / Next.js 16 peer deps are required.
 <!-- SKF:END -->

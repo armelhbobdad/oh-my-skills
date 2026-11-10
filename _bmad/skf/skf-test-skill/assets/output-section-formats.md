@@ -20,7 +20,7 @@
 
 ## Coherence Analysis — Naive Mode: Reference Consistency (split-body)
 
-Only rendered when `references/` directory exists alongside SKILL.md. Each row is a split-body gap coverage-check recorded. **Other Side** is the other file of its pair, at its line: `SKILL.md:{skill_md_line}`, or `{other_file}:{other_line}` for two references. Its Source is at **Other Side** when the pinned source contradicts that side and agrees with **Reference File**, else at `{Reference File}:{Reference Line}`. **Contradicted Side** is the path of the one file the source contradicts (`SKILL.md` or a `references/` file's path), `none` when both forms agree with it, or `not settled` when it contradicts both or no source settled it. **Exports Cross-Checked** is `crossChecked.count` from `{run_dir}/inventory.json`, which `scripts/validate-inventory.py` writes: the inventory's names that two or more of the files it reads write, never counted by hand.
+Only rendered when `references/` directory exists alongside SKILL.md. Each row is a split-body gap coverage-check recorded. **Other Side** is the other file of its pair, at its line: `SKILL.md:{skill_md_line}`, or `{other_file}:{other_line}` for two references. Its Source is at **Other Side** when the pinned source contradicts that side and agrees with **Reference File**, else at `{Reference File}:{Reference Line}`. **Contradicted Side** is the path of the one file the source contradicts (`SKILL.md` or a `references/` file's path), `none` when both forms agree with it, or `not settled` when it contradicts both or no source settled it. **Exports Cross-Checked** is `crossChecked.count` from `{run_dir}/inventory.json`, which `scripts/validate-inventory.py` writes: the inventory's names that two or more of the files it reads write, never counted by hand. **Mismatches Found** is the number of `cross_check_mismatches` entries in `{run_dir}/inventory.json`, one for each pair of places whose forms disagree, so an export can count more than once, and 0 when that inventory's `references` is empty, since coverage-check records no split-body gap then.
 
 ```markdown
 ### Reference Consistency (split-body)
@@ -30,7 +30,7 @@ Only rendered when `references/` directory exists alongside SKILL.md. Each row i
 | {per-mismatch rows} |
 
 **Exports Cross-Checked:** {crossChecked.count}
-**Mismatches Found:** {count}
+**Mismatches Found:** {the number of cross_check_mismatches entries}
 ```
 
 ## Coherence Analysis — Contextual Mode
@@ -80,7 +80,7 @@ Every gap a stage finds is one JSON record in the run's gap ledger, `{forge_vers
 ```
 
 - `severity` and `category` come from one row of the Gap Severity table in `references/scoring-rules.md`. The script refuses a category outside its vocabulary, which `uv run scripts/gap-ledger.py categories` lists.
-- `source` is a `file:line` pair whenever a line applies, with nothing after it: update-skill reads the pair as the gap's citation. A gap inside the skill package cites `SKILL.md:{line}` or `references/{file}.md:{line}`. A split-body record, titled `Split-body mismatch: {export} ({reference_file})`, or `Split-body mismatch: {export} ({other_file}, {reference_file})` for two references, cites the side the pinned source contradicts: the other side, `SKILL.md:{skill_md_line}` or `{other_file}:{other_line}`, when `{reference_file}` agrees with the source declaration and the other side does not, else `{reference_file}:{reference_line}`, also when no source settled it. Its remediation names the file to edit and the file and line whose form it takes, and update-skill changes only what it names as contradicting.
+- `source` is a `file:line` pair whenever a line applies, with nothing after it: update-skill reads the pair as the gap's citation. A gap inside the skill package cites `SKILL.md:{line}` or `references/{file}.md:{line}`. A split-body record, titled `Split-body mismatch: {export} ({reference_file})`, or `Split-body mismatch: {export} ({other_file}, {reference_file})` for two references, cites the side the pinned source contradicts: the other side, `SKILL.md:{skill_md_line}` or `{other_file}:{other_line}`, when `{reference_file}` agrees with the source declaration and the other side does not, else `{reference_file}:{reference_line}`, also when no source settled it. Its remediation names the file to edit and the file and line whose form it takes, or, when each form agrees with a different declaration of the name, the citation to add beside each, and update-skill changes only what it names as contradicting.
 - `remediation` follows the Remediation Quality Rules below and names each file it touches.
 - Leave out `id`, `group` and `stage`: the script assigns them (`GAP-{NNN}` in the order the gaps were recorded, the group from the category, the stage from `--stage`).
 
