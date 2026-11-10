@@ -1,0 +1,46 @@
+{
+  "skill": "skf-export-skill",
+  "status": "success",
+  "outputs": [
+    {
+      "type": "skill",
+      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/context-snippet.md"
+    },
+    {
+      "type": "config",
+      "path": "CLAUDE.md"
+    },
+    {
+      "type": "manifest",
+      "path": "skills/.export-manifest.json"
+    }
+  ],
+  "summary": {
+    "skills": [
+      "oms-uitripled"
+    ],
+    "always_on_tokens": 1078,
+    "on_trigger_tokens": {
+      "oms-uitripled": 4299
+    }
+  },
+  "timestamp": "2026-11-10T16:43:47Z",
+  "run_id": "hhvuKXlP",
+  "headless_decisions": [
+    {
+      "gate": "load-skill.confirmation",
+      "default_action": "C",
+      "taken_action": "C",
+      "reason": "headless: auto-continue past skill confirmation"
+    },
+    {
+      "gate": "update-context.write-confirmation",
+      "default_action": "C",
+      "taken_action": "C",
+      "reason": "headless: auto-approve context file update"
+    }
+  ],
+  "warnings": [
+    "customization_resolver_unavailable: not found"
+  ]
+}
