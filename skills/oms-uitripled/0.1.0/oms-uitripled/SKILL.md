@@ -186,6 +186,12 @@ The standalone CLI fetches JSON from `https://ui.tripled.work/r/{component}.json
 <!-- Add custom notes here. This section is preserved during skill updates. -->
 <!-- [/MANUAL:additional-notes-api] -->
 
+## Gotchas
+
+- **Copy-paste distribution: NEVER barrel-import from `@uitripled/react-shadcn`.** Its `src/index.ts` is empty by design (`export {};`): install each entry with the CLI, or import a file by its subpath (`references/integration.md`). `[SRC:packages/components/react-shadcn/src/index.ts:L2]`
+- **Render entries from client components.** 170 of the 171 shadcn entries ship a file that starts with `"use client"`, and every entry declares `framer-motion`. The other file, `social-login-button-shadcnui.tsx`, renders framer-motion components without the directive. `[SRC:packages/registry/registry.json:L1]` `[SRC:packages/components/react-shadcn/src/components/native/social-login-button-shadcnui.tsx:L1]`
+- **React 19 / Next.js 16 peer deps are required.** The react-shadcn package declares `react` and `react-dom` `^19.0.0` and `next` `^16.0.0` as peer dependencies. `[SRC:packages/components/react-shadcn/package.json:L95]`
+
 ## Full API Reference
 
 Detailed provider signatures, prop tables, hook return shapes, hydration behavior, and usage examples live in `references/setup.md` (`ThemeProvider`, `useTheme`, `UILibraryProvider`, `useUILibrary`) and `references/utils.md` (`cn`, the Landing Builder helpers such as `sanitizeSlug`, `generateUniqueSlug` and `mergeComponentImports`, and the grid helpers such as `GAP_VALUES`, `generateGridCode` and `initializeCells`). The standalone `uitripled add` CLI implementation notes (interactive prompt, install-path priority `src/components` → `app/components` → `components`, `--overwrite` semantics, dependency hinting) and the `fetchComponent` helper pulling `https://ui.tripled.work/r/{name}.json` are in `references/catalog.md`. Provenance: `[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L18]` `[AST:packages/components/react-shadcn/src/ui-library-provider.tsx:L31]` `[SRC:packages/utils/src/cn.ts:L4]` `[SRC:packages/uitripled/src/commands/add.ts:L8]`.
