@@ -4,7 +4,7 @@
   "outputs": [
     {
       "type": "skill",
-      "path": "skills/oms-storybook-react-vite/10.3.5/oms-storybook-react-vite/context-snippet.md"
+      "path": "skills/oms-uitripled/0.1.0/oms-uitripled/context-snippet.md"
     },
     {
       "type": "config",
@@ -17,15 +17,15 @@
   ],
   "summary": {
     "skills": [
-      "oms-storybook-react-vite"
+      "oms-uitripled"
     ],
-    "always_on_tokens": 1067,
+    "always_on_tokens": 1078,
     "on_trigger_tokens": {
-      "oms-storybook-react-vite": 4123
+      "oms-uitripled": 4299
     }
   },
-  "timestamp": "2026-11-02T23:39:31Z",
-  "run_id": "YZtYUkhp",
+  "timestamp": "2026-11-10T16:43:47Z",
+  "run_id": "hhvuKXlP",
   "headless_decisions": [
     {
       "gate": "load-skill.confirmation",
