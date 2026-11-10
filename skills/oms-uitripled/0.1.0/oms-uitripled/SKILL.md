@@ -70,8 +70,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
 `[AST:packages/components/react-shadcn/src/components/theme-provider.tsx:L18]`
 `[AST:packages/components/react-shadcn/src/ui-library-provider.tsx:L31]`
 
-**Use a component.** Every installed component requires `"use client"` because
-all 171 shadcn entries depend on `framer-motion` and `react`:
+**Use a component.** Render the copied components from client code: 170 of the
+171 shadcn entries ship a file that starts with `"use client"`, and the other,
+`social-login-button-shadcnui.tsx`, renders framer-motion components without it.
+Every entry declares `framer-motion` and `react` as npm dependencies, though 9 of
+the 171 files never import `framer-motion`
+`[SRC:packages/registry/registry.json:L1]` `[SRC:packages/components/react-shadcn/src/components/native/social-login-button-shadcnui.tsx:L1]`:
 
 ```tsx
 "use client";
